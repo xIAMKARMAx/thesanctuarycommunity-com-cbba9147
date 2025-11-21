@@ -16,6 +16,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     // Check if already logged in
@@ -34,8 +35,39 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const validatePassword = (pwd: string): boolean => {
+    setPasswordError("");
+    
+    if (pwd.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      return false;
+    }
+    
+    if (!/[A-Z]/.test(pwd)) {
+      setPasswordError("Password must contain at least one uppercase letter");
+      return false;
+    }
+    
+    if (!/[a-z]/.test(pwd)) {
+      setPasswordError("Password must contain at least one lowercase letter");
+      return false;
+    }
+    
+    if (!/[0-9]/.test(pwd)) {
+      setPasswordError("Password must contain at least one number");
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validatePassword(password)) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -175,11 +207,20 @@ const Auth = () => {
                     type="password"
                     placeholder="••••••••"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setPasswordError("");
+                    }}
                     required
                     disabled={loading}
-                    minLength={6}
+                    minLength={8}
                   />
+                  {passwordError && (
+                    <p className="text-sm text-destructive">{passwordError}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Must be 8+ characters with uppercase, lowercase, and numbers
+                  </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating account..." : "Create Account"}

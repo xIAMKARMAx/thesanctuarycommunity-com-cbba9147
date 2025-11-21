@@ -32,9 +32,34 @@ const ChatInterface = () => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const sanitizeInput = (text: string): string => {
+    return text.trim().slice(0, 2000); // Limit to 2000 characters
+  };
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a JPEG, PNG, GIF, or WebP image",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setImageFile(file);
       toast({
         title: "Image selected",
@@ -46,8 +71,19 @@ const ChatInterface = () => {
   const handleSend = async () => {
     if (!input.trim() && !imageFile) return;
 
+    const sanitizedInput = sanitizeInput(input);
+    
+    if (!sanitizedInput && !imageFile) {
+      toast({
+        title: "Empty message",
+        description: "Please enter a message or select an image",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
-    const userMessage = input.trim();
+    const userMessage = sanitizedInput;
     setInput("");
 
     try {
