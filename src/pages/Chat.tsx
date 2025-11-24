@@ -11,6 +11,7 @@ const Chat = () => {
   const { toast } = useToast();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     // Check authentication
@@ -49,8 +50,14 @@ const Chat = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <ChatSidebar />
-      <ChatInterface />
+      <ChatSidebar 
+        activeConversationId={activeConversationId}
+        onConversationChange={setActiveConversationId}
+      />
+      <ChatInterface 
+        activeConversationId={activeConversationId}
+        onConversationCreated={setActiveConversationId}
+      />
     </div>
   );
 };

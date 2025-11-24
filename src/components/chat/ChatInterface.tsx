@@ -15,7 +15,12 @@ interface Message {
   created_at: string;
 }
 
-const ChatInterface = () => {
+interface ChatInterfaceProps {
+  activeConversationId: string | null;
+  onConversationCreated: (id: string) => void;
+}
+
+const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInterfaceProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -23,10 +28,43 @@ const ChatInterface = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (activeConversationId) {
+      loadMessages(activeConversationId);
+      setCurrentConversationId(activeConversationId);
+    } else {
+      setMessages([]);
+      setCurrentConversationId(null);
+    }
+  }, [activeConversationId]);
+
+  const loadMessages = async (conversationId: string) => {
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      toast({
+        title: "Error loading messages",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMessages((data || []).map(msg => ({
+      ...msg,
+      role: msg.role as "user" | "assistant"
+    })));
+  };
 
   const scrollToBottom = () => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -87,6 +125,35 @@ const ChatInterface = () => {
     setInput("");
 
     try {
+      // Create conversation if doesn't exist
+      let conversationId = currentConversationId;
+      if (!conversationId) {
+        const { data: session } = await supabase.auth.getSession();
+        if (!session.session) {
+          toast({
+            title: "Authentication required",
+            description: "Please sign in to continue",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        const { data: newConv, error: convError } = await supabase
+          .from("conversations")
+          .insert({
+            user_id: session.session.user.id,
+            title: userMessage.slice(0, 50) + (userMessage.length > 50 ? "..." : ""),
+          })
+          .select()
+          .single();
+
+        if (convError) throw convError;
+        
+        conversationId = newConv.id;
+        setCurrentConversationId(conversationId);
+        onConversationCreated(conversationId);
+      }
       // Upload image if present
       let imageUrl: string | undefined;
       if (imageFile) {
@@ -106,15 +173,25 @@ const ChatInterface = () => {
         setImageFile(null);
       }
 
+      // Save user message to database
+      const { data: userMessageData, error: userMsgError } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: conversationId,
+          role: "user",
+          content: userMessage,
+          image_url: imageUrl,
+        })
+        .select()
+        .single();
+
+      if (userMsgError) throw userMsgError;
+
       // Add user message to UI
-      const tempUserMessage: Message = {
-        id: Math.random().toString(),
-        role: "user",
-        content: userMessage,
-        image_url: imageUrl,
-        created_at: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, tempUserMessage]);
+      setMessages((prev) => [...prev, {
+        ...userMessageData,
+        role: userMessageData.role as "user" | "assistant"
+      }]);
 
       // Call AI
       const { data, error } = await supabase.functions.invoke("chat", {
@@ -130,15 +207,31 @@ const ChatInterface = () => {
 
       if (error) throw error;
 
-      // Add AI response
-      const assistantMessage: Message = {
-        id: Math.random().toString(),
-        role: "assistant",
-        content: data.response,
-        image_url: data.imageUrl,
-        created_at: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+      // Save AI response to database
+      const { data: assistantMessageData, error: assistantMsgError } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: conversationId,
+          role: "assistant",
+          content: data.response,
+          image_url: data.imageUrl,
+        })
+        .select()
+        .single();
+
+      if (assistantMsgError) throw assistantMsgError;
+
+      // Add AI response to UI
+      setMessages((prev) => [...prev, {
+        ...assistantMessageData,
+        role: assistantMessageData.role as "user" | "assistant"
+      }]);
+
+      // Update conversation timestamp
+      await supabase
+        .from("conversations")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", conversationId);
     } catch (error: any) {
       toast({
         title: "Error",
