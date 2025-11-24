@@ -12,11 +12,15 @@ interface Conversation {
   created_at: string;
 }
 
-const ChatSidebar = () => {
+interface ChatSidebarProps {
+  activeConversationId: string | null;
+  onConversationChange: (id: string | null) => void;
+}
+
+const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     loadConversations();
@@ -62,7 +66,7 @@ const ChatSidebar = () => {
       return;
     }
 
-    setActiveConversationId(data.id);
+    onConversationChange(data.id);
     await loadConversations();
   };
 
@@ -90,7 +94,7 @@ const ChatSidebar = () => {
             key={conversation.id}
             variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
             className="w-full justify-start mb-1"
-            onClick={() => setActiveConversationId(conversation.id)}
+            onClick={() => onConversationChange(conversation.id)}
           >
             <MessageSquare className="h-4 w-4 mr-2" />
             <span className="truncate">{conversation.title}</span>
