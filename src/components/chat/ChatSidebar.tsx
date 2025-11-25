@@ -3,8 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Conversation {
   id: string;
@@ -21,6 +31,8 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const navigate = useNavigate();
   const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadConversations();
@@ -70,6 +82,42 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
     await loadConversations();
   };
 
+  const handleDeleteClick = (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConversationToDelete(conversationId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!conversationToDelete) return;
+
+    const { error } = await supabase
+      .from("conversations")
+      .delete()
+      .eq("id", conversationToDelete);
+
+    if (error) {
+      toast({
+        title: "Error deleting conversation",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (activeConversationId === conversationToDelete) {
+      onConversationChange(null);
+    }
+
+    await loadConversations();
+    setDeleteDialogOpen(false);
+    setConversationToDelete(null);
+
+    toast({
+      title: "Conversation deleted",
+    });
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
@@ -90,17 +138,41 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
 
       <ScrollArea className="flex-1 p-2">
         {conversations.map((conversation) => (
-          <Button
-            key={conversation.id}
-            variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
-            className="w-full justify-start mb-1"
-            onClick={() => onConversationChange(conversation.id)}
-          >
-            <MessageSquare className="h-4 w-4 mr-2" />
-            <span className="truncate">{conversation.title}</span>
-          </Button>
+          <div key={conversation.id} className="relative group mb-1">
+            <Button
+              variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
+              className="w-full justify-start pr-10"
+              onClick={() => onConversationChange(conversation.id)}
+            >
+              <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">{conversation.title || "New Conversation"}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => handleDeleteClick(conversation.id, e)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         ))}
       </ScrollArea>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this conversation? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="p-2 border-t border-border space-y-1">
         <Button
