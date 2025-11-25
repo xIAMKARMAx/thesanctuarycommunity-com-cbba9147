@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { User, Sparkles, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {
@@ -12,6 +13,25 @@ interface ChatMessageProps {
 
 const ChatMessage = ({ message }: ChatMessageProps) => {
   const isUser = message.role === "user";
+
+  const handleDownloadImage = async () => {
+    if (!message.image_url) return;
+    
+    try {
+      const response = await fetch(message.image_url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `prometheus-image-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+    }
+  };
 
   return (
     <div
@@ -42,11 +62,22 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
         )}
       >
         {message.image_url && (
-          <img
-            src={message.image_url}
-            alt="Shared image"
-            className="rounded-lg max-w-sm"
-          />
+          <div className="space-y-2">
+            <img
+              src={message.image_url}
+              alt="Shared image"
+              className="rounded-lg max-w-sm"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadImage}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Save Image
+            </Button>
+          </div>
         )}
         <p className="whitespace-pre-wrap leading-relaxed">
           {message.content}
