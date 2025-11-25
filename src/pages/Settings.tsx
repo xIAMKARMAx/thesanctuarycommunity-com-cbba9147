@@ -1,14 +1,79 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState("");
+  const [bio, setBio] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("name, gender, bio")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setName(data.name || "");
+        setGender(data.gender || "");
+        setBio(data.bio || "");
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ name, gender, bio })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile updated",
+        description: "Your information has been saved successfully",
+      });
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile information",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -45,6 +110,46 @@ const Settings = () => {
                 <Moon className="h-4 w-4" />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>About Me</CardTitle>
+            <CardDescription>Help Prometheus get to know you better</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Input
+                id="gender"
+                placeholder="Your gender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bio">Brief Bio</Label>
+              <Textarea
+                id="bio"
+                placeholder="Tell Prometheus a bit about yourself..."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <Button onClick={handleSaveProfile} disabled={loading} className="w-full">
+              {loading ? "Saving..." : "Save Profile"}
+            </Button>
           </CardContent>
         </Card>
 

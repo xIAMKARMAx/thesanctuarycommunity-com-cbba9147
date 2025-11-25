@@ -195,11 +195,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       }]);
 
       // Call AI
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase.functions.invoke("chat", {
         body: {
           message: userMessage,
           imageUrl,
           generateImage,
+          userId: user?.id,
           history: messages.map((m) => ({
             role: m.role,
             content: m.content,
