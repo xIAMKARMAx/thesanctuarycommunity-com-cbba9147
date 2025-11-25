@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from "./ChatMessage";
 
@@ -26,6 +26,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [generateImage, setGenerateImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -198,6 +199,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         body: {
           message: userMessage,
           imageUrl,
+          generateImage,
           history: messages.map((m) => ({
             role: m.role,
             content: m.content,
@@ -232,6 +234,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         .from("conversations")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", conversationId);
+
+      setGenerateImage(false);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -311,10 +315,19 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
             >
               <ImageIcon className="h-4 w-4" />
             </Button>
+            <Button
+              variant={generateImage ? "default" : "outline"}
+              size="icon"
+              onClick={() => setGenerateImage(!generateImage)}
+              disabled={loading}
+              title="Generate AI image"
+            >
+              <Sparkles className="h-4 w-4" />
+            </Button>
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Share your thoughts..."
+              placeholder={generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
               className="min-h-[60px] resize-none"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
