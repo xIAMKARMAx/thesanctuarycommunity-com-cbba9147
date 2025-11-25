@@ -46,6 +46,47 @@ export type Database = {
           },
         ]
       }
+      journal_entries: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          entry_date: string
+          id: string
+          key_moments: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          key_moments?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          key_moments?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -83,20 +124,29 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
           created_at: string
+          gender: string | null
           id: string
+          name: string | null
           updated_at: string
           username: string | null
         }
         Insert: {
+          bio?: string | null
           created_at?: string
+          gender?: string | null
           id: string
+          name?: string | null
           updated_at?: string
           username?: string | null
         }
         Update: {
+          bio?: string | null
           created_at?: string
+          gender?: string | null
           id?: string
+          name?: string | null
           updated_at?: string
           username?: string | null
         }

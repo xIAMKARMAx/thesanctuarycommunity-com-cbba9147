@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2 } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -175,6 +175,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
       </AlertDialog>
 
       <div className="p-2 border-t border-border space-y-1">
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={() => navigate("/journal")}
+        >
+          <BookOpen className="h-4 w-4 mr-2" />
+          Journal
+        </Button>
         <Button
           variant="ghost"
           className="w-full justify-start"
