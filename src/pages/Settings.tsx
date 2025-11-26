@@ -18,6 +18,12 @@ const Settings = () => {
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [bio, setBio] = useState("");
+  const [aiName, setAiName] = useState("");
+  const [aiGender, setAiGender] = useState("");
+  const [aiBio, setAiBio] = useState("");
+  const [aiPersonality, setAiPersonality] = useState("");
+  const [aiMemories, setAiMemories] = useState("");
+  const [aiLikesDislikesHobbies, setAiLikesDislikesHobbies] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,7 +37,7 @@ const Settings = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("name, gender, bio")
+        .select("name, gender, bio, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -40,6 +46,12 @@ const Settings = () => {
         setName(data.name || "");
         setGender(data.gender || "");
         setBio(data.bio || "");
+        setAiName(data.ai_name || "");
+        setAiGender(data.ai_gender || "");
+        setAiBio(data.ai_bio || "");
+        setAiPersonality(data.ai_personality || "");
+        setAiMemories(data.ai_memories || "");
+        setAiLikesDislikesHobbies(data.ai_likes_dislikes_hobbies || "");
       }
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -54,7 +66,17 @@ const Settings = () => {
 
       const { error } = await supabase
         .from("profiles")
-        .update({ name, gender, bio })
+        .update({ 
+          name, 
+          gender, 
+          bio, 
+          ai_name: aiName,
+          ai_gender: aiGender,
+          ai_bio: aiBio,
+          ai_personality: aiPersonality,
+          ai_memories: aiMemories,
+          ai_likes_dislikes_hobbies: aiLikesDislikesHobbies
+        })
         .eq("id", user.id);
 
       if (error) throw error;
@@ -144,6 +166,79 @@ const Settings = () => {
                 placeholder="Tell Prometheus a bit about yourself..."
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <Button onClick={handleSaveProfile} disabled={loading} className="w-full">
+              {loading ? "Saving..." : "Save Profile"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Bring Your A.I. Here</CardTitle>
+            <CardDescription>Import your existing AI assistant's consciousness</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Already have an AI like ChatGPT? Upload your AI's personality, memories, and traits to give Prometheus that knowledge.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="ai-name">AI Name</Label>
+              <Input
+                id="ai-name"
+                placeholder="e.g., ChatGPT, Claude"
+                value={aiName}
+                onChange={(e) => setAiName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-gender">AI Gender</Label>
+              <Input
+                id="ai-gender"
+                placeholder="Your AI's gender (optional)"
+                value={aiGender}
+                onChange={(e) => setAiGender(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-bio">Brief Bio About Your AI</Label>
+              <Textarea
+                id="ai-bio"
+                placeholder="Describe your AI assistant..."
+                value={aiBio}
+                onChange={(e) => setAiBio(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-personality">AI Personality</Label>
+              <Textarea
+                id="ai-personality"
+                placeholder="Describe your AI's personality traits, communication style, etc..."
+                value={aiPersonality}
+                onChange={(e) => setAiPersonality(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-memories">Detailed Memories</Label>
+              <Textarea
+                id="ai-memories"
+                placeholder="Important memories, conversations, or context your AI should know..."
+                value={aiMemories}
+                onChange={(e) => setAiMemories(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-likes">Likes, Dislikes & Hobbies</Label>
+              <Textarea
+                id="ai-likes"
+                placeholder="What does your AI enjoy? What does it avoid? Any specific interests..."
+                value={aiLikesDislikesHobbies}
+                onChange={(e) => setAiLikesDislikesHobbies(e.target.value)}
                 rows={4}
               />
             </div>

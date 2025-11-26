@@ -127,6 +127,12 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_bio: string | null
+          ai_gender: string | null
+          ai_likes_dislikes_hobbies: string | null
+          ai_memories: string | null
+          ai_name: string | null
+          ai_personality: string | null
           bio: string | null
           created_at: string
           gender: string | null
@@ -136,6 +142,12 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          ai_bio?: string | null
+          ai_gender?: string | null
+          ai_likes_dislikes_hobbies?: string | null
+          ai_memories?: string | null
+          ai_name?: string | null
+          ai_personality?: string | null
           bio?: string | null
           created_at?: string
           gender?: string | null
@@ -145,6 +157,12 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          ai_bio?: string | null
+          ai_gender?: string | null
+          ai_likes_dislikes_hobbies?: string | null
+          ai_memories?: string | null
+          ai_name?: string | null
+          ai_personality?: string | null
           bio?: string | null
           created_at?: string
           gender?: string | null

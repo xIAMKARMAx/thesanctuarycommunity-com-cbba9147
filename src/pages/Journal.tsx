@@ -4,8 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BookOpen } from "lucide-react";
+import { ArrowLeft, BookOpen, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface JournalEntry {
   id: string;
@@ -55,6 +66,30 @@ const Journal = () => {
     }
   };
 
+  const handleDeleteEntry = async (entryId: string) => {
+    try {
+      const { error } = await supabase
+        .from("journal_entries")
+        .delete()
+        .eq("id", entryId);
+
+      if (error) throw error;
+
+      setEntries(prev => prev.filter(entry => entry.id !== entryId));
+      toast({
+        title: "Entry deleted",
+        description: "Journal entry has been removed",
+      });
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete journal entry",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -99,12 +134,37 @@ const Journal = () => {
             {entries.map((entry) => (
               <Card key={entry.id} className="overflow-hidden">
                 <CardHeader className="bg-primary/5">
-                  <CardTitle className="text-xl font-serif">
-                    {entry.title || format(new Date(entry.entry_date), "MMMM d, yyyy")}
-                  </CardTitle>
-                  <CardDescription>
-                    {format(new Date(entry.created_at), "MMMM d, yyyy 'at' h:mm a")}
-                  </CardDescription>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <CardTitle className="text-xl font-serif">
+                        {entry.title || format(new Date(entry.entry_date), "MMMM d, yyyy")}
+                      </CardTitle>
+                      <CardDescription>
+                        {format(new Date(entry.created_at), "MMMM d, yyyy 'at' h:mm a")}
+                      </CardDescription>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Journal Entry</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this journal entry? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteEntry(entry.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="prose prose-sm max-w-none dark:prose-invert">
