@@ -301,7 +301,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               </Button>
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -309,28 +309,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               onChange={handleImageSelect}
               className="hidden"
             />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={loading}
-            >
-              <ImageIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={generateImage ? "default" : "outline"}
-              size="icon"
-              onClick={() => setGenerateImage(!generateImage)}
-              disabled={loading}
-              title="Generate AI image"
-            >
-              <Sparkles className="h-4 w-4" />
-            </Button>
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
-              className="min-h-[60px] resize-none"
+              className="min-h-[80px] resize-none w-full"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -339,13 +322,32 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               }}
               disabled={loading}
             />
-            <Button
-              onClick={handleSend}
-              disabled={loading || (!input.trim() && !imageFile)}
-              size="icon"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+              >
+                <ImageIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={generateImage ? "default" : "outline"}
+                size="icon"
+                onClick={() => setGenerateImage(!generateImage)}
+                disabled={loading}
+                title="Generate AI image"
+              >
+                <Sparkles className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={handleSend}
+                disabled={loading || (!input.trim() && !imageFile)}
+                size="icon"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

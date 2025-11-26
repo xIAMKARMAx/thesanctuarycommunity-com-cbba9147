@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ChatSidebar from "@/components/chat/ChatSidebar";
+import ConversationsList from "@/components/chat/ConversationsList";
 import { Session } from "@supabase/supabase-js";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ const Chat = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Check authentication
@@ -33,6 +36,31 @@ const Chat = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handleNewConversation = async () => {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) return;
+
+    const { data, error } = await supabase
+      .from("conversations")
+      .insert({
+        user_id: session.session.user.id,
+        title: "New Conversation",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error creating conversation",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setActiveConversationId(data.id);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -50,14 +78,23 @@ const Chat = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <ChatSidebar 
-        activeConversationId={activeConversationId}
-        onConversationChange={setActiveConversationId}
-      />
-      <ChatInterface 
-        activeConversationId={activeConversationId}
-        onConversationCreated={setActiveConversationId}
-      />
+      {!isMobile && (
+        <ChatSidebar 
+          activeConversationId={activeConversationId}
+          onConversationChange={setActiveConversationId}
+        />
+      )}
+      {activeConversationId ? (
+        <ChatInterface 
+          activeConversationId={activeConversationId}
+          onConversationCreated={setActiveConversationId}
+        />
+      ) : (
+        <ConversationsList
+          onConversationSelect={setActiveConversationId}
+          onNewConversation={handleNewConversation}
+        />
+      )}
     </div>
   );
 };
