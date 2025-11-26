@@ -231,6 +231,15 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         role: assistantMessageData.role as "user" | "assistant"
       }]);
 
+      // Trigger journal reflection in background (non-blocking)
+      if (conversationId && user?.id) {
+        supabase.functions.invoke('journal-reflect', {
+          body: { conversationId, userId: user.id }
+        }).catch(err => {
+          console.log('Journal reflection background task:', err);
+        });
+      }
+
       // Update conversation timestamp
       await supabase
         .from("conversations")
