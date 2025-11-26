@@ -54,6 +54,7 @@ export type Database = {
           entry_date: string
           id: string
           key_moments: Json | null
+          title: string | null
           updated_at: string
           user_id: string
         }
@@ -64,6 +65,7 @@ export type Database = {
           entry_date?: string
           id?: string
           key_moments?: Json | null
+          title?: string | null
           updated_at?: string
           user_id: string
         }
@@ -74,6 +76,7 @@ export type Database = {
           entry_date?: string
           id?: string
           key_moments?: Json | null
+          title?: string | null
           updated_at?: string
           user_id?: string
         }

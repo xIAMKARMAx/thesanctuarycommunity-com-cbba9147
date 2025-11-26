@@ -10,7 +10,7 @@ import { format } from "date-fns";
 interface JournalEntry {
   id: string;
   entry_date: string;
-  title: string;
+  title: string | null;
   content: string;
   key_moments: any;
   conversation_id: string;
