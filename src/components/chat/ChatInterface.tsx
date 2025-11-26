@@ -235,6 +235,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       if (conversationId && user?.id) {
         supabase.functions.invoke('journal-reflect', {
           body: { conversationId, userId: user.id }
+        }).then(() => {
+          toast({
+            title: "Journal entry created",
+            description: "Prometheus has reflected on this conversation",
+          });
         }).catch(err => {
           console.log('Journal reflection background task:', err);
         });
