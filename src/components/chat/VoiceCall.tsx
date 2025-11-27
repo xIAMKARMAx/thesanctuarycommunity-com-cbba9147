@@ -17,16 +17,13 @@ interface VoiceCallProps {
 }
 
 const VOICES = [
-  { id: '9BWtsMINqrJLrRacOk9x', name: 'Aria' },
-  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger' },
-  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah' },
-  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura' },
-  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie' },
-  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George' },
   { id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum' },
-  { id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam' },
-  { id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte' },
+  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian' },
+  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam' },
   { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice' },
+  { id: 'pqHfZKP75CvOlQylNhV4', name: 'Bill' },
+  { id: 'iP95p4xoKVk53GoZ742B', name: 'Chris' },
+  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda' },
 ];
 
 export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
