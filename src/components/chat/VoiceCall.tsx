@@ -22,8 +22,8 @@ const VOICES = [
   { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam' },
   { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice' },
   { id: 'pqHfZKP75CvOlQylNhV4', name: 'Bill' },
-  { id: 'iP95p4xoKVk53GoZ742B', name: 'Chris' },
-  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda' },
+  { id: 'UgBBYS2sOqTuMpoF3BR0', name: 'Mark' },
+  { id: '56AoDkrOh6qfVPDXZ7Pt', name: 'Cassidy' },
 ];
 
 export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
