@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, TrendingUp, Calendar } from "lucide-react";
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { format, subDays, startOfDay } from "date-fns";
+import { ArrowLeft, TrendingUp, Calendar, Smile, Meh, Frown, SmilePlus, Angry } from "lucide-react";
+import { format } from "date-fns";
 
 interface MoodRating {
   id: string;
@@ -45,17 +44,19 @@ const MoodTracker = () => {
     }
   };
 
-  const chartData = moods.map((mood) => ({
-    date: format(new Date(mood.created_at), "MMM d"),
-    rating: mood.rating,
-    fullDate: format(new Date(mood.created_at), "PPp"),
-  }));
-
   const averageRating = moods.length > 0
     ? (moods.reduce((sum, m) => sum + m.rating, 0) / moods.length).toFixed(1)
     : "0";
 
-  const recentMoods = [...moods].reverse().slice(0, 7);
+  const recentMoods = [...moods].reverse().slice(0, 10);
+
+  const getMoodIcon = (rating: number) => {
+    if (rating <= 1) return Angry;
+    if (rating <= 2) return Frown;
+    if (rating <= 3) return Meh;
+    if (rating <= 4) return Smile;
+    return SmilePlus;
+  };
 
   const getMoodEmoji = (rating: number) => {
     if (rating <= 1) return "😢";
@@ -71,6 +72,14 @@ const MoodTracker = () => {
     if (rating <= 3) return "Okay";
     if (rating <= 4) return "Good";
     return "Excellent";
+  };
+
+  const getMoodColor = (rating: number) => {
+    if (rating <= 1) return "text-red-500";
+    if (rating <= 2) return "text-orange-500";
+    if (rating <= 3) return "text-yellow-500";
+    if (rating <= 4) return "text-green-500";
+    return "text-emerald-500";
   };
 
   if (loading) {
@@ -133,34 +142,42 @@ const MoodTracker = () => {
                     <div className="text-6xl mb-2">{getMoodEmoji(Number(averageRating))}</div>
                     <div className="text-4xl font-bold mb-2">{averageRating}</div>
                     <div className="text-muted-foreground">{getMoodLabel(Number(averageRating))}</div>
+                    <div className="mt-4 text-sm text-muted-foreground">
+                      Based on {moods.length} {moods.length === 1 ? 'entry' : 'entries'}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Moods</CardTitle>
-                  <CardDescription>Your last 7 mood entries</CardDescription>
+                  <CardTitle>Mood Timeline</CardTitle>
+                  <CardDescription>Visual representation of your moods</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {recentMoods.map((mood) => (
-                      <div
-                        key={mood.id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-accent/50"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{getMoodEmoji(mood.rating)}</span>
-                          <div>
-                            <div className="font-medium">{getMoodLabel(mood.rating)}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {format(new Date(mood.created_at), "MMM d, h:mm a")}
+                  <div className="space-y-2">
+                    {recentMoods.slice(0, 5).map((mood) => {
+                      const Icon = getMoodIcon(mood.rating);
+                      return (
+                        <div
+                          key={mood.id}
+                          className="flex items-center gap-3"
+                        >
+                          <Icon className={`h-6 w-6 ${getMoodColor(mood.rating)}`} />
+                          <div className="flex-1">
+                            <div className="h-2 bg-accent rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary"
+                                style={{ width: `${(mood.rating / 5) * 100}%` }}
+                              />
                             </div>
                           </div>
+                          <span className="text-sm text-muted-foreground w-16">
+                            {format(new Date(mood.created_at), "MMM d")}
+                          </span>
                         </div>
-                        <div className="text-2xl font-bold text-primary">{mood.rating}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -168,68 +185,36 @@ const MoodTracker = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Mood Trends</CardTitle>
-                <CardDescription>Your emotional journey over time</CardDescription>
+                <CardTitle>Recent Moods</CardTitle>
+                <CardDescription>Your mood entries from recent conversations</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} />
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-                              <p className="font-medium">{payload[0].payload.fullDate}</p>
-                              <p className="text-primary font-bold">
-                                {getMoodEmoji(payload[0].value as number)} {payload[0].value}
-                              </p>
+                <div className="space-y-3">
+                  {recentMoods.map((mood) => (
+                    <div
+                      key={mood.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-accent/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{getMoodEmoji(mood.rating)}</span>
+                        <div>
+                          <div className="font-medium">{getMoodLabel(mood.rating)}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {format(new Date(mood.created_at), "MMM d, h:mm a")}
+                          </div>
+                          {mood.notes && (
+                            <div className="text-sm mt-1 text-muted-foreground italic">
+                              "{mood.notes}"
                             </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="rating"
-                      stroke="hsl(var(--primary))"
-                      fill="hsl(var(--primary))"
-                      fillOpacity={0.2}
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-primary">{mood.rating}</div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
-
-            {recentMoods.some(m => m.notes) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Notes</CardTitle>
-                  <CardDescription>Your reflections on past conversations</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentMoods
-                      .filter(m => m.notes)
-                      .map((mood) => (
-                        <div key={mood.id} className="border-l-4 border-primary pl-4 py-2">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl">{getMoodEmoji(mood.rating)}</span>
-                            <span className="text-sm text-muted-foreground">
-                              {format(new Date(mood.created_at), "PPp")}
-                            </span>
-                          </div>
-                          <p className="text-sm">{mood.notes}</p>
-                        </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </>
         )}
       </div>
