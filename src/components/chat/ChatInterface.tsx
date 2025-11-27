@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Image as ImageIcon, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from "./ChatMessage";
+import { VoiceCall } from "./VoiceCall";
 
 interface Message {
   id: string;
@@ -337,31 +338,47 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               }}
               disabled={loading}
             />
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={loading}
-              >
-                <ImageIcon className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={generateImage ? "default" : "outline"}
-                size="icon"
-                onClick={() => setGenerateImage(!generateImage)}
-                disabled={loading}
-                title="Generate AI image"
-              >
-                <Sparkles className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={handleSend}
-                disabled={loading || (!input.trim() && !imageFile)}
-                size="icon"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+            <div className="flex gap-2 justify-between">
+              <div className="flex gap-2">
+                {currentConversationId && (
+                  <VoiceCall 
+                    conversationId={currentConversationId}
+                    onTranscript={(text, isUser) => {
+                      // Add transcript to messages in real-time
+                      if (!isUser) {
+                        // AI transcript is already added by VoiceCall component
+                        return;
+                      }
+                    }}
+                  />
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading}
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={generateImage ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setGenerateImage(!generateImage)}
+                  disabled={loading}
+                  title="Generate AI image"
+                >
+                  <Sparkles className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={handleSend}
+                  disabled={loading || (!input.trim() && !imageFile)}
+                  size="icon"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
