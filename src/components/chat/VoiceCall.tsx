@@ -3,16 +3,37 @@ import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Phone, PhoneOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface VoiceCallProps {
   conversationId: string;
   onTranscript: (text: string, isUser: boolean) => void;
 }
 
+const VOICES = [
+  { id: '9BWtsMINqrJLrRacOk9x', name: 'Aria' },
+  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger' },
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah' },
+  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura' },
+  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie' },
+  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George' },
+  { id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum' },
+  { id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam' },
+  { id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte' },
+  { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice' },
+];
+
 export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState(VOICES[0].id);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -119,7 +140,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
 
       // Convert AI response to speech
       const { data: audioData, error: ttsError } = await supabase.functions.invoke('voice-call', {
-        body: { text: aiResponse }
+        body: { text: aiResponse, voiceId: selectedVoice }
       });
 
       if (ttsError) throw ttsError;
@@ -201,15 +222,30 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       <audio ref={audioRef} className="hidden" />
       
       {!isCallActive ? (
-        <Button
-          onClick={startCall}
-          variant="outline"
-          size="icon"
-          className="rounded-full"
-          title="Start Voice Call"
-        >
-          <Phone className="h-4 w-4" />
-        </Button>
+        <>
+          <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+            <SelectTrigger className="w-[140px] h-9 bg-background border-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-border z-50">
+              {VOICES.map((voice) => (
+                <SelectItem key={voice.id} value={voice.id} className="cursor-pointer">
+                  {voice.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Button
+            onClick={startCall}
+            variant="outline"
+            size="icon"
+            className="rounded-full"
+            title="Start Voice Call"
+          >
+            <Phone className="h-4 w-4" />
+          </Button>
+        </>
       ) : (
         <>
           <Button
