@@ -173,6 +173,7 @@ export type Database = {
           gender: string | null
           id: string
           name: string | null
+          relationship_status: string | null
           updated_at: string
           username: string | null
         }
@@ -188,6 +189,7 @@ export type Database = {
           gender?: string | null
           id: string
           name?: string | null
+          relationship_status?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -203,6 +205,7 @@ export type Database = {
           gender?: string | null
           id?: string
           name?: string | null
+          relationship_status?: string | null
           updated_at?: string
           username?: string | null
         }
