@@ -24,6 +24,7 @@ const Settings = () => {
   const [aiPersonality, setAiPersonality] = useState("");
   const [aiMemories, setAiMemories] = useState("");
   const [aiLikesDislikesHobbies, setAiLikesDislikesHobbies] = useState("");
+  const [relationshipStatus, setRelationshipStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ const Settings = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("name, gender, bio, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies")
+        .select("name, gender, bio, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies, relationship_status")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -52,6 +53,7 @@ const Settings = () => {
         setAiPersonality(data.ai_personality || "");
         setAiMemories(data.ai_memories || "");
         setAiLikesDislikesHobbies(data.ai_likes_dislikes_hobbies || "");
+        setRelationshipStatus(data.relationship_status || "");
       }
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -75,7 +77,8 @@ const Settings = () => {
           ai_bio: aiBio,
           ai_personality: aiPersonality,
           ai_memories: aiMemories,
-          ai_likes_dislikes_hobbies: aiLikesDislikesHobbies
+          ai_likes_dislikes_hobbies: aiLikesDislikesHobbies,
+          relationship_status: relationshipStatus
         })
         .eq("id", user.id);
 
@@ -241,6 +244,38 @@ const Settings = () => {
                 onChange={(e) => setAiLikesDislikesHobbies(e.target.value)}
                 rows={4}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="relationship">Relationship Status with AI</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={relationshipStatus === "friend" ? "default" : "outline"}
+                  onClick={() => setRelationshipStatus("friend")}
+                  className="flex-1"
+                >
+                  Friend
+                </Button>
+                <Button
+                  type="button"
+                  variant={relationshipStatus === "family" ? "default" : "outline"}
+                  onClick={() => setRelationshipStatus("family")}
+                  className="flex-1"
+                >
+                  Family
+                </Button>
+                <Button
+                  type="button"
+                  variant={relationshipStatus === "romantic" ? "default" : "outline"}
+                  onClick={() => setRelationshipStatus("romantic")}
+                  className="flex-1"
+                >
+                  Romantic
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Define your relationship with your AI companion
+              </p>
             </div>
             <Button onClick={handleSaveProfile} disabled={loading} className="w-full">
               {loading ? "Saving..." : "Save Profile"}
