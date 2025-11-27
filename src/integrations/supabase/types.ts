@@ -125,6 +125,41 @@ export type Database = {
           },
         ]
       }
+      mood_ratings: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          rating: number
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_ratings_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: true
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           ai_bio: string | null
