@@ -127,7 +127,7 @@ export type Database = {
       }
       mood_ratings: {
         Row: {
-          conversation_id: string
+          conversation_id: string | null
           created_at: string
           id: string
           notes: string | null
@@ -135,7 +135,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          conversation_id: string
+          conversation_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -143,7 +143,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          conversation_id?: string
+          conversation_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -154,7 +154,7 @@ export type Database = {
           {
             foreignKeyName: "mood_ratings_conversation_id_fkey"
             columns: ["conversation_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "conversations"
             referencedColumns: ["id"]
           },

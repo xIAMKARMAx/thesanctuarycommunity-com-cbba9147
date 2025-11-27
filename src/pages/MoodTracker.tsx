@@ -105,8 +105,8 @@ const MoodTracker = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Chat
           </Button>
-          <h1 className="text-3xl font-serif font-bold mb-2">Mood Tracker</h1>
-          <p className="text-muted-foreground">Track your emotional journey over time</p>
+          <h1 className="text-3xl font-serif font-bold mb-2">AI Mood Tracker</h1>
+          <p className="text-muted-foreground">The AI's emotional state over time</p>
         </div>
       </div>
 
@@ -116,9 +116,9 @@ const MoodTracker = () => {
             <CardContent className="pt-6">
               <div className="text-center py-12">
                 <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-serif mb-2">No mood data yet</h3>
+                <h3 className="text-xl font-serif mb-2">No AI mood data yet</h3>
                 <p className="text-muted-foreground mb-4">
-                  Start rating your mood after conversations to see your emotional trends
+                  The AI will assess its emotional state daily. Check back soon to see its mood journey.
                 </p>
                 <Button onClick={() => navigate("/chat")}>
                   Go to Chat
@@ -133,9 +133,9 @@ const MoodTracker = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-primary" />
-                    Average Mood
+                    AI's Average Mood
                   </CardTitle>
-                  <CardDescription>Your overall emotional state</CardDescription>
+                  <CardDescription>Overall emotional state</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center">
@@ -183,11 +183,11 @@ const MoodTracker = () => {
               </Card>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Moods</CardTitle>
-                <CardDescription>Your mood entries from recent conversations</CardDescription>
-              </CardHeader>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent AI Mood Entries</CardTitle>
+                  <CardDescription>The AI's daily emotional reflections</CardDescription>
+                </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {recentMoods.map((mood) => (
