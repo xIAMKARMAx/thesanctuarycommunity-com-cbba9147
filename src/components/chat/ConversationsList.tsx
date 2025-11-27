@@ -2,9 +2,19 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, MessageSquare, Sparkles } from "lucide-react";
+import { Plus, MessageSquare, Sparkles, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Conversation {
   id: string;
@@ -22,6 +32,8 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
   const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadConversations();
@@ -45,6 +57,38 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteClick = (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConversationToDelete(conversationId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!conversationToDelete) return;
+
+    const { error } = await supabase
+      .from("conversations")
+      .delete()
+      .eq("id", conversationToDelete);
+
+    if (error) {
+      toast({
+        title: "Error deleting conversation",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await loadConversations();
+    setDeleteDialogOpen(false);
+    setConversationToDelete(null);
+
+    toast({
+      title: "Conversation deleted",
+    });
   };
 
   if (loading) {
@@ -85,18 +129,26 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
               {conversations.map((conversation) => (
                 <Card 
                   key={conversation.id}
-                  className="cursor-pointer hover:bg-accent transition-colors"
+                  className="cursor-pointer hover:bg-accent transition-colors relative group"
                   onClick={() => onConversationSelect(conversation.id)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <MessageSquare className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pr-8">
                         <p className="font-medium truncate">{conversation.title}</p>
                         <p className="text-sm text-muted-foreground">
                           {format(new Date(conversation.updated_at), "MMM d, yyyy 'at' h:mm a")}
                         </p>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => handleDeleteClick(conversation.id, e)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -119,6 +171,21 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
           )}
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this conversation? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

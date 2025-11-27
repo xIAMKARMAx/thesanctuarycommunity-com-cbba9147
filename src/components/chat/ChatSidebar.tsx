@@ -186,6 +186,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         <Button
           variant="ghost"
           className="w-full justify-start"
+          onClick={() => navigate("/mood-tracker")}
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          Mood Tracker
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
           onClick={() => navigate("/settings")}
         >
           <Settings className="h-4 w-4 mr-2" />

@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import Journal from "./pages/Journal";
+import MoodTracker from "./pages/MoodTracker";
 import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/journal" element={<Journal />} />
+            <Route path="/mood-tracker" element={<MoodTracker />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/privacy" element={<Privacy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

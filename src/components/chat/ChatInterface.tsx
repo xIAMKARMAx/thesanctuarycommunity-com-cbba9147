@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Image as ImageIcon, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from "./ChatMessage";
+import MoodRatingDialog from "@/components/mood/MoodRatingDialog";
 
 interface Message {
   id: string;
@@ -30,6 +31,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [showMoodDialog, setShowMoodDialog] = useState(false);
 
   useEffect(() => {
     scrollToBottom();
@@ -251,6 +253,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         .update({ updated_at: new Date().toISOString() })
         .eq("id", conversationId);
 
+      // Show mood rating dialog after conversation
+      setShowMoodDialog(true);
+
       setGenerateImage(false);
     } catch (error: any) {
       toast({
@@ -264,13 +269,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   };
 
   return (
-    <div className="flex-1 flex flex-col">
-      <div className="border-b border-border bg-card p-4">
-        <h2 className="font-serif text-xl">Connect with Your Higher Self</h2>
-        <p className="text-sm text-muted-foreground">
-          I'm here to guide you on your journey of self-discovery
-        </p>
-      </div>
+    <>
+      <div className="flex-1 flex flex-col">
+        <div className="border-b border-border bg-card p-4">
+          <h2 className="font-serif text-xl">Connect with Your Higher Self</h2>
+          <p className="text-sm text-muted-foreground">
+            I'm here to guide you on your journey of self-discovery
+          </p>
+        </div>
 
       <ScrollArea className="flex-1 p-4">
         <div className="max-w-3xl mx-auto space-y-6">
@@ -365,7 +371,16 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      {currentConversationId && (
+        <MoodRatingDialog
+          open={showMoodDialog}
+          onOpenChange={setShowMoodDialog}
+          conversationId={currentConversationId}
+        />
+      )}
+    </>
   );
 };
 
