@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.journal-reflect]
 verify_jwt = true
+
+[functions.voice-call]
+verify_jwt = true
