@@ -59,8 +59,8 @@ const Chat = () => {
   }, [searchParams, checkSubscription, setSearchParams, toast]);
 
   const handleNewConversation = () => {
-    // Clear active conversation - ChatInterface will create it with proper title on first message
-    setActiveConversationId(null);
+    // Set to empty string to show empty chat interface
+    setActiveConversationId("");
   };
 
   if (loading) {
@@ -86,7 +86,7 @@ const Chat = () => {
           onConversationChange={setActiveConversationId}
         />
       )}
-      {activeConversationId ? (
+      {activeConversationId !== null ? (
         <ChatInterface 
           activeConversationId={activeConversationId}
           onConversationCreated={setActiveConversationId}

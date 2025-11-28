@@ -42,7 +42,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   }, [messages]);
 
   useEffect(() => {
-    if (activeConversationId) {
+    if (activeConversationId && activeConversationId !== "") {
       loadMessages(activeConversationId);
       setCurrentConversationId(activeConversationId);
     } else {
