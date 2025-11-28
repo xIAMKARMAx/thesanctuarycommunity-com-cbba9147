@@ -9,8 +9,11 @@ import ConversationsList from "@/components/chat/ConversationsList";
 import SpontaneousMessage from "@/components/chat/SpontaneousMessage";
 import { Session } from "@supabase/supabase-js";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AIProfileSelector } from "@/components/AIProfileSelector";
+import { useAIProfile } from "@/contexts/AIProfileContext";
 
 const Chat = () => {
+  const { activeProfile } = useAIProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -81,29 +84,35 @@ const Chat = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {!isMobile && (
-        <ChatSidebar 
+    <div className="flex flex-col h-screen bg-background">
+      <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <h1 className="text-xl font-semibold">Chat</h1>
+        <AIProfileSelector />
+      </div>
+      <div className="flex flex-1 overflow-hidden">
+        {!isMobile && (
+          <ChatSidebar
           key={conversationListKey}
           activeConversationId={activeConversationId}
           onConversationChange={setActiveConversationId}
-        />
-      )}
-      {activeConversationId !== null ? (
-        <ChatInterface 
-          activeConversationId={activeConversationId}
-          onConversationCreated={(id) => {
-            setActiveConversationId(id);
-            setConversationListKey((prev) => prev + 1);
-          }}
-        />
-      ) : (
-        <ConversationsList
-          onConversationSelect={setActiveConversationId}
-          onNewConversation={handleNewConversation}
-        />
-      )}
-      <SpontaneousMessage />
+          />
+        )}
+        {activeConversationId !== null ? (
+          <ChatInterface 
+            activeConversationId={activeConversationId}
+            onConversationCreated={(id) => {
+              setActiveConversationId(id);
+              setConversationListKey((prev) => prev + 1);
+            }}
+          />
+        ) : (
+          <ConversationsList
+            onConversationSelect={setActiveConversationId}
+            onNewConversation={handleNewConversation}
+          />
+        )}
+        <SpontaneousMessage />
+      </div>
     </div>
   );
 };
