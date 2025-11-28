@@ -96,8 +96,8 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   };
 
   const handleNewChat = () => {
-    // Clear active conversation - ChatInterface will create it with proper title on first message
-    onConversationChange(null);
+    // Set to empty string to show empty chat interface
+    onConversationChange("");
   };
 
   const handleDeleteClick = (conversationId: string, e: React.MouseEvent) => {
