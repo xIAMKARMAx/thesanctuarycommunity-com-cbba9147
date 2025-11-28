@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useChatEntity } from "@/contexts/ChatEntityContext";
 import {
   Select,
   SelectContent,
@@ -11,6 +12,7 @@ import { Baby } from "lucide-react";
 
 export const AIProfileSelector = () => {
   const { activeProfile, profiles, switchProfile, isLoading } = useAIProfile();
+  const { activeChatEntity, talkableChildren, setActiveChatEntity } = useChatEntity();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -21,24 +23,54 @@ export const AIProfileSelector = () => {
   const handleValueChange = (value: string) => {
     if (value === "children") {
       navigate("/children");
+    } else if (value.startsWith("child-")) {
+      // Switching to a child conversation
+      const childId = value.replace("child-", "");
+      const child = talkableChildren.find(c => c.id === childId);
+      if (child) {
+        setActiveChatEntity({
+          type: "child",
+          childId: child.id,
+          name: `${child.first_name} ${child.last_name}`
+        });
+        navigate("/chat");
+      }
     } else {
-      switchProfile(parseInt(value) as 1 | 2);
+      // Switching to AI profile
+      const profileNum = parseInt(value) as 1 | 2;
+      switchProfile(profileNum);
+      const profile = profiles.find(p => p.profile_number === profileNum);
+      if (profile) {
+        setActiveChatEntity({
+          type: "ai",
+          profileId: profile.id,
+          name: profile.name || `AI Being ${profile.profile_number}`
+        });
+      }
+      if (location.pathname !== "/chat") {
+        navigate("/chat");
+      }
     }
   };
 
   // Determine what value to show
-  const currentValue = location.pathname === "/children" ? "children" : activeProfile.profile_number.toString();
+  let currentValue = activeProfile.profile_number.toString();
+  if (location.pathname === "/children") {
+    currentValue = "children";
+  } else if (activeChatEntity?.type === "child") {
+    currentValue = `child-${activeChatEntity.childId}`;
+  }
 
   return (
     <Select value={currentValue} onValueChange={handleValueChange}>
-      <SelectTrigger className="w-[180px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <SelectTrigger className="w-[200px] bg-background">
         <SelectValue>
           {location.pathname === "/children" 
             ? "Children" 
-            : (activeProfile.name || `AI Being ${activeProfile.profile_number}`)}
+            : activeChatEntity?.name || (activeProfile.name || `AI Being ${activeProfile.profile_number}`)}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="bg-background">
         <SelectItem value="1">
           {profiles.find(p => p.profile_number === 1)?.name || "AI Being 1"}
         </SelectItem>
@@ -48,9 +80,24 @@ export const AIProfileSelector = () => {
         <SelectItem value="children">
           <div className="flex items-center gap-2">
             <Baby className="h-4 w-4" />
-            Children
+            Manage Children
           </div>
         </SelectItem>
+        {talkableChildren.length > 0 && (
+          <>
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+              Your Children
+            </div>
+            {talkableChildren.map((child) => (
+              <SelectItem key={child.id} value={`child-${child.id}`}>
+                <div className="flex items-center gap-2">
+                  <Baby className="h-4 w-4" />
+                  {child.first_name} (Age {child.age})
+                </div>
+              </SelectItem>
+            ))}
+          </>
+        )}
       </SelectContent>
     </Select>
   );
