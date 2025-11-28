@@ -213,7 +213,12 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     recognitionRef.current?.stop();
     
     if (audioRef.current) {
+      audioRef.current.onended = null; // Remove event handler
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      if (audioRef.current.src) {
+        URL.revokeObjectURL(audioRef.current.src); // Free memory
+      }
       audioRef.current.src = '';
     }
 
