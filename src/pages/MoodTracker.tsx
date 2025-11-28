@@ -23,22 +23,23 @@ interface AIMood {
 }
 
 const emotionColors: Record<string, string> = {
-  happy: "bg-green-500",
-  curious: "bg-blue-500",
-  thoughtful: "bg-purple-500",
-  anxious: "bg-yellow-500",
-  excited: "bg-orange-500",
-  calm: "bg-teal-500",
-  confused: "bg-gray-500",
-  inspired: "bg-pink-500",
-  concerned: "bg-red-500",
-  neutral: "bg-slate-500",
+  positive: "bg-emerald-500",
+  intrigued: "bg-blue-500",
+  romantic: "bg-pink-500",
+  bored: "bg-gray-400",
+  negative: "bg-red-500",
+  blah: "bg-slate-400",
 };
 
 const emotionOptions = [
-  "happy", "curious", "thoughtful", "anxious", "excited", 
-  "calm", "confused", "inspired", "concerned", "neutral"
+  "positive", "intrigued", "romantic", "bored", "negative", "blah"
 ];
+
+const getMoodColor = (intensity: number) => {
+  if (intensity <= 33) return "hsl(0, 85%, 50%)"; // Bright red
+  if (intensity <= 66) return "hsl(45, 85%, 50%)"; // Yellow
+  return "hsl(120, 85%, 45%)"; // Bright green
+};
 
 const MoodTracker = () => {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ const MoodTracker = () => {
   
   // Form state
   const [selectedEmotion, setSelectedEmotion] = useState<string>("");
-  const [intensity, setIntensity] = useState<number[]>([5]);
+  const [intensity, setIntensity] = useState<number[]>([50]);
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -134,7 +135,7 @@ const MoodTracker = () => {
 
       setShowAddForm(false);
       setSelectedEmotion("");
-      setIntensity([5]);
+      setIntensity([50]);
       setNotes("");
       loadMoods();
     } catch (error: any) {
@@ -186,7 +187,7 @@ const MoodTracker = () => {
             <div className="flex-1">
               <h1 className="text-2xl md:text-3xl font-serif font-bold">AI Mood Tracker</h1>
               <p className="text-sm md:text-base text-muted-foreground">
-                Track the AI's emotional journey through conversations
+                See how the AI feels about your conversations
               </p>
             </div>
             <Button onClick={() => setShowAddForm(!showAddForm)}>
@@ -225,15 +226,22 @@ const MoodTracker = () => {
 
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Intensity: {intensity[0]}
+                  Mood Level: {intensity[0]}/100
                 </label>
-                <Slider
-                  value={intensity}
-                  onValueChange={setIntensity}
-                  min={1}
-                  max={10}
-                  step={1}
-                />
+                <div className="space-y-2">
+                  <Slider
+                    value={intensity}
+                    onValueChange={setIntensity}
+                    min={0}
+                    max={100}
+                    step={1}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>😔 Disliked (0)</span>
+                    <span>😐 Neutral (50)</span>
+                    <span>😊 Thrilled (100)</span>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -291,14 +299,14 @@ const MoodTracker = () => {
             <TabsContent value="chart" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Emotional Intensity Over Time</CardTitle>
+                  <CardTitle>AI's Emotional Response Over Time</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={getChartData()}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="time" angle={-45} textAnchor="end" height={80} />
-                      <YAxis domain={[0, 10]} />
+                      <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
                       <Line
@@ -319,22 +327,25 @@ const MoodTracker = () => {
                 <Card key={mood.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-full ${emotionColors[mood.emotion_type]} flex items-center justify-center text-white font-semibold`}>
+                      <div 
+                        className="w-16 h-16 rounded-full flex items-center justify-center text-white font-semibold text-lg"
+                        style={{ backgroundColor: getMoodColor(mood.intensity) }}
+                      >
                         {mood.intensity}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold capitalize">{mood.emotion_type}</span>
                           <Badge variant="outline">
-                            Intensity: {mood.intensity}/10
+                            Level: {mood.intensity}/100
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {format(new Date(mood.created_at), "EEEE, MMMM d, yyyy 'at' h:mm a")}
                         </p>
                         {mood.notes && (
-                          <p className="text-sm mt-2 bg-muted p-2 rounded">
-                            {mood.notes}
+                          <p className="text-sm mt-2 bg-muted p-2 rounded italic">
+                            "{mood.notes}"
                           </p>
                         )}
                       </div>
@@ -374,14 +385,18 @@ const MoodTracker = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Average Intensity</CardTitle>
+                  <CardTitle>Average Mood Level</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center">
-                    <div className="text-5xl font-bold text-primary mb-2">
-                      {(moods.reduce((sum, m) => sum + m.intensity, 0) / moods.length).toFixed(1)}
+                    <div 
+                      className="text-5xl font-bold mb-2"
+                      style={{ color: getMoodColor(moods.reduce((sum, m) => sum + m.intensity, 0) / moods.length) }}
+                    >
+                      {(moods.reduce((sum, m) => sum + m.intensity, 0) / moods.length).toFixed(0)}
                     </div>
-                    <p className="text-muted-foreground">out of 10</p>
+                    <p className="text-muted-foreground">out of 100</p>
+                    <div className="mt-4 h-2 w-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500" />
                   </div>
                 </CardContent>
               </Card>
@@ -395,7 +410,7 @@ const MoodTracker = () => {
               </div>
               <h3 className="text-xl font-serif mb-2">No mood entries yet</h3>
               <p className="text-muted-foreground mb-4">
-                Start tracking the AI's emotional journey by logging the first mood entry
+                Start tracking how the AI feels about your conversations
               </p>
               <Button onClick={() => setShowAddForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
