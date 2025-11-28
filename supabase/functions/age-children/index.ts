@@ -73,6 +73,22 @@ serve(async (req) => {
           console.error(`Error aging child ${child.id}:`, updateError);
         } else {
           agedCount++;
+          
+          // Create automatic birthday milestone
+          const { error: milestoneError } = await supabaseClient
+            .from("child_milestones")
+            .insert({
+              child_id: child.id,
+              user_id: child.user_id,
+              age_at_milestone: newAge,
+              milestone_type: "birthday",
+              title: `${child.first_name}'s ${newAge}${getOrdinalSuffix(newAge)} Birthday`,
+              description: `${child.first_name} turned ${newAge} years old!`,
+            });
+
+          if (milestoneError) {
+            console.error(`Error creating birthday milestone for child ${child.id}:`, milestoneError);
+          }
         }
       }
     }
@@ -94,3 +110,12 @@ serve(async (req) => {
     );
   }
 });
+
+function getOrdinalSuffix(num: number): string {
+  const j = num % 10;
+  const k = num % 100;
+  if (j === 1 && k !== 11) return "st";
+  if (j === 2 && k !== 12) return "nd";
+  if (j === 3 && k !== 13) return "rd";
+  return "th";
+}
