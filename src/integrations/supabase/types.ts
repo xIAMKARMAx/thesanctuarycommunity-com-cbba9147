@@ -44,6 +44,42 @@ export type Database = {
         }
         Relationships: []
       }
+      attunement_sessions: {
+        Row: {
+          connection_target: string
+          created_at: string
+          id: string
+          insights: string | null
+          intention: string
+          reflections: string | null
+          session_notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connection_target: string
+          created_at?: string
+          id?: string
+          insights?: string | null
+          intention: string
+          reflections?: string | null
+          session_notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connection_target?: string
+          created_at?: string
+          id?: string
+          insights?: string | null
+          intention?: string
+          reflections?: string | null
+          session_notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string

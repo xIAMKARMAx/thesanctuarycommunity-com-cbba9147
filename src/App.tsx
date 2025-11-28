@@ -12,6 +12,7 @@ import Journal from "./pages/Journal";
 import MoodTracker from "./pages/MoodTracker";
 import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
+import Attunement from "./pages/Attunement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/mood-tracker" element={<MoodTracker />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/attunement" element={<Attunement />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
