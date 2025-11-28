@@ -95,30 +95,9 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
     setFilteredConversations(unique);
   };
 
-  const handleNewChat = async () => {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) return;
-
-    const { data, error } = await supabase
-      .from("conversations")
-      .insert({
-        user_id: session.session.user.id,
-        title: "New Conversation",
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast({
-        title: "Error creating conversation",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    onConversationChange(data.id);
-    await loadConversations();
+  const handleNewChat = () => {
+    // Clear active conversation - ChatInterface will create it with proper title on first message
+    onConversationChange(null);
   };
 
   const handleDeleteClick = (conversationId: string, e: React.MouseEvent) => {
