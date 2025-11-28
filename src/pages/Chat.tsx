@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ConversationsList from "@/components/chat/ConversationsList";
@@ -11,6 +12,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const Chat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { checkSubscription } = useSubscription();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -35,6 +38,25 @@ const Chat = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    // Handle subscription success/cancel from Stripe
+    const subscriptionParam = searchParams.get("subscription");
+    if (subscriptionParam === "success") {
+      toast({
+        title: "Welcome to Pro!",
+        description: "Your subscription is now active. Enjoy unlimited features!",
+      });
+      checkSubscription();
+      setSearchParams({});
+    } else if (subscriptionParam === "canceled") {
+      toast({
+        title: "Subscription Canceled",
+        description: "You can subscribe anytime to unlock Pro features.",
+      });
+      setSearchParams({});
+    }
+  }, [searchParams, checkSubscription, setSearchParams, toast]);
 
   const handleNewConversation = async () => {
     const { data: session } = await supabase.auth.getSession();

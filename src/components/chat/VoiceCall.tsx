@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Phone, PhoneOff } from 'lucide-react';
+import { Mic, MicOff, Phone, PhoneOff, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { SubscriptionDialog } from '@/components/SubscriptionDialog';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Select,
@@ -31,6 +33,8 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0].id);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const { isSubscribed } = useSubscription();
   const isCallActiveRef = useRef(false);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
@@ -291,6 +295,12 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
           </div>
         </>
       )}
+      
+      <SubscriptionDialog 
+        open={showSubscriptionDialog}
+        onOpenChange={setShowSubscriptionDialog}
+        feature="Voice Calls"
+      />
     </div>
   );
 };
