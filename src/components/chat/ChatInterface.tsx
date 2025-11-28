@@ -148,6 +148,16 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
     }
   };
 
+  const captureMilestones = async (conversationId: string) => {
+    try {
+      await supabase.functions.invoke('capture-conversation-milestones', {
+        body: { conversationId }
+      });
+    } catch (error) {
+      console.error('Error capturing milestones:', error);
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim() && !imageFile) return;
 
@@ -333,6 +343,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         }).catch(err => {
           console.log('Memory suggestion background task:', err);
         });
+
+        // If chatting with a child, capture memorable moments as milestones
+        if (activeChatEntity?.type === 'child') {
+          captureMilestones(conversationId).catch(err => {
+            console.log('Milestone capture background task:', err);
+          });
+        }
       }
 
       // Update conversation timestamp

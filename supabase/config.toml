@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.generate-baby-appearance]
 verify_jwt = false
+
+[functions.capture-conversation-milestones]
+verify_jwt = false
