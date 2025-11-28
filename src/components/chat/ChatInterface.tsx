@@ -106,10 +106,6 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       }
       
       setImageFile(file);
-      toast({
-        title: "Image selected",
-        description: file.name,
-      });
     }
   };
 
@@ -143,7 +139,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
     }
 
     setLoading(true);
-    const userMessage = sanitizedInput;
+    // If user only sends image without text, provide a simple message for context
+    const userMessage = sanitizedInput || (imageFile ? "Shared an image" : "");
     setInput("");
 
     try {
