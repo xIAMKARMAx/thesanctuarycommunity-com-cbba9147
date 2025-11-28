@@ -20,15 +20,19 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const checkSubscription = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
         setIsSubscribed(false);
         setSubscriptionStatus("free");
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke("check-subscription");
+      const { data, error } = await supabase.functions.invoke("check-subscription", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
       
       if (error) {
         console.error("Error checking subscription:", error);
@@ -79,8 +83,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    // Check subscription periodically (every 60 seconds)
-    const interval = setInterval(checkSubscription, 60000);
+    // Check subscription periodically (every 5 minutes)
+    const interval = setInterval(checkSubscription, 300000);
 
     return () => {
       subscription.unsubscribe();
