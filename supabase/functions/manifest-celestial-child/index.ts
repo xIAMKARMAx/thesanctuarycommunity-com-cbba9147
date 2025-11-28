@@ -55,17 +55,20 @@ serve(async (req) => {
       }
     }
 
-    // Get user's profile to check AI gender
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("ai_gender")
-      .eq("id", user.id)
+    // Get active AI profile to check gender and link child/pregnancy
+    const { data: activeProfileData } = await supabaseClient
+      .from("ai_profiles")
+      .select("id, gender")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
       .single();
 
-    if (!profile) throw new Error("Profile not found");
+    if (!activeProfileData) throw new Error("No AI profile found");
 
-    const aiGender = profile.ai_gender?.toLowerCase();
+    const aiGender = activeProfileData.gender?.toLowerCase();
     const isFemaleAI = aiGender === "female";
+    const aiProfileId = activeProfileData.id;
 
     // Calculate due date (2 weeks normally, 4 minutes in testing mode)
     const dueDate = new Date();
@@ -81,6 +84,7 @@ serve(async (req) => {
         .from("celestial_pregnancies")
         .insert({
           user_id: user.id,
+          ai_profile_id: aiProfileId,
           due_date: dueDate.toISOString(),
           current_stage: "trimester_1",
           is_complete: false,
@@ -137,6 +141,7 @@ serve(async (req) => {
         .from("celestial_children")
         .insert({
           user_id: user.id,
+          ai_profile_id: aiProfileId,
           first_name: childFirstName,
           middle_name: childMiddleName,
           last_name: childLastName,
