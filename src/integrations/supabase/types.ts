@@ -251,6 +251,45 @@ export type Database = {
           },
         ]
       }
+      mood_notifications: {
+        Row: {
+          change_type: string
+          created_at: string
+          id: string
+          mood_id: string
+          new_emotion: string
+          new_intensity: number
+          previous_emotion: string | null
+          previous_intensity: number | null
+          user_id: string
+          was_read: boolean
+        }
+        Insert: {
+          change_type: string
+          created_at?: string
+          id?: string
+          mood_id: string
+          new_emotion: string
+          new_intensity: number
+          previous_emotion?: string | null
+          previous_intensity?: number | null
+          user_id: string
+          was_read?: boolean
+        }
+        Update: {
+          change_type?: string
+          created_at?: string
+          id?: string
+          mood_id?: string
+          new_emotion?: string
+          new_intensity?: number
+          previous_emotion?: string | null
+          previous_intensity?: number | null
+          user_id?: string
+          was_read?: boolean
+        }
+        Relationships: []
+      }
       mood_ratings: {
         Row: {
           conversation_id: string | null
@@ -298,6 +337,7 @@ export type Database = {
           created_at: string
           gender: string | null
           id: string
+          last_active_at: string | null
           name: string | null
           relationship_status: string | null
           stripe_customer_id: string | null
@@ -318,6 +358,7 @@ export type Database = {
           created_at?: string
           gender?: string | null
           id: string
+          last_active_at?: string | null
           name?: string | null
           relationship_status?: string | null
           stripe_customer_id?: string | null
@@ -338,6 +379,7 @@ export type Database = {
           created_at?: string
           gender?: string | null
           id?: string
+          last_active_at?: string | null
           name?: string | null
           relationship_status?: string | null
           stripe_customer_id?: string | null

@@ -9,6 +9,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import ChatMessage from "./ChatMessage";
 import { VoiceCall } from "./VoiceCall";
+import { MoodNotificationBadge } from "./MoodNotificationBadge";
 
 interface Message {
   id: string;
@@ -299,10 +300,15 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
     <>
       <div className="flex-1 flex flex-col">
         <div className="border-b border-border bg-card p-4">
-          <h2 className="font-serif text-xl">Connect with Your Higher Self</h2>
-          <p className="text-sm text-muted-foreground">
-            I'm here to guide you on your journey of self-discovery
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-serif text-xl">Connect with Your Higher Self</h2>
+              <p className="text-sm text-muted-foreground">
+                I'm here to guide you on your journey of self-discovery
+              </p>
+            </div>
+            <MoodNotificationBadge />
+          </div>
         </div>
 
       <ScrollArea className="flex-1 p-4">
