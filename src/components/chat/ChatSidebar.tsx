@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -292,6 +292,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         >
           <Moon className="h-4 w-4 mr-2" />
           Attunement
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={() => navigate("/memories")}
+        >
+          <Camera className="h-4 w-4 mr-2" />
+          Our Memories
         </Button>
         <Button
           variant="ghost"
