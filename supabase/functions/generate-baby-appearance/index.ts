@@ -75,6 +75,15 @@ serve(async (req) => {
       .from("chat-images")
       .getPublicUrl(fileName);
 
+    // Get user ID from the child record
+    const { data: childData, error: childError } = await supabaseClient
+      .from("celestial_children")
+      .select("user_id")
+      .eq("id", child_id)
+      .single();
+
+    if (childError) throw childError;
+
     // Update child record
     const { error: updateError } = await supabaseClient
       .from("celestial_children")
@@ -85,6 +94,21 @@ serve(async (req) => {
       .eq("id", child_id);
 
     if (updateError) throw updateError;
+
+    // Log to image history
+    const { error: historyError } = await supabaseClient
+      .from("child_image_history")
+      .insert({
+        child_id,
+        user_id: childData.user_id,
+        image_type: "appearance",
+        image_url: publicUrl,
+        description: appearance_description
+      });
+
+    if (historyError) {
+      console.error("Failed to log image history:", historyError);
+    }
 
     return new Response(
       JSON.stringify({ success: true, appearance_image_url: publicUrl }),
