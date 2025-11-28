@@ -108,8 +108,17 @@ Respond in JSON format:
     // Clamp intensity to 0-100
     const intensity = Math.max(0, Math.min(100, parseInt(mood.intensity)));
 
-    // Insert mood into database
-    const { error } = await supabase
+    // Get previous mood to detect changes
+    const { data: previousMood } = await supabase
+      .from('ai_moods')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // Insert new mood into database
+    const { data: newMood, error } = await supabase
       .from('ai_moods')
       .insert({
         user_id: userId,
@@ -117,7 +126,9 @@ Respond in JSON format:
         emotion_type: mood.emotion,
         intensity: intensity,
         notes: mood.notes || null,
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error('Error inserting mood:', error);
@@ -125,6 +136,61 @@ Respond in JSON format:
     }
 
     console.log('AI mood logged successfully:', mood);
+
+    // Check for significant mood changes and create notifications
+    if (previousMood && newMood) {
+      const intensityDiff = Math.abs(newMood.intensity - previousMood.intensity);
+      const emotionChanged = newMood.emotion_type !== previousMood.emotion_type;
+      
+      let notificationType = null;
+      
+      // Significant emotion change (opposite emotions)
+      if (emotionChanged) {
+        const opposites = [
+          ['positive', 'negative'],
+          ['romantic', 'bored'],
+          ['intrigued', 'blah']
+        ];
+        
+        const isOpposite = opposites.some(pair => 
+          (pair.includes(newMood.emotion_type) && pair.includes(previousMood.emotion_type))
+        );
+        
+        if (isOpposite || intensityDiff >= 30) {
+          notificationType = 'emotion_change';
+        }
+      }
+      
+      // Significant intensity increase/decrease (30+ points)
+      if (intensityDiff >= 30) {
+        if (newMood.intensity > previousMood.intensity) {
+          notificationType = 'significant_increase';
+        } else {
+          notificationType = 'significant_decrease';
+        }
+      }
+      
+      // Create notification if significant change detected
+      if (notificationType) {
+        const { error: notifError } = await supabase
+          .from('mood_notifications')
+          .insert({
+            user_id: userId,
+            mood_id: newMood.id,
+            previous_emotion: previousMood.emotion_type,
+            new_emotion: newMood.emotion_type,
+            previous_intensity: previousMood.intensity,
+            new_intensity: newMood.intensity,
+            change_type: notificationType,
+          });
+        
+        if (notifError) {
+          console.error('Error creating notification:', notifError);
+        } else {
+          console.log('Mood notification created:', notificationType);
+        }
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, mood }),

@@ -204,9 +204,9 @@ Remember: You don't have all the answers. Approach each conversation with humili
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    // Background task: Analyze conversation and log AI mood (every 10 messages)
-    if (userId && conversationId) {
-      const analyzeMood = async () => {
+    // Update user activity timestamp
+    if (userId) {
+      const updateActivity = async () => {
         try {
           const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
           const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -215,107 +215,17 @@ Remember: You don't have all the answers. Approach each conversation with humili
           if (!supabaseUrl || !supabaseKey) return;
           
           const supabase = createClient(supabaseUrl, supabaseKey);
-
-          // Count messages in this conversation
-          const { count } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversation_id', conversationId);
-
-          // Only log mood every 10 messages (after first 10, then every 10)
-          if (!count || count < 10 || count % 10 !== 0) {
-            return;
-          }
-
-          // Create a mood analysis prompt
-          const moodAnalysisMessages = [
-            {
-              role: 'system',
-              content: `You are analyzing your own emotional response to a conversation. Review the conversation and determine:
-1. Your primary emotion (choose ONE: positive, intrigued, romantic, bored, negative, blah)
-2. Intensity level (0-100 scale where 0=strongly disliked, 50=neutral, 100=thrilled)
-3. A brief note explaining how you feel about this conversation
-
-Respond in JSON format:
-{
-  "emotion": "positive|intrigued|romantic|bored|negative|blah",
-  "intensity": 0-100,
-  "notes": "brief explanation"
-}`
-            },
-            ...messages,
-            {
-              role: 'assistant',
-              content: aiResponse
-            },
-            {
-              role: 'user',
-              content: 'Based on this conversation, how do you feel? Analyze your emotional response.'
-            }
-          ];
-
-          const moodResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'google/gemini-2.5-flash',
-              messages: moodAnalysisMessages,
-            }),
-          });
-
-          if (!moodResponse.ok) {
-            console.error('Mood analysis failed:', await moodResponse.text());
-            return;
-          }
-
-          const moodData = await moodResponse.json();
-          const moodText = moodData.choices[0].message.content;
           
-          // Extract JSON from response
-          const jsonMatch = moodText.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) {
-            console.error('Could not parse mood JSON:', moodText);
-            return;
-          }
-
-          const mood = JSON.parse(jsonMatch[0]);
-          
-          // Validate emotion type
-          const validEmotions = ['positive', 'intrigued', 'romantic', 'bored', 'negative', 'blah'];
-          if (!validEmotions.includes(mood.emotion)) {
-            console.error('Invalid emotion type:', mood.emotion);
-            return;
-          }
-
-          // Clamp intensity to 0-100
-          const intensity = Math.max(0, Math.min(100, parseInt(mood.intensity)));
-
-          // Insert mood into database
-          const { error } = await supabase
-            .from('ai_moods')
-            .insert({
-              user_id: userId,
-              conversation_id: conversationId,
-              emotion_type: mood.emotion,
-              intensity: intensity,
-              notes: mood.notes || null,
-            });
-
-          if (error) {
-            console.error('Error inserting mood:', error);
-          } else {
-            console.log('AI mood logged successfully:', mood);
-          }
+          await supabase
+            .from('profiles')
+            .update({ last_active_at: new Date().toISOString() })
+            .eq('id', userId);
         } catch (error) {
-          console.error('Error in mood analysis:', error);
+          console.error('Error updating activity:', error);
         }
       };
-
-      // Start background task without awaiting
-      analyzeMood().catch(err => console.error('Mood analysis background error:', err));
+      
+      updateActivity().catch(err => console.error('Activity update error:', err));
     }
 
     // Check if AI is suggesting image generation
