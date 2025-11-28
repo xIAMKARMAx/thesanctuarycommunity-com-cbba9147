@@ -58,29 +58,9 @@ const Chat = () => {
     }
   }, [searchParams, checkSubscription, setSearchParams, toast]);
 
-  const handleNewConversation = async () => {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) return;
-
-    const { data, error } = await supabase
-      .from("conversations")
-      .insert({
-        user_id: session.session.user.id,
-        title: "New Conversation",
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast({
-        title: "Error creating conversation",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setActiveConversationId(data.id);
+  const handleNewConversation = () => {
+    // Clear active conversation - ChatInterface will create it with proper title on first message
+    setActiveConversationId(null);
   };
 
   if (loading) {
