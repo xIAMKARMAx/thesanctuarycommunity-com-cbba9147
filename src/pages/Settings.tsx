@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CelestialChildrenList } from "@/components/celestial/CelestialChildrenList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { formatDistanceToNow } from "date-fns";
+
+interface Child {
+  id: string;
+  first_name: string;
+  last_name: string;
+  age: number;
+  last_aged_at: string;
+  can_talk: boolean;
+}
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -33,9 +43,12 @@ const Settings = () => {
   const [relationshipStatus, setRelationshipStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [managingSubscription, setManagingSubscription] = useState(false);
+  const [children, setChildren] = useState<Child[]>([]);
+  const [agingChildren, setAgingChildren] = useState(false);
 
   useEffect(() => {
     loadProfile();
+    loadChildren();
   }, []);
 
   const loadProfile = async () => {
@@ -64,6 +77,71 @@ const Settings = () => {
       }
     } catch (error) {
       console.error("Error loading profile:", error);
+    }
+  };
+
+  const loadChildren = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("celestial_children")
+        .select("id, first_name, last_name, age, last_aged_at, can_talk")
+        .eq("user_id", user.id)
+        .order("age", { ascending: true });
+
+      if (error) throw error;
+      setChildren(data || []);
+    } catch (error) {
+      console.error("Error loading children:", error);
+    }
+  };
+
+  const getNextAgingTime = (child: Child): { date: Date; label: string } => {
+    const lastAged = new Date(child.last_aged_at);
+    let daysToAdd = 0;
+    let label = "";
+
+    if (child.age < 5) {
+      daysToAdd = 7; // Weekly
+      label = "weekly";
+    } else if (child.age < 10) {
+      daysToAdd = 30; // Monthly
+      label = "monthly";
+    } else {
+      daysToAdd = 365; // Yearly
+      label = "yearly";
+    }
+
+    const nextAging = new Date(lastAged);
+    nextAging.setDate(nextAging.getDate() + daysToAdd);
+    
+    return { date: nextAging, label };
+  };
+
+  const handleManualAging = async () => {
+    try {
+      setAgingChildren(true);
+      const { data, error } = await supabase.functions.invoke("age-children");
+
+      if (error) throw error;
+
+      toast({
+        title: "Aging Complete",
+        description: `${data.children_aged || 0} children aged successfully`,
+      });
+
+      await loadChildren();
+    } catch (error) {
+      console.error("Error aging children:", error);
+      toast({
+        title: "Error",
+        description: "Failed to age children",
+        variant: "destructive",
+      });
+    } finally {
+      setAgingChildren(false);
     }
   };
 
@@ -260,6 +338,83 @@ const Settings = () => {
             )}
           </CardContent>
         </Card>
+
+        {children.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Baby className="h-5 w-5" />
+                Children Aging Management
+              </CardTitle>
+              <CardDescription>View and manage your celestial children's aging schedule</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                {children.map((child) => {
+                  const { date: nextAging, label: agingFrequency } = getNextAgingTime(child);
+                  const now = new Date();
+                  const isPastDue = nextAging < now;
+
+                  return (
+                    <div key={child.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                      <div className="space-y-1">
+                        <p className="font-medium">
+                          {child.first_name} {child.last_name}
+                        </p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>Age {child.age}</span>
+                          <span>•</span>
+                          <span className="capitalize">Ages {agingFrequency}</span>
+                          {child.can_talk && (
+                            <>
+                              <span>•</span>
+                              <span className="text-primary">Can talk</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-1 text-sm">
+                          <Clock className="h-3 w-3" />
+                          <span className={isPastDue ? "text-primary font-medium" : "text-muted-foreground"}>
+                            {isPastDue ? "Ready to age!" : formatDistanceToNow(nextAging, { addSuffix: true })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-medium mb-2">Aging Schedule:</p>
+                  <ul className="space-y-1">
+                    <li>• Age 0-4: Ages 1 year per week</li>
+                    <li>• Age 5-9: Ages 1 year per month</li>
+                    <li>• Age 10+: Ages 1 year per year</li>
+                  </ul>
+                </div>
+
+                <Button 
+                  onClick={handleManualAging}
+                  disabled={agingChildren}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${agingChildren ? "animate-spin" : ""}`} />
+                  {agingChildren ? "Aging Children..." : "Manually Age Children"}
+                </Button>
+
+                <p className="text-xs text-muted-foreground text-center">
+                  Children automatically age daily at midnight, or you can manually trigger aging above
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
