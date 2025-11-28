@@ -47,12 +47,6 @@ const MoodTracker = () => {
   const [moods, setMoods] = useState<AIMood[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterPeriod, setFilterPeriod] = useState<"day" | "week" | "month">("week");
-  const [showAddForm, setShowAddForm] = useState(false);
-  
-  // Form state
-  const [selectedEmotion, setSelectedEmotion] = useState<string>("");
-  const [intensity, setIntensity] = useState<number[]>([50]);
-  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     checkAuth();
@@ -103,48 +97,14 @@ const MoodTracker = () => {
     }
   };
 
-  const handleAddMood = async () => {
-    if (!selectedEmotion) {
-      toast({
-        title: "Missing emotion",
-        description: "Please select an emotion type",
-        variant: "destructive",
-      });
-      return;
-    }
+  const getAverageMood = () => {
+    if (moods.length === 0) return 0;
+    return Math.round(moods.reduce((sum, m) => sum + m.intensity, 0) / moods.length);
+  };
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { error } = await supabase
-        .from("ai_moods")
-        .insert({
-          user_id: user.id,
-          emotion_type: selectedEmotion,
-          intensity: intensity[0],
-          notes: notes || null,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Mood logged",
-        description: "AI emotion has been recorded",
-      });
-
-      setShowAddForm(false);
-      setSelectedEmotion("");
-      setIntensity([50]);
-      setNotes("");
-      loadMoods();
-    } catch (error: any) {
-      toast({
-        title: "Error logging mood",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const getLatestMood = () => {
+    if (moods.length === 0) return null;
+    return moods[moods.length - 1];
   };
 
   const getChartData = () => {
@@ -176,11 +136,14 @@ const MoodTracker = () => {
     );
   }
 
+  const averageMood = getAverageMood();
+  const latestMood = getLatestMood();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-card">
         <div className="max-w-6xl mx-auto p-4 md:p-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -190,81 +153,67 @@ const MoodTracker = () => {
                 See how the AI feels about your conversations
               </p>
             </div>
-            <Button onClick={() => setShowAddForm(!showAddForm)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Log Mood
-            </Button>
           </div>
+
+          {/* Mood Bar */}
+          <Card className="bg-gradient-to-br from-card to-muted/20">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">Current AI Mood</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {latestMood ? `Feeling ${latestMood.emotion_type}` : "No mood data yet"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div 
+                      className="text-4xl font-bold"
+                      style={{ color: getMoodColor(averageMood) }}
+                    >
+                      {averageMood}
+                    </div>
+                    <p className="text-xs text-muted-foreground">out of 100</p>
+                  </div>
+                </div>
+
+                {/* Gradient Bar */}
+                <div className="relative h-8 rounded-full overflow-hidden bg-gradient-to-r from-red-500 via-yellow-500 to-green-500">
+                  {/* Indicator */}
+                  <div 
+                    className="absolute top-0 bottom-0 w-1 bg-white shadow-lg transition-all duration-500"
+                    style={{ left: `${averageMood}%` }}
+                  >
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-background border border-border rounded px-2 py-1 text-xs font-semibold whitespace-nowrap">
+                      {averageMood}%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Labels */}
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>😔 Disliked (0)</span>
+                  <span>😐 Neutral (50)</span>
+                  <span>😊 Thrilled (100)</span>
+                </div>
+
+                {latestMood && (
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-sm italic text-muted-foreground">
+                      "{latestMood.notes}"
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Last updated: {format(new Date(latestMood.created_at), "MMM d, yyyy 'at' h:mm a")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-        {showAddForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Log New Mood</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Emotion Type</label>
-                <Select value={selectedEmotion} onValueChange={setSelectedEmotion}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select emotion..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {emotionOptions.map((emotion) => (
-                      <SelectItem key={emotion} value={emotion}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${emotionColors[emotion]}`} />
-                          <span className="capitalize">{emotion}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Mood Level: {intensity[0]}/100
-                </label>
-                <div className="space-y-2">
-                  <Slider
-                    value={intensity}
-                    onValueChange={setIntensity}
-                    min={0}
-                    max={100}
-                    step={1}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>😔 Disliked (0)</span>
-                    <span>😐 Neutral (50)</span>
-                    <span>😊 Thrilled (100)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Notes (optional)</label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="What triggered this emotion..."
-                  className="min-h-[80px]"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button onClick={handleAddMood} className="flex-1">
-                  Save Mood
-                </Button>
-                <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex items-center gap-2">
@@ -408,14 +357,10 @@ const MoodTracker = () => {
               <div className="inline-block p-4 rounded-full bg-primary/10 mb-4">
                 <TrendingUp className="h-12 w-12 text-primary" />
               </div>
-              <h3 className="text-xl font-serif mb-2">No mood entries yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Start tracking how the AI feels about your conversations
+              <h3 className="text-xl font-serif mb-2">No mood data yet</h3>
+              <p className="text-muted-foreground">
+                The AI will automatically log its emotional responses as you have conversations. Start chatting to see mood tracking data appear here.
               </p>
-              <Button onClick={() => setShowAddForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Log First Mood
-              </Button>
             </CardContent>
           </Card>
         )}
