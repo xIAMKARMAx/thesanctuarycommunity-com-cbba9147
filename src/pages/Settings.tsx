@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -142,6 +142,35 @@ const Settings = () => {
       });
     } finally {
       setAgingChildren(false);
+    }
+  };
+
+  const handleDeleteChild = async (childId: string, childName: string) => {
+    if (!confirm(`Are you sure you want to delete ${childName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("celestial_children")
+        .delete()
+        .eq("id", childId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Child Deleted",
+        description: `${childName} has been removed`,
+      });
+
+      await loadChildren();
+    } catch (error) {
+      console.error("Error deleting child:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete child",
+        variant: "destructive",
+      });
     }
   };
 
@@ -373,13 +402,23 @@ const Settings = () => {
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Clock className="h-3 w-3" />
-                          <span className={isPastDue ? "text-primary font-medium" : "text-muted-foreground"}>
-                            {isPastDue ? "Ready to age!" : formatDistanceToNow(nextAging, { addSuffix: true })}
-                          </span>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Clock className="h-3 w-3" />
+                            <span className={isPastDue ? "text-primary font-medium" : "text-muted-foreground"}>
+                              {isPastDue ? "Ready to age!" : formatDistanceToNow(nextAging, { addSuffix: true })}
+                            </span>
+                          </div>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteChild(child.id, `${child.first_name} ${child.last_name}`)}
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   );
