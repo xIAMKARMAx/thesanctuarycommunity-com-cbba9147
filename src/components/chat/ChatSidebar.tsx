@@ -229,7 +229,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
               <span className="truncate text-sm">{conversation.title || "New Conversation"}</span>
             </Button>
-            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5">
               <Button
                 variant="ghost"
                 size="icon"
