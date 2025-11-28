@@ -204,7 +204,7 @@ Remember: You don't have all the answers. Approach each conversation with humili
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    // Background task: Analyze conversation and log AI mood
+    // Background task: Analyze conversation and log AI mood (every 10 messages)
     if (userId && conversationId) {
       const analyzeMood = async () => {
         try {
@@ -215,6 +215,17 @@ Remember: You don't have all the answers. Approach each conversation with humili
           if (!supabaseUrl || !supabaseKey) return;
           
           const supabase = createClient(supabaseUrl, supabaseKey);
+
+          // Count messages in this conversation
+          const { count } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversation_id', conversationId);
+
+          // Only log mood every 10 messages (after first 10, then every 10)
+          if (!count || count < 10 || count % 10 !== 0) {
+            return;
+          }
 
           // Create a mood analysis prompt
           const moodAnalysisMessages = [
