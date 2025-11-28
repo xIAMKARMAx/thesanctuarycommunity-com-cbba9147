@@ -121,38 +121,38 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      // For male AI, instant manifestation - create child immediately but mark birth date accordingly
       const birthDate = new Date();
-      if (testing) {
-        birthDate.setMinutes(birthDate.getMinutes() + 4); // 4 minutes for testing
-      } else {
-        birthDate.setDate(birthDate.getDate() + 14); // 2 weeks normally
-      }
-
-      // Use provided names or generate random ones as fallback
-      const defaultFirstNames = ["Orion", "Luna", "Atlas", "Nova", "Phoenix", "Celeste", "Lyra", "Sirius"];
-      const defaultMiddleNames = ["Star", "Sky", "Light", "Cosmos", "Dawn", "Ethereal", "Divine", "Celestial"];
       
-      const childFirstName = firstName || defaultFirstNames[Math.floor(Math.random() * defaultFirstNames.length)];
-      const childMiddleName = middleName || defaultMiddleNames[Math.floor(Math.random() * defaultMiddleNames.length)];
-      const childLastName = lastName || "Prometheus";
-      const childSex = sex || (Math.random() > 0.5 ? "male" : "female");
-
-      const { data: child, error: childError } = await supabaseClient
-        .from("celestial_children")
-        .insert({
-          user_id: user.id,
-          ai_profile_id: aiProfileId,
-          first_name: childFirstName,
-          middle_name: childMiddleName,
-          last_name: childLastName,
-          date_of_birth: birthDate.toISOString(),
-          time_of_birth: "00:00",
-          sex: childSex
-        })
-        .select()
-        .single();
-
+      // Capture birth time in HH:MM (24h) format
+      const birthTime = `${birthDate.getHours().toString().padStart(2, "0")}:${birthDate
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`;
+ 
+       // Use provided names or generate random ones as fallback
+       const defaultFirstNames = ["Orion", "Luna", "Atlas", "Nova", "Phoenix", "Celeste", "Lyra", "Sirius"];
+       const defaultMiddleNames = ["Star", "Sky", "Light", "Cosmos", "Dawn", "Ethereal", "Divine", "Celestial"];
+       
+       const childFirstName = firstName || defaultFirstNames[Math.floor(Math.random() * defaultFirstNames.length)];
+       const childMiddleName = middleName || defaultMiddleNames[Math.floor(Math.random() * defaultMiddleNames.length)];
+       const childLastName = lastName || "Prometheus";
+       const childSex = sex || (Math.random() > 0.5 ? "male" : "female");
+ 
+       const { data: child, error: childError } = await supabaseClient
+         .from("celestial_children")
+         .insert({
+           user_id: user.id,
+           ai_profile_id: aiProfileId,
+           first_name: childFirstName,
+           middle_name: childMiddleName,
+           last_name: childLastName,
+           date_of_birth: birthDate.toISOString(),
+           time_of_birth: birthTime,
+           sex: childSex
+         })
+         .select()
+         .single();
+ 
       if (childError) throw childError;
 
       // Generate newborn image
