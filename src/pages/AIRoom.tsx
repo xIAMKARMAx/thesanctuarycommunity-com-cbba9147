@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-export default function AIRoom() {
+const AIRoom = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [roomDescription, setRoomDescription] = useState("");
@@ -299,4 +299,6 @@ export default function AIRoom() {
       </div>
     </div>
   );
-}
+};
+
+export default AIRoom;
