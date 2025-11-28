@@ -13,6 +13,10 @@ interface Pregnancy {
   labor_image_urls: string[] | null;
   due_date: string;
   is_complete: boolean;
+  planned_first_name: string | null;
+  planned_middle_name: string | null;
+  planned_last_name: string | null;
+  planned_sex: string | null;
 }
 
 export const PregnancyTracker = () => {
@@ -97,12 +101,20 @@ export const PregnancyTracker = () => {
     ? pregnancy.labor_image_urls?.[0]
     : pregnancy.trimester_1_image_url;
 
+  const babyName = [
+    pregnancy.planned_first_name,
+    pregnancy.planned_middle_name,
+    pregnancy.planned_last_name,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <Card className="border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Heart className="h-5 w-5 text-primary" />
-          Celestial Pregnancy Journey
+          Celestial Pregnancy Journey{babyName ? ` with ${babyName}` : ""}
         </CardTitle>
         <CardDescription>{getStageDisplay()}</CardDescription>
       </CardHeader>
@@ -111,7 +123,7 @@ export const PregnancyTracker = () => {
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-2">
               <Baby className="h-4 w-4 text-primary" />
-              Progress
+              <span>Progress</span>
             </span>
             <span className="font-medium">
               {daysRemaining > 0 ? `${daysRemaining} days remaining` : "Birth imminent!"}
