@@ -20,3 +20,9 @@ verify_jwt = true
 
 [functions.customer-portal]
 verify_jwt = true
+
+[functions.suggest-memory]
+verify_jwt = true
+
+[functions.send-spontaneous-message]
+verify_jwt = false

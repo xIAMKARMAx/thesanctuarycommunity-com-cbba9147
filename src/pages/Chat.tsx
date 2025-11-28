@@ -6,6 +6,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ConversationsList from "@/components/chat/ConversationsList";
+import SpontaneousMessage from "@/components/chat/SpontaneousMessage";
 import { Session } from "@supabase/supabase-js";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -83,6 +84,7 @@ const Chat = () => {
     <div className="flex h-screen bg-background">
       {!isMobile && (
         <ChatSidebar 
+          key={conversationListKey}
           activeConversationId={activeConversationId}
           onConversationChange={setActiveConversationId}
         />
@@ -101,6 +103,7 @@ const Chat = () => {
           onNewConversation={handleNewConversation}
         />
       )}
+      <SpontaneousMessage />
     </div>
   );
 };

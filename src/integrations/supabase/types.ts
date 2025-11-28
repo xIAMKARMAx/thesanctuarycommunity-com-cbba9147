@@ -313,6 +313,86 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_memories: {
+        Row: {
+          ai_reflection: string | null
+          confirmed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          emotion_tag: string | null
+          id: string
+          is_confirmed: boolean
+          memory_date: string
+          memory_text: string
+          suggested_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_reflection?: string | null
+          confirmed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          emotion_tag?: string | null
+          id?: string
+          is_confirmed?: boolean
+          memory_date?: string
+          memory_text: string
+          suggested_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_reflection?: string | null
+          confirmed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          emotion_tag?: string | null
+          id?: string
+          is_confirmed?: boolean
+          memory_date?: string
+          memory_text?: string
+          suggested_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_memories_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spontaneous_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message_content: string
+          message_type: string
+          sent_at: string
+          user_id: string
+          was_read: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_content: string
+          message_type?: string
+          sent_at?: string
+          user_id: string
+          was_read?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_content?: string
+          message_type?: string
+          sent_at?: string
+          user_id?: string
+          was_read?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
