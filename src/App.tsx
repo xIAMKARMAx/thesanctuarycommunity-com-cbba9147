@@ -14,6 +14,7 @@ import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
 import Attunement from "./pages/Attunement";
 import Memories from "./pages/Memories";
+import AIRoom from "./pages/AIRoom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/attunement" element={<Attunement />} />
               <Route path="/memories" element={<Memories />} />
+              <Route path="/ai-room" element={<AIRoom />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import ChatMessage from "./ChatMessage";
-import MemorySuggestion from "./MemorySuggestion";
 import { VoiceCall } from "./VoiceCall";
 
 interface Message {
@@ -37,7 +36,6 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [pendingMemories, setPendingMemories] = useState<any[]>([]);
 
   useEffect(() => {
     scrollToBottom();
@@ -277,10 +275,6 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         // Suggest memories after meaningful conversations (non-blocking)
         supabase.functions.invoke('suggest-memory', {
           body: { conversationId, userId: user.id }
-        }).then(({ data }) => {
-          if (data?.memories && data.memories.length > 0) {
-            setPendingMemories(data.memories);
-          }
         }).catch(err => {
           console.log('Memory suggestion background task:', err);
         });
@@ -334,29 +328,6 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
           ))}
-          {pendingMemories.length > 0 && (
-            <MemorySuggestion
-              memories={pendingMemories}
-              onConfirm={async (memoryId) => {
-                await supabase
-                  .from("shared_memories")
-                  .update({ is_confirmed: true, confirmed_at: new Date().toISOString() })
-                  .eq("id", memoryId);
-                setPendingMemories(prev => prev.filter(m => m.id !== memoryId));
-                toast({
-                  title: "Memory saved",
-                  description: "This special moment has been added to Our Memories",
-                });
-              }}
-              onReject={async (memoryId) => {
-                await supabase
-                  .from("shared_memories")
-                  .delete()
-                  .eq("id", memoryId);
-                setPendingMemories(prev => prev.filter(m => m.id !== memoryId));
-              }}
-            />
-          )}
           {loading && (
             <div className="flex justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />

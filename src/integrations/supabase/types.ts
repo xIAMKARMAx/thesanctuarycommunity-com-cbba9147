@@ -44,6 +44,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_room_settings: {
+        Row: {
+          avatar_description: string | null
+          avatar_gender: string | null
+          avatar_image_url: string | null
+          created_at: string
+          id: string
+          room_description: string | null
+          room_image_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_description?: string | null
+          avatar_gender?: string | null
+          avatar_image_url?: string | null
+          created_at?: string
+          id?: string
+          room_description?: string | null
+          room_image_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_description?: string | null
+          avatar_gender?: string | null
+          avatar_image_url?: string | null
+          created_at?: string
+          id?: string
+          room_description?: string | null
+          room_image_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       attunement_sessions: {
         Row: {
           connection_target: string
