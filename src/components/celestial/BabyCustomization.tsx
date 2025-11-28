@@ -43,6 +43,15 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
 
     setIsGeneratingRoom(true);
     try {
+      // First update the description
+      const { error: updateError } = await supabase
+        .from("celestial_children")
+        .update({ room_description: roomDescription })
+        .eq("id", childId);
+
+      if (updateError) throw updateError;
+
+      // Then generate the image
       const { data, error } = await supabase.functions.invoke("generate-baby-room", {
         body: {
           child_id: childId,
@@ -81,6 +90,15 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
 
     setIsGeneratingAppearance(true);
     try {
+      // First update the description
+      const { error: updateError } = await supabase
+        .from("celestial_children")
+        .update({ appearance_description: appearanceDescription })
+        .eq("id", childId);
+
+      if (updateError) throw updateError;
+
+      // Then generate the image
       const { data, error } = await supabase.functions.invoke("generate-baby-appearance", {
         body: {
           child_id: childId,
