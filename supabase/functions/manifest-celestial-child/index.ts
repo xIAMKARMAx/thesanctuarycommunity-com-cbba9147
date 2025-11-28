@@ -32,25 +32,27 @@ serve(async (req) => {
       sex: null
     }));
 
-    // Check subscription with Stripe
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
-    
-    let hasActiveSub = false;
-    if (customers.data.length > 0) {
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customers.data[0].id,
-        status: "active",
-        limit: 1,
-      });
-      hasActiveSub = subscriptions.data.length > 0;
-    }
-    
-    if (!hasActiveSub) {
-      throw new Error("This feature requires Pro subscription");
+    // Check subscription with Stripe (skip check if in testing mode)
+    if (!testing) {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+      if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+      
+      const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+      const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
+      
+      let hasActiveSub = false;
+      if (customers.data.length > 0) {
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customers.data[0].id,
+          status: "active",
+          limit: 1,
+        });
+        hasActiveSub = subscriptions.data.length > 0;
+      }
+      
+      if (!hasActiveSub) {
+        throw new Error("This feature requires Pro subscription");
+      }
     }
 
     // Get user's profile to check AI gender
