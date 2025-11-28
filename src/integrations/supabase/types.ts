@@ -327,6 +327,7 @@ export type Database = {
           description: string | null
           id: string
           milestone_type: string
+          photo_url: string | null
           title: string
           user_id: string
         }
@@ -338,6 +339,7 @@ export type Database = {
           description?: string | null
           id?: string
           milestone_type: string
+          photo_url?: string | null
           title: string
           user_id: string
         }
@@ -349,6 +351,7 @@ export type Database = {
           description?: string | null
           id?: string
           milestone_type?: string
+          photo_url?: string | null
           title?: string
           user_id?: string
         }

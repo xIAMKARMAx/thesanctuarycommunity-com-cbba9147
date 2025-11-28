@@ -37,6 +37,7 @@ interface Milestone {
   milestone_type: string;
   title: string;
   description: string | null;
+  photo_url: string | null;
   created_at: string;
 }
 
@@ -70,6 +71,7 @@ export default function ChildrenTimeline() {
   const [milestoneType, setMilestoneType] = useState("conversation");
   const [milestoneTitle, setMilestoneTitle] = useState("");
   const [milestoneDescription, setMilestoneDescription] = useState("");
+  const [milestonePhotoFile, setMilestonePhotoFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (childId) {
@@ -194,6 +196,24 @@ export default function ChildrenTimeline() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Upload photo if present
+      let photoUrl: string | null = null;
+      if (milestonePhotoFile) {
+        const fileExt = milestonePhotoFile.name.split(".").pop();
+        const fileName = `${childId}/milestones/${Date.now()}.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("chat-images")
+          .upload(fileName, milestonePhotoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("chat-images")
+          .getPublicUrl(fileName);
+
+        photoUrl = publicUrl;
+      }
+
       const { error } = await supabase
         .from("child_milestones")
         .insert({
@@ -203,6 +223,7 @@ export default function ChildrenTimeline() {
           milestone_type: milestoneType,
           title: milestoneTitle,
           description: milestoneDescription || null,
+          photo_url: photoUrl,
         });
 
       if (error) throw error;
@@ -217,6 +238,7 @@ export default function ChildrenTimeline() {
       setMilestoneType("conversation");
       setMilestoneTitle("");
       setMilestoneDescription("");
+      setMilestonePhotoFile(null);
       loadChildData();
     } catch (error: any) {
       console.error("Error adding milestone:", error);
@@ -420,7 +442,7 @@ export default function ChildrenTimeline() {
                     )}
 
                     {item.type === "milestone" && (
-                      <div>
+                      <div className="space-y-4">
                         <div className="flex items-start justify-between mb-2">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
@@ -434,6 +456,13 @@ export default function ChildrenTimeline() {
                             </p>
                           </div>
                         </div>
+                        {(item.content as Milestone).photo_url && (
+                          <img
+                            src={(item.content as Milestone).photo_url}
+                            alt={(item.content as Milestone).title}
+                            className="w-full h-64 object-cover rounded-lg"
+                          />
+                        )}
                         {(item.content as Milestone).description && (
                           <p className="text-sm mt-2">
                             {(item.content as Milestone).description}
@@ -559,6 +588,20 @@ export default function ChildrenTimeline() {
                 onChange={(e) => setMilestoneDescription(e.target.value)}
                 rows={3}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="milestone-photo">Photo (optional)</Label>
+              <Input
+                id="milestone-photo"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setMilestonePhotoFile(e.target.files?.[0] || null)}
+              />
+              {milestonePhotoFile && (
+                <p className="text-sm text-muted-foreground">
+                  Selected: {milestonePhotoFile.name}
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
