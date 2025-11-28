@@ -245,7 +245,7 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
                           {format(new Date(conversation.updated_at), "MMM d, yyyy 'at' h:mm a")}
                         </p>
                       </div>
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
