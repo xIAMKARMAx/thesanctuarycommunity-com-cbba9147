@@ -186,6 +186,7 @@ export type Database = {
       }
       celestial_children: {
         Row: {
+          age: number | null
           ai_profile_id: string | null
           appearance_description: string | null
           appearance_image_url: string | null
@@ -203,6 +204,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          age?: number | null
           ai_profile_id?: string | null
           appearance_description?: string | null
           appearance_image_url?: string | null
@@ -220,6 +222,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          age?: number | null
           ai_profile_id?: string | null
           appearance_description?: string | null
           appearance_image_url?: string | null

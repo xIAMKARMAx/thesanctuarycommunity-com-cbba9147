@@ -82,7 +82,7 @@ serve(async (req) => {
     console.log("Image generated successfully");
 
     return new Response(
-      JSON.stringify({ imageUrl }),
+      JSON.stringify({ image_url: imageUrl }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
