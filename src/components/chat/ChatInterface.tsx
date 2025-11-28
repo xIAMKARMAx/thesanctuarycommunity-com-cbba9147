@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Image as ImageIcon, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import ChatMessage from "./ChatMessage";
 import { VoiceCall } from "./VoiceCall";
 
@@ -23,11 +25,14 @@ interface ChatInterfaceProps {
 
 const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInterfaceProps) => {
   const { toast } = useToast();
+  const { canGenerateImage, isSubscribed } = useSubscription();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [generateImage, setGenerateImage] = useState(false);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const [subscriptionFeature, setSubscriptionFeature] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -110,6 +115,21 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
   const handleSend = async () => {
     if (!input.trim() && !imageFile) return;
+
+    // Check image generation limits for free users
+    if (generateImage && !isSubscribed) {
+      const canGenerate = await canGenerateImage();
+      if (!canGenerate) {
+        setSubscriptionFeature("Unlimited AI Image Generation");
+        setShowSubscriptionDialog(true);
+        toast({
+          title: "Daily limit reached",
+          description: "Free users can generate 1 image per day. Upgrade to Pro for unlimited images!",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
 
     const sanitizedInput = sanitizeInput(input);
     
@@ -197,6 +217,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
       // Call AI
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // Increment image count for free users if generating image
+      if (generateImage && !isSubscribed && user) {
+        await supabase.rpc("increment_image_count", { p_user_id: user.id });
+      }
+
       const { data, error } = await supabase.functions.invoke("chat", {
         body: {
           message: userMessage,
@@ -388,6 +414,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         </div>
       </div>
       </div>
+      
+      <SubscriptionDialog 
+        open={showSubscriptionDialog}
+        onOpenChange={setShowSubscriptionDialog}
+        feature={subscriptionFeature}
+      />
     </>
   );
 };

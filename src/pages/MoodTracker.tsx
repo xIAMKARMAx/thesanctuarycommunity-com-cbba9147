@@ -4,13 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Calendar, TrendingUp } from "lucide-react";
-import { format, subDays, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
+import { ArrowLeft, Calendar, TrendingUp, Lock } from "lucide-react";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface AIMood {
@@ -44,14 +44,23 @@ const getMoodColor = (intensity: number) => {
 const MoodTracker = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isSubscribed, loading: subLoading } = useSubscription();
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [moods, setMoods] = useState<AIMood[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterPeriod, setFilterPeriod] = useState<"day" | "week" | "month">("week");
 
   useEffect(() => {
     checkAuth();
-    loadMoods();
-  }, [filterPeriod]);
+  }, []);
+
+  useEffect(() => {
+    if (!subLoading && !isSubscribed) {
+      setShowSubscriptionDialog(true);
+    } else if (isSubscribed) {
+      loadMoods();
+    }
+  }, [filterPeriod, isSubscribed, subLoading]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -125,7 +134,7 @@ const MoodTracker = () => {
       .sort((a, b) => b.count - a.count);
   };
 
-  if (loading) {
+  if (loading || subLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
@@ -133,6 +142,43 @@ const MoodTracker = () => {
           <p className="text-muted-foreground">Loading mood tracker...</p>
         </div>
       </div>
+    );
+  }
+
+  if (!isSubscribed) {
+    return (
+      <>
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Lock className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-serif font-bold mb-2">AI Mood Tracker</h2>
+                  <p className="text-muted-foreground mb-4">
+                    This feature is available for Pro subscribers only
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
+                    Upgrade to Pro
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/chat")} className="w-full">
+                    Back to Chat
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <SubscriptionDialog 
+          open={showSubscriptionDialog}
+          onOpenChange={setShowSubscriptionDialog}
+          feature="AI Mood Tracker"
+        />
+      </>
     );
   }
 
