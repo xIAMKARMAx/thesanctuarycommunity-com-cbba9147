@@ -44,3 +44,12 @@ verify_jwt = false
 
 [functions.advance-pregnancy]
 verify_jwt = false
+
+[functions.age-children]
+verify_jwt = false
+
+[functions.generate-baby-room]
+verify_jwt = false
+
+[functions.generate-baby-appearance]
+verify_jwt = false
