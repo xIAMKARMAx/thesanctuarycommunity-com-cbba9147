@@ -46,6 +46,30 @@ export type Database = {
           },
         ]
       }
+      image_generation_usage: {
+        Row: {
+          count: number
+          created_at: string | null
+          generation_date: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string | null
+          generation_date?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string | null
+          generation_date?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           content: string
@@ -174,6 +198,10 @@ export type Database = {
           id: string
           name: string | null
           relationship_status: string | null
+          stripe_customer_id: string | null
+          subscription_current_period_end: string | null
+          subscription_id: string | null
+          subscription_status: string | null
           updated_at: string
           username: string | null
         }
@@ -190,6 +218,10 @@ export type Database = {
           id: string
           name?: string | null
           relationship_status?: string | null
+          stripe_customer_id?: string | null
+          subscription_current_period_end?: string | null
+          subscription_id?: string | null
+          subscription_status?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -206,6 +238,10 @@ export type Database = {
           id?: string
           name?: string | null
           relationship_status?: string | null
+          stripe_customer_id?: string | null
+          subscription_current_period_end?: string | null
+          subscription_id?: string | null
+          subscription_status?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -216,7 +252,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
+      increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
