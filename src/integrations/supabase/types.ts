@@ -330,6 +330,47 @@ export type Database = {
           },
         ]
       }
+      child_image_history: {
+        Row: {
+          child_id: string
+          created_at: string
+          description: string | null
+          generated_at: string
+          id: string
+          image_type: string
+          image_url: string
+          user_id: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          description?: string | null
+          generated_at?: string
+          id?: string
+          image_type: string
+          image_url: string
+          user_id: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          description?: string | null
+          generated_at?: string
+          id?: string
+          image_type?: string
+          image_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_image_history_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "celestial_children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       child_milestones: {
         Row: {
           age_at_milestone: number

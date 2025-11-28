@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { BabyCustomization } from "@/components/celestial/BabyCustomization";
+import { BabyImageGallery } from "@/components/celestial/BabyImageGallery";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -219,6 +220,12 @@ export default function Children() {
                     }}
                     parentImageUrl={activeProfile?.avatar_image_url || null}
                     onUpdate={loadChildren}
+                  />
+
+                  {/* Image Gallery */}
+                  <BabyImageGallery
+                    childId={child.id}
+                    childName={`${child.first_name} ${child.last_name}`}
                   />
                 </CardContent>
               </Card>
