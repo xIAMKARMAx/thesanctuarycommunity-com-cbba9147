@@ -291,6 +291,23 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         role: assistantMessageData.role as "user" | "assistant"
       }]);
 
+      // Check if this is the 10th message and trigger first mood log
+      const { count: messageCount } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("conversation_id", conversationId);
+
+      if (messageCount === 10 && user?.id) {
+        // Trigger first mood log after 10 messages
+        supabase.functions.invoke("log-mood", {
+          body: {
+            userId: user.id,
+            conversationId,
+            trigger: "first_10_messages"
+          }
+        }).catch(err => console.error("Error logging first mood:", err));
+      }
+
       // Trigger journal reflection in background (non-blocking)
       if (conversationId && user?.id) {
         supabase.functions.invoke('journal-reflect', {
