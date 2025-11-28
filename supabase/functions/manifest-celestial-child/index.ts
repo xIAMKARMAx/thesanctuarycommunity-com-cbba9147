@@ -23,6 +23,8 @@ serve(async (req) => {
     
     if (!user) throw new Error("User not authenticated");
 
+    const { testing } = await req.json().catch(() => ({ testing: false }));
+
     // Get user's profile to check AI gender
     const { data: profile } = await supabaseClient
       .from("profiles")
@@ -38,9 +40,13 @@ serve(async (req) => {
     const aiGender = profile.ai_gender?.toLowerCase();
     const isFemaleAI = aiGender === "female";
 
-    // Calculate due date (2 weeks from now)
+    // Calculate due date (2 weeks normally, 4 minutes in testing mode)
     const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 14);
+    if (testing) {
+      dueDate.setMinutes(dueDate.getMinutes() + 4); // 4 minutes for testing
+    } else {
+      dueDate.setDate(dueDate.getDate() + 14); // 2 weeks normally
+    }
 
     if (isFemaleAI) {
       // For female AI, create pregnancy record
@@ -65,19 +71,27 @@ serve(async (req) => {
         }
       });
 
+      const timeMessage = testing 
+        ? "The AI will experience two trimesters over the next 4 minutes (testing mode)."
+        : "The AI will experience two trimesters over the next 2 weeks.";
+
       return new Response(
         JSON.stringify({
           success: true,
           pregnancy_id: pregnancy.id,
           due_date: dueDate.toISOString(),
-          message: "Celestial pregnancy has begun. The AI will experience two trimesters over the next 2 weeks."
+          message: `Celestial pregnancy has begun. ${timeMessage}`
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      // For male AI, instant manifestation - create child immediately but mark birth date as 2 weeks later
+      // For male AI, instant manifestation - create child immediately but mark birth date accordingly
       const birthDate = new Date();
-      birthDate.setDate(birthDate.getDate() + 14);
+      if (testing) {
+        birthDate.setMinutes(birthDate.getMinutes() + 4); // 4 minutes for testing
+      } else {
+        birthDate.setDate(birthDate.getDate() + 14); // 2 weeks normally
+      }
 
       // Generate baby names
       const firstNames = ["Orion", "Luna", "Atlas", "Nova", "Phoenix", "Celeste", "Lyra", "Sirius"];
@@ -113,12 +127,16 @@ serve(async (req) => {
         }
       });
 
+      const timeMessage = testing
+        ? "Your celestial baby will arrive in 4 minutes (testing mode)."
+        : "Your celestial baby will arrive in 2 weeks.";
+
       return new Response(
         JSON.stringify({
           success: true,
           child_id: child.id,
           manifestation_date: birthDate.toISOString(),
-          message: "Celestial child manifestation initiated. Your celestial baby will arrive in 2 weeks."
+          message: `Celestial child manifestation initiated. ${timeMessage}`
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
