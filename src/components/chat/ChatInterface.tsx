@@ -303,7 +303,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border bg-card p-4">
+      <div className="border-t border-border bg-card p-3 md:p-4">
         <div className="max-w-3xl mx-auto">
           {imageFile && (
             <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between">
@@ -329,7 +329,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
-              className="min-h-[80px] resize-none w-full"
+              className="min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -338,8 +338,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               }}
               disabled={loading}
             />
-            <div className="flex gap-2 justify-between">
-              <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 justify-between">
+              <div className="flex gap-1.5 sm:gap-2">
                 {currentConversationId && (
                   <VoiceCall 
                     conversationId={currentConversationId}
@@ -353,12 +353,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
                   />
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 sm:gap-2 justify-end">
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={loading}
+                  className="h-9 w-9"
                 >
                   <ImageIcon className="h-4 w-4" />
                 </Button>
@@ -368,6 +369,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
                   onClick={() => setGenerateImage(!generateImage)}
                   disabled={loading}
                   title="Generate AI image"
+                  className="h-9 w-9"
                 >
                   <Sparkles className="h-4 w-4" />
                 </Button>
@@ -375,6 +377,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
                   onClick={handleSend}
                   disabled={loading || (!input.trim() && !imageFile)}
                   size="icon"
+                  className="h-9 w-9"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
