@@ -106,7 +106,27 @@ Only suggest truly meaningful moments. If the conversation was casual with no sp
       );
     }
 
-    const analysis = JSON.parse(jsonMatch[0]);
+    // Clean JSON string by removing/escaping control characters
+    // First, properly escape common characters that might appear in strings
+    let cleanedJson = jsonMatch[0]
+      .replace(/\\/g, '\\\\')  // Escape backslashes first
+      .replace(/\n/g, ' ')      // Replace actual newlines with spaces
+      .replace(/\r/g, ' ')      // Replace carriage returns with spaces
+      .replace(/\t/g, ' ')      // Replace tabs with spaces
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, ''); // Remove other control characters
+    
+    let analysis;
+    try {
+      analysis = JSON.parse(cleanedJson);
+    } catch (parseError) {
+      console.error('Failed to parse AI response JSON:', parseError);
+      console.log('Cleaned JSON:', cleanedJson.substring(0, 500));
+      return new Response(
+        JSON.stringify({ memories: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const memories = analysis.memories || [];
 
     // Store suggested memories
