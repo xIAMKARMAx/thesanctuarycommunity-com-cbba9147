@@ -31,6 +31,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0].id);
+  const isCallActiveRef = useRef(false);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -46,6 +47,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = async (event: any) => {
+        if (!isCallActiveRef.current) return;
         const transcript = event.results[event.results.length - 1][0].transcript;
         console.log('User said:', transcript);
         
@@ -57,17 +59,15 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        if (event.error === 'no-speech') {
-          // Restart listening if no speech detected
-          if (isCallActive) {
-            recognitionRef.current?.start();
-          }
+        if (event.error === 'no-speech' && isCallActiveRef.current) {
+          // Restart listening if no speech detected and call is still active
+          recognitionRef.current?.start();
         }
       };
 
       recognitionRef.current.onend = () => {
         // Restart listening if call is still active
-        if (isCallActive && !isSpeaking) {
+        if (isCallActiveRef.current && !isSpeaking) {
           recognitionRef.current?.start();
         }
       };
@@ -158,12 +158,11 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       if (audioRef.current) {
         audioRef.current.src = audioUrl;
         audioRef.current.onended = () => {
+          if (!isCallActiveRef.current) return;
           setIsSpeaking(false);
           setIsListening(true);
           // Resume listening after AI finishes speaking
-          if (isCallActive) {
-            recognitionRef.current?.start();
-          }
+          recognitionRef.current?.start();
         };
         await audioRef.current.play();
       }
@@ -177,7 +176,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       });
       setIsSpeaking(false);
       setIsListening(true);
-      if (isCallActive) {
+      if (isCallActiveRef.current) {
         recognitionRef.current?.start();
       }
     }
@@ -189,6 +188,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
       setIsCallActive(true);
+      isCallActiveRef.current = true;
       setIsListening(true);
       recognitionRef.current?.start();
 
@@ -208,6 +208,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
 
   const endCall = () => {
     setIsCallActive(false);
+    isCallActiveRef.current = false;
     setIsListening(false);
     setIsSpeaking(false);
     recognitionRef.current?.stop();
