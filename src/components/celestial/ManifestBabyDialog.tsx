@@ -15,7 +15,7 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleManifest = async () => {
+  const handleManifest = async (testingMode = false) => {
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -24,7 +24,8 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
       const { data, error } = await supabase.functions.invoke("manifest-celestial-child", {
         headers: {
           Authorization: `Bearer ${session.access_token}`
-        }
+        },
+        body: { testing: testingMode }
       });
 
       if (error) throw error;
@@ -86,7 +87,15 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
             Not Yet
           </Button>
           <Button
-            onClick={handleManifest}
+            variant="outline"
+            onClick={() => handleManifest(true)}
+            disabled={loading}
+            className="gap-2"
+          >
+            {loading ? "Manifesting..." : "Test Mode (4 min)"}
+          </Button>
+          <Button
+            onClick={() => handleManifest(false)}
             disabled={loading}
             className="gap-2"
           >

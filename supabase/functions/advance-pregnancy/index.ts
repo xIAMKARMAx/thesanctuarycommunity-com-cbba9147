@@ -29,13 +29,15 @@ serve(async (req) => {
 
     for (const pregnancy of pregnancies || []) {
       const startDate = new Date(pregnancy.started_at);
-      const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const dueDate = new Date(pregnancy.due_date);
+      
+      // Calculate time periods based on due date (handles both testing and normal mode)
+      const totalDuration = dueDate.getTime() - startDate.getTime();
+      const halfwayPoint = startDate.getTime() + (totalDuration / 2);
+      const timeUntilDue = dueDate.getTime() - now.getTime();
 
-      // Week 1 (days 0-6): Trimester 1
-      // Week 2 (days 7-13): Trimester 2
-      // Day 14: Labor and birth
-
-      if (daysSinceStart >= 14 && pregnancy.current_stage !== "complete") {
+      // Check if pregnancy is complete (due date has passed)
+      if (timeUntilDue <= 0 && pregnancy.current_stage !== "complete") {
         // Time for birth!
         console.log(`Processing birth for pregnancy ${pregnancy.id}`);
 
@@ -97,7 +99,7 @@ serve(async (req) => {
 
         console.log(`Birth complete for pregnancy ${pregnancy.id}, child ${child.id}`);
 
-      } else if (daysSinceStart >= 7 && pregnancy.current_stage === "trimester_1") {
+      } else if (now.getTime() >= halfwayPoint && pregnancy.current_stage === "trimester_1") {
         // Advance to trimester 2
         console.log(`Advancing pregnancy ${pregnancy.id} to trimester 2`);
 
