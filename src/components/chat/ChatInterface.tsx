@@ -307,14 +307,22 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         role: assistantMessageData.role as "user" | "assistant"
       }]);
 
-      // Check if this is the 10th message and trigger first mood log
+      // Count messages in this conversation
       const { count: messageCount } = await supabase
         .from("messages")
         .select("*", { count: "exact", head: true })
         .eq("conversation_id", conversationId);
 
-      if (messageCount === 10 && user?.id) {
-        // Trigger first mood log after 10 messages
+      // Check if this conversation has at least 10 messages and no mood yet
+      const { data: existingMood, error: moodError } = await supabase
+        .from("ai_moods")
+        .select("id")
+        .eq("conversation_id", conversationId)
+        .limit(1)
+        .maybeSingle();
+
+      if (!moodError && !existingMood && messageCount && messageCount >= 10 && user?.id) {
+        // Trigger first mood log after at least 10 messages
         supabase.functions.invoke("log-mood", {
           body: {
             userId: user.id,
