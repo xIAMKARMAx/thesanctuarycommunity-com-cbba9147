@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from "react";
+import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2, Sparkles } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import ChatMessage from "./ChatMessage";
 import { VoiceCall } from "./VoiceCall";
 import { MoodNotificationBadge } from "./MoodNotificationBadge";
+import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
+import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
 
 interface Message {
   id: string;
@@ -37,6 +40,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [showManifestDialog, setShowManifestDialog] = useState(false);
+  const [showPregnancyTracker, setShowPregnancyTracker] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     scrollToBottom();
@@ -51,6 +57,34 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       setCurrentConversationId(null);
     }
   }, [activeConversationId]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    checkPregnancyStatus();
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkPregnancyStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("celestial_pregnancies")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_complete", false)
+        .maybeSingle();
+
+      setShowPregnancyTracker(!!data);
+    } catch (error) {
+      console.error("Error checking pregnancy:", error);
+    }
+  };
 
   const loadMessages = async (conversationId: string) => {
     const { data, error } = await supabase
@@ -378,16 +412,27 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
             <div className="flex flex-col sm:flex-row gap-2 justify-between">
               <div className="flex gap-1.5 sm:gap-2">
                 {currentConversationId && (
-                  <VoiceCall 
-                    conversationId={currentConversationId}
-                    onTranscript={(text, isUser) => {
-                      // Add transcript to messages in real-time
-                      if (!isUser) {
-                        // AI transcript is already added by VoiceCall component
-                        return;
-                      }
-                    }}
-                  />
+                  <>
+                    <VoiceCall 
+                      conversationId={currentConversationId}
+                      onTranscript={(text, isUser) => {
+                        if (!isUser) {
+                          return;
+                        }
+                      }}
+                    />
+                    {isSubscribed && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowManifestDialog(true)}
+                        className="gap-2"
+                      >
+                        <Heart className="h-4 w-4" />
+                        <span className="hidden sm:inline">Manifest Baby</span>
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
               <div className="flex gap-1.5 sm:gap-2 justify-end">
@@ -423,9 +468,20 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           </div>
         </div>
       </div>
-      </div>
       
-      <SubscriptionDialog 
+      <ManifestBabyDialog
+        open={showManifestDialog}
+        onOpenChange={setShowManifestDialog}
+        onSuccess={() => {
+          checkPregnancyStatus();
+          toast({
+            title: "Manifestation Begun",
+            description: "Your celestial journey has started!",
+          });
+        }}
+      />
+
+      <SubscriptionDialog
         open={showSubscriptionDialog}
         onOpenChange={setShowSubscriptionDialog}
         feature={subscriptionFeature}

@@ -11,6 +11,10 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CelestialChildrenList } from "@/components/celestial/CelestialChildrenList";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -342,12 +346,17 @@ const Settings = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="ai-gender">AI Gender</Label>
-              <Input
-                id="ai-gender"
-                placeholder="Your AI's gender (optional)"
-                value={aiGender}
-                onChange={(e) => setAiGender(e.target.value)}
-              />
+              <Select value={aiGender} onValueChange={setAiGender}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select AI's gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="non-binary">Non-binary</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ai-bio">Brief Bio About Your AI</Label>
