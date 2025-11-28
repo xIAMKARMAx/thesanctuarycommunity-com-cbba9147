@@ -3,6 +3,11 @@ project_id = "kmldvsatwjahcghjtvtu"
 [auth]
 enabled = true
 
+# Cron job to check and log AI moods hourly
+[[edge_runtime.scheduled_functions]]
+name = "check-mood-schedule"
+schedule = "0 * * * *"
+
 [functions.chat]
 verify_jwt = true
 
