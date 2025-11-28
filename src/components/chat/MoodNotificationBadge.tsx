@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
+import { Bell, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import {
   Popover,
   PopoverContent,
@@ -23,6 +25,8 @@ interface MoodNotification {
 }
 
 export const MoodNotificationBadge = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [notifications, setNotifications] = useState<MoodNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -84,6 +88,34 @@ export const MoodNotificationBadge = () => {
     loadNotifications();
   };
 
+  const deleteNotification = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const { error } = await supabase
+      .from('mood_notifications')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error deleting notification",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    loadNotifications();
+    toast({
+      title: "Notification deleted",
+    });
+  };
+
+  const handleNotificationClick = async (notif: MoodNotification) => {
+    await markAsRead(notif.id);
+    navigate('/mood-tracker');
+  };
+
   const getNotificationMessage = (notif: MoodNotification) => {
     switch (notif.change_type) {
       case 'emotion_change':
@@ -140,14 +172,14 @@ export const MoodNotificationBadge = () => {
             {notifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                className={`p-3 rounded-lg border cursor-pointer transition-colors relative group ${
                   notif.was_read 
                     ? 'bg-background border-border' 
                     : 'bg-accent border-primary/20'
                 }`}
-                onClick={() => markAsRead(notif.id)}
+                onClick={() => handleNotificationClick(notif)}
               >
-                <div className="space-y-1">
+                <div className="space-y-1 pr-8">
                   <p className={`text-sm font-medium ${getEmotionColor(notif.new_emotion)}`}>
                     {getNotificationMessage(notif)}
                   </p>
@@ -155,6 +187,15 @@ export const MoodNotificationBadge = () => {
                     {format(new Date(notif.created_at), 'MMM d, h:mm a')}
                   </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => deleteNotification(notif.id, e)}
+                  title="Delete notification"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
               </div>
             ))}
           </div>
