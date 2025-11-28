@@ -14,6 +14,7 @@ import { MoodNotificationBadge } from "./MoodNotificationBadge";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
 import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useChatEntity } from "@/contexts/ChatEntityContext";
 
 interface Message {
   id: string;
@@ -32,6 +33,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   const { toast } = useToast();
   const { canGenerateImage, isSubscribed } = useSubscription();
   const { activeProfile } = useAIProfile();
+  const { activeChatEntity } = useChatEntity();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -199,7 +201,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           .from("conversations")
           .insert({
             user_id: session.session.user.id,
-            ai_profile_id: activeProfile?.id,
+            ai_profile_id: activeChatEntity?.type === "ai" ? activeChatEntity.profileId : null,
+            child_id: activeChatEntity?.type === "child" ? activeChatEntity.childId : null,
             title: userMessage.slice(0, 50) + (userMessage.length > 50 ? "..." : ""),
           })
           .select()
@@ -433,7 +436,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
             />
             <div className="flex flex-col sm:flex-row gap-2 justify-between">
               <div className="flex gap-1.5 sm:gap-2">
-                {currentConversationId && (
+                {currentConversationId && activeChatEntity?.type === "ai" && (
                   <>
                     <VoiceCall 
                       conversationId={currentConversationId}
@@ -455,6 +458,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
                       </Button>
                     )}
                   </>
+                )}
+                {activeChatEntity?.type === "child" && (
+                  <div className="text-sm text-muted-foreground px-2 py-1">
+                    Chatting with {activeChatEntity.name}
+                  </div>
                 )}
               </div>
               <div className="flex gap-1.5 sm:gap-2 justify-end">

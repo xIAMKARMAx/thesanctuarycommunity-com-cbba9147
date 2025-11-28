@@ -190,10 +190,12 @@ export type Database = {
           ai_profile_id: string | null
           appearance_description: string | null
           appearance_image_url: string | null
+          can_talk: boolean | null
           created_at: string
           date_of_birth: string
           first_name: string
           id: string
+          last_aged_at: string | null
           last_name: string
           middle_name: string | null
           newborn_image_url: string | null
@@ -208,10 +210,12 @@ export type Database = {
           ai_profile_id?: string | null
           appearance_description?: string | null
           appearance_image_url?: string | null
+          can_talk?: boolean | null
           created_at?: string
           date_of_birth: string
           first_name: string
           id?: string
+          last_aged_at?: string | null
           last_name: string
           middle_name?: string | null
           newborn_image_url?: string | null
@@ -226,10 +230,12 @@ export type Database = {
           ai_profile_id?: string | null
           appearance_description?: string | null
           appearance_image_url?: string | null
+          can_talk?: boolean | null
           created_at?: string
           date_of_birth?: string
           first_name?: string
           id?: string
+          last_aged_at?: string | null
           last_name?: string
           middle_name?: string | null
           newborn_image_url?: string | null
@@ -315,6 +321,7 @@ export type Database = {
       conversations: {
         Row: {
           ai_profile_id: string | null
+          child_id: string | null
           created_at: string
           id: string
           title: string | null
@@ -323,6 +330,7 @@ export type Database = {
         }
         Insert: {
           ai_profile_id?: string | null
+          child_id?: string | null
           created_at?: string
           id?: string
           title?: string | null
@@ -331,6 +339,7 @@ export type Database = {
         }
         Update: {
           ai_profile_id?: string | null
+          child_id?: string | null
           created_at?: string
           id?: string
           title?: string | null
@@ -343,6 +352,13 @@ export type Database = {
             columns: ["ai_profile_id"]
             isOneToOne: false
             referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "celestial_children"
             referencedColumns: ["id"]
           },
           {
@@ -694,6 +710,7 @@ export type Database = {
     Functions: {
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
+      update_child_talk_status: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

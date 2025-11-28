@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { AIProfileProvider } from "@/contexts/AIProfileContext";
+import { ChatEntityProvider } from "@/contexts/ChatEntityContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -26,27 +27,29 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <SubscriptionProvider>
         <AIProfileProvider>
-          <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/journal" element={<Journal />} />
-              <Route path="/mood-tracker" element={<MoodTracker />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/attunement" element={<Attunement />} />
-              <Route path="/memories" element={<Memories />} />
-              <Route path="/ai-room" element={<AIRoom />} />
-              <Route path="/children" element={<Children />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+          <ChatEntityProvider>
+            <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/journal" element={<Journal />} />
+                <Route path="/mood-tracker" element={<MoodTracker />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/attunement" element={<Attunement />} />
+                <Route path="/memories" element={<Memories />} />
+                <Route path="/ai-room" element={<AIRoom />} />
+                <Route path="/children" element={<Children />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+          </ChatEntityProvider>
         </AIProfileProvider>
       </SubscriptionProvider>
     </ThemeProvider>
