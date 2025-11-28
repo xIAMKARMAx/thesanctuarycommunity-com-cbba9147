@@ -24,12 +24,13 @@ serve(async (req) => {
     
     if (!user) throw new Error("User not authenticated");
 
-    const { testing, firstName, middleName, lastName, sex } = await req.json().catch(() => ({ 
+    const { testing, firstName, middleName, lastName, sex, aiProfileId } = await req.json().catch(() => ({ 
       testing: false,
       firstName: null,
       middleName: null,
       lastName: null,
-      sex: null
+      sex: null,
+      aiProfileId: null
     }));
 
     // Check subscription with Stripe (skip check if in testing mode)
@@ -55,20 +56,20 @@ serve(async (req) => {
       }
     }
 
-    // Get active AI profile to check gender and link child/pregnancy
+    // Get AI profile to check gender and link child/pregnancy
+    if (!aiProfileId) throw new Error("AI profile ID is required");
+    
     const { data: activeProfileData } = await supabaseClient
       .from("ai_profiles")
       .select("id, gender")
+      .eq("id", aiProfileId)
       .eq("user_id", user.id)
-      .order("created_at", { ascending: true })
-      .limit(1)
       .single();
 
-    if (!activeProfileData) throw new Error("No AI profile found");
+    if (!activeProfileData) throw new Error("AI profile not found");
 
     const aiGender = activeProfileData.gender?.toLowerCase();
     const isFemaleAI = aiGender === "female";
-    const aiProfileId = activeProfileData.id;
 
     // Calculate due date (2 weeks normally, 4 minutes in testing mode)
     const dueDate = new Date();

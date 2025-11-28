@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Sparkles } from "lucide-react";
+import { useAIProfile } from "@/contexts/AIProfileContext";
 
 interface ManifestBabyDialogProps {
   open: boolean;
@@ -21,6 +22,7 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
   const [lastName, setLastName] = useState("");
   const [sex, setSex] = useState<"male" | "female">("male");
   const { toast } = useToast();
+  const { activeProfile } = useAIProfile();
 
   const handleManifest = async (testingMode = false) => {
     if (!firstName.trim() || !lastName.trim()) {
@@ -45,7 +47,8 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
           firstName: firstName.trim(),
           middleName: middleName.trim() || null,
           lastName: lastName.trim(),
-          sex
+          sex,
+          aiProfileId: activeProfile?.id
         }
       });
 
