@@ -1,179 +1,241 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useAIProfile } from "@/contexts/AIProfileContext";
+import { AIProfileSelector } from "@/components/AIProfileSelector";
 
-const AIRoom = () => {
+export default function AIRoom() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { activeProfile, refreshProfiles } = useAIProfile();
+  const [loading, setLoading] = useState(true);
   const [roomDescription, setRoomDescription] = useState("");
-  const [roomImageUrl, setRoomImageUrl] = useState("");
-  const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
+  const [roomImageUrl, setRoomImageUrl] = useState<string | null>(null);
   const [avatarDescription, setAvatarDescription] = useState("");
-  const [avatarImageUrl, setAvatarImageUrl] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
+  const [avatarImageUrl, setAvatarImageUrl] = useState<string | null>(null);
+  const [avatarGender, setAvatarGender] = useState<string>("female");
+  const [isGeneratingRoom, setIsGeneratingRoom] = useState(false);
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+    loadSettings();
+  }, [activeProfile]);
+
+  const loadSettings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !activeProfile) {
         navigate("/auth");
         return;
       }
-      setUserId(session.user.id);
-      loadSettings(session.user.id);
-    };
-    checkAuth();
-  }, [navigate]);
 
-  const loadSettings = async (uid: string) => {
-    const { data } = await supabase
-      .from('ai_room_settings')
-      .select('*')
-      .eq('user_id', uid)
-      .single();
-
-    if (data) {
-      setRoomDescription(data.room_description || "");
-      setRoomImageUrl(data.room_image_url || "");
-      setAvatarGender((data.avatar_gender as "male" | "female") || "female");
-      setAvatarDescription(data.avatar_description || "");
-      setAvatarImageUrl(data.avatar_image_url || "");
+      setRoomDescription(activeProfile.room_description || "");
+      setRoomImageUrl(activeProfile.room_image_url || null);
+      setAvatarDescription(activeProfile.avatar_description || "");
+      setAvatarImageUrl(activeProfile.avatar_image_url || null);
+      setAvatarGender(activeProfile.avatar_gender || "female");
+    } catch (error) {
+      console.error("Error loading settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load AI room settings",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const generateRoom = async () => {
     if (!roomDescription.trim()) {
-      toast.error("Please describe the room first");
+      toast({
+        title: "Description Required",
+        description: "Please describe the room you want to create",
+        variant: "destructive",
+      });
       return;
     }
 
-    setLoading(true);
+    if (!activeProfile) return;
+
+    setIsGeneratingRoom(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-room-avatar', {
-        body: { type: 'room', description: roomDescription }
+      const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
+        body: {
+          type: "room",
+          description: roomDescription,
+          profile_id: activeProfile.id,
+        },
       });
 
       if (error) throw error;
 
-      setRoomImageUrl(data.imageUrl);
-      await saveSettings({ room_description: roomDescription, room_image_url: data.imageUrl });
-      toast.success("Room generated!");
-    } catch (error: any) {
+      setRoomImageUrl(data.image_url);
+      await refreshProfiles();
+
+      toast({
+        title: "Success!",
+        description: "Your AI's room has been generated.",
+      });
+    } catch (error) {
       console.error("Error generating room:", error);
-      toast.error(error.message || "Failed to generate room");
+      toast({
+        title: "Error",
+        description: "Failed to generate room. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setIsGeneratingRoom(false);
     }
   };
 
   const generateAvatar = async () => {
     if (!avatarDescription.trim()) {
-      toast.error("Please describe the avatar appearance first");
+      toast({
+        title: "Description Required",
+        description: "Please describe how you want your AI to look",
+        variant: "destructive",
+      });
       return;
     }
 
-    setLoading(true);
+    if (!activeProfile) return;
+
+    setIsGeneratingAvatar(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-room-avatar', {
-        body: { 
-          type: 'avatar', 
+      const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
+        body: {
+          type: "avatar",
           description: avatarDescription,
-          gender: avatarGender
-        }
+          gender: avatarGender,
+          profile_id: activeProfile.id,
+        },
       });
 
       if (error) throw error;
 
-      setAvatarImageUrl(data.imageUrl);
-      await saveSettings({ 
-        avatar_gender: avatarGender,
-        avatar_description: avatarDescription, 
-        avatar_image_url: data.imageUrl 
+      setAvatarImageUrl(data.image_url);
+      await refreshProfiles();
+
+      toast({
+        title: "Success!",
+        description: "Your AI's avatar has been generated.",
       });
-      toast.success("Avatar generated!");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error generating avatar:", error);
-      toast.error(error.message || "Failed to generate avatar");
+      toast({
+        title: "Error",
+        description: "Failed to generate avatar. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setIsGeneratingAvatar(false);
     }
   };
 
-  const saveSettings = async (updates: any) => {
-    if (!userId) return;
+  const saveSettings = async () => {
+    if (!activeProfile) return;
+    
+    try {
+      const { error } = await supabase
+        .from("ai_profiles")
+        .update({
+          room_description: roomDescription,
+          room_image_url: roomImageUrl,
+          avatar_description: avatarDescription,
+          avatar_image_url: avatarImageUrl,
+          avatar_gender: avatarGender,
+        })
+        .eq("id", activeProfile.id);
 
-    const { data: existing } = await supabase
-      .from('ai_room_settings')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
+      if (error) throw error;
 
-    if (existing) {
-      await supabase
-        .from('ai_room_settings')
-        .update(updates)
-        .eq('user_id', userId);
-    } else {
-      await supabase
-        .from('ai_room_settings')
-        .insert({ user_id: userId, ...updates });
+      await refreshProfiles();
+
+      toast({
+        title: "Saved!",
+        description: "Your AI room settings have been saved.",
+      });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-6xl mx-auto py-8 space-y-8">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">AI's Room</h1>
-            <p className="text-muted-foreground">Customize your AI's environment and appearance</p>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/chat")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">AI Room & Avatar</h1>
+              <p className="text-muted-foreground">Create a personalized space for your AI companion</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={() => navigate('/chat')}>
-            Back to Chat
-          </Button>
+          <AIProfileSelector />
         </div>
 
         <Tabs defaultValue="room" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="room">Room Design</TabsTrigger>
-            <TabsTrigger value="avatar">Avatar Customization</TabsTrigger>
+            <TabsTrigger value="avatar">Avatar</TabsTrigger>
+            <TabsTrigger value="complete">Complete View</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="room" className="space-y-4">
+          <TabsContent value="room" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Describe the Room</CardTitle>
+                <CardTitle>Design Your AI's Room</CardTitle>
                 <CardDescription>
-                  Tell your AI how you'd like their room to look. Be as detailed as you want!
+                  Describe the perfect environment for your AI companion
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea
-                  placeholder="Example: A cozy library with floor-to-ceiling bookshelves, warm lighting, a leather armchair, and a fireplace..."
+                  placeholder="Describe the room... (e.g., 'A cozy library with warm lighting, bookshelves, and a fireplace')"
                   value={roomDescription}
                   onChange={(e) => setRoomDescription(e.target.value)}
-                  rows={4}
-                  className="resize-none"
+                  className="min-h-[120px]"
                 />
-                <Button onClick={generateRoom} disabled={loading} className="w-full">
-                  {loading ? (
+                <Button 
+                  onClick={generateRoom} 
+                  disabled={isGeneratingRoom}
+                  className="w-full"
+                >
+                  {isGeneratingRoom ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Generating Room...
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Generate Room
-                    </>
+                    "Generate Room"
                   )}
                 </Button>
               </CardContent>
@@ -195,18 +257,18 @@ const AIRoom = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="avatar" className="space-y-4">
+          <TabsContent value="avatar" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Avatar Customization</CardTitle>
+                <CardTitle>Customize Avatar</CardTitle>
                 <CardDescription>
-                  Choose gender and describe how you want your AI to look
+                  Design your AI's appearance
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-3">
                   <Label>Gender</Label>
-                  <RadioGroup value={avatarGender} onValueChange={(v) => setAvatarGender(v as "male" | "female")}>
+                  <RadioGroup value={avatarGender} onValueChange={setAvatarGender}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="female" id="female" />
                       <Label htmlFor="female">Female</Label>
@@ -218,38 +280,28 @@ const AIRoom = () => {
                   </RadioGroup>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label>Appearance Description</Label>
                   <Textarea
-                    placeholder={
-                      avatarGender === "female"
-                        ? "Example: Long flowing red hair, emerald green eyes, wearing an elegant blue dress with silver jewelry, natural makeup with soft pink lips..."
-                        : "Example: Short dark hair, blue eyes, wearing a black suit with a navy tie, clean shaven..."
-                    }
+                    placeholder="Describe your AI's appearance..."
                     value={avatarDescription}
                     onChange={(e) => setAvatarDescription(e.target.value)}
-                    rows={6}
-                    className="resize-none"
+                    className="min-h-[120px]"
                   />
-                  <p className="text-sm text-muted-foreground">
-                    {avatarGender === "female" 
-                      ? "Describe hair style, hair color, eye color, outfit, makeup, accessories, etc."
-                      : "Describe hair style, hair color, eye color, outfit, facial hair, accessories, etc."
-                    }
-                  </p>
                 </div>
 
-                <Button onClick={generateAvatar} disabled={loading} className="w-full">
-                  {loading ? (
+                <Button 
+                  onClick={generateAvatar}
+                  disabled={isGeneratingAvatar}
+                  className="w-full"
+                >
+                  {isGeneratingAvatar ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Generating Avatar...
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Generate Avatar
-                    </>
+                    "Generate Avatar"
                   )}
                 </Button>
               </CardContent>
@@ -263,42 +315,54 @@ const AIRoom = () => {
                 <CardContent>
                   <img 
                     src={avatarImageUrl} 
-                    alt="AI avatar" 
-                    className="w-full max-w-md mx-auto rounded-lg shadow-lg"
+                    alt="AI's avatar" 
+                    className="w-full rounded-lg shadow-lg"
                   />
                 </CardContent>
               </Card>
             )}
           </TabsContent>
+
+          <TabsContent value="complete" className="space-y-4 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Complete View</CardTitle>
+                <CardDescription>
+                  Your AI in their space
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {roomImageUrl && avatarImageUrl ? (
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+                    <img 
+                      src={roomImageUrl} 
+                      alt="Room background" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-end justify-center pb-8">
+                      <img 
+                        src={avatarImageUrl} 
+                        alt="AI avatar" 
+                        className="h-3/4 object-contain"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-12">
+                    Generate both a room and avatar to see the complete view
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
-        {roomImageUrl && avatarImageUrl && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Complete View</CardTitle>
-              <CardDescription>Your AI in their room</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="relative">
-                <img 
-                  src={roomImageUrl} 
-                  alt="Room background" 
-                  className="w-full rounded-lg"
-                />
-                <div className="absolute bottom-4 right-4 w-48 h-48 rounded-lg overflow-hidden border-4 border-background shadow-xl">
-                  <img 
-                    src={avatarImageUrl} 
-                    alt="AI avatar" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <div className="flex justify-end">
+          <Button onClick={saveSettings}>
+            Save Settings
+          </Button>
+        </div>
       </div>
     </div>
   );
 };
-
-export default AIRoom;

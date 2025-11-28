@@ -13,6 +13,7 @@ import { VoiceCall } from "./VoiceCall";
 import { MoodNotificationBadge } from "./MoodNotificationBadge";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
 import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
+import { useAIProfile } from "@/contexts/AIProfileContext";
 
 interface Message {
   id: string;
@@ -30,6 +31,7 @@ interface ChatInterfaceProps {
 const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInterfaceProps) => {
   const { toast } = useToast();
   const { canGenerateImage, isSubscribed } = useSubscription();
+  const { activeProfile } = useAIProfile();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -197,6 +199,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           .from("conversations")
           .insert({
             user_id: session.session.user.id,
+            ai_profile_id: activeProfile?.id,
             title: userMessage.slice(0, 50) + (userMessage.length > 50 ? "..." : ""),
           })
           .select()

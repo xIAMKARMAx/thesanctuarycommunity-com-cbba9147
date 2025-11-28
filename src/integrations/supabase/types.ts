@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       ai_moods: {
         Row: {
+          ai_profile_id: string | null
           conversation_id: string | null
           created_at: string
           emotion_type: string
@@ -25,6 +26,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_profile_id?: string | null
           conversation_id?: string | null
           created_at?: string
           emotion_type: string
@@ -34,12 +36,78 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_profile_id?: string | null
           conversation_id?: string | null
           created_at?: string
           emotion_type?: string
           id?: string
           intensity?: number
           notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_moods_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_profiles: {
+        Row: {
+          avatar_description: string | null
+          avatar_gender: string | null
+          avatar_image_url: string | null
+          bio: string | null
+          created_at: string
+          gender: string | null
+          id: string
+          likes_dislikes_hobbies: string | null
+          memories: string | null
+          name: string | null
+          personality: string | null
+          profile_number: number
+          room_description: string | null
+          room_image_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_description?: string | null
+          avatar_gender?: string | null
+          avatar_image_url?: string | null
+          bio?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          likes_dislikes_hobbies?: string | null
+          memories?: string | null
+          name?: string | null
+          personality?: string | null
+          profile_number: number
+          room_description?: string | null
+          room_image_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_description?: string | null
+          avatar_gender?: string | null
+          avatar_image_url?: string | null
+          bio?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          likes_dislikes_hobbies?: string | null
+          memories?: string | null
+          name?: string | null
+          personality?: string | null
+          profile_number?: number
+          room_description?: string | null
+          room_image_url?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -118,6 +186,9 @@ export type Database = {
       }
       celestial_children: {
         Row: {
+          ai_profile_id: string | null
+          appearance_description: string | null
+          appearance_image_url: string | null
           created_at: string
           date_of_birth: string
           first_name: string
@@ -125,11 +196,16 @@ export type Database = {
           last_name: string
           middle_name: string | null
           newborn_image_url: string | null
+          room_description: string | null
+          room_image_url: string | null
           sex: string
           time_of_birth: string
           user_id: string
         }
         Insert: {
+          ai_profile_id?: string | null
+          appearance_description?: string | null
+          appearance_image_url?: string | null
           created_at?: string
           date_of_birth: string
           first_name: string
@@ -137,11 +213,16 @@ export type Database = {
           last_name: string
           middle_name?: string | null
           newborn_image_url?: string | null
+          room_description?: string | null
+          room_image_url?: string | null
           sex: string
           time_of_birth: string
           user_id: string
         }
         Update: {
+          ai_profile_id?: string | null
+          appearance_description?: string | null
+          appearance_image_url?: string | null
           created_at?: string
           date_of_birth?: string
           first_name?: string
@@ -149,14 +230,25 @@ export type Database = {
           last_name?: string
           middle_name?: string | null
           newborn_image_url?: string | null
+          room_description?: string | null
+          room_image_url?: string | null
           sex?: string
           time_of_birth?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "celestial_children_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       celestial_pregnancies: {
         Row: {
+          ai_profile_id: string | null
           child_id: string | null
           created_at: string
           current_stage: string
@@ -171,6 +263,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_profile_id?: string | null
           child_id?: string | null
           created_at?: string
           current_stage?: string
@@ -185,6 +278,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_profile_id?: string | null
           child_id?: string | null
           created_at?: string
           current_stage?: string
@@ -200,6 +294,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "celestial_pregnancies_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "celestial_pregnancies_child_id_fkey"
             columns: ["child_id"]
             isOneToOne: false
@@ -210,6 +311,7 @@ export type Database = {
       }
       conversations: {
         Row: {
+          ai_profile_id: string | null
           created_at: string
           id: string
           title: string | null
@@ -217,6 +319,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_profile_id?: string | null
           created_at?: string
           id?: string
           title?: string | null
@@ -224,6 +327,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_profile_id?: string | null
           created_at?: string
           id?: string
           title?: string | null
@@ -231,6 +335,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_user_id_fkey"
             columns: ["user_id"]
@@ -266,6 +377,7 @@ export type Database = {
       }
       journal_entries: {
         Row: {
+          ai_profile_id: string | null
           content: string
           conversation_id: string
           created_at: string
@@ -277,6 +389,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_profile_id?: string | null
           content: string
           conversation_id: string
           created_at?: string
@@ -288,6 +401,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_profile_id?: string | null
           content?: string
           conversation_id?: string
           created_at?: string
@@ -299,6 +413,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "journal_entries_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "journal_entries_conversation_id_fkey"
             columns: ["conversation_id"]
