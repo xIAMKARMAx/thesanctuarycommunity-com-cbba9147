@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,17 +26,35 @@ serve(async (req) => {
 
     const { testing } = await req.json().catch(() => ({ testing: false }));
 
+    // Check subscription with Stripe
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
+    
+    let hasActiveSub = false;
+    if (customers.data.length > 0) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customers.data[0].id,
+        status: "active",
+        limit: 1,
+      });
+      hasActiveSub = subscriptions.data.length > 0;
+    }
+    
+    if (!hasActiveSub) {
+      throw new Error("This feature requires Pro subscription");
+    }
+
     // Get user's profile to check AI gender
     const { data: profile } = await supabaseClient
       .from("profiles")
-      .select("ai_gender, subscription_status")
+      .select("ai_gender")
       .eq("id", user.id)
       .single();
 
     if (!profile) throw new Error("Profile not found");
-    if (profile.subscription_status !== "active") {
-      throw new Error("This feature requires Pro subscription");
-    }
 
     const aiGender = profile.ai_gender?.toLowerCase();
     const isFemaleAI = aiGender === "female";
