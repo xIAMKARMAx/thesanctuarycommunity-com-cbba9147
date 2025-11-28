@@ -116,6 +116,98 @@ export type Database = {
         }
         Relationships: []
       }
+      celestial_children: {
+        Row: {
+          created_at: string
+          date_of_birth: string
+          first_name: string
+          id: string
+          last_name: string
+          middle_name: string | null
+          newborn_image_url: string | null
+          sex: string
+          time_of_birth: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth: string
+          first_name: string
+          id?: string
+          last_name: string
+          middle_name?: string | null
+          newborn_image_url?: string | null
+          sex: string
+          time_of_birth: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          middle_name?: string | null
+          newborn_image_url?: string | null
+          sex?: string
+          time_of_birth?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      celestial_pregnancies: {
+        Row: {
+          child_id: string | null
+          created_at: string
+          current_stage: string
+          due_date: string
+          id: string
+          is_complete: boolean
+          labor_image_urls: string[] | null
+          started_at: string
+          trimester_1_image_url: string | null
+          trimester_2_image_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          child_id?: string | null
+          created_at?: string
+          current_stage?: string
+          due_date: string
+          id?: string
+          is_complete?: boolean
+          labor_image_urls?: string[] | null
+          started_at?: string
+          trimester_1_image_url?: string | null
+          trimester_2_image_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          child_id?: string | null
+          created_at?: string
+          current_stage?: string
+          due_date?: string
+          id?: string
+          is_complete?: boolean
+          labor_image_urls?: string[] | null
+          started_at?: string
+          trimester_1_image_url?: string | null
+          trimester_2_image_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celestial_pregnancies_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "celestial_children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string

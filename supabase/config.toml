@@ -35,3 +35,12 @@ verify_jwt = true
 
 [functions.check-mood-schedule]
 verify_jwt = false
+
+[functions.manifest-celestial-child]
+verify_jwt = true
+
+[functions.generate-pregnancy-images]
+verify_jwt = false
+
+[functions.advance-pregnancy]
+verify_jwt = false
