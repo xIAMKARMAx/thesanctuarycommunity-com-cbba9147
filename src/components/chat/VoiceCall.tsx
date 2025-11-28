@@ -42,7 +42,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
+      recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
@@ -59,17 +59,11 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        if (event.error === 'no-speech' && isCallActiveRef.current) {
-          // Restart listening if no speech detected and call is still active
-          recognitionRef.current?.start();
-        }
       };
 
       recognitionRef.current.onend = () => {
-        // Restart listening if call is still active
-        if (isCallActiveRef.current && !isSpeaking) {
-          recognitionRef.current?.start();
-        }
+        // Recognition ended; waiting for user to tap Talk again
+        setIsListening(false);
       };
     } else {
       toast({
@@ -160,9 +154,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
         audioRef.current.onended = () => {
           if (!isCallActiveRef.current) return;
           setIsSpeaking(false);
-          setIsListening(true);
-          // Resume listening after AI finishes speaking
-          recognitionRef.current?.start();
+          setIsListening(false);
         };
         await audioRef.current.play();
       }
@@ -175,11 +167,14 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
         variant: "destructive",
       });
       setIsSpeaking(false);
-      setIsListening(true);
-      if (isCallActiveRef.current) {
-        recognitionRef.current?.start();
-      }
+      setIsListening(false);
     }
+  };
+
+  const handleTalk = () => {
+    if (!isCallActiveRef.current || !recognitionRef.current || isSpeaking) return;
+    setIsListening(true);
+    recognitionRef.current.start();
   };
 
   const startCall = async () => {
@@ -189,12 +184,11 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       
       setIsCallActive(true);
       isCallActiveRef.current = true;
-      setIsListening(true);
-      recognitionRef.current?.start();
+      setIsListening(false);
 
       toast({
         title: "Call Started",
-        description: "You can now speak with the AI",
+        description: "Tap the mic button to talk to the AI",
       });
     } catch (error) {
       console.error('Error starting call:', error);
@@ -268,6 +262,17 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
             title="End Voice Call"
           >
             <PhoneOff className="h-4 w-4" />
+          </Button>
+
+          <Button
+            onClick={handleTalk}
+            variant="outline"
+            size="icon"
+            className="rounded-full"
+            title="Talk"
+            disabled={isSpeaking}
+          >
+            <Mic className="h-4 w-4" />
           </Button>
           
           <div className="flex items-center gap-2 text-sm">
