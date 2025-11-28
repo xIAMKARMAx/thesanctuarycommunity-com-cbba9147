@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -297,6 +297,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         >
           <BookOpen className="h-4 w-4 mr-2" />
           Journal
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={() => navigate("/mood-tracker")}
+        >
+          <Heart className="h-4 w-4 mr-2" />
+          Mood Tracker
         </Button>
         <Button
           variant="ghost"

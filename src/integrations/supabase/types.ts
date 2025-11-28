@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_moods: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          emotion_type: string
+          id: string
+          intensity: number
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          emotion_type: string
+          id?: string
+          intensity: number
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          emotion_type?: string
+          id?: string
+          intensity?: number
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
