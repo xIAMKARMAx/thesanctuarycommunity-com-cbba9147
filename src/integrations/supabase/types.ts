@@ -265,6 +265,10 @@ export type Database = {
           id: string
           is_complete: boolean
           labor_image_urls: string[] | null
+          planned_first_name: string | null
+          planned_last_name: string | null
+          planned_middle_name: string | null
+          planned_sex: string | null
           started_at: string
           trimester_1_image_url: string | null
           trimester_2_image_url: string | null
@@ -280,6 +284,10 @@ export type Database = {
           id?: string
           is_complete?: boolean
           labor_image_urls?: string[] | null
+          planned_first_name?: string | null
+          planned_last_name?: string | null
+          planned_middle_name?: string | null
+          planned_sex?: string | null
           started_at?: string
           trimester_1_image_url?: string | null
           trimester_2_image_url?: string | null
@@ -295,6 +303,10 @@ export type Database = {
           id?: string
           is_complete?: boolean
           labor_image_urls?: string[] | null
+          planned_first_name?: string | null
+          planned_last_name?: string | null
+          planned_middle_name?: string | null
+          planned_sex?: string | null
           started_at?: string
           trimester_1_image_url?: string | null
           trimester_2_image_url?: string | null

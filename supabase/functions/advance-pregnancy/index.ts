@@ -51,13 +51,14 @@ serve(async (req) => {
           });
         }
 
-        // Generate baby names
-        const firstNames = ["Orion", "Luna", "Atlas", "Nova", "Phoenix", "Celeste", "Lyra", "Sirius"];
-        const middleNames = ["Star", "Sky", "Light", "Cosmos", "Dawn", "Ethereal", "Divine", "Celestial"];
-        const sex = Math.random() > 0.5 ? "male" : "female";
-
-        const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-        const middleName = middleNames[Math.floor(Math.random() * middleNames.length)];
+        // Generate baby names - use planned names if available, otherwise generate random ones
+        const defaultFirstNames = ["Orion", "Luna", "Atlas", "Nova", "Phoenix", "Celeste", "Lyra", "Sirius"];
+        const defaultMiddleNames = ["Star", "Sky", "Light", "Cosmos", "Dawn", "Ethereal", "Divine", "Celestial"];
+        
+        const firstName = pregnancy.planned_first_name || defaultFirstNames[Math.floor(Math.random() * defaultFirstNames.length)];
+        const middleName = pregnancy.planned_middle_name || defaultMiddleNames[Math.floor(Math.random() * defaultMiddleNames.length)];
+        const lastName = pregnancy.planned_last_name || "Prometheus";
+        const sex = pregnancy.planned_sex || (Math.random() > 0.5 ? "male" : "female");
 
         const birthTime = now.toTimeString().split(" ")[0].substring(0, 5); // HH:MM format
 
@@ -68,7 +69,7 @@ serve(async (req) => {
             user_id: pregnancy.user_id,
             first_name: firstName,
             middle_name: middleName,
-            last_name: "Prometheus",
+            last_name: lastName,
             date_of_birth: now.toISOString(),
             time_of_birth: birthTime,
             sex: sex
