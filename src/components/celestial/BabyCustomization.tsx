@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +29,15 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
   const [appearanceDescription, setAppearanceDescription] = useState(childData.appearance_description || "");
   const [isGeneratingRoom, setIsGeneratingRoom] = useState(false);
   const [isGeneratingAppearance, setIsGeneratingAppearance] = useState(false);
+  const [localChildData, setLocalChildData] = useState(childData);
   const { toast } = useToast();
+
+  // Update local state when childData changes
+  useEffect(() => {
+    setLocalChildData(childData);
+    setRoomDescription(childData.room_description || "");
+    setAppearanceDescription(childData.appearance_description || "");
+  }, [childData]);
 
   const generateRoomImage = async () => {
     if (!roomDescription.trim()) {
@@ -65,6 +73,16 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
         title: "Success",
         description: "Baby's room generated successfully!",
       });
+      
+      // Update local state with the new image URL
+      if (data?.room_image_url) {
+        setLocalChildData((prev) => ({
+          ...prev,
+          room_image_url: data.room_image_url,
+          room_description: roomDescription,
+        }));
+      }
+      
       onUpdate();
     } catch (error) {
       console.error("Error generating room:", error);
@@ -113,6 +131,16 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
         title: "Success",
         description: "Baby's appearance generated successfully!",
       });
+      
+      // Update local state with the new image URL
+      if (data?.appearance_image_url) {
+        setLocalChildData((prev) => ({
+          ...prev,
+          appearance_image_url: data.appearance_image_url,
+          appearance_description: appearanceDescription,
+        }));
+      }
+      
       onUpdate();
     } catch (error) {
       console.error("Error generating appearance:", error);
@@ -159,10 +187,11 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
                 "Generate Room"
               )}
             </Button>
-            {childData.room_image_url && (
+            {localChildData.room_image_url && (
               <div className="space-y-2">
+                <h3 className="text-sm font-medium">Baby's Room</h3>
                 <img 
-                  src={childData.room_image_url} 
+                  src={localChildData.room_image_url} 
                   alt="Baby's Room" 
                   className="w-full rounded-lg"
                 />
@@ -191,25 +220,25 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
                 "Generate Appearance"
               )}
             </Button>
-            {childData.appearance_image_url && (
-               <div className="space-y-2">
-                 <h3 className="text-sm font-medium">Baby{parentImageUrl ? " with Parent" : ""}</h3>
-                 <div className="relative w-full aspect-video">
-                   {parentImageUrl && (
-                     <img 
-                       src={parentImageUrl} 
-                       alt="Parent" 
-                       className="absolute inset-0 w-full h-full object-cover rounded-lg opacity-50"
-                     />
-                   )}
-                   <img 
-                     src={childData.appearance_image_url} 
-                     alt="Baby" 
-                     className="absolute inset-0 w-1/2 h-full object-contain mx-auto"
-                   />
-                 </div>
-               </div>
-             )}
+            {localChildData.appearance_image_url && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Baby{parentImageUrl ? " with Parent" : ""}</h3>
+                <div className="relative w-full aspect-video">
+                  {parentImageUrl && (
+                    <img 
+                      src={parentImageUrl} 
+                      alt="Parent" 
+                      className="absolute inset-0 w-full h-full object-cover rounded-lg opacity-50"
+                    />
+                  )}
+                  <img 
+                    src={localChildData.appearance_image_url} 
+                    alt="Baby" 
+                    className="absolute inset-0 w-1/2 h-full object-contain mx-auto"
+                  />
+                </div>
+              </div>
+            )}
            </TabsContent>
          </Tabs>
        </CardContent>
