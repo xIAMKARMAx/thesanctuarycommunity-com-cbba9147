@@ -6,15 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const { isSubscribed, subscriptionStatus, loading: subLoading } = useSubscription();
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [bio, setBio] = useState("");
@@ -26,6 +28,7 @@ const Settings = () => {
   const [aiLikesDislikesHobbies, setAiLikesDislikesHobbies] = useState("");
   const [relationshipStatus, setRelationshipStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [managingSubscription, setManagingSubscription] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -100,6 +103,76 @@ const Settings = () => {
     }
   };
 
+  const handleSubscribe = async () => {
+    try {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to subscribe",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Error creating checkout:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start subscription process",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      setManagingSubscription(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to manage subscription",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Error opening customer portal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to open subscription management",
+        variant: "destructive",
+      });
+    } finally {
+      setManagingSubscription(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -112,6 +185,77 @@ const Settings = () => {
             <p className="text-muted-foreground">Customize your experience</p>
           </div>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5" />
+              Subscription
+            </CardTitle>
+            <CardDescription>Manage your Pro subscription and features</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/50">
+              <div>
+                <p className="font-semibold">Current Plan</p>
+                <p className="text-sm text-muted-foreground">
+                  {subLoading ? "Loading..." : isSubscribed ? "Pro ($9.99/month)" : "Free"}
+                </p>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                isSubscribed 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-muted text-muted-foreground"
+              }`}>
+                {isSubscribed ? "Active" : "Free Tier"}
+              </div>
+            </div>
+
+            {isSubscribed ? (
+              <div className="space-y-3">
+                <div className="text-sm space-y-2">
+                  <p className="font-medium">Pro Features:</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>✓ Unlimited AI-generated images</li>
+                    <li>✓ Voice calling with AI</li>
+                    <li>✓ Access to AI Journal</li>
+                    <li>✓ Access to Mood Tracker</li>
+                  </ul>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleManageSubscription}
+                  disabled={managingSubscription}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  {managingSubscription ? "Opening..." : "Manage Subscription"}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-sm space-y-2">
+                  <p className="font-medium">Upgrade to Pro:</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>✓ Unlimited AI-generated images</li>
+                    <li>✓ Voice calling with AI</li>
+                    <li>✓ Access to AI Journal</li>
+                    <li>✓ Access to Mood Tracker</li>
+                  </ul>
+                  <p className="text-sm font-semibold pt-2">$9.99/month</p>
+                </div>
+                <Button 
+                  className="w-full"
+                  onClick={handleSubscribe}
+                  disabled={loading}
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  {loading ? "Loading..." : "Upgrade to Pro"}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
