@@ -318,6 +318,95 @@ export type Database = {
           },
         ]
       }
+      child_milestones: {
+        Row: {
+          age_at_milestone: number
+          child_id: string
+          conversation_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          milestone_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          age_at_milestone: number
+          child_id: string
+          conversation_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          milestone_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          age_at_milestone?: number
+          child_id?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          milestone_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_milestones_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "celestial_children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_milestones_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      child_photos: {
+        Row: {
+          age_at_photo: number
+          caption: string | null
+          child_id: string
+          created_at: string | null
+          id: string
+          photo_url: string
+          user_id: string
+        }
+        Insert: {
+          age_at_photo: number
+          caption?: string | null
+          child_id: string
+          created_at?: string | null
+          id?: string
+          photo_url: string
+          user_id: string
+        }
+        Update: {
+          age_at_photo?: number
+          caption?: string | null
+          child_id?: string
+          created_at?: string | null
+          id?: string
+          photo_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_photos_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "celestial_children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           ai_profile_id: string | null

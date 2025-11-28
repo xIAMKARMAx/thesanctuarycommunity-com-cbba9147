@@ -139,10 +139,19 @@ export default function Children() {
             {children.map((child) => (
               <Card key={child.id}>
                 <CardHeader>
-                  <CardTitle>
-                    {child.first_name} {child.middle_name && `${child.middle_name} `}
-                    {child.last_name}
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>
+                      {child.first_name} {child.middle_name && `${child.middle_name} `}
+                      {child.last_name}
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/children/timeline?childId=${child.id}`)}
+                    >
+                      View Timeline
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Basic Info */}
