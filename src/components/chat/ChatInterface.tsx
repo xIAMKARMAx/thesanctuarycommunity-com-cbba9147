@@ -347,6 +347,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
       <ScrollArea className="flex-1 p-4">
         <div className="max-w-3xl mx-auto space-y-6">
+          {showPregnancyTracker && <PregnancyTracker />}
+          
           {messages.length === 0 && (
             <div className="text-center py-12 space-y-4">
               <div className="inline-block p-4 rounded-full bg-primary/10">
