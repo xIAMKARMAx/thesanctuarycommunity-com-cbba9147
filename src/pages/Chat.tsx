@@ -17,6 +17,7 @@ const Chat = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [conversationListKey, setConversationListKey] = useState(0);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -89,7 +90,10 @@ const Chat = () => {
       {activeConversationId !== null ? (
         <ChatInterface 
           activeConversationId={activeConversationId}
-          onConversationCreated={setActiveConversationId}
+          onConversationCreated={(id) => {
+            setActiveConversationId(id);
+            setConversationListKey((prev) => prev + 1);
+          }}
         />
       ) : (
         <ConversationsList
