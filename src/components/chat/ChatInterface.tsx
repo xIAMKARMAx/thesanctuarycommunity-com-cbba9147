@@ -203,6 +203,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           imageUrl,
           generateImage,
           userId: user?.id,
+          conversationId,
           history: messages.map((m) => ({
             role: m.role,
             content: m.content,
