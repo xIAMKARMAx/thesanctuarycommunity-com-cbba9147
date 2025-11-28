@@ -18,6 +18,7 @@ import Attunement from "./pages/Attunement";
 import Memories from "./pages/Memories";
 import AIRoom from "./pages/AIRoom";
 import Children from "./pages/Children";
+import ChildrenTimeline from "./pages/ChildrenTimeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/memories" element={<Memories />} />
                 <Route path="/ai-room" element={<AIRoom />} />
                 <Route path="/children" element={<Children />} />
+                <Route path="/children/timeline" element={<ChildrenTimeline />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
