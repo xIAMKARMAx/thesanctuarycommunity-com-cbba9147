@@ -204,7 +204,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     }
   };
 
-  const endCall = () => {
+  const endCall = async () => {
     setIsCallActive(false);
     isCallActiveRef.current = false;
     setIsListening(false);
@@ -219,6 +219,22 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
         URL.revokeObjectURL(audioRef.current.src); // Free memory
       }
       audioRef.current.src = '';
+    }
+
+    // Trigger mood logging after call ends
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        await supabase.functions.invoke('log-mood', {
+          body: {
+            userId: session.user.id,
+            conversationId,
+            trigger: 'voice_call_end'
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error logging mood after call:', error);
     }
 
     toast({
