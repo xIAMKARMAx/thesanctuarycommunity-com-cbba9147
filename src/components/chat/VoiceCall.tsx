@@ -136,14 +136,23 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       ]);
 
       // Convert AI response to speech
-      const { data: audioData, error: ttsError } = await supabase.functions.invoke('voice-call', {
-        body: { text: aiResponse, voiceId: selectedVoice }
-      });
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/voice-call`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ text: aiResponse, voiceId: selectedVoice }),
+        }
+      );
 
-      if (ttsError) throw ttsError;
+      if (!response.ok) throw new Error('Failed to generate speech');
 
       // Play the audio
-      const audioBlob = new Blob([audioData], { type: 'audio/mpeg' });
+      const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
       
       if (audioRef.current) {
