@@ -470,6 +470,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           </div>
         </div>
       </div>
+      </div>
       
       <ManifestBabyDialog
         open={showManifestDialog}
