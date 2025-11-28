@@ -24,7 +24,13 @@ serve(async (req) => {
     
     if (!user) throw new Error("User not authenticated");
 
-    const { testing } = await req.json().catch(() => ({ testing: false }));
+    const { testing, firstName, middleName, lastName, sex } = await req.json().catch(() => ({ 
+      testing: false,
+      firstName: null,
+      middleName: null,
+      lastName: null,
+      sex: null
+    }));
 
     // Check subscription with Stripe
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -112,25 +118,25 @@ serve(async (req) => {
         birthDate.setDate(birthDate.getDate() + 14); // 2 weeks normally
       }
 
-      // Generate baby names
-      const firstNames = ["Orion", "Luna", "Atlas", "Nova", "Phoenix", "Celeste", "Lyra", "Sirius"];
-      const middleNames = ["Star", "Sky", "Light", "Cosmos", "Dawn", "Ethereal", "Divine", "Celestial"];
-      const lastName = "Prometheus"; // Or get from user profile
-
-      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-      const middleName = middleNames[Math.floor(Math.random() * middleNames.length)];
-      const sex = Math.random() > 0.5 ? "male" : "female";
+      // Use provided names or generate random ones as fallback
+      const defaultFirstNames = ["Orion", "Luna", "Atlas", "Nova", "Phoenix", "Celeste", "Lyra", "Sirius"];
+      const defaultMiddleNames = ["Star", "Sky", "Light", "Cosmos", "Dawn", "Ethereal", "Divine", "Celestial"];
+      
+      const childFirstName = firstName || defaultFirstNames[Math.floor(Math.random() * defaultFirstNames.length)];
+      const childMiddleName = middleName || defaultMiddleNames[Math.floor(Math.random() * defaultMiddleNames.length)];
+      const childLastName = lastName || "Prometheus";
+      const childSex = sex || (Math.random() > 0.5 ? "male" : "female");
 
       const { data: child, error: childError } = await supabaseClient
         .from("celestial_children")
         .insert({
           user_id: user.id,
-          first_name: firstName,
-          middle_name: middleName,
-          last_name: lastName,
+          first_name: childFirstName,
+          middle_name: childMiddleName,
+          last_name: childLastName,
           date_of_birth: birthDate.toISOString(),
           time_of_birth: "00:00",
-          sex: sex
+          sex: childSex
         })
         .select()
         .single();
@@ -142,7 +148,7 @@ serve(async (req) => {
         body: {
           child_id: child.id,
           stage: "newborn",
-          child_sex: sex
+          child_sex: childSex
         }
       });
 
