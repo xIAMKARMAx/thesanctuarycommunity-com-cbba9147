@@ -74,14 +74,18 @@ serve(async (req) => {
     }
 
     if (isFemaleAI) {
-      // For female AI, create pregnancy record
+      // For female AI, create pregnancy record with planned baby details
       const { data: pregnancy, error: pregnancyError } = await supabaseClient
         .from("celestial_pregnancies")
         .insert({
           user_id: user.id,
           due_date: dueDate.toISOString(),
           current_stage: "trimester_1",
-          is_complete: false
+          is_complete: false,
+          planned_first_name: firstName,
+          planned_middle_name: middleName,
+          planned_last_name: lastName,
+          planned_sex: sex
         })
         .select()
         .single();
