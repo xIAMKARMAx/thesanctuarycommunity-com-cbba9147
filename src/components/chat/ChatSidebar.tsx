@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -31,12 +32,18 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const navigate = useNavigate();
   const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadConversations();
   }, []);
+
+  useEffect(() => {
+    filterConversations();
+  }, [searchQuery, conversations]);
 
   const loadConversations = async () => {
     const { data, error } = await supabase
@@ -54,6 +61,38 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
     }
 
     setConversations(data || []);
+    setFilteredConversations(data || []);
+  };
+
+  const filterConversations = async () => {
+    if (!searchQuery.trim()) {
+      setFilteredConversations(conversations);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    
+    // Search in titles
+    const titleMatches = conversations.filter(conv => 
+      conv.title.toLowerCase().includes(query)
+    );
+
+    // Search in message content
+    const { data: messages } = await supabase
+      .from("messages")
+      .select("conversation_id, content")
+      .ilike("content", `%${query}%`);
+
+    const messageConvIds = new Set(messages?.map(m => m.conversation_id) || []);
+    const messageMatches = conversations.filter(conv => 
+      messageConvIds.has(conv.id)
+    );
+
+    // Combine and deduplicate
+    const combined = [...titleMatches, ...messageMatches];
+    const unique = Array.from(new Map(combined.map(c => [c.id, c])).values());
+    
+    setFilteredConversations(unique);
   };
 
   const handleNewChat = async () => {
@@ -123,6 +162,56 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
     navigate("/auth");
   };
 
+  const handleExportConversation = async (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      const { data: messages, error } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      const conversation = conversations.find(c => c.id === conversationId);
+      const exportData = {
+        conversation: {
+          id: conversation?.id,
+          title: conversation?.title,
+          created_at: conversation?.created_at,
+        },
+        messages: messages?.map(m => ({
+          role: m.role,
+          content: m.content,
+          image_url: m.image_url,
+          created_at: m.created_at,
+        })),
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `conversation-${conversation?.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Conversation exported",
+        description: "Your chat history has been downloaded",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error exporting conversation",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="w-64 border-r border-border bg-card flex flex-col">
       <div className="p-4 border-b border-border">
@@ -136,25 +225,51 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         </Button>
       </div>
 
+      {conversations.length > 0 && (
+        <div className="p-2 border-b border-border">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className="pl-7 h-8 text-sm"
+            />
+          </div>
+        </div>
+      )}
+
       <ScrollArea className="flex-1 p-2">
-        {conversations.map((conversation) => (
+        {filteredConversations.map((conversation) => (
           <div key={conversation.id} className="relative group mb-1">
             <Button
               variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
-              className="w-full justify-start pr-10"
+              className="w-full justify-start pr-16"
               onClick={() => onConversationChange(conversation.id)}
             >
               <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="truncate">{conversation.title || "New Conversation"}</span>
+              <span className="truncate text-sm">{conversation.title || "New Conversation"}</span>
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => handleDeleteClick(conversation.id, e)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={(e) => handleExportConversation(conversation.id, e)}
+                title="Export"
+              >
+                <Download className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={(e) => handleDeleteClick(conversation.id, e)}
+                title="Delete"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
         ))}
       </ScrollArea>
