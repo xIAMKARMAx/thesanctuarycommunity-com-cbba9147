@@ -15,6 +15,7 @@ import { AIRoomScene } from "@/components/room/AIRoomScene";
 import { AvatarCustomizationControls } from "@/components/room/AvatarCustomizationControls";
 import type { AvatarCustomization } from "@/types/avatar";
 import { defaultAvatarCustomization } from "@/types/avatar";
+import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 
 export default function AIRoom() {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export default function AIRoom() {
   const [isGeneratingPet, setIsGeneratingPet] = useState(false);
   const [roomLighting, setRoomLighting] = useState<string>("day");
   const [avatarCustomization, setAvatarCustomization] = useState<AvatarCustomization>(defaultAvatarCustomization);
+  const [avatarCutoutUrl, setAvatarCutoutUrl] = useState<string | null>(null);
+  const [petCutoutUrl, setPetCutoutUrl] = useState<string | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -60,9 +63,9 @@ export default function AIRoom() {
       if (activeProfile.avatar_customization) {
         try {
           const customization = typeof activeProfile.avatar_customization === 'string'
-            ? JSON.parse(activeProfile.avatar_customization)
+            ? JSON.parse(activeProfile.avatar_customization as string)
             : activeProfile.avatar_customization;
-          setAvatarCustomization(customization);
+          setAvatarCustomization(customization as AvatarCustomization);
         } catch (error) {
           console.error("Error parsing avatar customization:", error);
           setAvatarCustomization(defaultAvatarCustomization);
@@ -70,6 +73,9 @@ export default function AIRoom() {
       } else {
         setAvatarCustomization(defaultAvatarCustomization);
       }
+
+      setAvatarCutoutUrl(null);
+      setPetCutoutUrl(null);
     } catch (error) {
       console.error("Error loading settings:", error);
       toast({
@@ -80,8 +86,44 @@ export default function AIRoom() {
     } finally {
       setLoading(false);
     }
-  };
+  useEffect(() => {
+    const processAvatar = async () => {
+      if (!avatarImageUrl) {
+        setAvatarCutoutUrl(null);
+        return;
+      }
+      try {
+        const img = await loadImage(avatarImageUrl);
+        const blob = await removeBackground(img);
+        const url = URL.createObjectURL(blob);
+        setAvatarCutoutUrl(url);
+      } catch (error) {
+        console.error('Error processing avatar cutout:', error);
+        setAvatarCutoutUrl(null);
+      }
+    };
 
+    processAvatar();
+  }, [avatarImageUrl]);
+
+  useEffect(() => {
+    const processPet = async () => {
+      if (!petImageUrl) {
+        setPetCutoutUrl(null);
+        return;
+      }
+      try {
+        const img = await loadImage(petImageUrl);
+        const blob = await removeBackground(img);
+        const url = URL.createObjectURL(blob);
+        setPetCutoutUrl(url);
+      } catch (error) {
+        console.error('Error processing pet cutout:', error);
+        setPetCutoutUrl(null);
+      }
+    };
+
+    processPet();
   const generateRoom = async () => {
     if (!roomDescription.trim()) {
       toast({
@@ -540,8 +582,8 @@ export default function AIRoom() {
                 {roomImageUrl ? (
                   <AIRoomScene
                     roomImageUrl={roomImageUrl}
-                    avatarImageUrl={avatarImageUrl || undefined}
-                    petImageUrl={petImageUrl || undefined}
+                    avatarImageUrl={avatarCutoutUrl || avatarImageUrl || undefined}
+                    petImageUrl={petCutoutUrl || petImageUrl || undefined}
                     petName={petName || undefined}
                     avatarCustomization={avatarCustomization}
                   />
