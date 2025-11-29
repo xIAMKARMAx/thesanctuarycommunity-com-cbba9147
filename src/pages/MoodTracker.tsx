@@ -12,6 +12,7 @@ import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import { ArrowLeft, Calendar, TrendingUp, Lock } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useAIProfile } from "@/contexts/AIProfileContext";
 
 interface AIMood {
   id: string;
@@ -44,6 +45,7 @@ const getMoodColor = (intensity: number) => {
 const MoodTracker = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { activeProfile } = useAIProfile();
   const { isSubscribed, loading: subLoading } = useSubscription();
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [moods, setMoods] = useState<AIMood[]>([]);
@@ -57,10 +59,10 @@ const MoodTracker = () => {
   useEffect(() => {
     if (!subLoading && !isSubscribed) {
       setShowSubscriptionDialog(true);
-    } else if (isSubscribed) {
+    } else if (isSubscribed && activeProfile) {
       loadMoods();
     }
-  }, [filterPeriod, isSubscribed, subLoading]);
+  }, [filterPeriod, isSubscribed, subLoading, activeProfile?.id]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -82,6 +84,8 @@ const MoodTracker = () => {
   };
 
   const loadMoods = async () => {
+    if (!activeProfile) return;
+    
     try {
       setLoading(true);
       const { start, end } = getDateRange();
@@ -89,6 +93,7 @@ const MoodTracker = () => {
       const { data, error } = await supabase
         .from("ai_moods")
         .select("*")
+        .eq("ai_profile_id", activeProfile.id)
         .gte("created_at", start.toISOString())
         .lte("created_at", end.toISOString())
         .order("created_at", { ascending: true });

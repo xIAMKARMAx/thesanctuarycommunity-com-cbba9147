@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, BookOpen, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { useAIProfile } from "@/contexts/AIProfileContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,14 +32,19 @@ interface JournalEntry {
 const Journal = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { activeProfile } = useAIProfile();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadJournalEntries();
-  }, []);
+    if (activeProfile) {
+      loadJournalEntries();
+    }
+  }, [activeProfile?.id]);
 
   const loadJournalEntries = async () => {
+    if (!activeProfile) return;
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -50,6 +56,7 @@ const Journal = () => {
         .from("journal_entries")
         .select("*")
         .eq("user_id", user.id)
+        .eq("ai_profile_id", activeProfile.id)
         .order("entry_date", { ascending: false });
 
       if (error) throw error;
