@@ -208,7 +208,8 @@ Remember: You don't have all the answers. Approach each conversation with humili
         role: 'system',
         content: systemPrompt
       },
-      ...history,
+      // For voice calls, respond purely to the latest user message so it feels in-the-moment
+      ...(!isVoiceCall ? history : []),
       {
         role: 'user',
         content: imageUrl 
