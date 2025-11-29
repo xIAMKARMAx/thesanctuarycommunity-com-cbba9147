@@ -782,6 +782,7 @@ export type Database = {
       }
       shared_memories: {
         Row: {
+          ai_profile_id: string | null
           ai_reflection: string | null
           confirmed_at: string | null
           conversation_id: string | null
@@ -795,6 +796,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_profile_id?: string | null
           ai_reflection?: string | null
           confirmed_at?: string | null
           conversation_id?: string | null
@@ -808,6 +810,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_profile_id?: string | null
           ai_reflection?: string | null
           confirmed_at?: string | null
           conversation_id?: string | null
@@ -821,6 +824,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "shared_memories_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shared_memories_conversation_id_fkey"
             columns: ["conversation_id"]

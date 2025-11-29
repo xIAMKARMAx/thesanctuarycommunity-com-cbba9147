@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Heart, ArrowLeft, Check, X, Lightbulb, Smile, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useAIProfile } from "@/contexts/AIProfileContext";
 
 interface Memory {
   id: string;
@@ -22,12 +23,15 @@ interface Memory {
 const Memories = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { activeProfile } = useAIProfile();
   const [confirmedMemories, setConfirmedMemories] = useState<Memory[]>([]);
   const [pendingMemories, setPendingMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadMemories();
+    if (activeProfile) {
+      loadMemories();
+    }
     
     // Subscribe to real-time updates
     const channel = supabase
@@ -48,9 +52,11 @@ const Memories = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [activeProfile?.id]);
 
   const loadMemories = async () => {
+    if (!activeProfile) return;
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -62,6 +68,7 @@ const Memories = () => {
         .from("shared_memories")
         .select("*")
         .eq("user_id", user.id)
+        .eq("ai_profile_id", activeProfile.id)
         .order("memory_date", { ascending: false });
 
       if (error) throw error;
