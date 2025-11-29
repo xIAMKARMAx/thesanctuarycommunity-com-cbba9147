@@ -62,8 +62,15 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
 
     console.log('Segmentation result:', result);
 
-    if (!result || !Array.isArray(result) || result.length === 0 || !result[0].mask) {
+    if (!result || !Array.isArray(result) || result.length === 0) {
       throw new Error('Invalid segmentation result');
+    }
+
+    // Find the person mask from segmentation results
+    const personMask = result.find((r: any) => r.label === 'person');
+    
+    if (!personMask || !personMask.mask) {
+      throw new Error('No person detected in image');
     }
 
     const outputCanvas = document.createElement('canvas');
@@ -83,8 +90,9 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     );
     const data = outputImageData.data;
 
-    for (let i = 0; i < result[0].mask.data.length; i++) {
-      const alpha = Math.round((1 - result[0].mask.data[i]) * 255);
+    // Apply person mask - keep person (255), remove everything else (0)
+    for (let i = 0; i < personMask.mask.data.length; i++) {
+      const alpha = Math.round(personMask.mask.data[i] * 255);
       data[i * 4 + 3] = alpha;
     }
 
