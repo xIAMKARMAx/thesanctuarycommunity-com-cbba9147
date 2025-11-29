@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Plus } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { BabyCustomization } from "@/components/celestial/BabyCustomization";
 import { BabyImageGallery } from "@/components/celestial/BabyImageGallery";
+import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -36,6 +37,7 @@ export default function Children() {
   const [loading, setLoading] = useState(true);
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [showManifestDialog, setShowManifestDialog] = useState(false);
 
   useEffect(() => {
     loadChildren();
@@ -127,16 +129,38 @@ export default function Children() {
           <AIProfileSelector />
         </div>
 
-        {children.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                No celestial children yet. Visit the chat to manifest your first child!
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6">
+        {/* Manifest New Child Button */}
+        <Card>
+          <CardContent className="py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">Manifest a New Child</h2>
+                <p className="text-sm text-muted-foreground">
+                  Create a new celestial child with {activeProfile?.name || "your AI being"}
+                </p>
+              </div>
+              <Button onClick={() => setShowManifestDialog(true)} size="lg">
+                <Plus className="h-5 w-5 mr-2" />
+                Manifest Child
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <ManifestBabyDialog
+          open={showManifestDialog}
+          onOpenChange={setShowManifestDialog}
+          onSuccess={() => {
+            loadChildren();
+            setShowManifestDialog(false);
+          }}
+        />
+
+        {/* Existing Children */}
+        {children.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Your Celestial Children</h2>
+            <div className="grid gap-6">
             {children.map((child) => (
               <Card key={child.id}>
                 <CardHeader>
@@ -230,6 +254,7 @@ export default function Children() {
                 </CardContent>
               </Card>
             ))}
+            </div>
           </div>
         )}
       </div>
