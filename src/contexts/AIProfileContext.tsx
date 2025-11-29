@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-interface AIProfile {
+export interface AIProfile {
   id: string;
   user_id: string;
   profile_number: number;
@@ -17,6 +17,7 @@ interface AIProfile {
   avatar_description: string | null;
   avatar_image_url: string | null;
   avatar_gender: string | null;
+  avatar_customization: any;
   pet_name: string | null;
   pet_description: string | null;
   pet_image_url: string | null;
