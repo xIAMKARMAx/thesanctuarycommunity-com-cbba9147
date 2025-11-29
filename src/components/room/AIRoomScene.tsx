@@ -1,8 +1,8 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import { Suspense } from 'react';
-import { Avatar3DModel } from './Avatar3DModel';
-import { Pet3DModel } from './Pet3DModel';
+import { LiveAvatar3D } from './LiveAvatar3D';
+import { LivePet3D } from './LivePet3D';
 import * as THREE from 'three';
 import type { AvatarCustomization } from '@/types/avatar';
 
@@ -12,9 +12,6 @@ interface AIRoomSceneProps {
   petImageUrl?: string;
   petName?: string;
   avatarCustomization?: AvatarCustomization;
-  avatarGender?: string;
-  avatarColors?: any;
-  petColors?: any;
 }
 
 function RoomBackground({ imageUrl }: { imageUrl: string }) {
@@ -40,7 +37,7 @@ function LoadingFallback() {
   );
 }
 
-export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName, avatarCustomization, avatarGender, avatarColors, petColors }: AIRoomSceneProps) {
+export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName, avatarCustomization }: AIRoomSceneProps) {
   return (
     <div className="w-full aspect-video rounded-lg overflow-hidden bg-background">
       <Canvas
@@ -55,19 +52,22 @@ export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName
           {/* Room background */}
           <RoomBackground imageUrl={roomImageUrl} />
           
-          {/* 3D Avatar Character */}
-          <Avatar3DModel 
-            customization={avatarCustomization}
-            gender={avatarGender}
-            colors={avatarColors}
-          />
+          {/* Live Avatar with cutout */}
+          {avatarImageUrl && avatarCustomization && (
+            <LiveAvatar3D 
+              imageUrl={avatarImageUrl} 
+              customization={avatarCustomization}
+            />
+          )}
           
-          {/* 3D Pet Character */}
-          <Pet3DModel 
-            position={[2, -1, 0.5]} 
-            scale={0.6}
-            colors={petColors}
-          />
+          {/* Live Pet with cutout */}
+          {petImageUrl && (
+            <LivePet3D 
+              imageUrl={petImageUrl} 
+              position={[2, -1.5, 0.5]} 
+              scale={0.8}
+            />
+          )}
           
           {/* Subtle environment lighting */}
           <Environment preset="apartment" />
