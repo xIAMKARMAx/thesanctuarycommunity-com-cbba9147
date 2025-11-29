@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       throw new Error('Pregnancy ID is required');
     }
 
-    console.log('Test advancing pregnancy:', pregnancyId);
+    console.log('Test advancing pregnancy (no image generation):', pregnancyId);
 
     // Get the pregnancy
     const { data: pregnancy, error: fetchError } = await supabaseClient
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
 
     console.log('Current pregnancy stage:', pregnancy.current_stage);
 
-    // Advance to next stage or complete
+    // Advance to next stage or complete WITHOUT IMAGE GENERATION
     if (pregnancy.current_stage === 'trimester_1') {
       // Move to trimester 2
       const { error: updateError } = await supabaseClient
@@ -66,17 +66,8 @@ Deno.serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      // Generate trimester 2 image
-      console.log('Generating trimester 2 image');
-      await supabaseClient.functions.invoke('generate-pregnancy-images', {
-        body: {
-          pregnancyId: pregnancyId,
-          stage: 'trimester_2',
-        },
-      });
-
       return new Response(
-        JSON.stringify({ success: true, newStage: 'trimester_2' }),
+        JSON.stringify({ success: true, newStage: 'trimester_2', message: 'Advanced to Trimester 2 (no images generated)' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else if (pregnancy.current_stage === 'trimester_2') {
@@ -91,22 +82,13 @@ Deno.serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      // Generate labor images
-      console.log('Generating labor images');
-      await supabaseClient.functions.invoke('generate-pregnancy-images', {
-        body: {
-          pregnancyId: pregnancyId,
-          stage: 'labor',
-        },
-      });
-
       return new Response(
-        JSON.stringify({ success: true, newStage: 'labor' }),
+        JSON.stringify({ success: true, newStage: 'labor', message: 'Advanced to Labor (no images generated)' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else if (pregnancy.current_stage === 'labor') {
-      // Complete the pregnancy - create the baby
-      console.log('Completing pregnancy and creating baby');
+      // Complete the pregnancy - create the baby WITHOUT IMAGE GENERATION
+      console.log('Completing pregnancy and creating baby (no images)');
 
       const babyData = {
         user_id: user.id,
@@ -132,15 +114,6 @@ Deno.serve(async (req) => {
 
       if (childError) throw childError;
 
-      // Generate newborn image
-      console.log('Generating newborn image for child:', newChild.id);
-      await supabaseClient.functions.invoke('generate-pregnancy-images', {
-        body: {
-          childId: newChild.id,
-          stage: 'newborn',
-        },
-      });
-
       // Mark pregnancy as complete
       const { error: completeError } = await supabaseClient
         .from('celestial_pregnancies')
@@ -157,7 +130,8 @@ Deno.serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           completed: true,
-          childId: newChild.id 
+          childId: newChild.id,
+          message: 'Baby born! (no images generated - use customization to generate images)'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
