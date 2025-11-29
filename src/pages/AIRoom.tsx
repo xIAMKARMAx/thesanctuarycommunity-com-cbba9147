@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
+import { AIRoomScene } from "@/components/room/AIRoomScene";
 
 export default function AIRoom() {
   const navigate = useNavigate();
@@ -492,51 +493,22 @@ export default function AIRoom() {
           <TabsContent value="complete" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Complete View</CardTitle>
+                <CardTitle>Complete View - Live 3D Scene</CardTitle>
                 <CardDescription>
-                  Your AI in their space
+                  Your AI in their space - Click and drag to look around, scroll to zoom
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {roomImageUrl && avatarImageUrl ? (
-                  <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-                    <img 
-                      src={roomImageUrl} 
-                      alt="Room background" 
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                    <style>{`
-                      @keyframes subtle-breathe {
-                        0%, 100% { transform: scale(1); }
-                        50% { transform: scale(1.01); }
-                      }
-                      .breathing-avatar {
-                        animation: subtle-breathe 4s ease-in-out infinite;
-                      }
-                      .breathing-pet {
-                        animation: subtle-breathe 3s ease-in-out infinite;
-                      }
-                    `}</style>
-                    <div className="absolute inset-0 flex items-end justify-center pb-8">
-                      <img 
-                        src={avatarImageUrl} 
-                        alt="AI avatar" 
-                        className="h-3/4 object-contain drop-shadow-2xl breathing-avatar"
-                      />
-                    </div>
-                    {petImageUrl && (
-                      <div className="absolute bottom-4 right-4">
-                        <img 
-                          src={petImageUrl} 
-                          alt={petName || "Pet"} 
-                          className="h-32 object-contain drop-shadow-xl breathing-pet"
-                        />
-                      </div>
-                    )}
-                  </div>
+                {roomImageUrl ? (
+                  <AIRoomScene
+                    roomImageUrl={roomImageUrl}
+                    avatarImageUrl={avatarImageUrl || undefined}
+                    petImageUrl={petImageUrl || undefined}
+                    petName={petName || undefined}
+                  />
                 ) : (
                   <p className="text-center text-muted-foreground py-12">
-                    Generate both a room and avatar to see the complete view
+                    Generate a room to see the live 3D scene
                   </p>
                 )}
               </CardContent>
