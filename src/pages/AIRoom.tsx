@@ -165,7 +165,6 @@ export default function AIRoom() {
       if (error) throw error;
 
       setRoomImageUrl(data.image_url);
-      await refreshProfiles();
 
       toast({
         title: "Success!",
@@ -210,7 +209,6 @@ export default function AIRoom() {
       if (error) throw error;
 
       setAvatarImageUrl(data.image_url);
-      await refreshProfiles();
 
       toast({
         title: "Success!",
@@ -267,7 +265,6 @@ export default function AIRoom() {
       if (error) throw error;
 
       setPetImageUrl(data.image_url);
-      await refreshProfiles();
 
       toast({
         title: "Success!",
