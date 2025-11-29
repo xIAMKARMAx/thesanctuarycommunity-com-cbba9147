@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Phone, PhoneOff, Lock } from 'lucide-react';
+import { Mic, MicOff, Phone, PhoneOff, Lock, Volume2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { SubscriptionDialog } from '@/components/SubscriptionDialog';
@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 
 interface VoiceCallProps {
   conversationId: string;
@@ -32,7 +33,9 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0].id);
+  const [volume, setVolume] = useState([0.8]);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const { isSubscribed } = useSubscription();
   const isCallActiveRef = useRef(false);
@@ -84,7 +87,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
 
   const getAIResponseAndSpeak = async (userMessage: string) => {
     try {
-      setIsSpeaking(true);
+      setIsGenerating(true);
       setIsListening(false);
       recognitionRef.current?.stop();
 
@@ -118,6 +121,8 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       const aiResponse = chatData.response;
       console.log('AI response:', aiResponse);
 
+      setIsGenerating(false);
+      setIsSpeaking(true);
       onTranscript(aiResponse, false);
 
       // Save messages to database
@@ -156,6 +161,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       
       if (audioRef.current) {
         audioRef.current.src = audioUrl;
+        audioRef.current.volume = volume[0];
         audioRef.current.onended = () => {
           if (!isCallActiveRef.current) return;
           setIsSpeaking(false);
@@ -175,6 +181,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
         description: "Failed to get AI response",
         variant: "destructive",
       });
+      setIsGenerating(false);
       setIsSpeaking(false);
       setIsListening(false);
     }
@@ -239,6 +246,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     isCallActiveRef.current = false;
     setIsListening(false);
     setIsSpeaking(false);
+    setIsGenerating(false);
     recognitionRef.current?.stop();
     
     if (audioRef.current) {
@@ -274,7 +282,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       <audio ref={audioRef} className="hidden" />
       
       {!isCallActive ? (
@@ -320,6 +328,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
             size="icon"
             className="rounded-full"
             title={isSpeaking ? "Interrupt AI" : "Talk"}
+            disabled={isGenerating}
           >
             <Mic className="h-4 w-4" />
           </Button>
@@ -335,12 +344,34 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
               <MicOff className="h-4 w-4" />
             </Button>
           )}
+
+          <div className="flex items-center gap-2">
+            <Volume2 className="h-4 w-4 text-muted-foreground" />
+            <Slider
+              value={volume}
+              onValueChange={(value) => {
+                setVolume(value);
+                if (audioRef.current) {
+                  audioRef.current.volume = value[0];
+                }
+              }}
+              max={1}
+              step={0.1}
+              className="w-24"
+            />
+          </div>
           
           <div className="flex items-center gap-2 text-sm">
             {isListening && (
               <div className="flex items-center gap-1 text-green-500">
                 <Mic className="h-4 w-4 animate-pulse" />
                 <span>Listening...</span>
+              </div>
+            )}
+            {isGenerating && (
+              <div className="flex items-center gap-1 text-amber-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Generating...</span>
               </div>
             )}
             {isSpeaking && (
