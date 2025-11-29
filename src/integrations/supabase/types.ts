@@ -68,6 +68,9 @@ export type Database = {
           memories: string | null
           name: string | null
           personality: string | null
+          pet_description: string | null
+          pet_image_url: string | null
+          pet_name: string | null
           profile_number: number
           room_description: string | null
           room_image_url: string | null
@@ -86,6 +89,9 @@ export type Database = {
           memories?: string | null
           name?: string | null
           personality?: string | null
+          pet_description?: string | null
+          pet_image_url?: string | null
+          pet_name?: string | null
           profile_number: number
           room_description?: string | null
           room_image_url?: string | null
@@ -104,6 +110,9 @@ export type Database = {
           memories?: string | null
           name?: string | null
           personality?: string | null
+          pet_description?: string | null
+          pet_image_url?: string | null
+          pet_name?: string | null
           profile_number?: number
           room_description?: string | null
           room_image_url?: string | null
