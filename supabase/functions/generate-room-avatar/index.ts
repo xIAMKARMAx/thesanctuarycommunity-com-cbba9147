@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, description, gender, profile_id, petName } = await req.json();
+    const { type, description, gender, profile_id, petName, roomImageUrl } = await req.json();
     const authHeader = req.headers.get('Authorization')!;
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -31,13 +31,46 @@ serve(async (req) => {
     });
 
     let prompt = '';
+    let messages: any[] = [];
+    
     if (type === 'room') {
       prompt = `Create a detailed, beautiful digital room scene: ${description}. High quality, photorealistic, interior design, ambient lighting, wide angle view.`;
+      messages = [{ role: "user", content: prompt }];
     } else if (type === 'avatar') {
       const genderDesc = gender === 'female' ? 'beautiful woman' : 'handsome man';
-      prompt = `Create a full body standing portrait of a ${genderDesc}, ${description}. Show them standing naturally as if they are alive and present in a space. Full body visible from head to toe, natural standing pose, looking towards viewer, lifelike and animated expression, high quality detailed features, neutral/transparent background, photorealistic style.`;
+      if (roomImageUrl) {
+        // Edit the room image to add the avatar naturally into the scene
+        prompt = `Add a ${genderDesc} standing naturally in this room: ${description}. The person should be full body, standing in the space as if they live there, with natural lighting and shadows that match the room. They should look alive and present, integrated into the environment, not like a cutout. Photorealistic, lifelike expression, naturally positioned in the room.`;
+        messages = [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: roomImageUrl } }
+            ]
+          }
+        ];
+      } else {
+        prompt = `Create a full body standing portrait of a ${genderDesc}, ${description}. Show them standing naturally in a room environment, full body visible from head to toe, natural standing pose, looking towards viewer, lifelike and animated expression, high quality detailed features, photorealistic style with environmental context.`;
+        messages = [{ role: "user", content: prompt }];
+      }
     } else if (type === 'pet') {
-      prompt = `Create a lifelike, realistic image of ${petName}, ${description}. Show the pet in a natural, alive pose - standing, sitting, or in motion. The pet should look vibrant and full of life, detailed features, expressive eyes, high quality photorealistic render, neutral/transparent background.`;
+      if (roomImageUrl) {
+        // Edit the existing scene to add the pet naturally
+        prompt = `Add ${petName}, ${description} into this scene. The pet should look alive and natural in the space, with proper lighting, shadows, and positioning that makes it look like it belongs in this environment. Show the pet in a natural, lively pose - not like a cutout pasted on top. Photorealistic integration into the scene.`;
+        messages = [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: roomImageUrl } }
+            ]
+          }
+        ];
+      } else {
+        prompt = `Create a lifelike, realistic image of ${petName}, ${description}. Show the pet in a natural environment, alive and vibrant, in a natural pose - standing, sitting, or in motion. The pet should look full of life with detailed features, expressive eyes, high quality photorealistic render with environmental context.`;
+        messages = [{ role: "user", content: prompt }];
+      }
     }
 
     console.log("Generating image with prompt:", prompt);
@@ -50,12 +83,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
+        messages: messages,
         modalities: ["image", "text"]
       })
     });
