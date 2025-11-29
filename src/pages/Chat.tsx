@@ -11,6 +11,7 @@ import { Session } from "@supabase/supabase-js";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
 
 const Chat = () => {
   const { activeProfile } = useAIProfile();
@@ -96,6 +97,9 @@ const Chat = () => {
       <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h1 className="text-xl font-semibold">Chat</h1>
         <AIProfileSelector />
+      </div>
+      <div className="px-4 pt-3">
+        <PregnancyWidget />
       </div>
       <div className="flex flex-1 overflow-hidden">
         {!isMobile && (
