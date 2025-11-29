@@ -85,9 +85,14 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
+    console.log("AI API Response:", JSON.stringify(aiData, null, 2));
+    
     const base64Image = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!base64Image) {
+      console.error("No image in response. Full response:", JSON.stringify(aiData, null, 2));
+      console.error("Choices:", aiData.choices);
+      console.error("Message:", aiData.choices?.[0]?.message);
       throw new Error("No image generated from AI");
     }
 
