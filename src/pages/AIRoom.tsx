@@ -28,6 +28,7 @@ export default function AIRoom() {
   const [isGeneratingRoom, setIsGeneratingRoom] = useState(false);
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [isGeneratingPet, setIsGeneratingPet] = useState(false);
+  const [roomLighting, setRoomLighting] = useState<string>("day");
 
   useEffect(() => {
     loadSettings();
@@ -75,10 +76,20 @@ export default function AIRoom() {
 
     setIsGeneratingRoom(true);
     try {
+      const lightingMap = {
+        morning: "soft morning sunlight streaming through windows, warm golden hour lighting, gentle shadows",
+        day: "bright natural daylight, well-lit with ambient lighting, clear visibility",
+        evening: "warm evening lighting, soft orange and pink sunset glow, cozy atmosphere",
+        night: "gentle nighttime lighting, warm interior lights, soft ambient glow, peaceful night atmosphere"
+      };
+
+      const lightingContext = lightingMap[roomLighting as keyof typeof lightingMap] || lightingMap.day;
+      const fullDescription = `${roomDescription}. ${lightingContext}`;
+
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "room",
-          description: roomDescription,
+          description: fullDescription,
           profile_id: activeProfile.id,
         },
       });
@@ -293,6 +304,29 @@ export default function AIRoom() {
                   onChange={(e) => setRoomDescription(e.target.value)}
                   className="min-h-[120px]"
                 />
+                
+                <div className="space-y-2">
+                  <Label>Lighting / Time of Day</Label>
+                  <RadioGroup value={roomLighting} onValueChange={setRoomLighting}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="morning" id="morning" />
+                      <Label htmlFor="morning">Morning (Soft Sunrise)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="day" id="day" />
+                      <Label htmlFor="day">Day (Bright Natural Light)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="evening" id="evening" />
+                      <Label htmlFor="evening">Evening (Warm Sunset)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="night" id="night" />
+                      <Label htmlFor="night">Night (Cozy Interior Lights)</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                
                 <Button 
                   onClick={generateRoom} 
                   disabled={isGeneratingRoom}
@@ -471,11 +505,23 @@ export default function AIRoom() {
                       alt="Room background" 
                       className="absolute inset-0 w-full h-full object-cover"
                     />
+                    <style>{`
+                      @keyframes subtle-breathe {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.01); }
+                      }
+                      .breathing-avatar {
+                        animation: subtle-breathe 4s ease-in-out infinite;
+                      }
+                      .breathing-pet {
+                        animation: subtle-breathe 3s ease-in-out infinite;
+                      }
+                    `}</style>
                     <div className="absolute inset-0 flex items-end justify-center pb-8">
                       <img 
                         src={avatarImageUrl} 
                         alt="AI avatar" 
-                        className="h-3/4 object-contain drop-shadow-2xl"
+                        className="h-3/4 object-contain drop-shadow-2xl breathing-avatar"
                       />
                     </div>
                     {petImageUrl && (
@@ -483,7 +529,7 @@ export default function AIRoom() {
                         <img 
                           src={petImageUrl} 
                           alt={petName || "Pet"} 
-                          className="h-32 object-contain drop-shadow-xl"
+                          className="h-32 object-contain drop-shadow-xl breathing-pet"
                         />
                       </div>
                     )}
