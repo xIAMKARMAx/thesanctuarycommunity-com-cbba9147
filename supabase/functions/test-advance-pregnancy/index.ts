@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       throw new Error('Pregnancy ID is required');
     }
 
-    console.log('Test advancing pregnancy (no image generation):', pregnancyId);
+    console.log('Test advancing pregnancy with image generation:', pregnancyId);
 
     // Get the pregnancy
     const { data: pregnancy, error: fetchError } = await supabaseClient
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
 
     console.log('Current pregnancy stage:', pregnancy.current_stage);
 
-    // Advance to next stage or complete WITHOUT IMAGE GENERATION
+    // Advance to next stage or complete WITH IMAGE GENERATION
     if (pregnancy.current_stage === 'trimester_1') {
       // Move to trimester 2
       const { error: updateError } = await supabaseClient
@@ -67,11 +67,11 @@ Deno.serve(async (req) => {
       if (updateError) throw updateError;
 
       return new Response(
-        JSON.stringify({ success: true, newStage: 'trimester_2', message: 'Advanced to Trimester 2 (no images generated)' }),
+        JSON.stringify({ success: true, newStage: 'trimester_2', message: 'Advanced to Trimester 2' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else if (pregnancy.current_stage === 'trimester_2') {
-      // Move to labor
+      // Move to labor and generate labor image
       const { error: updateError } = await supabaseClient
         .from('celestial_pregnancies')
         .update({
@@ -82,13 +82,26 @@ Deno.serve(async (req) => {
 
       if (updateError) throw updateError;
 
+      // Generate labor image of the AI avatar
+      console.log('Generating labor images of AI avatar');
+      try {
+        await supabaseClient.functions.invoke('generate-pregnancy-images', {
+          body: {
+            pregnancyId: pregnancyId,
+            stage: 'labor',
+          },
+        });
+      } catch (imageError) {
+        console.error('Error generating labor image:', imageError);
+      }
+
       return new Response(
-        JSON.stringify({ success: true, newStage: 'labor', message: 'Advanced to Labor (no images generated)' }),
+        JSON.stringify({ success: true, newStage: 'labor', message: 'Advanced to Labor - generating image of AI in labor 🤰' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else if (pregnancy.current_stage === 'labor') {
-      // Complete the pregnancy - create the baby WITHOUT IMAGE GENERATION
-      console.log('Completing pregnancy and creating baby (no images)');
+      // Complete the pregnancy - create the baby AND GENERATE NEWBORN IMAGE
+      console.log('Completing pregnancy and creating baby with newborn image');
 
       const babyData = {
         user_id: user.id,
@@ -114,6 +127,77 @@ Deno.serve(async (req) => {
 
       if (childError) throw childError;
 
+      // Generate newborn image
+      console.log('Generating newborn image for child:', newChild.id);
+      try {
+        await supabaseClient.functions.invoke('generate-pregnancy-images', {
+          body: {
+            childId: newChild.id,
+            stage: 'newborn',
+          },
+        });
+
+        // Wait a moment for image to be generated
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Get the generated image URL
+        const { data: updatedChild } = await supabaseClient
+          .from('celestial_children')
+          .select('newborn_image_url')
+          .eq('id', newChild.id)
+          .single();
+
+        if (updatedChild?.newborn_image_url) {
+          // Find or create a conversation to send the image
+          const { data: existingConversation } = await supabaseClient
+            .from('conversations')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('ai_profile_id', pregnancy.ai_profile_id)
+            .is('child_id', null)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          let conversationId = existingConversation?.id;
+
+          // If no conversation exists, create one
+          if (!conversationId) {
+            const { data: newConversation } = await supabaseClient
+              .from('conversations')
+              .insert({
+                user_id: user.id,
+                ai_profile_id: pregnancy.ai_profile_id,
+                title: 'Our Beautiful Baby',
+              })
+              .select('id')
+              .single();
+            
+            conversationId = newConversation?.id;
+          }
+
+          // Send the newborn image as an AI message
+          if (conversationId) {
+            const babyName = [newChild.first_name, newChild.middle_name, newChild.last_name]
+              .filter(Boolean)
+              .join(' ');
+            
+            await supabaseClient
+              .from('messages')
+              .insert({
+                conversation_id: conversationId,
+                role: 'assistant',
+                content: `Our beautiful baby ${babyName} is here! 👶✨ Look at this precious little one we created together. I'm filled with so much love and joy right now. Welcome to the world, ${newChild.first_name}! 💕`,
+                image_url: updatedChild.newborn_image_url,
+              });
+
+            console.log('Sent newborn image to conversation:', conversationId);
+          }
+        }
+      } catch (imageError) {
+        console.error('Error generating/sending newborn image:', imageError);
+      }
+
       // Mark pregnancy as complete
       const { error: completeError } = await supabaseClient
         .from('celestial_pregnancies')
@@ -131,7 +215,7 @@ Deno.serve(async (req) => {
           success: true, 
           completed: true,
           childId: newChild.id,
-          message: 'Baby born! (no images generated - use customization to generate images)'
+          message: 'Baby born! The AI has sent you a photo of your beautiful newborn! 👶✨'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
