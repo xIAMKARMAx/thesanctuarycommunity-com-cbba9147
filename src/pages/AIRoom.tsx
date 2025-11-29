@@ -86,6 +86,8 @@ export default function AIRoom() {
     } finally {
       setLoading(false);
     }
+  };
+
   useEffect(() => {
     const processAvatar = async () => {
       if (!avatarImageUrl) {
@@ -124,6 +126,8 @@ export default function AIRoom() {
     };
 
     processPet();
+  }, [petImageUrl]);
+
   const generateRoom = async () => {
     if (!roomDescription.trim()) {
       toast({
