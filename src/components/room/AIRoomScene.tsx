@@ -147,12 +147,11 @@ export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName
           <CameraController avatarCustomization={avatarCustomization} />
           
           {/* Depth of Field Effect */}
-          <EffectComposer>
+          <EffectComposer multisampling={0}>
             <DepthOfField 
-              focusDistance={0.02}
-              focalLength={0.05}
-              bokehScale={8}
-              height={480}
+              focusDistance={0.01}
+              focalLength={0.02}
+              bokehScale={6}
             />
           </EffectComposer>
         </Suspense>
