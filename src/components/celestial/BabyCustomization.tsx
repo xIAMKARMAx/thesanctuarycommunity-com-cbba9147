@@ -57,6 +57,7 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
 
   const loadAppearanceHistory = async () => {
     try {
+      console.log("Loading appearance history for child:", childId);
       const { data, error } = await supabase
         .from("child_image_history")
         .select("*")
@@ -64,10 +65,20 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
         .eq("image_type", "appearance")
         .order("generated_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error loading appearance history:", error);
+        throw error;
+      }
+      
+      console.log("Loaded appearance history:", data);
       setAppearanceHistory((data || []) as ImageHistoryItem[]);
     } catch (error) {
       console.error("Error loading appearance history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load appearance history",
+        variant: "destructive",
+      });
     }
   };
 
@@ -310,54 +321,64 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
               <div className="space-y-2 mt-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Previous Appearances</h3>
-                  <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <History className="h-4 w-4 mr-2" />
-                        View All History
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Complete Appearance History - {childData.first_name}</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        {appearanceHistory.map((item) => (
-                          <div key={item.id} className="space-y-2">
-                            <div className="relative group">
-                              <img
-                                src={item.image_url}
-                                alt={`Appearance - ${new Date(item.generated_at).toLocaleDateString()}`}
-                                className="w-full rounded-lg aspect-square object-cover"
-                              />
-                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  onClick={() => downloadImage(item.image_url, item.generated_at)}
-                                >
-                                  <Download className="h-4 w-4 mr-2" />
-                                  Download
-                                </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={loadAppearanceHistory}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                    <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <History className="h-4 w-4 mr-2" />
+                          View All History
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Complete Appearance History - {childData.first_name}</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          {appearanceHistory.map((item) => (
+                            <div key={item.id} className="space-y-2">
+                              <div className="relative group">
+                                <img
+                                  src={item.image_url}
+                                  alt={`Appearance - ${new Date(item.generated_at).toLocaleDateString()}`}
+                                  className="w-full rounded-lg aspect-square object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => downloadImage(item.image_url, item.generated_at)}
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download
+                                  </Button>
+                                </div>
                               </div>
+                              <div className="text-sm text-muted-foreground">
+                                {new Date(item.generated_at).toLocaleDateString()} at{" "}
+                                {new Date(item.generated_at).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </div>
+                              {item.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {item.description}
+                                </p>
+                              )}
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              {new Date(item.generated_at).toLocaleDateString()} at{" "}
-                              {new Date(item.generated_at).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </div>
-                            {item.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {appearanceHistory.slice(0, 4).map((item) => (
