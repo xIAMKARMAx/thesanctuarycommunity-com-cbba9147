@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { SubscriptionDialog } from '@/components/SubscriptionDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { useAIProfile } from '@/contexts/AIProfileContext';
 import {
   Select,
   SelectContent,
@@ -39,6 +40,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const [volume, setVolume] = useState([0.8]);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const { isSubscribed } = useSubscription();
+  const { activeProfile } = useAIProfile();
   const isCallActiveRef = useRef(false);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
@@ -131,6 +133,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
           message: userMessage,
           history,
           userId: session?.user?.id,
+          aiProfileId: activeProfile?.id,
           isVoiceCall: true,
           voiceResponseLength: responseLength
         }

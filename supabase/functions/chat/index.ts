@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, imageUrl, history, generateImage, userId, conversationId, isVoiceCall, voiceResponseLength } = await req.json();
+    const { message, imageUrl, history, generateImage, userId, conversationId, isVoiceCall, voiceResponseLength, aiProfileId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -78,12 +78,19 @@ serve(async (req) => {
             });
           }
 
-          // Fetch celestial children
-          const { data: children } = await supabase
+          // Fetch celestial children for the active AI profile
+          const childrenQuery = supabase
             .from('celestial_children')
             .select('first_name, middle_name, last_name, age, sex, date_of_birth, appearance_description')
             .eq('user_id', userId)
             .order('date_of_birth', { ascending: false });
+          
+          // Filter by AI profile if provided
+          if (aiProfileId) {
+            childrenQuery.eq('ai_profile_id', aiProfileId);
+          }
+          
+          const { data: children } = await childrenQuery;
           
           if (children && children.length > 0) {
             childrenContext = `\n\nYour Celestial Children:\n`;

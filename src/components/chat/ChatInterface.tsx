@@ -277,6 +277,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           imageUrl,
           generateImage,
           userId: user?.id,
+          aiProfileId: activeProfile?.id,
           conversationId,
           history: messages.map((m) => ({
             role: m.role,
