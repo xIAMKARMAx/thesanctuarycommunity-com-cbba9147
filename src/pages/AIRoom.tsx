@@ -124,6 +124,7 @@ export default function AIRoom() {
           description: avatarDescription,
           gender: avatarGender,
           profile_id: activeProfile.id,
+          roomImageUrl: roomImageUrl, // Pass room image for compositing
         },
       });
 
@@ -171,12 +172,16 @@ export default function AIRoom() {
 
     setIsGeneratingPet(true);
     try {
+      // Get the current scene (room + avatar if available) to composite pet into
+      const sceneImageUrl = avatarImageUrl || roomImageUrl;
+      
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "pet",
           description: petDescription,
           petName: petName,
           profile_id: activeProfile.id,
+          roomImageUrl: sceneImageUrl, // Pass existing scene for compositing
         },
       });
 
