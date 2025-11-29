@@ -191,6 +191,12 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
         description: "Baby's appearance generated successfully!",
       });
       
+      // Wait a moment for database to commit changes
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Reload appearance history to show the new image
+      await loadAppearanceHistory();
+      
       // Update local state with the new image URL
       if (data?.appearance_image_url) {
         setLocalChildData((prev) => ({
@@ -200,8 +206,6 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
         }));
       }
       
-      // Reload appearance history to show the new image
-      await loadAppearanceHistory();
       onUpdate();
     } catch (error) {
       console.error("Error generating appearance:", error);

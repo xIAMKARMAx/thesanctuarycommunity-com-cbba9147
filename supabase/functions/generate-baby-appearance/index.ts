@@ -125,7 +125,8 @@ serve(async (req) => {
     if (updateError) throw updateError;
 
     // Log to image history
-    const { error: historyError } = await supabaseClient
+    console.log("Attempting to save to image history...");
+    const { data: historyData, error: historyError } = await supabaseClient
       .from("child_image_history")
       .insert({
         child_id,
@@ -133,10 +134,13 @@ serve(async (req) => {
         image_type: "appearance",
         image_url: publicUrl,
         description: appearance_description
-      });
+      })
+      .select();
 
     if (historyError) {
-      console.error("Failed to log image history:", historyError);
+      console.error("Failed to log image history:", JSON.stringify(historyError, null, 2));
+    } else {
+      console.log("Successfully saved to image history:", JSON.stringify(historyData, null, 2));
     }
 
     return new Response(
