@@ -103,12 +103,13 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       // Get user session
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Call chat function to get AI response
+      // Call chat function to get AI response with voice mode flag
       const { data: chatData, error: chatError } = await supabase.functions.invoke('chat', {
         body: {
           message: userMessage,
           history,
-          userId: session?.user?.id
+          userId: session?.user?.id,
+          isVoiceCall: true
         }
       });
 
@@ -160,6 +161,10 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
           setIsSpeaking(false);
           setIsListening(false);
         };
+        audioRef.current.onpause = () => {
+          if (!isCallActiveRef.current) return;
+          setIsSpeaking(false);
+        };
         await audioRef.current.play();
       }
 
@@ -176,9 +181,26 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   };
 
   const handleTalk = () => {
-    if (!isCallActiveRef.current || !recognitionRef.current || isSpeaking) return;
+    if (!isCallActiveRef.current || !recognitionRef.current) return;
+    
+    // If AI is speaking, interrupt it
+    if (isSpeaking && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsSpeaking(false);
+    }
+    
     setIsListening(true);
     recognitionRef.current.start();
+  };
+
+  const handleStopSpeaking = () => {
+    if (audioRef.current && isSpeaking) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsSpeaking(false);
+      setIsListening(false);
+    }
   };
 
   const startCall = async () => {
@@ -289,11 +311,22 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
             variant="outline"
             size="icon"
             className="rounded-full"
-            title="Talk"
-            disabled={isSpeaking}
+            title={isSpeaking ? "Interrupt AI" : "Talk"}
           >
             <Mic className="h-4 w-4" />
           </Button>
+
+          {isSpeaking && (
+            <Button
+              onClick={handleStopSpeaking}
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              title="Stop AI"
+            >
+              <MicOff className="h-4 w-4" />
+            </Button>
+          )}
           
           <div className="flex items-center gap-2 text-sm">
             {isListening && (
