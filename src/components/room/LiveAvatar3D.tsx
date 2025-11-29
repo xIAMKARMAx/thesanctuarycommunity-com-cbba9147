@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
@@ -12,6 +12,7 @@ interface LiveAvatar3DProps {
 export function LiveAvatar3D({ imageUrl, customization }: LiveAvatar3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const texture = useTexture(imageUrl);
+  const [dimensions, setDimensions] = useState<[number, number]>([1.5, 2.5]);
   
   const { position, scale, rotation, animationPose } = customization;
   const pos: [number, number, number] = [position.x, position.y, position.z];
@@ -74,14 +75,18 @@ export function LiveAvatar3D({ imageUrl, customization }: LiveAvatar3DProps) {
   });
 
   useEffect(() => {
-    if (texture) {
+    if (texture && texture.image && (texture.image as any).width && (texture.image as any).height) {
+      const img: any = texture.image;
+      const aspect = img.width / img.height || 1;
+      const baseHeight = 2.5;
+      setDimensions([baseHeight * aspect, baseHeight]);
       texture.needsUpdate = true;
     }
   }, [texture]);
 
   return (
     <mesh ref={meshRef} position={pos}>
-      <planeGeometry args={[1.5 * scale, 2.5 * scale]} />
+      <planeGeometry args={[dimensions[0] * scale, dimensions[1] * scale]} />
       <meshBasicMaterial 
         map={texture} 
         transparent 
