@@ -5,7 +5,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
+
+interface ImageHistoryItem {
+  id: string;
+  image_type: "room" | "appearance";
+  image_url: string;
+  description: string | null;
+  generated_at: string;
+}
 
 interface BabyCustomizationProps {
   childId: string;
@@ -30,6 +38,7 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
   const [isGeneratingRoom, setIsGeneratingRoom] = useState(false);
   const [isGeneratingAppearance, setIsGeneratingAppearance] = useState(false);
   const [localChildData, setLocalChildData] = useState(childData);
+  const [appearanceHistory, setAppearanceHistory] = useState<ImageHistoryItem[]>([]);
   const { toast } = useToast();
 
   // Update local state when childData changes
@@ -38,6 +47,54 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
     setRoomDescription(childData.room_description || "");
     setAppearanceDescription(childData.appearance_description || "");
   }, [childData]);
+
+  // Load appearance history
+  useEffect(() => {
+    loadAppearanceHistory();
+  }, [childId]);
+
+  const loadAppearanceHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("child_image_history")
+        .select("*")
+        .eq("child_id", childId)
+        .eq("image_type", "appearance")
+        .order("generated_at", { ascending: false });
+
+      if (error) throw error;
+      setAppearanceHistory((data || []) as ImageHistoryItem[]);
+    } catch (error) {
+      console.error("Error loading appearance history:", error);
+    }
+  };
+
+  const downloadImage = async (imageUrl: string, timestamp: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${childData.first_name}-appearance-${new Date(timestamp).toISOString().split("T")[0]}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "Image downloaded successfully",
+      });
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      toast({
+        title: "Error",
+        description: "Failed to download image",
+        variant: "destructive",
+      });
+    }
+  };
 
   const generateRoomImage = async () => {
     if (!roomDescription.trim()) {
@@ -141,6 +198,8 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
         }));
       }
       
+      // Reload appearance history to show the new image
+      await loadAppearanceHistory();
       onUpdate();
     } catch (error) {
       console.error("Error generating appearance:", error);
@@ -222,12 +281,54 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
             </Button>
             {localChildData.appearance_image_url && (
               <div className="space-y-2">
-                <h3 className="text-sm font-medium">Baby's Appearance</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">Current Baby's Appearance</h3>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadImage(localChildData.appearance_image_url!, new Date().toISOString())}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
                 <img 
                   src={localChildData.appearance_image_url} 
                   alt="Baby" 
                   className="w-full rounded-lg"
                 />
+              </div>
+            )}
+            
+            {appearanceHistory.length > 0 && (
+              <div className="space-y-2 mt-6">
+                <h3 className="text-sm font-medium">Previous Appearances</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {appearanceHistory.slice(0, 4).map((item) => (
+                    <div key={item.id} className="space-y-2">
+                      <div className="relative group">
+                        <img
+                          src={item.image_url}
+                          alt={`Previous appearance - ${new Date(item.generated_at).toLocaleDateString()}`}
+                          className="w-full rounded-lg aspect-square object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => downloadImage(item.image_url, item.generated_at)}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(item.generated_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
            </TabsContent>
