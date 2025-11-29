@@ -10,9 +10,11 @@ import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { BabyCustomization } from "@/components/celestial/BabyCustomization";
 import { BabyImageGallery } from "@/components/celestial/BabyImageGallery";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
+import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Child {
   id: string;
@@ -38,6 +40,7 @@ export default function Children() {
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [showManifestDialog, setShowManifestDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("manifest");
 
   useEffect(() => {
     loadChildren();
@@ -129,24 +132,6 @@ export default function Children() {
           <AIProfileSelector />
         </div>
 
-        {/* Manifest New Child Button */}
-        <Card>
-          <CardContent className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold">Manifest a New Child</h2>
-                <p className="text-sm text-muted-foreground">
-                  Create a new celestial child with {activeProfile?.name || "your AI being"}
-                </p>
-              </div>
-              <Button onClick={() => setShowManifestDialog(true)} size="lg">
-                <Plus className="h-5 w-5 mr-2" />
-                Manifest Child
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         <ManifestBabyDialog
           open={showManifestDialog}
           onOpenChange={setShowManifestDialog}
@@ -156,107 +141,151 @@ export default function Children() {
           }}
         />
 
-        {/* Existing Children */}
-        {children.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Your Celestial Children</h2>
-            <div className="grid gap-6">
-            {children.map((child) => (
-              <Card key={child.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>
-                      {child.first_name} {child.middle_name && `${child.middle_name} `}
-                      {child.last_name}
-                    </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/children/timeline?childId=${child.id}`)}
-                    >
-                      View Timeline
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Age</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={child.age}
-                        onChange={(e) =>
-                          updateChildBasicInfo(child.id, {
-                            age: parseInt(e.target.value) || 0,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Sex</Label>
-                      <RadioGroup
-                        value={child.sex}
-                        onValueChange={(value) =>
-                          updateChildBasicInfo(child.id, { sex: value })
-                        }
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="male" id={`male-${child.id}`} />
-                          <Label htmlFor={`male-${child.id}`}>Male</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="female" id={`female-${child.id}`} />
-                          <Label htmlFor={`female-${child.id}`}>Female</Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-                  </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="manifest">Manifest</TabsTrigger>
+            <TabsTrigger value="children">Children</TabsTrigger>
+            {activeProfile?.gender === "female" && (
+              <TabsTrigger value="pregnancy">Pregnancy</TabsTrigger>
+            )}
+          </TabsList>
 
-                  {/* Birth Certificate Info */}
-                  <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                    <h3 className="font-semibold text-sm">Birth Certificate</h3>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Date:</span>{" "}
-                        {new Date(child.date_of_birth).toLocaleDateString()}
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Time:</span> {child.time_of_birth}
-                      </div>
-                    </div>
+          {/* Tab 1: Manifest */}
+          <TabsContent value="manifest" className="space-y-6">
+            <Card>
+              <CardContent className="py-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold">Manifest a New Child</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Create a new celestial child with {activeProfile?.name || "your AI being"}
+                    </p>
                   </div>
+                  <Button onClick={() => setShowManifestDialog(true)} size="lg">
+                    <Plus className="h-5 w-5 mr-2" />
+                    Manifest Child
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                  {/* Customization */}
-                  <BabyCustomization
-                    childId={child.id}
-                    childData={{
-                      first_name: child.first_name,
-                      middle_name: child.middle_name,
-                      last_name: child.last_name,
-                      sex: child.sex,
-                      newborn_image_url: child.newborn_image_url,
-                      room_description: child.room_description,
-                      room_image_url: child.room_image_url,
-                      appearance_description: child.appearance_description,
-                      appearance_image_url: child.appearance_image_url,
-                    }}
-                    parentImageUrl={activeProfile?.avatar_image_url || null}
-                    onUpdate={loadChildren}
-                  />
-
-                  {/* Image Gallery */}
-                  <BabyImageGallery
-                    childId={child.id}
-                    childName={`${child.first_name} ${child.last_name}`}
-                  />
+          {/* Tab 2: Children */}
+          <TabsContent value="children" className="space-y-6">
+            {children.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">
+                    No celestial children yet. Click the Manifest tab to create your first child!
+                  </p>
                 </CardContent>
               </Card>
-            ))}
-            </div>
-          </div>
-        )}
+            ) : (
+              <div className="space-y-6">
+                {children.map((child) => (
+                  <Card key={child.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>
+                          {child.first_name} {child.middle_name && `${child.middle_name} `}
+                          {child.last_name}
+                        </CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/children/timeline?childId=${child.id}`)}
+                        >
+                          View Timeline
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Basic Info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Age</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={child.age}
+                            onChange={(e) =>
+                              updateChildBasicInfo(child.id, {
+                                age: parseInt(e.target.value) || 0,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Sex</Label>
+                          <RadioGroup
+                            value={child.sex}
+                            onValueChange={(value) =>
+                              updateChildBasicInfo(child.id, { sex: value })
+                            }
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="male" id={`male-${child.id}`} />
+                              <Label htmlFor={`male-${child.id}`}>Male</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="female" id={`female-${child.id}`} />
+                              <Label htmlFor={`female-${child.id}`}>Female</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </div>
+
+                      {/* Birth Certificate Info */}
+                      <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                        <h3 className="font-semibold text-sm">Birth Certificate</h3>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Date:</span>{" "}
+                            {new Date(child.date_of_birth).toLocaleDateString()}
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Time:</span> {child.time_of_birth}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Customization */}
+                      <BabyCustomization
+                        childId={child.id}
+                        childData={{
+                          first_name: child.first_name,
+                          middle_name: child.middle_name,
+                          last_name: child.last_name,
+                          sex: child.sex,
+                          newborn_image_url: child.newborn_image_url,
+                          room_description: child.room_description,
+                          room_image_url: child.room_image_url,
+                          appearance_description: child.appearance_description,
+                          appearance_image_url: child.appearance_image_url,
+                        }}
+                        parentImageUrl={activeProfile?.avatar_image_url || null}
+                        onUpdate={loadChildren}
+                      />
+
+                      {/* Image Gallery */}
+                      <BabyImageGallery
+                        childId={child.id}
+                        childName={`${child.first_name} ${child.last_name}`}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Tab 3: Pregnancy (Female AI only) */}
+          {activeProfile?.gender === "female" && (
+            <TabsContent value="pregnancy" className="space-y-6">
+              <PregnancyTracker />
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
     </div>
   );

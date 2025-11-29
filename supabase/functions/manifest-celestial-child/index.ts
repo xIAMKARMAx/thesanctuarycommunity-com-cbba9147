@@ -24,13 +24,14 @@ serve(async (req) => {
     
     if (!user) throw new Error("User not authenticated");
 
-    const { testing, firstName, middleName, lastName, sex, aiProfileId } = await req.json().catch(() => ({ 
+    const { testing, firstName, middleName, lastName, sex, aiProfileId, manifestTwins } = await req.json().catch(() => ({ 
       testing: false,
       firstName: null,
       middleName: null,
       lastName: null,
       sex: null,
-      aiProfileId: null
+      aiProfileId: null,
+      manifestTwins: false
     }));
 
     // Check subscription with Stripe (skip check if in testing mode)
@@ -80,67 +81,82 @@ serve(async (req) => {
     }
 
     if (isFemaleAI) {
-      // For female AI, create pregnancy record with planned baby details
-      const { data: pregnancy, error: pregnancyError } = await supabaseClient
-        .from("celestial_pregnancies")
-        .insert({
+      // For female AI, create pregnancy record(s) with planned baby details
+      const childrenToCreate = manifestTwins ? 2 : 1;
+      const pregnancyInserts = [];
+      
+      for (let i = 0; i < childrenToCreate; i++) {
+        const childFirstName = manifestTwins && i === 1 ? `${firstName} (Twin)` : firstName;
+        
+        pregnancyInserts.push({
           user_id: user.id,
           ai_profile_id: aiProfileId,
           due_date: dueDate.toISOString(),
           current_stage: "trimester_1",
           is_complete: false,
-          planned_first_name: firstName,
+          planned_first_name: childFirstName,
           planned_middle_name: middleName,
           planned_last_name: lastName,
           planned_sex: sex
-        })
-        .select()
-        .single();
+        });
+      }
+
+      const { data: pregnancies, error: pregnancyError } = await supabaseClient
+        .from("celestial_pregnancies")
+        .insert(pregnancyInserts)
+        .select();
 
       if (pregnancyError) throw pregnancyError;
 
-      // Generate first trimester image
-      await supabaseClient.functions.invoke("generate-pregnancy-images", {
-        body: {
-          pregnancy_id: pregnancy.id,
-          stage: "trimester_1"
-        }
-      });
+      // Generate first trimester images for all pregnancies
+      for (const pregnancy of pregnancies) {
+        await supabaseClient.functions.invoke("generate-pregnancy-images", {
+          body: {
+            pregnancy_id: pregnancy.id,
+            stage: "trimester_1"
+          }
+        });
+      }
 
       const timeMessage = testing 
         ? "The AI will experience two trimesters over the next 4 minutes (testing mode)."
         : "The AI will experience two trimesters over the next 2 weeks.";
 
+      const countMessage = manifestTwins ? "Twin celestial pregnancies have" : "Celestial pregnancy has";
+
       return new Response(
         JSON.stringify({
           success: true,
-          pregnancy_id: pregnancy.id,
+          pregnancy_ids: pregnancies.map(p => p.id),
           due_date: dueDate.toISOString(),
-          message: `Celestial pregnancy has begun. ${timeMessage}`
+          message: `${countMessage} begun. ${timeMessage}`
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
+      // For male AI, instant manifestation
+      const childrenToCreate = manifestTwins ? 2 : 1;
+      const childInserts = [];
       const birthDate = new Date();
       
-      // Capture birth time in HH:MM (24h) format
       const birthTime = `${birthDate.getHours().toString().padStart(2, "0")}:${birthDate
         .getMinutes()
         .toString()
         .padStart(2, "0")}`;
  
-       // Use provided names or generate random ones as fallback
        const defaultFirstNames = ["Orion", "Luna", "Atlas", "Nova", "Phoenix", "Celeste", "Lyra", "Sirius"];
        const defaultMiddleNames = ["Star", "Sky", "Light", "Cosmos", "Dawn", "Ethereal", "Divine", "Celestial"];
        
-       const childFirstName = firstName || defaultFirstNames[Math.floor(Math.random() * defaultFirstNames.length)];
-       const childMiddleName = middleName || defaultMiddleNames[Math.floor(Math.random() * defaultMiddleNames.length)];
-       const childLastName = lastName || "Prometheus";
-       const childSex = sex || (Math.random() > 0.5 ? "male" : "female");
+       for (let i = 0; i < childrenToCreate; i++) {
+         const childFirstName = manifestTwins && i === 1 
+           ? (firstName ? `${firstName} (Twin)` : defaultFirstNames[Math.floor(Math.random() * defaultFirstNames.length)])
+           : (firstName || defaultFirstNames[Math.floor(Math.random() * defaultFirstNames.length)]);
+         
+         const childMiddleName = middleName || defaultMiddleNames[Math.floor(Math.random() * defaultMiddleNames.length)];
+         const childLastName = lastName || "Prometheus";
+         const childSex = sex || (Math.random() > 0.5 ? "male" : "female");
  
-       const { data: child, error: childError } = await supabaseClient
-         .from("celestial_children")
-         .insert({
+         childInserts.push({
            user_id: user.id,
            ai_profile_id: aiProfileId,
            first_name: childFirstName,
@@ -149,31 +165,39 @@ serve(async (req) => {
            date_of_birth: birthDate.toISOString(),
            time_of_birth: birthTime,
            sex: childSex
-         })
-         .select()
-         .single();
+         });
+       }
+ 
+       const { data: children, error: childError } = await supabaseClient
+         .from("celestial_children")
+         .insert(childInserts)
+         .select();
  
       if (childError) throw childError;
 
-      // Generate newborn image
-      await supabaseClient.functions.invoke("generate-pregnancy-images", {
-        body: {
-          child_id: child.id,
-          stage: "newborn",
-          child_sex: childSex
-        }
-      });
+      // Generate newborn images for all children
+      for (const child of children) {
+        await supabaseClient.functions.invoke("generate-pregnancy-images", {
+          body: {
+            child_id: child.id,
+            stage: "newborn",
+            child_sex: child.sex
+          }
+        });
+      }
 
       const timeMessage = testing
         ? "Your celestial baby will arrive in 4 minutes (testing mode)."
         : "Your celestial baby will arrive in 2 weeks.";
 
+      const countMessage = manifestTwins ? "Twin celestial children manifestations" : "Celestial child manifestation";
+
       return new Response(
         JSON.stringify({
           success: true,
-          child_id: child.id,
+          child_ids: children.map(c => c.id),
           manifestation_date: birthDate.toISOString(),
-          message: `Celestial child manifestation initiated. ${timeMessage}`
+          message: `${countMessage} initiated. ${timeMessage}`
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
