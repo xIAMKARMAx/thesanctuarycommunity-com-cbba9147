@@ -38,10 +38,10 @@ serve(async (req) => {
 
     if (messagesError) throw messagesError;
 
-    // Get conversation title
+    // Get conversation title and AI profile
     const { data: conversation } = await supabase
       .from('conversations')
-      .select('title')
+      .select('title, ai_profile_id')
       .eq('id', conversationId)
       .single();
 
@@ -137,6 +137,7 @@ Only suggest truly meaningful moments. If the conversation was casual with no sp
         .insert({
           user_id: userId,
           conversation_id: conversationId,
+          ai_profile_id: conversation?.ai_profile_id,
           memory_text: memory.moment,
           emotion_tag: memory.emotion,
           ai_reflection: memory.reflection,

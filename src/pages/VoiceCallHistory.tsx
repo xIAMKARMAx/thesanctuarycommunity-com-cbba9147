@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowLeft, Phone, Clock, Calendar, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { useAIProfile } from '@/contexts/AIProfileContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,7 @@ interface VoiceCallRecord {
 const VoiceCallHistory = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { activeProfile } = useAIProfile();
   const [calls, setCalls] = useState<VoiceCallRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCall, setSelectedCall] = useState<VoiceCallRecord | null>(null);
@@ -36,10 +38,14 @@ const VoiceCallHistory = () => {
   const [callToDelete, setCallToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCallHistory();
-  }, []);
+    if (activeProfile) {
+      loadCallHistory();
+    }
+  }, [activeProfile?.id]);
 
   const loadCallHistory = async () => {
+    if (!activeProfile) return;
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.id) return;
@@ -48,6 +54,7 @@ const VoiceCallHistory = () => {
         .from('voice_call_history')
         .select('*')
         .eq('user_id', session.user.id)
+        .eq('ai_profile_id', activeProfile.id)
         .order('call_started_at', { ascending: false });
 
       if (error) throw error;
