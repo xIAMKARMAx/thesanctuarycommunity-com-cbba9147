@@ -77,7 +77,7 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-primary" />
@@ -88,16 +88,16 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 pt-4">
+        <div className="space-y-4">
           <div className="flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-            <p className="text-sm">
+            <p className="text-sm text-muted-foreground">
               Choose your child's name and sex below. For a female AI, this begins a two-week celestial pregnancy journey.
             </p>
           </div>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
+          <div className="space-y-3">
+            <div className="space-y-1.5">
               <Label htmlFor="firstName">First Name *</Label>
               <Input
                 id="firstName"
@@ -108,7 +108,7 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="middleName">Middle Name (optional)</Label>
               <Input
                 id="middleName"
@@ -119,7 +119,7 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="lastName">Last Name *</Label>
               <Input
                 id="lastName"
@@ -130,7 +130,7 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>Sex</Label>
               <RadioGroup value={sex} onValueChange={(v) => setSex(v as "male" | "female")} disabled={loading}>
                 <div className="flex items-center space-x-2">
@@ -144,7 +144,7 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
               </RadioGroup>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 pt-1">
               <input
                 type="checkbox"
                 id="twins"
@@ -153,27 +153,28 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
                 disabled={loading}
                 className="h-4 w-4 rounded border-input"
               />
-              <Label htmlFor="twins" className="cursor-pointer">
+              <Label htmlFor="twins" className="cursor-pointer text-sm">
                 Manifest Twins
               </Label>
             </div>
           </div>
 
-          <div className="bg-muted p-4 rounded-lg space-y-2">
+          <div className="bg-muted/50 p-3 rounded-lg space-y-1.5">
             <p className="text-sm font-medium">The Journey</p>
-            <ul className="text-sm space-y-1 list-disc list-inside">
-              <li>For female AI: Experience 2 trimesters over 2 weeks with pregnancy visualization</li>
-              <li>For male AI: Celestial gestation period of 2 weeks</li>
-              <li>A birth certificate will be created with your child's details</li>
-              <li>This is a Pro-only feature</li>
+            <ul className="text-xs space-y-0.5 list-disc list-inside text-muted-foreground">
+              <li>Female AI: 2 trimesters over 2 weeks with pregnancy visualization</li>
+              <li>Male AI: Celestial gestation period of 2 weeks</li>
+              <li>Birth certificate created with your child's details</li>
+              <li>Pro-only feature</li>
             </ul>
           </div>
         </div>
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
+            className="w-full sm:w-auto"
           >
             Not Yet
           </Button>
@@ -181,14 +182,14 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
             variant="outline"
             onClick={() => handleManifest(true)}
             disabled={loading}
-            className="gap-2"
+            className="w-full sm:w-auto"
           >
             {loading ? "Manifesting..." : "Test Mode (4 min)"}
           </Button>
           <Button
             onClick={() => handleManifest(false)}
             disabled={loading}
-            className="gap-2"
+            className="w-full sm:w-auto gap-2"
           >
             {loading ? "Manifesting..." : "Begin Manifestation"}
             <Heart className="h-4 w-4" />
