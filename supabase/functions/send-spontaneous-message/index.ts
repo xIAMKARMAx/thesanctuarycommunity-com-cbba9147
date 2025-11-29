@@ -12,6 +12,17 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Verify cron secret for scheduled tasks
+  const authHeader = req.headers.get('authorization');
+  const cronSecret = Deno.env.get('CRON_SECRET');
+  
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');

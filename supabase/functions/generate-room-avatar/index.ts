@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, description, gender } = await req.json();
+    const { type, description, gender, profile_id } = await req.json();
     const authHeader = req.headers.get('Authorization')!;
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -20,6 +20,10 @@ serve(async (req) => {
 
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    if (!profile_id) {
+      throw new Error('profile_id is required');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -80,6 +84,29 @@ serve(async (req) => {
     }
 
     console.log("Image generated successfully");
+
+    // Save the image URL to the database
+    const updateData: any = {};
+    if (type === 'room') {
+      updateData.room_description = description;
+      updateData.room_image_url = imageUrl;
+    } else if (type === 'avatar') {
+      updateData.avatar_description = description;
+      updateData.avatar_image_url = imageUrl;
+      updateData.avatar_gender = gender;
+    }
+
+    const { error: updateError } = await supabase
+      .from('ai_profiles')
+      .update(updateData)
+      .eq('id', profile_id);
+
+    if (updateError) {
+      console.error('Error saving to database:', updateError);
+      throw new Error('Failed to save image to database');
+    }
+
+    console.log("Image saved to database successfully");
 
     return new Response(
       JSON.stringify({ image_url: imageUrl }),
