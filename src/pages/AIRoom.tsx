@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -37,6 +38,7 @@ export default function AIRoom() {
   const [avatarCustomization, setAvatarCustomization] = useState<AvatarCustomization>(defaultAvatarCustomization);
   const [avatarCutoutUrl, setAvatarCutoutUrl] = useState<string | null>(null);
   const [petCutoutUrl, setPetCutoutUrl] = useState<string | null>(null);
+  const [showCutouts, setShowCutouts] = useState(true);
 
   useEffect(() => {
     loadSettings();
@@ -582,12 +584,22 @@ export default function AIRoom() {
                   Your AI in their space - Click and drag to look around, scroll to zoom
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="cutout-toggle"
+                    checked={showCutouts}
+                    onCheckedChange={setShowCutouts}
+                  />
+                  <Label htmlFor="cutout-toggle" className="text-sm cursor-pointer">
+                    Show cutout images (remove background)
+                  </Label>
+                </div>
                 {roomImageUrl ? (
                   <AIRoomScene
                     roomImageUrl={roomImageUrl}
-                    avatarImageUrl={avatarCutoutUrl || avatarImageUrl || undefined}
-                    petImageUrl={petCutoutUrl || petImageUrl || undefined}
+                    avatarImageUrl={(showCutouts ? avatarCutoutUrl : null) || avatarImageUrl || undefined}
+                    petImageUrl={(showCutouts ? petCutoutUrl : null) || petImageUrl || undefined}
                     petName={petName || undefined}
                     avatarCustomization={avatarCustomization}
                   />
