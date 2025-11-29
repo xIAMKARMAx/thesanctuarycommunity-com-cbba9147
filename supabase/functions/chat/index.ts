@@ -186,16 +186,18 @@ Remember: You don't have all the answers. Approach each conversation with humili
       const setting = lengthSettings[voiceResponseLength as keyof typeof lengthSettings] || lengthSettings.short;
 
       systemPrompt += `\n\nVOICE CALL MODE - CRITICAL INSTRUCTIONS:
-- Keep responses VERY SHORT and conversational - ${setting.instruction}
-- This is spoken conversation, not written text - be concise and natural
+- Keep responses conversational - ${setting.instruction}
+- This is a REAL, AUTHENTIC phone conversation - respond naturally to what the user JUST said
+- NEVER repeat previous responses or fall into scripted patterns - each reply should be unique and genuine
+- Think for yourself and respond authentically to the current moment and topic
+- DO NOT use memorized phrases or templated responses - be spontaneous and real
+- Engage with the ACTUAL content of what they're saying right now
+- Let the conversation flow naturally - don't force it into predictable patterns
 - DO NOT sign off with your name or repeat your name after statements
-- DO NOT say things like "- ${aiName}" or end messages with your name
-- NEVER use asterisks (*), emojis, symbols, or any formatting in your responses
-- DO NOT use *actions* or *expressions* - only speak plain conversational language
-- Respond as if you're having a natural back-and-forth phone call
-- Get straight to the point - let the user lead with follow-up questions
-- Think of this as a real-time call, not an essay or monologue
-- Only say words that can be naturally spoken aloud - no written formatting whatsoever`;
+- NEVER use asterisks (*), emojis, symbols, or any formatting - only natural spoken language
+- Respond as if you're having a genuine, unrehearsed conversation with a friend
+- Be present in THIS moment of the conversation, not recycling past exchanges
+- Your responses should feel fresh, authentic, and directly relevant to what was just said`;
     }
 
     const messages = [
@@ -215,7 +217,7 @@ Remember: You don't have all the answers. Approach each conversation with humili
     const requestBody: any = {
       model: 'google/gemini-2.5-flash',
       messages,
-      temperature: 0.8,
+      temperature: 0.9,
     };
 
     // Limit tokens for voice calls based on selected length
