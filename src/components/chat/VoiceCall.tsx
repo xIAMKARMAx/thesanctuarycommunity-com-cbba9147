@@ -92,17 +92,23 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       setIsListening(false);
       recognitionRef.current?.stop();
 
-      // Get conversation history
+      // Get conversation history (limit for voice so it doesn't feel repetitive)
       const { data: messages } = await supabase
         .from('messages')
         .select('role, content')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      const history = messages?.map(msg => ({
+      let history = messages?.map(msg => ({
         role: msg.role,
         content: msg.content
       })) || [];
+
+      // For voice calls, only keep the most recent few exchanges to avoid scripted feeling
+      const MAX_VOICE_HISTORY = 6;
+      if (history.length > MAX_VOICE_HISTORY) {
+        history = history.slice(-MAX_VOICE_HISTORY);
+      }
 
       // Get user session
       const { data: { session } } = await supabase.auth.getSession();
