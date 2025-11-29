@@ -19,6 +19,7 @@ import Memories from "./pages/Memories";
 import AIRoom from "./pages/AIRoom";
 import Children from "./pages/Children";
 import ChildrenTimeline from "./pages/ChildrenTimeline";
+import VoiceCallHistory from "./pages/VoiceCallHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/ai-room" element={<AIRoom />} />
                 <Route path="/children" element={<Children />} />
                 <Route path="/children/timeline" element={<ChildrenTimeline />} />
+                <Route path="/voice-call-history" element={<VoiceCallHistory />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
