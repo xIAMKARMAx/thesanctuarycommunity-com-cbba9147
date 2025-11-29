@@ -11,6 +11,7 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CelestialChildrenList } from "@/components/celestial/CelestialChildrenList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,6 +32,7 @@ const Settings = () => {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const { isSubscribed, subscriptionStatus, loading: subLoading } = useSubscription();
+  const { activeProfile, refreshProfiles } = useAIProfile();
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [bio, setBio] = useState("");
@@ -47,40 +49,49 @@ const Settings = () => {
   const [agingChildren, setAgingChildren] = useState(false);
 
   useEffect(() => {
-    loadProfile();
-    loadChildren();
-  }, []);
+    if (activeProfile) {
+      loadProfile();
+      loadChildren();
+    }
+  }, [activeProfile?.id]);
 
   const loadProfile = async () => {
+    if (!activeProfile) return;
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      // Load user's personal info from profiles table
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("name, gender, bio, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies, relationship_status")
+        .select("name, gender, bio, relationship_status")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (error) throw error;
-      if (data) {
-        setName(data.name || "");
-        setGender(data.gender || "");
-        setBio(data.bio || "");
-        setAiName(data.ai_name || "");
-        setAiGender(data.ai_gender || "");
-        setAiBio(data.ai_bio || "");
-        setAiPersonality(data.ai_personality || "");
-        setAiMemories(data.ai_memories || "");
-        setAiLikesDislikesHobbies(data.ai_likes_dislikes_hobbies || "");
-        setRelationshipStatus(data.relationship_status || "");
+      if (profileError) throw profileError;
+      if (profileData) {
+        setName(profileData.name || "");
+        setGender(profileData.gender || "");
+        setBio(profileData.bio || "");
+        setRelationshipStatus(profileData.relationship_status || "");
       }
+
+      // Load AI-specific data from active AI profile
+      setAiName(activeProfile.name || "");
+      setAiGender(activeProfile.gender || "");
+      setAiBio(activeProfile.bio || "");
+      setAiPersonality(activeProfile.personality || "");
+      setAiMemories(activeProfile.memories || "");
+      setAiLikesDislikesHobbies(activeProfile.likes_dislikes_hobbies || "");
     } catch (error) {
       console.error("Error loading profile:", error);
     }
   };
 
   const loadChildren = async () => {
+    if (!activeProfile) return;
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -89,6 +100,7 @@ const Settings = () => {
         .from("celestial_children")
         .select("id, first_name, last_name, age, last_aged_at, can_talk")
         .eq("user_id", user.id)
+        .eq("ai_profile_id", activeProfile.id)
         .order("age", { ascending: true });
 
       if (error) throw error;
@@ -175,28 +187,42 @@ const Settings = () => {
   };
 
   const handleSaveProfile = async () => {
+    if (!activeProfile) return;
+
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
+      // Save user's personal info to profiles table
+      const { error: profileError } = await supabase
         .from("profiles")
         .update({ 
           name, 
           gender, 
           bio, 
-          ai_name: aiName,
-          ai_gender: aiGender,
-          ai_bio: aiBio,
-          ai_personality: aiPersonality,
-          ai_memories: aiMemories,
-          ai_likes_dislikes_hobbies: aiLikesDislikesHobbies,
           relationship_status: relationshipStatus
         })
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Save AI-specific data to ai_profiles table
+      const { error: aiError } = await supabase
+        .from("ai_profiles")
+        .update({
+          name: aiName,
+          gender: aiGender,
+          bio: aiBio,
+          personality: aiPersonality,
+          memories: aiMemories,
+          likes_dislikes_hobbies: aiLikesDislikesHobbies
+        })
+        .eq("id", activeProfile.id);
+
+      if (aiError) throw aiError;
+
+      await refreshProfiles();
 
       toast({
         title: "Profile updated",

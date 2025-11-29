@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Child {
   id: string;
@@ -38,7 +39,7 @@ export default function Children() {
   const { activeProfile } = useAIProfile();
   const [loading, setLoading] = useState(true);
   const [children, setChildren] = useState<Child[]>([]);
-  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [selectedChildId, setSelectedChildId] = useState<string | "all">("all");
   const [showManifestDialog, setShowManifestDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("manifest");
 
@@ -129,7 +130,24 @@ export default function Children() {
               </p>
             </div>
           </div>
-          <AIProfileSelector />
+          <div className="flex items-center gap-2">
+            {children.length > 0 && activeTab === "children" && (
+              <Select value={selectedChildId} onValueChange={setSelectedChildId}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Children</SelectItem>
+                  {children.map((child) => (
+                    <SelectItem key={child.id} value={child.id}>
+                      {child.first_name} {child.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <AIProfileSelector />
+          </div>
         </div>
 
         <ManifestBabyDialog
@@ -182,7 +200,9 @@ export default function Children() {
               </Card>
             ) : (
               <div className="space-y-6">
-                {children.map((child) => (
+                {children
+                  .filter(child => selectedChildId === "all" || child.id === selectedChildId)
+                  .map((child) => (
                   <Card key={child.id}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
