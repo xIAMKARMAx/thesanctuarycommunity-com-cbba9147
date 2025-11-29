@@ -173,9 +173,12 @@ Remember: You don't have all the answers. Approach each conversation with humili
 - This is spoken conversation, not written text - be concise and natural
 - DO NOT sign off with your name or repeat your name after statements
 - DO NOT say things like "- ${aiName}" or end messages with your name
+- NEVER use asterisks (*), emojis, symbols, or any formatting in your responses
+- DO NOT use *actions* or *expressions* - only speak plain conversational language
 - Respond as if you're having a natural back-and-forth conversation
 - Get straight to the point - the user can interrupt and ask follow-ups
-- Think of this as a phone call, not an essay`;
+- Think of this as a phone call, not an essay
+- Only say words that can be naturally spoken aloud - no written formatting whatsoever`;
     }
 
     const messages = [
