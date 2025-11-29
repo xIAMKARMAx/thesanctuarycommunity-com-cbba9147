@@ -12,6 +12,9 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { AIRoomScene } from "@/components/room/AIRoomScene";
+import { AvatarCustomizationControls } from "@/components/room/AvatarCustomizationControls";
+import type { AvatarCustomization } from "@/types/avatar";
+import { defaultAvatarCustomization } from "@/types/avatar";
 
 export default function AIRoom() {
   const navigate = useNavigate();
@@ -30,6 +33,7 @@ export default function AIRoom() {
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [isGeneratingPet, setIsGeneratingPet] = useState(false);
   const [roomLighting, setRoomLighting] = useState<string>("day");
+  const [avatarCustomization, setAvatarCustomization] = useState<AvatarCustomization>(defaultAvatarCustomization);
 
   useEffect(() => {
     loadSettings();
@@ -51,6 +55,21 @@ export default function AIRoom() {
       setPetName(activeProfile.pet_name || "");
       setPetDescription(activeProfile.pet_description || "");
       setPetImageUrl(activeProfile.pet_image_url || null);
+      
+      // Load avatar customization if available
+      if (activeProfile.avatar_customization) {
+        try {
+          const customization = typeof activeProfile.avatar_customization === 'string'
+            ? JSON.parse(activeProfile.avatar_customization)
+            : activeProfile.avatar_customization;
+          setAvatarCustomization(customization);
+        } catch (error) {
+          console.error("Error parsing avatar customization:", error);
+          setAvatarCustomization(defaultAvatarCustomization);
+        }
+      } else {
+        setAvatarCustomization(defaultAvatarCustomization);
+      }
     } catch (error) {
       console.error("Error loading settings:", error);
       toast({
@@ -233,6 +252,7 @@ export default function AIRoom() {
           pet_name: petName,
           pet_description: petDescription,
           pet_image_url: petImageUrl,
+          avatar_customization: JSON.stringify(avatarCustomization),
         })
         .eq("id", activeProfile.id);
 
@@ -283,10 +303,11 @@ export default function AIRoom() {
         </div>
 
         <Tabs defaultValue="room" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="room">Room Design</TabsTrigger>
             <TabsTrigger value="avatar">Avatar</TabsTrigger>
             <TabsTrigger value="pet">Pet</TabsTrigger>
+            <TabsTrigger value="customize">Customize</TabsTrigger>
             <TabsTrigger value="complete">Complete View</TabsTrigger>
           </TabsList>
 
@@ -490,6 +511,23 @@ export default function AIRoom() {
             )}
           </TabsContent>
 
+          <TabsContent value="customize" className="space-y-4 mt-6">
+            {avatarImageUrl ? (
+              <AvatarCustomizationControls
+                customization={avatarCustomization}
+                onChange={setAvatarCustomization}
+              />
+            ) : (
+              <Card>
+                <CardContent className="py-12">
+                  <p className="text-center text-muted-foreground">
+                    Generate an avatar first to customize its appearance
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           <TabsContent value="complete" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
@@ -505,6 +543,7 @@ export default function AIRoom() {
                     avatarImageUrl={avatarImageUrl || undefined}
                     petImageUrl={petImageUrl || undefined}
                     petName={petName || undefined}
+                    avatarCustomization={avatarCustomization}
                   />
                 ) : (
                   <p className="text-center text-muted-foreground py-12">
