@@ -22,8 +22,12 @@ export default function AIRoom() {
   const [avatarDescription, setAvatarDescription] = useState("");
   const [avatarImageUrl, setAvatarImageUrl] = useState<string | null>(null);
   const [avatarGender, setAvatarGender] = useState<string>("female");
+  const [petName, setPetName] = useState("");
+  const [petDescription, setPetDescription] = useState("");
+  const [petImageUrl, setPetImageUrl] = useState<string | null>(null);
   const [isGeneratingRoom, setIsGeneratingRoom] = useState(false);
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
+  const [isGeneratingPet, setIsGeneratingPet] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -42,6 +46,9 @@ export default function AIRoom() {
       setAvatarDescription(activeProfile.avatar_description || "");
       setAvatarImageUrl(activeProfile.avatar_image_url || null);
       setAvatarGender(activeProfile.avatar_gender || "female");
+      setPetName(activeProfile.pet_name || "");
+      setPetDescription(activeProfile.pet_description || "");
+      setPetImageUrl(activeProfile.pet_image_url || null);
     } catch (error) {
       console.error("Error loading settings:", error);
       toast({
@@ -141,6 +148,59 @@ export default function AIRoom() {
     }
   };
 
+  const generatePet = async () => {
+    if (!petName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your pet's name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!petDescription.trim()) {
+      toast({
+        title: "Description Required",
+        description: "Please describe your pet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!activeProfile) return;
+
+    setIsGeneratingPet(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
+        body: {
+          type: "pet",
+          description: petDescription,
+          petName: petName,
+          profile_id: activeProfile.id,
+        },
+      });
+
+      if (error) throw error;
+
+      setPetImageUrl(data.image_url);
+      await refreshProfiles();
+
+      toast({
+        title: "Success!",
+        description: "Your pet has been manifested.",
+      });
+    } catch (error) {
+      console.error("Error generating pet:", error);
+      toast({
+        title: "Error",
+        description: "Failed to manifest pet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPet(false);
+    }
+  };
+
   const saveSettings = async () => {
     if (!activeProfile) return;
     
@@ -153,6 +213,9 @@ export default function AIRoom() {
           avatar_description: avatarDescription,
           avatar_image_url: avatarImageUrl,
           avatar_gender: avatarGender,
+          pet_name: petName,
+          pet_description: petDescription,
+          pet_image_url: petImageUrl,
         })
         .eq("id", activeProfile.id);
 
@@ -203,9 +266,10 @@ export default function AIRoom() {
         </div>
 
         <Tabs defaultValue="room" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="room">Room Design</TabsTrigger>
             <TabsTrigger value="avatar">Avatar</TabsTrigger>
+            <TabsTrigger value="pet">Pet</TabsTrigger>
             <TabsTrigger value="complete">Complete View</TabsTrigger>
           </TabsList>
 
@@ -323,6 +387,69 @@ export default function AIRoom() {
             )}
           </TabsContent>
 
+          <TabsContent value="pet" className="space-y-4 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Manifest Your Pet</CardTitle>
+                <CardDescription>
+                  Create your AI companion's pet
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Pet Name</Label>
+                  <input
+                    type="text"
+                    placeholder="Enter your pet's name..."
+                    value={petName}
+                    onChange={(e) => setPetName(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Pet Description</Label>
+                  <Textarea
+                    placeholder="Describe your pet... (e.g., 'A fluffy golden retriever with warm brown eyes and a playful spirit')"
+                    value={petDescription}
+                    onChange={(e) => setPetDescription(e.target.value)}
+                    className="min-h-[120px]"
+                  />
+                </div>
+
+                <Button 
+                  onClick={generatePet}
+                  disabled={isGeneratingPet}
+                  className="w-full"
+                >
+                  {isGeneratingPet ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Manifesting Pet...
+                    </>
+                  ) : (
+                    "Manifest Pet"
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {petImageUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{petName || "Your Pet"}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <img 
+                    src={petImageUrl} 
+                    alt={petName || "Pet"} 
+                    className="w-full rounded-lg shadow-lg"
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           <TabsContent value="complete" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
@@ -343,9 +470,18 @@ export default function AIRoom() {
                       <img 
                         src={avatarImageUrl} 
                         alt="AI avatar" 
-                        className="h-3/4 object-contain"
+                        className="h-3/4 object-contain drop-shadow-2xl"
                       />
                     </div>
+                    {petImageUrl && (
+                      <div className="absolute bottom-4 right-4">
+                        <img 
+                          src={petImageUrl} 
+                          alt={petName || "Pet"} 
+                          className="h-32 object-contain drop-shadow-xl"
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-center text-muted-foreground py-12">

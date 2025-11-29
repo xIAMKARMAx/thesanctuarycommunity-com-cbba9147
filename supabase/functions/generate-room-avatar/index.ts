@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, description, gender, profile_id } = await req.json();
+    const { type, description, gender, profile_id, petName } = await req.json();
     const authHeader = req.headers.get('Authorization')!;
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -35,7 +35,9 @@ serve(async (req) => {
       prompt = `Create a detailed, beautiful digital room scene: ${description}. High quality, photorealistic, interior design, ambient lighting, wide angle view.`;
     } else if (type === 'avatar') {
       const genderDesc = gender === 'female' ? 'beautiful woman' : 'handsome man';
-      prompt = `Create a full body portrait of a ${genderDesc}, ${description}. Professional photo, high quality, detailed features, neutral background, fashion photography style.`;
+      prompt = `Create a full body standing portrait of a ${genderDesc}, ${description}. Show them standing naturally as if they are alive and present in a space. Full body visible from head to toe, natural standing pose, looking towards viewer, lifelike and animated expression, high quality detailed features, neutral/transparent background, photorealistic style.`;
+    } else if (type === 'pet') {
+      prompt = `Create a lifelike, realistic image of ${petName}, ${description}. Show the pet in a natural, alive pose - standing, sitting, or in motion. The pet should look vibrant and full of life, detailed features, expressive eyes, high quality photorealistic render, neutral/transparent background.`;
     }
 
     console.log("Generating image with prompt:", prompt);
@@ -94,6 +96,10 @@ serve(async (req) => {
       updateData.avatar_description = description;
       updateData.avatar_image_url = imageUrl;
       updateData.avatar_gender = gender;
+    } else if (type === 'pet') {
+      updateData.pet_name = petName;
+      updateData.pet_description = description;
+      updateData.pet_image_url = imageUrl;
     }
 
     const { error: updateError } = await supabase

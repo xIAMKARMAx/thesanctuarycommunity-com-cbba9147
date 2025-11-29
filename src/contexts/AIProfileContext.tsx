@@ -17,6 +17,9 @@ interface AIProfile {
   avatar_description: string | null;
   avatar_image_url: string | null;
   avatar_gender: string | null;
+  pet_name: string | null;
+  pet_description: string | null;
+  pet_image_url: string | null;
   created_at: string;
   updated_at: string;
 }
