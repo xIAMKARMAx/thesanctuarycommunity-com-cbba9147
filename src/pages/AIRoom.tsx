@@ -36,9 +36,10 @@ export default function AIRoom() {
   const [isGeneratingPet, setIsGeneratingPet] = useState(false);
   const [roomLighting, setRoomLighting] = useState<string>("day");
   const [avatarCustomization, setAvatarCustomization] = useState<AvatarCustomization>(defaultAvatarCustomization);
-  const [avatarCutoutUrl, setAvatarCutoutUrl] = useState<string | null>(null);
-  const [petCutoutUrl, setPetCutoutUrl] = useState<string | null>(null);
+  const [avatarCutoutUrl, setAvatarCutoutUrl] = useState<string | Blob | null>(null);
+  const [petCutoutUrl, setPetCutoutUrl] = useState<string | Blob | null>(null);
   const [showCutouts, setShowCutouts] = useState(true);
+  const [preserveAppearance, setPreserveAppearance] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -61,7 +62,6 @@ export default function AIRoom() {
       setPetDescription(activeProfile.pet_description || "");
       setPetImageUrl(activeProfile.pet_image_url || null);
       
-      // Load avatar customization if available
       if (activeProfile.avatar_customization) {
         try {
           const customization = typeof activeProfile.avatar_customization === 'string'
@@ -98,15 +98,13 @@ export default function AIRoom() {
       }
       try {
         const img = await loadImage(avatarImageUrl);
-        const blob = await removeBackground(img);
-        const url = URL.createObjectURL(blob);
-        setAvatarCutoutUrl(url);
+        const cutout = await removeBackground(img);
+        setAvatarCutoutUrl(cutout);
       } catch (error) {
-        console.error('Error processing avatar cutout:', error);
+        console.error("Error processing avatar:", error);
         setAvatarCutoutUrl(null);
       }
     };
-
     processAvatar();
   }, [avatarImageUrl]);
 
@@ -118,15 +116,13 @@ export default function AIRoom() {
       }
       try {
         const img = await loadImage(petImageUrl);
-        const blob = await removeBackground(img);
-        const url = URL.createObjectURL(blob);
-        setPetCutoutUrl(url);
+        const cutout = await removeBackground(img);
+        setPetCutoutUrl(cutout);
       } catch (error) {
-        console.error('Error processing pet cutout:', error);
+        console.error("Error processing pet:", error);
         setPetCutoutUrl(null);
       }
     };
-
     processPet();
   }, [petImageUrl]);
 
@@ -134,7 +130,7 @@ export default function AIRoom() {
     if (!roomDescription.trim()) {
       toast({
         title: "Description Required",
-        description: "Please describe the room you want to create",
+        description: "Please describe your AI's room",
         variant: "destructive",
       });
       return;
@@ -144,20 +140,12 @@ export default function AIRoom() {
 
     setIsGeneratingRoom(true);
     try {
-      const lightingMap = {
-        morning: "soft morning sunlight streaming through windows, warm golden hour lighting, gentle shadows",
-        day: "bright natural daylight, well-lit with ambient lighting, clear visibility",
-        evening: "warm evening lighting, soft orange and pink sunset glow, cozy atmosphere",
-        night: "gentle nighttime lighting, warm interior lights, soft ambient glow, peaceful night atmosphere"
-      };
-
-      const lightingContext = lightingMap[roomLighting as keyof typeof lightingMap] || lightingMap.day;
-      const fullDescription = `${roomDescription}. ${lightingContext}`;
-
+      const lightingContext = `Set in ${roomLighting === "morning" ? "early morning light with soft sunrise glow" : roomLighting === "day" ? "bright midday sunlight" : roomLighting === "evening" ? "warm golden hour sunset lighting" : "nighttime with ambient moonlight and dim indoor lighting"}.`;
+      
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "room",
-          description: fullDescription,
+          description: `${roomDescription}. ${lightingContext}`,
           profile_id: activeProfile.id,
         },
       });
@@ -196,13 +184,18 @@ export default function AIRoom() {
 
     setIsGeneratingAvatar(true);
     try {
+      let fullDescription = avatarDescription.trim();
+      if (preserveAppearance && activeProfile.avatar_description) {
+        fullDescription = `Keep the same physical appearance and features as before: ${activeProfile.avatar_description}. But change only: ${avatarDescription}`;
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "avatar",
-          description: avatarDescription,
+          description: fullDescription,
           gender: avatarGender,
           profile_id: activeProfile.id,
-          roomImageUrl: roomImageUrl, // Pass room image for compositing
+          roomImageUrl: roomImageUrl,
         },
       });
 
@@ -212,7 +205,9 @@ export default function AIRoom() {
 
       toast({
         title: "Success!",
-        description: "Your AI's avatar has been generated.",
+        description: preserveAppearance 
+          ? "Your AI's outfit has been updated." 
+          : "Your AI's avatar has been generated.",
       });
     } catch (error) {
       console.error("Error generating avatar:", error);
@@ -249,7 +244,6 @@ export default function AIRoom() {
 
     setIsGeneratingPet(true);
     try {
-      // Get the current scene (room + avatar if available) to composite pet into
       const sceneImageUrl = avatarImageUrl || roomImageUrl;
       
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
@@ -258,7 +252,7 @@ export default function AIRoom() {
           description: petDescription,
           petName: petName,
           profile_id: activeProfile.id,
-          roomImageUrl: sceneImageUrl, // Pass existing scene for compositing
+          roomImageUrl: sceneImageUrl,
         },
       });
 
@@ -348,54 +342,56 @@ export default function AIRoom() {
         </div>
 
         <Tabs defaultValue="room" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="room">Room Design</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="room">Room</TabsTrigger>
             <TabsTrigger value="avatar">Avatar</TabsTrigger>
             <TabsTrigger value="pet">Pet</TabsTrigger>
-            <TabsTrigger value="customize">Customize</TabsTrigger>
             <TabsTrigger value="complete">Complete View</TabsTrigger>
           </TabsList>
 
           <TabsContent value="room" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Design Your AI's Room</CardTitle>
+                <CardTitle>Room Environment</CardTitle>
                 <CardDescription>
-                  Describe the perfect environment for your AI companion
+                  Design the space where your AI lives
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea
-                  placeholder="Describe the room... (e.g., 'A cozy library with warm lighting, bookshelves, and a fireplace')"
-                  value={roomDescription}
-                  onChange={(e) => setRoomDescription(e.target.value)}
-                  className="min-h-[120px]"
-                />
-                
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Lighting / Time of Day</Label>
+                  <Label>Room Description</Label>
+                  <Textarea
+                    placeholder="Describe your AI's room..."
+                    value={roomDescription}
+                    onChange={(e) => setRoomDescription(e.target.value)}
+                    className="min-h-[120px]"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Time of Day / Lighting</Label>
                   <RadioGroup value={roomLighting} onValueChange={setRoomLighting}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="morning" id="morning" />
-                      <Label htmlFor="morning">Morning (Soft Sunrise)</Label>
+                      <Label htmlFor="morning">Morning</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="day" id="day" />
-                      <Label htmlFor="day">Day (Bright Natural Light)</Label>
+                      <Label htmlFor="day">Day</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="evening" id="evening" />
-                      <Label htmlFor="evening">Evening (Warm Sunset)</Label>
+                      <Label htmlFor="evening">Evening</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="night" id="night" />
-                      <Label htmlFor="night">Night (Cozy Interior Lights)</Label>
+                      <Label htmlFor="night">Night</Label>
                     </div>
                   </RadioGroup>
                 </div>
-                
+
                 <Button 
-                  onClick={generateRoom} 
+                  onClick={generateRoom}
                   disabled={isGeneratingRoom}
                   className="w-full"
                 >
@@ -450,10 +446,30 @@ export default function AIRoom() {
                   </RadioGroup>
                 </div>
 
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="preserve-appearance">Change Outfit Only</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Keep physical appearance but change outfit/styling
+                    </p>
+                  </div>
+                  <Switch
+                    id="preserve-appearance"
+                    checked={preserveAppearance}
+                    onCheckedChange={setPreserveAppearance}
+                  />
+                </div>
+
                 <div className="space-y-2">
-                  <Label>Appearance Description</Label>
+                  <Label>
+                    {preserveAppearance ? "Outfit/Styling Description" : "Appearance Description"}
+                  </Label>
                   <Textarea
-                    placeholder="Describe your AI's appearance..."
+                    placeholder={
+                      preserveAppearance 
+                        ? "Describe the outfit, clothing, or styling changes..." 
+                        : "Describe your AI's appearance..."
+                    }
                     value={avatarDescription}
                     onChange={(e) => setAvatarDescription(e.target.value)}
                     className="min-h-[120px]"
@@ -468,10 +484,10 @@ export default function AIRoom() {
                   {isGeneratingAvatar ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Avatar...
+                      {preserveAppearance ? "Updating Outfit..." : "Generating Avatar..."}
                     </>
                   ) : (
-                    "Generate Avatar"
+                    preserveAppearance ? "Update Outfit" : "Generate Avatar"
                   )}
                 </Button>
               </CardContent>
@@ -498,7 +514,7 @@ export default function AIRoom() {
               <CardHeader>
                 <CardTitle>Manifest Your Pet</CardTitle>
                 <CardDescription>
-                  Create your AI companion's pet
+                  Bring a companion into your AI's space
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -509,14 +525,14 @@ export default function AIRoom() {
                     placeholder="Enter your pet's name..."
                     value={petName}
                     onChange={(e) => setPetName(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full px-3 py-2 bg-background border border-input rounded-md"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label>Pet Description</Label>
                   <Textarea
-                    placeholder="Describe your pet... (e.g., 'A fluffy golden retriever with warm brown eyes and a playful spirit')"
+                    placeholder="Describe your pet..."
                     value={petDescription}
                     onChange={(e) => setPetDescription(e.target.value)}
                     className="min-h-[120px]"
@@ -543,31 +559,14 @@ export default function AIRoom() {
             {petImageUrl && (
               <Card>
                 <CardHeader>
-                  <CardTitle>{petName || "Your Pet"}</CardTitle>
+                  <CardTitle>Your Pet</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <img 
                     src={petImageUrl} 
-                    alt={petName || "Pet"} 
+                    alt="Your pet" 
                     className="w-full rounded-lg shadow-lg"
                   />
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="customize" className="space-y-4 mt-6">
-            {avatarImageUrl ? (
-              <AvatarCustomizationControls
-                customization={avatarCustomization}
-                onChange={setAvatarCustomization}
-              />
-            ) : (
-              <Card>
-                <CardContent className="py-12">
-                  <p className="text-center text-muted-foreground">
-                    Generate an avatar first to customize its appearance
-                  </p>
                 </CardContent>
               </Card>
             )}
@@ -576,27 +575,17 @@ export default function AIRoom() {
           <TabsContent value="complete" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Complete View - Live 3D Scene</CardTitle>
+                <CardTitle>Complete View</CardTitle>
                 <CardDescription>
-                  Your AI in their space - Click and drag to look around, scroll to zoom
+                  Interactive 3D view of your AI's room with avatar and pet
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="cutout-toggle"
-                    checked={showCutouts}
-                    onCheckedChange={setShowCutouts}
-                  />
-                  <Label htmlFor="cutout-toggle" className="text-sm cursor-pointer">
-                    Show with background removed (cutout)
-                  </Label>
-                </div>
+              <CardContent>
                 {roomImageUrl ? (
                   <AIRoomScene
                     roomImageUrl={roomImageUrl}
-                    avatarImageUrl={showCutouts && avatarCutoutUrl ? avatarCutoutUrl : avatarImageUrl}
-                    petImageUrl={showCutouts && petCutoutUrl ? petCutoutUrl : petImageUrl}
+                    avatarImageUrl={showCutouts ? (avatarCutoutUrl as string) : avatarImageUrl || undefined}
+                    petImageUrl={showCutouts ? (petCutoutUrl as string) : petImageUrl || undefined}
                     petName={petName || undefined}
                     avatarCustomization={avatarCustomization}
                   />
@@ -618,4 +607,4 @@ export default function AIRoom() {
       </div>
     </div>
   );
-};
+}

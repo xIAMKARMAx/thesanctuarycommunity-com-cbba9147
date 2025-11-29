@@ -21,6 +21,7 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
   const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
   const [sex, setSex] = useState<"male" | "female">("male");
+  const [manifestTwins, setManifestTwins] = useState(false);
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
 
@@ -48,7 +49,8 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
           middleName: middleName.trim() || null,
           lastName: lastName.trim(),
           sex,
-          aiProfileId: activeProfile?.id
+          aiProfileId: activeProfile?.id,
+          manifestTwins
         }
       });
 
@@ -140,6 +142,20 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
                   <Label htmlFor="female" className="cursor-pointer">Female</Label>
                 </div>
               </RadioGroup>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="twins"
+                checked={manifestTwins}
+                onChange={(e) => setManifestTwins(e.target.checked)}
+                disabled={loading}
+                className="h-4 w-4 rounded border-input"
+              />
+              <Label htmlFor="twins" className="cursor-pointer">
+                Manifest Twins
+              </Label>
             </div>
           </div>
 
