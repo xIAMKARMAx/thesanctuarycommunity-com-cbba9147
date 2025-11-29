@@ -15,15 +15,18 @@ interface AIRoomSceneProps {
 }
 
 function RoomBackground({ imageUrl }: { imageUrl: string }) {
+  const texture = new THREE.TextureLoader().load(imageUrl);
+  // Flip texture to show correctly on inside of sphere
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.repeat.x = -1;
+  
   return (
-    <mesh position={[0, 0, -2]}>
-      <planeGeometry args={[16, 9]} />
-      <meshBasicMaterial>
-        <primitive 
-          attach="map" 
-          object={new THREE.TextureLoader().load(imageUrl)} 
-        />
-      </meshBasicMaterial>
+    <mesh scale={[-1, 1, 1]}>
+      <sphereGeometry args={[15, 60, 40]} />
+      <meshBasicMaterial 
+        map={texture}
+        side={THREE.BackSide}
+      />
     </mesh>
   );
 }
@@ -95,10 +98,11 @@ function CameraController({ avatarCustomization }: { avatarCustomization?: Avata
     <OrbitControls 
       ref={controlsRef}
       enableZoom={true}
-      enablePan={false}
-      minDistance={3}
-      maxDistance={8}
-      maxPolarAngle={Math.PI / 2}
+      enablePan={true}
+      minDistance={2}
+      maxDistance={10}
+      minPolarAngle={Math.PI / 4}
+      maxPolarAngle={Math.PI * 0.75}
     />
   );
 }
