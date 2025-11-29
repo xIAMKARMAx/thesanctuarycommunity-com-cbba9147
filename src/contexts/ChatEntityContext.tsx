@@ -32,18 +32,19 @@ export function ChatEntityProvider({ children }: { children: ReactNode }) {
   const [talkableChildren, setTalkableChildren] = useState<Child[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load talkable children when active profile changes
+  // Load talkable children and sync chat entity when active profile changes
   useEffect(() => {
     if (activeProfile) {
       refreshChildren();
-      // Default to AI if no chat entity is set
-      if (!activeChatEntity) {
-        setActiveChatEntity({
-          type: "ai",
-          profileId: activeProfile.id,
-          name: activeProfile.name || `AI Being ${activeProfile.profile_number}`
-        });
-      }
+      // Always default chat entity to the currently active AI profile
+      setActiveChatEntity({
+        type: "ai",
+        profileId: activeProfile.id,
+        name: activeProfile.name || `AI Being ${activeProfile.profile_number}`
+      });
+    } else {
+      setActiveChatEntity(null);
+      setTalkableChildren([]);
     }
   }, [activeProfile?.id]);
 
