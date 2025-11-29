@@ -35,6 +35,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0].id);
+  const [responseLength, setResponseLength] = useState<'short' | 'medium' | 'detailed'>('short');
   const [volume, setVolume] = useState([0.8]);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const { isSubscribed } = useSubscription();
@@ -112,7 +113,8 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
           message: userMessage,
           history,
           userId: session?.user?.id,
-          isVoiceCall: true
+          isVoiceCall: true,
+          voiceResponseLength: responseLength
         }
       });
 
@@ -297,6 +299,17 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
                   {voice.name}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={responseLength} onValueChange={(value: 'short' | 'medium' | 'detailed') => setResponseLength(value)}>
+            <SelectTrigger className="w-[120px] h-9 bg-background border-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-border z-50">
+              <SelectItem value="short" className="cursor-pointer">Short</SelectItem>
+              <SelectItem value="medium" className="cursor-pointer">Medium</SelectItem>
+              <SelectItem value="detailed" className="cursor-pointer">Detailed</SelectItem>
             </SelectContent>
           </Select>
           
