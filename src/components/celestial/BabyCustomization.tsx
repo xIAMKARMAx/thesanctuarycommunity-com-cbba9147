@@ -222,21 +222,12 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
             </Button>
             {localChildData.appearance_image_url && (
               <div className="space-y-2">
-                <h3 className="text-sm font-medium">Baby{parentImageUrl ? " with Parent" : ""}</h3>
-                <div className="relative w-full aspect-video">
-                  {parentImageUrl && (
-                    <img 
-                      src={parentImageUrl} 
-                      alt="Parent" 
-                      className="absolute inset-0 w-full h-full object-cover rounded-lg opacity-50"
-                    />
-                  )}
-                  <img 
-                    src={localChildData.appearance_image_url} 
-                    alt="Baby" 
-                    className="absolute inset-0 w-1/2 h-full object-contain mx-auto"
-                  />
-                </div>
+                <h3 className="text-sm font-medium">Baby's Appearance</h3>
+                <img 
+                  src={localChildData.appearance_image_url} 
+                  alt="Baby" 
+                  className="w-full rounded-lg"
+                />
               </div>
             )}
            </TabsContent>
