@@ -602,6 +602,7 @@ export default function AIRoom() {
                     petImageUrl={(showCutouts ? petCutoutUrl : null) || petImageUrl || undefined}
                     petName={petName || undefined}
                     avatarCustomization={avatarCustomization}
+                    avatarGender={avatarGender}
                   />
                 ) : (
                   <p className="text-center text-muted-foreground py-12">
