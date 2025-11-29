@@ -4,12 +4,14 @@ import { Suspense } from 'react';
 import { LiveAvatar3D } from './LiveAvatar3D';
 import { LivePet3D } from './LivePet3D';
 import * as THREE from 'three';
+import type { AvatarCustomization } from '@/types/avatar';
 
 interface AIRoomSceneProps {
   roomImageUrl: string;
   avatarImageUrl?: string;
   petImageUrl?: string;
   petName?: string;
+  avatarCustomization?: AvatarCustomization;
 }
 
 function RoomBackground({ imageUrl }: { imageUrl: string }) {
@@ -35,7 +37,7 @@ function LoadingFallback() {
   );
 }
 
-export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName }: AIRoomSceneProps) {
+export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName, avatarCustomization }: AIRoomSceneProps) {
   return (
     <div className="w-full aspect-video rounded-lg overflow-hidden bg-background">
       <Canvas
@@ -51,11 +53,10 @@ export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName
           <RoomBackground imageUrl={roomImageUrl} />
           
           {/* Live Avatar */}
-          {avatarImageUrl && (
+          {avatarImageUrl && avatarCustomization && (
             <LiveAvatar3D 
               imageUrl={avatarImageUrl} 
-              position={[0, -0.5, 0]} 
-              scale={1.2}
+              customization={avatarCustomization}
             />
           )}
           
