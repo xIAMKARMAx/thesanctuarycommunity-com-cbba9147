@@ -1,7 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import { Suspense, useEffect, useRef } from 'react';
-import { EffectComposer, DepthOfField } from '@react-three/postprocessing';
 import { LiveAvatar3D } from './LiveAvatar3D';
 import { LivePet3D } from './LivePet3D';
 import * as THREE from 'three';
@@ -145,15 +144,6 @@ export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName
           
           {/* Camera controller with smooth transitions */}
           <CameraController avatarCustomization={avatarCustomization} />
-          
-          {/* Depth of Field Effect */}
-          <EffectComposer multisampling={0}>
-            <DepthOfField 
-              focusDistance={0.01}
-              focalLength={0.02}
-              bokehScale={6}
-            />
-          </EffectComposer>
         </Suspense>
       </Canvas>
     </div>
