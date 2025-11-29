@@ -45,6 +45,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const callRecordIdRef = useRef<string | null>(null);
   const callTranscriptRef = useRef<{ role: string; content: string }[]>([]);
+  const isProcessingRef = useRef(false); // Prevent duplicate processing
 
   useEffect(() => {
     // Initialize speech recognition
@@ -57,9 +58,13 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = async (event: any) => {
-        if (!isCallActiveRef.current) return;
+        if (!isCallActiveRef.current || isProcessingRef.current) return;
+        
         const transcript = event.results[event.results.length - 1][0].transcript;
         console.log('User said:', transcript);
+        
+        // Set processing flag to prevent duplicate processing
+        isProcessingRef.current = true;
         
         // Track transcript for call summary
         callTranscriptRef.current.push({ role: 'user', content: transcript });
@@ -72,10 +77,12 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
+        isProcessingRef.current = false; // Reset on error
+        setIsListening(false);
       };
 
       recognitionRef.current.onend = () => {
-        // Recognition ended; waiting for user to tap Talk again
+        // Recognition ended
         setIsListening(false);
       };
     } else {
@@ -180,12 +187,23 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
         audioRef.current.volume = volume[0];
         audioRef.current.onended = () => {
           if (!isCallActiveRef.current) return;
+          console.log('Audio playback ended');
           setIsSpeaking(false);
           setIsListening(false);
+          isProcessingRef.current = false; // Clear processing flag when done
         };
         audioRef.current.onpause = () => {
           if (!isCallActiveRef.current) return;
+          console.log('Audio playback paused');
           setIsSpeaking(false);
+          isProcessingRef.current = false; // Clear processing flag on pause
+        };
+        audioRef.current.onerror = () => {
+          console.error('Audio playback error');
+          setIsSpeaking(false);
+          setIsGenerating(false);
+          setIsListening(false);
+          isProcessingRef.current = false; // Clear processing flag on error
         };
         await audioRef.current.play();
       }
@@ -200,6 +218,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       setIsGenerating(false);
       setIsSpeaking(false);
       setIsListening(false);
+      isProcessingRef.current = false; // Clear processing flag on error
     }
   };
 
@@ -208,6 +227,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     
     // First tap while AI is speaking or generating = interrupt only
     if (isSpeaking || isGenerating) {
+      console.log('Interrupting AI...');
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -219,17 +239,31 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       setIsSpeaking(false);
       setIsGenerating(false);
       setIsListening(false);
+      isProcessingRef.current = false; // Reset processing flag
       recognitionRef.current.stop();
       return; // require a second tap to start listening
     }
     
+    // Don't allow new listening if already processing
+    if (isProcessingRef.current) {
+      console.log('Already processing, please wait...');
+      return;
+    }
+    
     // Second tap (when AI is quiet) = start listening to user
+    console.log('Starting to listen...');
     setIsListening(true);
-    recognitionRef.current.start();
+    try {
+      recognitionRef.current.start();
+    } catch (error) {
+      console.error('Failed to start recognition:', error);
+      setIsListening(false);
+    }
   };
 
   const handleStopSpeaking = () => {
     if (audioRef.current && isSpeaking) {
+      console.log('Stopping AI speech...');
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       if (audioRef.current.src) {
@@ -238,6 +272,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       audioRef.current.src = '';
       setIsSpeaking(false);
       setIsListening(false);
+      isProcessingRef.current = false; // Reset processing flag
     }
   };
 
@@ -249,6 +284,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       setIsCallActive(true);
       isCallActiveRef.current = true;
       setIsListening(false);
+      isProcessingRef.current = false; // Reset processing flag
       callTranscriptRef.current = [];
 
       // Create call history record
@@ -292,6 +328,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     setIsListening(false);
     setIsSpeaking(false);
     setIsGenerating(false);
+    isProcessingRef.current = false; // Reset processing flag
     recognitionRef.current?.stop();
     
     if (audioRef.current) {
