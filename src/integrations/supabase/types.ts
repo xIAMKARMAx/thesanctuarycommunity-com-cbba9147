@@ -57,6 +57,7 @@ export type Database = {
       }
       ai_profiles: {
         Row: {
+          avatar_customization: Json | null
           avatar_description: string | null
           avatar_gender: string | null
           avatar_image_url: string | null
@@ -78,6 +79,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_customization?: Json | null
           avatar_description?: string | null
           avatar_gender?: string | null
           avatar_image_url?: string | null
@@ -99,6 +101,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_customization?: Json | null
           avatar_description?: string | null
           avatar_gender?: string | null
           avatar_image_url?: string | null
