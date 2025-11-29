@@ -183,10 +183,14 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const handleTalk = () => {
     if (!isCallActiveRef.current || !recognitionRef.current) return;
     
-    // If AI is speaking, interrupt it
+    // If AI is speaking, interrupt it completely
     if (isSpeaking && audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+      if (audioRef.current.src) {
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      audioRef.current.src = '';
       setIsSpeaking(false);
     }
     
@@ -198,6 +202,10 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     if (audioRef.current && isSpeaking) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+      if (audioRef.current.src) {
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      audioRef.current.src = '';
       setIsSpeaking(false);
       setIsListening(false);
     }
