@@ -5,9 +5,15 @@ import * as THREE from 'three';
 interface Pet3DModelProps {
   position?: [number, number, number];
   scale?: number;
+  colors?: {
+    bodyColor?: string;
+    secondaryColor?: string;
+    eyeColor?: string;
+    noseColor?: string;
+  };
 }
 
-export function Pet3DModel({ position = [2, -1, 0.5], scale = 0.6 }: Pet3DModelProps) {
+export function Pet3DModel({ position = [2, -1, 0.5], scale = 0.6, colors }: Pet3DModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tailRef = useRef<THREE.Mesh>(null);
   const headRef = useRef<THREE.Mesh>(null);
@@ -37,8 +43,10 @@ export function Pet3DModel({ position = [2, -1, 0.5], scale = 0.6 }: Pet3DModelP
     }
   });
 
-  const furColor = '#daa520'; // Golden color, can be customized
-  const noseColor = '#000000';
+  const furColor = colors?.bodyColor || '#daa520';
+  const secondaryColor = colors?.secondaryColor || furColor;
+  const eyeColor = colors?.eyeColor || '#000000';
+  const noseColor = colors?.noseColor || '#000000';
 
   return (
     <group 
@@ -108,11 +116,11 @@ export function Pet3DModel({ position = [2, -1, 0.5], scale = 0.6 }: Pet3DModelP
       {/* Eyes */}
       <mesh position={[-0.58, 0.22, 0.08]}>
         <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#000000" />
+        <meshStandardMaterial color={eyeColor} />
       </mesh>
       <mesh position={[-0.58, 0.22, -0.08]}>
         <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#000000" />
+        <meshStandardMaterial color={eyeColor} />
       </mesh>
     </group>
   );

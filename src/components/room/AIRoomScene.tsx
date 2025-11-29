@@ -13,6 +13,8 @@ interface AIRoomSceneProps {
   petName?: string;
   avatarCustomization?: AvatarCustomization;
   avatarGender?: string;
+  avatarColors?: any;
+  petColors?: any;
 }
 
 function RoomBackground({ imageUrl }: { imageUrl: string }) {
@@ -38,7 +40,7 @@ function LoadingFallback() {
   );
 }
 
-export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName, avatarCustomization, avatarGender }: AIRoomSceneProps) {
+export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName, avatarCustomization, avatarGender, avatarColors, petColors }: AIRoomSceneProps) {
   return (
     <div className="w-full aspect-video rounded-lg overflow-hidden bg-background">
       <Canvas
@@ -57,12 +59,14 @@ export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName
           <Avatar3DModel 
             customization={avatarCustomization}
             gender={avatarGender}
+            colors={avatarColors}
           />
           
           {/* 3D Pet Character */}
           <Pet3DModel 
             position={[2, -1, 0.5]} 
             scale={0.6}
+            colors={petColors}
           />
           
           {/* Subtle environment lighting */}

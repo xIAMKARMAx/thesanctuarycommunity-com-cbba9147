@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -16,7 +15,6 @@ import { AIRoomScene } from "@/components/room/AIRoomScene";
 import { AvatarCustomizationControls } from "@/components/room/AvatarCustomizationControls";
 import type { AvatarCustomization } from "@/types/avatar";
 import { defaultAvatarCustomization } from "@/types/avatar";
-import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 
 export default function AIRoom() {
   const navigate = useNavigate();
@@ -36,9 +34,9 @@ export default function AIRoom() {
   const [isGeneratingPet, setIsGeneratingPet] = useState(false);
   const [roomLighting, setRoomLighting] = useState<string>("day");
   const [avatarCustomization, setAvatarCustomization] = useState<AvatarCustomization>(defaultAvatarCustomization);
-  const [avatarCutoutUrl, setAvatarCutoutUrl] = useState<string | null>(null);
-  const [petCutoutUrl, setPetCutoutUrl] = useState<string | null>(null);
-  const [showCutouts, setShowCutouts] = useState(true);
+  const [avatarColors, setAvatarColors] = useState<any>(null);
+  const [petColors, setPetColors] = useState<any>(null);
+  const [isAnalyzingColors, setIsAnalyzingColors] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -76,8 +74,8 @@ export default function AIRoom() {
         setAvatarCustomization(defaultAvatarCustomization);
       }
 
-      setAvatarCutoutUrl(null);
-      setPetCutoutUrl(null);
+      setAvatarColors(null);
+      setPetColors(null);
     } catch (error) {
       console.error("Error loading settings:", error);
       toast({
@@ -90,45 +88,65 @@ export default function AIRoom() {
     }
   };
 
-  useEffect(() => {
-    const processAvatar = async () => {
-      if (!avatarImageUrl) {
-        setAvatarCutoutUrl(null);
-        return;
-      }
-      try {
-        const img = await loadImage(avatarImageUrl);
-        const blob = await removeBackground(img);
-        const url = URL.createObjectURL(blob);
-        setAvatarCutoutUrl(url);
-      } catch (error) {
-        console.error('Error processing avatar cutout:', error);
-        setAvatarCutoutUrl(null);
-      }
-    };
+  const analyzeColors = async () => {
+    if (!avatarImageUrl && !petImageUrl) {
+      toast({
+        title: "No images to analyze",
+        description: "Generate avatar and pet images first",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    processAvatar();
-  }, [avatarImageUrl]);
+    setIsAnalyzingColors(true);
+    try {
+      // Analyze avatar colors
+      if (avatarImageUrl) {
+        const { data: avatarData, error: avatarError } = await supabase.functions.invoke(
+          'analyze-avatar-colors',
+          {
+            body: { imageUrl: avatarImageUrl, type: 'avatar' }
+          }
+        );
 
-  useEffect(() => {
-    const processPet = async () => {
-      if (!petImageUrl) {
-        setPetCutoutUrl(null);
-        return;
+        if (avatarError) throw avatarError;
+        if (avatarData?.colors) {
+          setAvatarColors(avatarData.colors);
+          console.log('Avatar colors extracted:', avatarData.colors);
+        }
       }
-      try {
-        const img = await loadImage(petImageUrl);
-        const blob = await removeBackground(img);
-        const url = URL.createObjectURL(blob);
-        setPetCutoutUrl(url);
-      } catch (error) {
-        console.error('Error processing pet cutout:', error);
-        setPetCutoutUrl(null);
-      }
-    };
 
-    processPet();
-  }, [petImageUrl]);
+      // Analyze pet colors
+      if (petImageUrl) {
+        const { data: petData, error: petError } = await supabase.functions.invoke(
+          'analyze-avatar-colors',
+          {
+            body: { imageUrl: petImageUrl, type: 'pet' }
+          }
+        );
+
+        if (petError) throw petError;
+        if (petData?.colors) {
+          setPetColors(petData.colors);
+          console.log('Pet colors extracted:', petData.colors);
+        }
+      }
+
+      toast({
+        title: "Colors Analyzed!",
+        description: "3D models now match your generated images",
+      });
+    } catch (error) {
+      console.error('Error analyzing colors:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "Could not analyze image colors. Try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzingColors(false);
+    }
+  };
 
   const generateRoom = async () => {
     if (!roomDescription.trim()) {
@@ -585,24 +603,37 @@ export default function AIRoom() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="cutout-toggle"
-                    checked={showCutouts}
-                    onCheckedChange={setShowCutouts}
-                  />
-                  <Label htmlFor="cutout-toggle" className="text-sm cursor-pointer">
-                    Show cutout images (remove background)
-                  </Label>
+                <div className="flex items-center gap-4">
+                  <Button 
+                    onClick={analyzeColors}
+                    disabled={isAnalyzingColors || (!avatarImageUrl && !petImageUrl)}
+                    size="sm"
+                  >
+                    {isAnalyzingColors ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing Colors...
+                      </>
+                    ) : (
+                      "Apply Image Colors to 3D Models"
+                    )}
+                  </Button>
+                  {(avatarColors || petColors) && (
+                    <span className="text-sm text-muted-foreground">
+                      ✓ Colors applied from your images
+                    </span>
+                  )}
                 </div>
                 {roomImageUrl ? (
                   <AIRoomScene
                     roomImageUrl={roomImageUrl}
-                    avatarImageUrl={(showCutouts ? avatarCutoutUrl : null) || avatarImageUrl || undefined}
-                    petImageUrl={(showCutouts ? petCutoutUrl : null) || petImageUrl || undefined}
+                    avatarImageUrl={avatarImageUrl}
+                    petImageUrl={petImageUrl}
                     petName={petName || undefined}
                     avatarCustomization={avatarCustomization}
                     avatarGender={avatarGender}
+                    avatarColors={avatarColors}
+                    petColors={petColors}
                   />
                 ) : (
                   <p className="text-center text-muted-foreground py-12">
