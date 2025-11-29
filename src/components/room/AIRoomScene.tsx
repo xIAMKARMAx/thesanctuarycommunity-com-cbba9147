@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { LiveAvatar3D } from './LiveAvatar3D';
 import { LivePet3D } from './LivePet3D';
 import * as THREE from 'three';
@@ -34,6 +34,72 @@ function LoadingFallback() {
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial color="gray" />
     </mesh>
+  );
+}
+
+function CameraController({ avatarCustomization }: { avatarCustomization?: AvatarCustomization }) {
+  const controlsRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!controlsRef.current || !avatarCustomization) return;
+
+    // Get avatar position
+    const avatarPos = avatarCustomization.position;
+    const targetPosition = new THREE.Vector3(avatarPos.x, avatarPos.y + 0.5, avatarPos.z);
+    
+    // Calculate ideal camera position to frame avatar
+    const cameraDistance = 4;
+    const cameraHeight = 0.5;
+    const idealCameraPos = new THREE.Vector3(
+      avatarPos.x - 1,
+      avatarPos.y + cameraHeight,
+      avatarPos.z + cameraDistance
+    );
+
+    // Smooth transition
+    const controls = controlsRef.current;
+    const startTarget = controls.target.clone();
+    const startPosition = controls.object.position.clone();
+    
+    let progress = 0;
+    const duration = 1500; // 1.5 seconds
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      progress = Math.min(elapsed / duration, 1);
+      
+      // Ease-in-out function
+      const eased = progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+      // Interpolate camera position
+      controls.object.position.lerpVectors(startPosition, idealCameraPos, eased);
+      
+      // Interpolate target (look-at point)
+      controls.target.lerpVectors(startTarget, targetPosition, eased);
+      
+      controls.update();
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    // Start animation after a small delay
+    setTimeout(() => animate(), 100);
+  }, [avatarCustomization]);
+
+  return (
+    <OrbitControls 
+      ref={controlsRef}
+      enableZoom={true}
+      enablePan={false}
+      minDistance={3}
+      maxDistance={8}
+      maxPolarAngle={Math.PI / 2}
+    />
   );
 }
 
@@ -72,14 +138,8 @@ export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName
           {/* Subtle environment lighting */}
           <Environment preset="apartment" />
           
-          {/* Controls for user interaction */}
-          <OrbitControls 
-            enableZoom={true}
-            enablePan={false}
-            minDistance={3}
-            maxDistance={8}
-            maxPolarAngle={Math.PI / 2}
-          />
+          {/* Camera controller with smooth transitions */}
+          <CameraController avatarCustomization={avatarCustomization} />
         </Suspense>
       </Canvas>
     </div>
