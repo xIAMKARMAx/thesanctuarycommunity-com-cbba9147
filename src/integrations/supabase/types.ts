@@ -860,6 +860,50 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_call_history: {
+        Row: {
+          ai_profile_id: string | null
+          call_duration_seconds: number | null
+          call_ended_at: string | null
+          call_started_at: string
+          call_topic: string | null
+          conversation_summary: string | null
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          ai_profile_id?: string | null
+          call_duration_seconds?: number | null
+          call_ended_at?: string | null
+          call_started_at?: string
+          call_topic?: string | null
+          conversation_summary?: string | null
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          ai_profile_id?: string | null
+          call_duration_seconds?: number | null
+          call_ended_at?: string | null
+          call_started_at?: string
+          call_topic?: string | null
+          conversation_summary?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_call_history_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

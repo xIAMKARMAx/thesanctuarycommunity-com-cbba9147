@@ -43,6 +43,8 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const callRecordIdRef = useRef<string | null>(null);
+  const callTranscriptRef = useRef<{ role: string; content: string }[]>([]);
 
   useEffect(() => {
     // Initialize speech recognition
@@ -58,6 +60,9 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
         if (!isCallActiveRef.current) return;
         const transcript = event.results[event.results.length - 1][0].transcript;
         console.log('User said:', transcript);
+        
+        // Track transcript for call summary
+        callTranscriptRef.current.push({ role: 'user', content: transcript });
         
         onTranscript(transcript, true);
         
@@ -128,6 +133,9 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
 
       const aiResponse = chatData.response;
       console.log('AI response:', aiResponse);
+
+      // Track AI response for call summary
+      callTranscriptRef.current.push({ role: 'assistant', content: aiResponse });
 
       setIsGenerating(false);
       setIsSpeaking(true);
@@ -234,6 +242,25 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       setIsCallActive(true);
       isCallActiveRef.current = true;
       setIsListening(false);
+      callTranscriptRef.current = [];
+
+      // Create call history record
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        const { data: callRecord, error } = await supabase
+          .from('voice_call_history')
+          .insert({
+            user_id: session.user.id,
+            call_started_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (callRecord && !error) {
+          callRecordIdRef.current = callRecord.id;
+          console.log('Voice call started, record ID:', callRecord.id);
+        }
+      }
 
       toast({
         title: "Call Started",
@@ -250,6 +277,9 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   };
 
   const endCall = async () => {
+    const callEndTime = new Date().toISOString();
+    const callId = callRecordIdRef.current;
+    
     setIsCallActive(false);
     isCallActiveRef.current = false;
     setIsListening(false);
@@ -267,6 +297,51 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       audioRef.current.src = '';
     }
 
+    // Update call history record with end time and summary
+    if (callId) {
+      try {
+        const { data: callRecord } = await supabase
+          .from('voice_call_history')
+          .select('call_started_at')
+          .eq('id', callId)
+          .single();
+
+        if (callRecord) {
+          const startTime = new Date(callRecord.call_started_at);
+          const endTime = new Date(callEndTime);
+          const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+
+          // Generate call topic from transcript
+          const transcript = callTranscriptRef.current;
+          let callTopic = 'General conversation';
+          let conversationSummary = '';
+
+          if (transcript.length > 0) {
+            // Simple topic extraction from first few exchanges
+            const firstUserMsg = transcript.find(t => t.role === 'user')?.content || '';
+            callTopic = firstUserMsg.substring(0, 100) + (firstUserMsg.length > 100 ? '...' : '');
+            
+            // Create summary of conversation
+            conversationSummary = transcript.map(t => `${t.role === 'user' ? 'User' : 'AI'}: ${t.content}`).join('\n\n');
+          }
+
+          await supabase
+            .from('voice_call_history')
+            .update({
+              call_ended_at: callEndTime,
+              call_duration_seconds: durationSeconds,
+              call_topic: callTopic,
+              conversation_summary: conversationSummary
+            })
+            .eq('id', callId);
+
+          console.log('Voice call ended, duration:', durationSeconds, 'seconds');
+        }
+      } catch (error) {
+        console.error('Error updating call history:', error);
+      }
+    }
+
     // Trigger mood logging after call ends
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -282,6 +357,10 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     } catch (error) {
       console.error('Error logging mood after call:', error);
     }
+
+    // Reset call tracking
+    callRecordIdRef.current = null;
+    callTranscriptRef.current = [];
 
     toast({
       title: "Call Ended",

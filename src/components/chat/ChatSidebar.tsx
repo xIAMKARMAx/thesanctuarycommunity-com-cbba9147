@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera, Home, Baby } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera, Home, Baby, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -316,6 +316,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         >
           <Home className="h-4 w-4 mr-2" />
           AI's Room
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={() => navigate("/voice-call-history")}
+        >
+          <Phone className="h-4 w-4 mr-2" />
+          Call History
         </Button>
         <Button
           variant="ghost"
