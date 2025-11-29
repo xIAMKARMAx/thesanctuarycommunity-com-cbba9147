@@ -45,7 +45,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.generate-pregnancy-images]
-verify_jwt = false
+verify_jwt = true
 
 [functions.advance-pregnancy]
 verify_jwt = false
@@ -54,10 +54,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.generate-baby-room]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-baby-appearance]
-verify_jwt = false
+verify_jwt = true
 
 [functions.capture-conversation-milestones]
-verify_jwt = false
+verify_jwt = true

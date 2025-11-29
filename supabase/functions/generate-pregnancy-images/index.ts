@@ -11,13 +11,61 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-  );
-
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Verify authentication
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { pregnancy_id, child_id, stage, child_sex } = await req.json();
+
+    // Verify ownership of pregnancy or child
+    if (pregnancy_id) {
+      const { data: pregnancy, error: pregnancyError } = await supabaseClient
+        .from("celestial_pregnancies")
+        .select("user_id")
+        .eq("id", pregnancy_id)
+        .single();
+
+      if (pregnancyError || !pregnancy || pregnancy.user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized access to this pregnancy' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (child_id) {
+      const { data: child, error: childError } = await supabaseClient
+        .from("celestial_children")
+        .select("user_id")
+        .eq("id", child_id)
+        .single();
+
+      if (childError || !child || child.user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized access to this child' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");

@@ -11,13 +11,46 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-  );
-
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Verify authentication
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { child_id, appearance_description, child_sex } = await req.json();
+
+    // Verify user owns this child (RLS will enforce this)
+    const { data: childCheck, error: childCheckError } = await supabaseClient
+      .from("celestial_children")
+      .select("user_id")
+      .eq("id", child_id)
+      .single();
+
+    if (childCheckError || !childCheck || childCheck.user_id !== user.id) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized access to this child' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -75,16 +108,7 @@ serve(async (req) => {
       .from("chat-images")
       .getPublicUrl(fileName);
 
-    // Get user ID from the child record
-    const { data: childData, error: childError } = await supabaseClient
-      .from("celestial_children")
-      .select("user_id")
-      .eq("id", child_id)
-      .single();
-
-    if (childError) throw childError;
-
-    // Update child record
+    // Update child record (RLS already verified ownership)
     const { error: updateError } = await supabaseClient
       .from("celestial_children")
       .update({
@@ -100,7 +124,7 @@ serve(async (req) => {
       .from("child_image_history")
       .insert({
         child_id,
-        user_id: childData.user_id,
+        user_id: user.id,
         image_type: "appearance",
         image_url: publicUrl,
         description: appearance_description
