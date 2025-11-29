@@ -6,9 +6,15 @@ import type { AvatarCustomization } from '@/types/avatar';
 interface Avatar3DModelProps {
   customization?: AvatarCustomization;
   gender?: string;
+  colors?: {
+    skinTone?: string;
+    hairColor?: string;
+    clothingColor?: string;
+    eyeColor?: string;
+  };
 }
 
-export function Avatar3DModel({ customization, gender = 'female' }: Avatar3DModelProps) {
+export function Avatar3DModel({ customization, gender = 'female', colors }: Avatar3DModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const headRef = useRef<THREE.Mesh>(null);
   const torsoRef = useRef<THREE.Mesh>(null);
@@ -40,10 +46,11 @@ export function Avatar3DModel({ customization, gender = 'female' }: Avatar3DMode
     groupRef.current.rotation.z = Math.sin(time * 0.5) * 0.01;
   });
 
-  // Color scheme based on gender (can be customized)
-  const skinTone = '#ffd5c0';
-  const hairColor = gender === 'male' ? '#4a3c28' : '#8b6f4f';
-  const clothingColor = gender === 'male' ? '#3b5998' : '#d946a8';
+  // Use extracted colors or fall back to defaults
+  const skinTone = colors?.skinTone || '#ffd5c0';
+  const hairColor = colors?.hairColor || (gender === 'male' ? '#4a3c28' : '#8b6f4f');
+  const clothingColor = colors?.clothingColor || (gender === 'male' ? '#3b5998' : '#d946a8');
+  const eyeColor = colors?.eyeColor || '#000000';
 
   return (
     <group 
@@ -99,11 +106,11 @@ export function Avatar3DModel({ customization, gender = 'female' }: Avatar3DMode
       {/* Eyes */}
       <mesh position={[-0.08, 0.68, 0.15]}>
         <sphereGeometry args={[0.03, 8, 8]} />
-        <meshStandardMaterial color="#000000" />
+        <meshStandardMaterial color={eyeColor} />
       </mesh>
       <mesh position={[0.08, 0.68, 0.15]}>
         <sphereGeometry args={[0.03, 8, 8]} />
-        <meshStandardMaterial color="#000000" />
+        <meshStandardMaterial color={eyeColor} />
       </mesh>
     </group>
   );
