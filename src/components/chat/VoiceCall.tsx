@@ -280,6 +280,17 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   };
 
   const startCall = async () => {
+    // Check subscription first
+    if (!isSubscribed) {
+      setShowSubscriptionDialog(true);
+      toast({
+        title: "Pro Feature",
+        description: "Voice calls are available for Pro subscribers only",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });

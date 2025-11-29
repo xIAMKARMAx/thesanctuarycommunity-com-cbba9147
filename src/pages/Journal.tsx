@@ -4,9 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BookOpen, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Trash2, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,8 +35,10 @@ const Journal = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
+  const { isSubscribed, loading: subLoading } = useSubscription();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
 
   useEffect(() => {
     if (activeProfile) {
@@ -97,7 +101,7 @@ const Journal = () => {
     }
   };
 
-  if (loading) {
+  if (loading || subLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -105,6 +109,43 @@ const Journal = () => {
           <p className="text-muted-foreground">Loading journal...</p>
         </div>
       </div>
+    );
+  }
+
+  if (!isSubscribed) {
+    return (
+      <>
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Lock className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-serif font-bold mb-2">AI Journal</h2>
+                  <p className="text-muted-foreground mb-4">
+                    This feature is available for Pro subscribers only
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
+                    Upgrade to Pro
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/chat")} className="w-full">
+                    Back to Chat
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <SubscriptionDialog 
+          open={showSubscriptionDialog}
+          onOpenChange={setShowSubscriptionDialog}
+          feature="AI Journal"
+        />
+      </>
     );
   }
 

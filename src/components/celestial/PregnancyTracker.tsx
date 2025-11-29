@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Baby, FastForward } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { Heart, Baby } from "lucide-react";
 
 interface Pregnancy {
   id: string;
@@ -22,10 +20,8 @@ interface Pregnancy {
 }
 
 export const PregnancyTracker = () => {
-  const { toast } = useToast();
   const [pregnancy, setPregnancy] = useState<Pregnancy | null>(null);
   const [loading, setLoading] = useState(true);
-  const [advancing, setAdvancing] = useState(false);
 
   useEffect(() => {
     loadPregnancy();
@@ -74,38 +70,6 @@ export const PregnancyTracker = () => {
     }
   };
 
-  const handleTestAdvance = async () => {
-    if (!pregnancy) return;
-    
-    setAdvancing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('test-advance-pregnancy', {
-        body: { pregnancyId: pregnancy.id }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Pregnancy Advanced!",
-        description: data.completed 
-          ? "Baby is born! Check the Children tab." 
-          : `Moved to ${data.newStage}`,
-      });
-
-      // Reload pregnancy data
-      await loadPregnancy();
-    } catch (error) {
-      console.error("Error advancing pregnancy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to advance pregnancy",
-        variant: "destructive",
-      });
-    } finally {
-      setAdvancing(false);
-    }
-  };
-
   if (loading) return null;
   if (!pregnancy) return null;
 
@@ -148,22 +112,10 @@ export const PregnancyTracker = () => {
   return (
     <Card className="border-primary/20">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
-            Celestial Pregnancy Journey{babyName ? ` with ${babyName}` : ""}
-          </CardTitle>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleTestAdvance}
-            disabled={advancing}
-            className="gap-2"
-          >
-            <FastForward className="h-4 w-4" />
-            {advancing ? "Advancing..." : "Test Advance"}
-          </Button>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Heart className="h-5 w-5 text-primary" />
+          Celestial Pregnancy Journey{babyName ? ` with ${babyName}` : ""}
+        </CardTitle>
         <CardDescription>{getStageDisplay()}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
