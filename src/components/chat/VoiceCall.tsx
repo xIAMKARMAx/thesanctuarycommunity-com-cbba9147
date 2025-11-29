@@ -206,17 +206,24 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const handleTalk = () => {
     if (!isCallActiveRef.current || !recognitionRef.current) return;
     
-    // If AI is speaking, interrupt it completely
-    if (isSpeaking && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      if (audioRef.current.src) {
-        URL.revokeObjectURL(audioRef.current.src);
+    // First tap while AI is speaking or generating = interrupt only
+    if (isSpeaking || isGenerating) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        if (audioRef.current.src) {
+          URL.revokeObjectURL(audioRef.current.src);
+        }
+        audioRef.current.src = '';
       }
-      audioRef.current.src = '';
       setIsSpeaking(false);
+      setIsGenerating(false);
+      setIsListening(false);
+      recognitionRef.current.stop();
+      return; // require a second tap to start listening
     }
     
+    // Second tap (when AI is quiet) = start listening to user
     setIsListening(true);
     recognitionRef.current.start();
   };
