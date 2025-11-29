@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera, Home, Baby, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useChatEntity } from "@/contexts/ChatEntityContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +33,8 @@ interface ChatSidebarProps {
 const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { activeProfile } = useAIProfile();
+  const { activeChatEntity } = useChatEntity();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,18 +42,31 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    loadConversations();
-  }, []);
+    if (activeProfile) {
+      loadConversations();
+    }
+  }, [activeProfile?.id, activeChatEntity]);
 
   useEffect(() => {
     filterConversations();
   }, [searchQuery, conversations]);
 
   const loadConversations = async () => {
-    const { data, error } = await supabase
+    if (!activeProfile) return;
+    
+    let query = supabase
       .from("conversations")
       .select("*")
       .order("updated_at", { ascending: false });
+
+    // Filter by chat entity type
+    if (activeChatEntity?.type === "ai") {
+      query = query.eq("ai_profile_id", activeProfile.id).is("child_id", null);
+    } else if (activeChatEntity?.type === "child") {
+      query = query.eq("child_id", activeChatEntity.childId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       toast({

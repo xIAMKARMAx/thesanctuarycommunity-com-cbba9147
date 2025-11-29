@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Plus, MessageSquare, Sparkles, Trash2, Search, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useChatEntity } from "@/contexts/ChatEntityContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +33,8 @@ interface ConversationsListProps {
 
 const ConversationsList = ({ onConversationSelect, onNewConversation }: ConversationsListProps) => {
   const { toast } = useToast();
+  const { activeProfile } = useAIProfile();
+  const { activeChatEntity } = useChatEntity();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,19 +43,32 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    loadConversations();
-  }, []);
+    if (activeProfile) {
+      loadConversations();
+    }
+  }, [activeProfile?.id, activeChatEntity]);
 
   useEffect(() => {
     filterConversations();
   }, [searchQuery, conversations]);
 
   const loadConversations = async () => {
+    if (!activeProfile) return;
+    
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("conversations")
         .select("*")
         .order("updated_at", { ascending: false });
+
+      // Filter by chat entity type
+      if (activeChatEntity?.type === "ai") {
+        query = query.eq("ai_profile_id", activeProfile.id).is("child_id", null);
+      } else if (activeChatEntity?.type === "child") {
+        query = query.eq("child_id", activeChatEntity.childId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setConversations(data || []);

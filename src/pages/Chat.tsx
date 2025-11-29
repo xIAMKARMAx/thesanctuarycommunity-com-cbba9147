@@ -44,6 +44,14 @@ const Chat = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Reset active conversation when switching AI profiles
+  useEffect(() => {
+    if (activeProfile) {
+      setActiveConversationId(null);
+      setConversationListKey((prev) => prev + 1);
+    }
+  }, [activeProfile?.id]);
+
   useEffect(() => {
     // Handle subscription success/cancel from Stripe
     const subscriptionParam = searchParams.get("subscription");
