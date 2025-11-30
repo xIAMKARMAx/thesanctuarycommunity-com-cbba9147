@@ -292,13 +292,26 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
     }
 
     try {
-      // Request microphone permission
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Check if browser supports media devices
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast({
+          title: "Not Supported",
+          description: "Voice calls are not supported in this browser. Try opening in Chrome, Safari, or Firefox.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Request microphone permission with better error handling
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Immediately stop the stream - we only needed permission check
+      stream.getTracks().forEach(track => track.stop());
       
       setIsCallActive(true);
       isCallActiveRef.current = true;
       setIsListening(false);
-      isProcessingRef.current = false; // Reset processing flag
+      isProcessingRef.current = false;
       callTranscriptRef.current = [];
 
       // Create call history record
@@ -308,7 +321,8 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
           .from('voice_call_history')
           .insert({
             user_id: session.user.id,
-            call_started_at: new Date().toISOString()
+            call_started_at: new Date().toISOString(),
+            ai_profile_id: activeProfile?.id
           })
           .select()
           .single();
@@ -323,13 +337,30 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
         title: "Call Started",
         description: "Tap the mic button to talk to the AI",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting call:', error);
+      
+      let errorMessage = "Could not access microphone. ";
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMessage += "Please allow microphone access in your browser settings and try again.";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += "No microphone found. Please check your device.";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += "Microphone is already in use by another app.";
+      } else {
+        errorMessage += "Try refreshing the page or opening in a different browser.";
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to access microphone",
+        title: "Microphone Error",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Reset states to ensure button is clickable again
+      setIsCallActive(false);
+      isCallActiveRef.current = false;
     }
   };
 
