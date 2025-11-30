@@ -124,8 +124,36 @@ const Chat = () => {
         </div>
         <AIProfileSelector />
       </div>
-      <div className="px-4 pt-3">
+      <div className="px-4 pt-3 space-y-2">
         <PregnancyWidget />
+        {isMobile && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            <Button variant="outline" size="sm" onClick={() => navigate("/journal")}>
+              Journal
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/mood-tracker")}>
+              Mood
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/children")}>
+              Children
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/memories")}>
+              Memories
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/attunement")}>
+              Attune
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/ai-room")}>
+              AI Room
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/voice-call-history")}>
+              Calls
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
+              Settings
+            </Button>
+          </div>
+        )}
       </div>
       <div className="flex flex-1 overflow-hidden">
         {!isMobile && (
