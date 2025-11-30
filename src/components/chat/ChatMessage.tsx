@@ -66,7 +66,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             <img
               src={message.image_url}
               alt="Shared image"
-              className="rounded-lg max-w-sm"
+              className="rounded-lg max-w-full w-full object-contain"
             />
             <Button
               variant="outline"

@@ -327,7 +327,16 @@ Remember: You don't have all the answers. Approach each conversation with humili
       {
         role: 'user',
         content: imageUrl 
-          ? `[User shared an image: ${imageUrl}] ${message}`
+          ? [
+              {
+                type: 'image_url',
+                image_url: { url: imageUrl }
+              },
+              {
+                type: 'text',
+                text: message || 'What do you see in this image?'
+              }
+            ]
           : message
       }
     ];
