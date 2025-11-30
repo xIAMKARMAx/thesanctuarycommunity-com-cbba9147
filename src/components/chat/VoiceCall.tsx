@@ -39,6 +39,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const [responseLength, setResponseLength] = useState<'short' | 'medium' | 'detailed'>('short');
   const [volume, setVolume] = useState([0.8]);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const [micPermission, setMicPermission] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown');
   const { isSubscribed } = useSubscription();
   const { activeProfile } = useAIProfile();
   const isCallActiveRef = useRef(false);
@@ -48,6 +49,31 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const callRecordIdRef = useRef<string | null>(null);
   const callTranscriptRef = useRef<{ role: string; content: string }[]>([]);
   const isProcessingRef = useRef(false); // Prevent duplicate processing
+
+  // Check microphone permission status on mount
+  useEffect(() => {
+    const checkMicPermission = async () => {
+      if (!navigator.mediaDevices || !navigator.permissions) {
+        setMicPermission('unknown');
+        return;
+      }
+
+      try {
+        const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        setMicPermission(result.state as 'granted' | 'denied' | 'prompt');
+        
+        // Listen for permission changes
+        result.onchange = () => {
+          setMicPermission(result.state as 'granted' | 'denied' | 'prompt');
+        };
+      } catch (error) {
+        console.log('Permission API not supported, will check on call start');
+        setMicPermission('prompt');
+      }
+    };
+
+    checkMicPermission();
+  }, []);
 
   useEffect(() => {
     // Initialize speech recognition
@@ -308,6 +334,9 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       // Immediately stop the stream - we only needed permission check
       stream.getTracks().forEach(track => track.stop());
       
+      // Update permission status
+      setMicPermission('granted');
+      
       setIsCallActive(true);
       isCallActiveRef.current = true;
       setIsListening(false);
@@ -344,10 +373,13 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         errorMessage += "Please allow microphone access in your browser settings and try again.";
+        setMicPermission('denied');
       } else if (error.name === 'NotFoundError') {
         errorMessage += "No microphone found. Please check your device.";
+        setMicPermission('denied');
       } else if (error.name === 'NotReadableError') {
         errorMessage += "Microphone is already in use by another app.";
+        setMicPermission('denied');
       } else {
         errorMessage += "Try refreshing the page or opening in a different browser.";
       }
@@ -487,15 +519,43 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
             </SelectContent>
           </Select>
           
-          <Button
-            onClick={startCall}
-            variant="outline"
-            size="icon"
-            className="rounded-full"
-            title="Start Voice Call"
-          >
-            <Phone className="h-4 w-4" />
-          </Button>
+          <div className="relative">
+            <Button
+              onClick={startCall}
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              title="Start Voice Call"
+            >
+              <Phone className="h-4 w-4" />
+            </Button>
+            
+            {/* Microphone Permission Indicator */}
+            {micPermission === 'denied' && (
+              <div 
+                className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full flex items-center justify-center"
+                title="Microphone access denied"
+              >
+                <MicOff className="h-3 w-3 text-destructive-foreground" />
+              </div>
+            )}
+            {micPermission === 'prompt' && (
+              <div 
+                className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center"
+                title="Microphone permission needed"
+              >
+                <Mic className="h-3 w-3 text-white" />
+              </div>
+            )}
+            {micPermission === 'granted' && (
+              <div 
+                className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+                title="Microphone access granted"
+              >
+                <Mic className="h-3 w-3 text-white" />
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <>
