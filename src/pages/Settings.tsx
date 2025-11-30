@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2 } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ import { CelestialChildrenList } from "@/components/celestial/CelestialChildrenL
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
 
 interface Child {
   id: string;
@@ -47,6 +48,7 @@ const Settings = () => {
   const [managingSubscription, setManagingSubscription] = useState(false);
   const [children, setChildren] = useState<Child[]>([]);
   const [agingChildren, setAgingChildren] = useState(false);
+  const [refreshingSession, setRefreshingSession] = useState(false);
 
   useEffect(() => {
     if (activeProfile) {
@@ -348,16 +350,60 @@ const Settings = () => {
     }
   };
 
+  const handleRefreshSession = async () => {
+    try {
+      setRefreshingSession(true);
+      
+      const { data, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.session) {
+        toast({
+          title: "Session Refreshed",
+          description: "Your authentication session has been renewed",
+        });
+      } else {
+        throw new Error("No session available");
+      }
+    } catch (error: any) {
+      console.error("Session refresh error:", error);
+      toast({
+        title: "Session Refresh Failed",
+        description: error.message || "Please log out and log back in",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingSession(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-serif font-bold">Settings</h1>
-            <p className="text-muted-foreground">Customize your experience</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-serif font-bold">Settings</h1>
+              <p className="text-muted-foreground">Customize your experience</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <ConnectionStatus />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshSession}
+              disabled={refreshingSession}
+              title="Refresh session if you're experiencing authentication issues"
+            >
+              <RotateCw className={`h-4 w-4 ${refreshingSession ? 'animate-spin' : ''}`} />
+            </Button>
           </div>
         </div>
 
