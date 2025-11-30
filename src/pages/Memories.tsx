@@ -55,7 +55,10 @@ const Memories = () => {
   }, [activeProfile?.id]);
 
   const loadMemories = async () => {
-    if (!activeProfile) return;
+    if (!activeProfile) {
+      setLoading(false);
+      return;
+    }
     
     try {
       const { data: { user } } = await supabase.auth.getUser();

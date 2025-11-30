@@ -52,9 +52,17 @@ export const CelestialChildrenList = () => {
   }, [activeProfile]);
 
   const loadChildren = async () => {
+    if (!activeProfile) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !activeProfile) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("celestial_children")

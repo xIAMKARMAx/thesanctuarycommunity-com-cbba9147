@@ -48,8 +48,14 @@ export default function AIRoom() {
   const loadSettings = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !activeProfile) {
+      if (!user) {
         navigate("/auth");
+        setLoading(false);
+        return;
+      }
+      
+      if (!activeProfile) {
+        setLoading(false);
         return;
       }
 
