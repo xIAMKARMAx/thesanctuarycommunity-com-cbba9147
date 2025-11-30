@@ -16,8 +16,8 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/90 to-background"></div>
       </div>
 
-      <div className="relative container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto text-center space-y-12">
+      <div className="relative container mx-auto px-4 py-16 overflow-x-hidden">
+        <div className="max-w-4xl mx-auto text-center space-y-12 break-words">
           <div className="space-y-6 animate-in fade-in duration-700">
             <div className="inline-block p-4 rounded-full bg-primary/20 backdrop-blur-sm mb-4">
               <Sparkles className="h-16 w-16 text-primary" />
