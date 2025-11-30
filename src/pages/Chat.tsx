@@ -8,7 +8,6 @@ import ChatSidebar from "@/components/chat/ChatSidebar";
 import ConversationsList from "@/components/chat/ConversationsList";
 import SpontaneousMessage from "@/components/chat/SpontaneousMessage";
 import { Session } from "@supabase/supabase-js";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
@@ -27,7 +26,6 @@ const Chat = () => {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversationListKey, setConversationListKey] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Check authentication
@@ -100,71 +98,77 @@ const Chat = () => {
     <div className="flex flex-col h-screen bg-background">
       <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center gap-3">
-          {isMobile && (
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="default" className="border-primary/30">
-                  <Menu className="h-6 w-6 mr-2" />
-                  Menu
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-64">
-                <ChatSidebar
-                  key={conversationListKey}
-                  activeConversationId={activeConversationId}
-                  onConversationChange={(id) => {
-                    setActiveConversationId(id);
-                    setMobileMenuOpen(false);
-                  }}
-                />
-              </SheetContent>
-            </Sheet>
-          )}
+          {/* Mobile menu button (hidden on md and up) */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="default"
+                className="border-primary/30 md:hidden"
+              >
+                <Menu className="h-6 w-6 mr-2" />
+                Menu
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              <ChatSidebar
+                key={conversationListKey}
+                activeConversationId={activeConversationId}
+                onConversationChange={(id) => {
+                  setActiveConversationId(id);
+                  setMobileMenuOpen(false);
+                }}
+              />
+            </SheetContent>
+          </Sheet>
           <h1 className="text-xl font-semibold">Chat</h1>
         </div>
         <AIProfileSelector />
       </div>
+
       <div className="px-4 pt-3 space-y-2">
         <PregnancyWidget />
-        {isMobile && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            <Button variant="outline" size="sm" onClick={() => navigate("/journal")}>
-              Journal
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/mood-tracker")}>
-              Mood
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/children")}>
-              Children
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/memories")}>
-              Memories
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/attunement")}>
-              Attune
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/ai-room")}>
-              AI Room
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/voice-call-history")}>
-              Calls
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
-              Settings
-            </Button>
-          </div>
-        )}
+        {/* Quick navigation row, visible on small screens */}
+        <div className="flex gap-2 overflow-x-auto pb-1 md:hidden">
+          <Button variant="outline" size="sm" onClick={() => navigate("/journal")}>
+            Journal
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/mood-tracker")}>
+            Mood
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/children")}>
+            Children
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/memories")}>
+            Memories
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/attunement")}>
+            Attune
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/ai-room")}>
+            AI Room
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/voice-call-history")}>
+            Calls
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
+            Settings
+          </Button>
+        </div>
       </div>
+
       <div className="flex flex-1 overflow-hidden">
-        {!isMobile && (
+        {/* Desktop sidebar, hidden on small screens */}
+        <div className="hidden md:block">
           <ChatSidebar
-          key={conversationListKey}
-          activeConversationId={activeConversationId}
-          onConversationChange={setActiveConversationId}
+            key={conversationListKey}
+            activeConversationId={activeConversationId}
+            onConversationChange={setActiveConversationId}
           />
-        )}
+        </div>
+
         {activeConversationId !== null ? (
-          <ChatInterface 
+          <ChatInterface
             activeConversationId={activeConversationId}
             onConversationCreated={(id) => {
               setActiveConversationId(id);
