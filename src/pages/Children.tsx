@@ -36,7 +36,7 @@ interface Child {
 export default function Children() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { activeProfile } = useAIProfile();
+  const { activeProfile, isLoading: profilesLoading } = useAIProfile();
   const [loading, setLoading] = useState(true);
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | "all">("all");
@@ -48,7 +48,10 @@ export default function Children() {
   }, [activeProfile]);
 
   const loadChildren = async () => {
-    if (!activeProfile) return;
+    if (!activeProfile) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -103,7 +106,7 @@ export default function Children() {
     }
   };
 
-  if (loading) {
+  if (profilesLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
