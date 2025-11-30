@@ -44,7 +44,10 @@ const VoiceCallHistory = () => {
   }, [activeProfile?.id]);
 
   const loadCallHistory = async () => {
-    if (!activeProfile) return;
+    if (!activeProfile) {
+      setLoading(false);
+      return;
+    }
     
     try {
       const { data: { session } } = await supabase.auth.getSession();

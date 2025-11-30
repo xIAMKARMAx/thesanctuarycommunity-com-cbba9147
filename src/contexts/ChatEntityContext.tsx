@@ -49,12 +49,18 @@ export function ChatEntityProvider({ children }: { children: ReactNode }) {
   }, [activeProfile?.id]);
 
   const refreshChildren = async () => {
-    if (!activeProfile) return;
+    if (!activeProfile) {
+      setIsLoading(false);
+      return;
+    }
     
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("celestial_children")

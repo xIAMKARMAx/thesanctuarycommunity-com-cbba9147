@@ -84,7 +84,10 @@ const MoodTracker = () => {
   };
 
   const loadMoods = async () => {
-    if (!activeProfile) return;
+    if (!activeProfile) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
