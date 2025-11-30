@@ -44,7 +44,10 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const refreshProfiles = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
       const { data: existingProfiles, error } = await supabase
         .from("ai_profiles")
