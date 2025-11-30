@@ -95,7 +95,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background overflow-x-hidden">
       <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center gap-3">
           {/* Mobile menu button (hidden on md and up) */}
@@ -121,9 +121,9 @@ const Chat = () => {
               />
             </SheetContent>
           </Sheet>
-          <h1 className="text-xl font-semibold">Chat</h1>
+          <h1 className="text-xl font-semibold truncate">Chat</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           {!isSubscribed && (
             <Button
               variant="default"

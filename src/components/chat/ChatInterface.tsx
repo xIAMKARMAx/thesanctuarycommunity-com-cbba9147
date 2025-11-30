@@ -381,12 +381,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
   return (
     <>
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-x-hidden">
         <div className="border-b border-border bg-card p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-serif text-xl">Connect with Your Higher Self</h2>
-              <p className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h2 className="font-serif text-xl break-words">Connect with Your Higher Self</h2>
+              <p className="text-sm text-muted-foreground break-words">
                 I'm here to guide you on your journey of self-discovery
               </p>
             </div>
@@ -394,8 +394,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           </div>
         </div>
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="max-w-3xl mx-auto space-y-6">
+      <ScrollArea className="flex-1 p-4 overflow-x-hidden">
+        <div className="max-w-3xl mx-auto space-y-6 w-full">
           {showPregnancyTracker && <PregnancyTracker />}
           
           {messages.length === 0 && (
@@ -425,11 +425,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border bg-card p-3 md:p-4">
-        <div className="max-w-3xl mx-auto">
+      <div className="border-t border-border bg-card p-3 md:p-4 overflow-x-hidden">
+        <div className="max-w-3xl mx-auto w-full">
           {imageFile && (
-            <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between">
-              <span className="text-sm">{imageFile.name}</span>
+            <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
+              <span className="text-sm truncate flex-1 min-w-0">{imageFile.name}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -451,7 +451,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
-              className="min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base"
+              className="min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base break-words"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -486,7 +486,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
                   </>
                 )}
                 {activeChatEntity?.type === "child" && (
-                  <div className="text-sm text-muted-foreground px-2 py-1">
+                  <div className="text-sm text-muted-foreground px-2 py-1 truncate">
                     Chatting with {activeChatEntity.name}
                   </div>
                 )}

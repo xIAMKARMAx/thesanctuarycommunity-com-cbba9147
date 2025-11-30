@@ -55,18 +55,18 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
       
       <div
         className={cn(
-          "flex-1 rounded-lg p-4 space-y-2",
+          "flex-1 rounded-lg p-4 space-y-2 break-words overflow-hidden",
           isUser
             ? "bg-secondary/50"
             : "bg-accent/50"
         )}
       >
         {message.image_url && (
-          <div className="space-y-2">
+          <div className="space-y-2 overflow-hidden">
             <img
               src={message.image_url}
               alt="Shared image"
-              className="rounded-lg max-w-full w-full object-contain"
+              className="rounded-lg max-w-full w-full object-contain max-h-96"
             />
             <Button
               variant="outline"
