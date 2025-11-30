@@ -99,12 +99,13 @@ const Chat = () => {
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {isMobile && (
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
+                <Button variant="outline" size="default" className="border-primary/30">
+                  <Menu className="h-6 w-6 mr-2" />
+                  Menu
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64">
