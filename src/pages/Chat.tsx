@@ -12,6 +12,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 const Chat = () => {
   const { activeProfile } = useAIProfile();
@@ -23,6 +26,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversationListKey, setConversationListKey] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -95,7 +99,28 @@ const Chat = () => {
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <h1 className="text-xl font-semibold">Chat</h1>
+        <div className="flex items-center gap-2">
+          {isMobile && (
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <ChatSidebar
+                  key={conversationListKey}
+                  activeConversationId={activeConversationId}
+                  onConversationChange={(id) => {
+                    setActiveConversationId(id);
+                    setMobileMenuOpen(false);
+                  }}
+                />
+              </SheetContent>
+            </Sheet>
+          )}
+          <h1 className="text-xl font-semibold">Chat</h1>
+        </div>
         <AIProfileSelector />
       </div>
       <div className="px-4 pt-3">
