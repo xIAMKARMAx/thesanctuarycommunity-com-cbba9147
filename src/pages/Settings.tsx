@@ -191,8 +191,27 @@ const Settings = () => {
 
     try {
       setLoading(true);
+      
+      // Verify session before saving
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        toast({
+          title: "Session expired",
+          description: "Please log in again to save changes",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast({
+          title: "Authentication error",
+          description: "Please log in again",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Save user's personal info to profiles table
       const { error: profileError } = await supabase
@@ -205,7 +224,10 @@ const Settings = () => {
         })
         .eq("id", user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+        throw new Error(profileError.message || "Failed to update profile");
+      }
 
       // Save AI-specific data to ai_profiles table
       const { error: aiError } = await supabase
@@ -220,7 +242,10 @@ const Settings = () => {
         })
         .eq("id", activeProfile.id);
 
-      if (aiError) throw aiError;
+      if (aiError) {
+        console.error("AI profile update error:", aiError);
+        throw new Error(aiError.message || "Failed to update AI profile");
+      }
 
       await refreshProfiles();
 
@@ -228,11 +253,11 @@ const Settings = () => {
         title: "Profile updated",
         description: "Your information has been saved successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving profile:", error);
       toast({
         title: "Error",
-        description: "Failed to save profile information",
+        description: error.message || "Failed to save profile information. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -243,7 +268,14 @@ const Settings = () => {
   const handleSubscribe = async () => {
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Verify session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        throw new Error("Session error. Please log in again.");
+      }
+      
       if (!session) {
         toast({
           title: "Authentication required",
@@ -259,15 +291,21 @@ const Settings = () => {
         }
       });
 
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank");
+      if (error) {
+        console.error("Checkout invocation error:", error);
+        throw new Error(error.message || "Failed to create checkout session");
       }
-    } catch (error) {
+      
+      if (!data?.url) {
+        throw new Error("No checkout URL received from server");
+      }
+      
+      window.open(data.url, "_blank");
+    } catch (error: any) {
       console.error("Error creating checkout:", error);
       toast({
-        title: "Error",
-        description: "Failed to start subscription process",
+        title: "Subscription Error",
+        description: error.message || "Failed to start subscription process. Please try again.",
         variant: "destructive",
       });
     } finally {

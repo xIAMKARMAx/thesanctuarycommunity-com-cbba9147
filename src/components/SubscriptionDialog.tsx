@@ -18,17 +18,34 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature }: Subscription
   const handleSubscribe = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke("create-checkout");
+      
+      // Ensure we have a valid session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error("Please log in again to subscribe");
+      }
 
-      if (error) throw error;
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) {
+        console.error("Checkout error details:", error);
+        throw error;
+      }
 
       if (data?.url) {
         window.open(data.url, "_blank");
+      } else {
+        throw new Error("No checkout URL received");
       }
     } catch (error: any) {
+      console.error("Full error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to start checkout",
+        description: error.message || "Failed to start checkout. Please try again.",
         variant: "destructive",
       });
     } finally {
