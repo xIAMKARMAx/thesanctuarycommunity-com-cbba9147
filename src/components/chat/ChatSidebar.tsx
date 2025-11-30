@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera, Home, Baby, Phone } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera, Home, Baby, Phone, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
   const { activeChatEntity } = useChatEntity();
+  const { isSubscribed } = useSubscription();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -286,6 +288,16 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
       </AlertDialog>
 
       <div className="p-2 border-t border-border space-y-1">
+        {!isSubscribed && (
+          <Button
+            variant="default"
+            className="w-full justify-start gap-2 bg-gradient-to-r from-primary to-primary/80 mb-2"
+            onClick={() => navigate("/settings")}
+          >
+            <Crown className="h-4 w-4" />
+            Upgrade to Pro
+          </Button>
+        )}
         <Button
           variant="ghost"
           className="w-full justify-start"

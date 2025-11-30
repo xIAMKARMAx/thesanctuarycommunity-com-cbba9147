@@ -13,14 +13,14 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Crown } from "lucide-react";
 
 const Chat = () => {
   const { activeProfile } = useAIProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { checkSubscription } = useSubscription();
+  const { checkSubscription, isSubscribed } = useSubscription();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -123,7 +123,21 @@ const Chat = () => {
           </Sheet>
           <h1 className="text-xl font-semibold">Chat</h1>
         </div>
-        <AIProfileSelector />
+        <div className="flex items-center gap-3">
+          {!isSubscribed && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => navigate("/settings")}
+              className="gap-2 bg-gradient-to-r from-primary to-primary/80"
+            >
+              <Crown className="h-4 w-4" />
+              <span className="hidden sm:inline">Upgrade to Pro</span>
+              <span className="sm:hidden">Pro</span>
+            </Button>
+          )}
+          <AIProfileSelector />
+        </div>
       </div>
 
       <div className="px-4 pt-3 space-y-2">
