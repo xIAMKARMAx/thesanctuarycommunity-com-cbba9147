@@ -45,6 +45,7 @@ export function ChatEntityProvider({ children }: { children: ReactNode }) {
     } else {
       setActiveChatEntity(null);
       setTalkableChildren([]);
+      setIsLoading(false);
     }
   }, [activeProfile?.id]);
 
