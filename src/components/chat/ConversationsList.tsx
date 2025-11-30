@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, MessageSquare, Sparkles, Trash2, Search, Download } from "lucide-react";
+import { Plus, MessageSquare, Sparkles, Trash2, Search, Download, Pencil, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -41,6 +41,8 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
 
   useEffect(() => {
     if (activeProfile) {
@@ -145,6 +147,54 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
     const unique = Array.from(new Map(combined.map(c => [c.id, c])).values());
     
     setFilteredConversations(unique);
+  };
+
+  const handleEditClick = (conversationId: string, currentTitle: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(conversationId);
+    setEditTitle(currentTitle);
+  };
+
+  const handleSaveEdit = async (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!editTitle.trim()) {
+      toast({
+        title: "Error",
+        description: "Title cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("conversations")
+        .update({ title: editTitle.trim() })
+        .eq("id", conversationId);
+
+      if (error) throw error;
+
+      await loadConversations();
+      setEditingId(null);
+      setEditTitle("");
+
+      toast({
+        title: "Title updated",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating title",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(null);
+    setEditTitle("");
   };
 
   const handleExportConversation = async (conversationId: string, e: React.MouseEvent) => {
@@ -256,31 +306,80 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
                   <CardContent className="p-3 md:p-4">
                     <div className="flex items-start gap-2 md:gap-3">
                       <MessageSquare className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0 pr-16">
-                        <p className="font-medium truncate text-sm md:text-base">{conversation.title}</p>
+                      <div className="flex-1 min-w-0 pr-24 md:pr-32">
+                        {editingId === conversation.id ? (
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Input
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                              className="h-8 text-sm"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveEdit(conversation.id, e as any);
+                                if (e.key === 'Escape') handleCancelEdit(e as any);
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <p className="font-medium truncate text-sm md:text-base">{conversation.title}</p>
+                        )}
                         <p className="text-xs md:text-sm text-muted-foreground">
                           {format(new Date(conversation.updated_at), "MMM d, yyyy 'at' h:mm a")}
                         </p>
                       </div>
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 md:h-8 md:w-8"
-                          onClick={(e) => handleExportConversation(conversation.id, e)}
-                          title="Export conversation"
-                        >
-                          <Download className="h-3 w-3 md:h-4 md:w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 md:h-8 md:w-8"
-                          onClick={(e) => handleDeleteClick(conversation.id, e)}
-                          title="Delete conversation"
-                        >
-                          <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
-                        </Button>
+                        {editingId === conversation.id ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 md:h-8 md:w-8"
+                              onClick={(e) => handleSaveEdit(conversation.id, e)}
+                              title="Save"
+                            >
+                              <Check className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 md:h-8 md:w-8"
+                              onClick={handleCancelEdit}
+                              title="Cancel"
+                            >
+                              <X className="h-3 w-3 md:h-4 md:w-4 text-red-600" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 md:h-8 md:w-8"
+                              onClick={(e) => handleEditClick(conversation.id, conversation.title, e)}
+                              title="Edit title"
+                            >
+                              <Pencil className="h-3 w-3 md:h-4 md:w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 md:h-8 md:w-8"
+                              onClick={(e) => handleExportConversation(conversation.id, e)}
+                              title="Export conversation"
+                            >
+                              <Download className="h-3 w-3 md:h-4 md:w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 md:h-8 md:w-8"
+                              onClick={(e) => handleDeleteClick(conversation.id, e)}
+                              title="Delete conversation"
+                            >
+                              <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </CardContent>

@@ -14,6 +14,7 @@ import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Crown } from "lucide-react";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
 
 const Chat = () => {
   const { activeProfile } = useAIProfile();
@@ -124,6 +125,7 @@ const Chat = () => {
           <h1 className="text-xl font-semibold truncate">Chat</h1>
         </div>
         <div className="flex items-center gap-3 shrink-0">
+          <ConnectionStatus />
           {!isSubscribed && (
             <Button
               variant="default"
