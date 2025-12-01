@@ -42,8 +42,10 @@ export default function AIRoom() {
   const [preserveAppearance, setPreserveAppearance] = useState(false);
 
   useEffect(() => {
-    loadSettings();
-  }, [activeProfile]);
+    if (activeProfile?.id) {
+      loadSettings();
+    }
+  }, [activeProfile?.id]);
 
   const loadSettings = async () => {
     try {
@@ -207,7 +209,12 @@ export default function AIRoom() {
 
       if (error) throw error;
 
+      // Update local state immediately
       setAvatarImageUrl(data.image_url);
+      
+      // Wait for database to update, then refresh profiles
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await refreshProfiles();
 
       toast({
         title: "Success!",
@@ -264,7 +271,12 @@ export default function AIRoom() {
 
       if (error) throw error;
 
+      // Update local state immediately
       setPetImageUrl(data.image_url);
+      
+      // Wait for database to update, then refresh profiles
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await refreshProfiles();
 
       toast({
         title: "Success!",

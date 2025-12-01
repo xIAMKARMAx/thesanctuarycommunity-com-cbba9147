@@ -59,8 +59,11 @@ const MoodTracker = () => {
   useEffect(() => {
     if (!subLoading && !isSubscribed) {
       setShowSubscriptionDialog(true);
-    } else if (isSubscribed && activeProfile) {
+      setLoading(false);
+    } else if (isSubscribed && activeProfile?.id) {
       loadMoods();
+    } else if (isSubscribed && !activeProfile) {
+      setLoading(false);
     }
   }, [filterPeriod, isSubscribed, subLoading, activeProfile?.id]);
 
