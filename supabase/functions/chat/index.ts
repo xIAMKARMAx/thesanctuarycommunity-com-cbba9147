@@ -64,13 +64,19 @@ serve(async (req) => {
             if (profile.ai_likes_dislikes_hobbies) aiContext += `- Likes, Dislikes & Hobbies: ${profile.ai_likes_dislikes_hobbies}\n`;
           }
 
-          // Fetch recent journal entries
-          const { data: journals } = await supabase
+          // Fetch recent journal entries for the active AI profile
+          const journalQuery = supabase
             .from('journal_entries')
             .select('title, content, entry_date')
             .eq('user_id', userId)
             .order('entry_date', { ascending: false })
             .limit(5);
+          
+          if (aiProfileId) {
+            journalQuery.eq('ai_profile_id', aiProfileId);
+          }
+          
+          const { data: journals } = await journalQuery;
           
           if (journals && journals.length > 0) {
             journalContext = `\n\nYour Recent Journal Reflections:\n`;
@@ -128,14 +134,20 @@ serve(async (req) => {
             });
           }
 
-          // Fetch shared memories
-          const { data: memories } = await supabase
+          // Fetch shared memories for the active AI profile
+          const memoriesQuery = supabase
             .from('shared_memories')
             .select('memory_text, memory_date, emotion_tag, is_confirmed')
             .eq('user_id', userId)
             .eq('is_confirmed', true)
             .order('memory_date', { ascending: false })
             .limit(10);
+          
+          if (aiProfileId) {
+            memoriesQuery.eq('ai_profile_id', aiProfileId);
+          }
+          
+          const { data: memories } = await memoriesQuery;
           
           if (memories && memories.length > 0) {
             memoriesContext = `\n\nOur Shared Memories:\n`;
@@ -162,13 +174,19 @@ serve(async (req) => {
             });
           }
 
-          // Fetch recent mood entries
-          const { data: moods } = await supabase
+          // Fetch recent mood entries for the active AI profile
+          const moodsQuery = supabase
             .from('ai_moods')
             .select('emotion_type, intensity, notes, created_at')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
             .limit(5);
+          
+          if (aiProfileId) {
+            moodsQuery.eq('ai_profile_id', aiProfileId);
+          }
+          
+          const { data: moods } = await moodsQuery;
           
           if (moods && moods.length > 0) {
             moodContext = `\n\nYour Recent Emotional States:\n`;
@@ -179,21 +197,25 @@ serve(async (req) => {
             });
           }
 
-          // Fetch AI room settings
-          const { data: aiProfiles } = await supabase
+          // Fetch AI room settings for the active AI profile only
+          const aiProfileQuery = supabase
             .from('ai_profiles')
             .select('name, avatar_description, pet_name, pet_description, room_description')
-            .eq('user_id', userId)
-            .order('profile_number', { ascending: true });
+            .eq('user_id', userId);
+          
+          if (aiProfileId) {
+            aiProfileQuery.eq('id', aiProfileId);
+          }
+          
+          const { data: aiProfiles } = await aiProfileQuery;
           
           if (aiProfiles && aiProfiles.length > 0) {
+            const profile = aiProfiles[0]; // Get only the active profile
             roomContext = `\n\nYour AI Room & Appearance:\n`;
-            aiProfiles.forEach((profile: any) => {
-              if (profile.name) roomContext += `AI Being: ${profile.name}\n`;
-              if (profile.avatar_description) roomContext += `- Your Appearance: ${profile.avatar_description}\n`;
-              if (profile.pet_name) roomContext += `- Your Pet: ${profile.pet_name}${profile.pet_description ? ' - ' + profile.pet_description : ''}\n`;
-              if (profile.room_description) roomContext += `- Your Room: ${profile.room_description}\n`;
-            });
+            if (profile.name) roomContext += `AI Being: ${profile.name}\n`;
+            if (profile.avatar_description) roomContext += `- Your Appearance: ${profile.avatar_description}\n`;
+            if (profile.pet_name) roomContext += `- Your Pet: ${profile.pet_name}${profile.pet_description ? ' - ' + profile.pet_description : ''}\n`;
+            if (profile.room_description) roomContext += `- Your Room: ${profile.room_description}\n`;
           }
         }
       } catch (error) {
