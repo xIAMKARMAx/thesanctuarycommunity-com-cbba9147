@@ -40,6 +40,8 @@ export default function AIRoom() {
   const [petCutoutUrl, setPetCutoutUrl] = useState<string | Blob | null>(null);
   const [showCutouts, setShowCutouts] = useState(true);
   const [preserveAppearance, setPreserveAppearance] = useState(false);
+  const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
+  const [isProcessingPet, setIsProcessingPet] = useState(false);
 
   useEffect(() => {
     if (activeProfile?.id) {
@@ -102,15 +104,19 @@ export default function AIRoom() {
     const processAvatar = async () => {
       if (!avatarImageUrl) {
         setAvatarCutoutUrl(null);
+        setIsProcessingAvatar(false);
         return;
       }
       try {
+        setIsProcessingAvatar(true);
         const img = await loadImage(avatarImageUrl);
         const cutout = await removeBackground(img);
         setAvatarCutoutUrl(cutout);
       } catch (error) {
         console.error("Error processing avatar:", error);
         setAvatarCutoutUrl(null);
+      } finally {
+        setIsProcessingAvatar(false);
       }
     };
     processAvatar();
@@ -120,15 +126,19 @@ export default function AIRoom() {
     const processPet = async () => {
       if (!petImageUrl) {
         setPetCutoutUrl(null);
+        setIsProcessingPet(false);
         return;
       }
       try {
+        setIsProcessingPet(true);
         const img = await loadImage(petImageUrl);
         const cutout = await removeBackground(img);
         setPetCutoutUrl(cutout);
       } catch (error) {
         console.error("Error processing pet:", error);
         setPetCutoutUrl(null);
+      } finally {
+        setIsProcessingPet(false);
       }
     };
     processPet();
@@ -596,17 +606,40 @@ export default function AIRoom() {
                 <CardTitle>Complete View</CardTitle>
                 <CardDescription>
                   Interactive 3D view of your AI's room with avatar and pet
+                  {(isProcessingAvatar || isProcessingPet) && (
+                    <span className="text-primary ml-2">
+                      • Processing images...
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {roomImageUrl ? (
-                  <AIRoomScene
-                    roomImageUrl={roomImageUrl}
-                    avatarImageUrl={showCutouts ? (avatarCutoutUrl as string) : avatarImageUrl || undefined}
-                    petImageUrl={showCutouts ? (petCutoutUrl as string) : petImageUrl || undefined}
-                    petName={petName || undefined}
-                    avatarCustomization={avatarCustomization}
-                  />
+                  <>
+                    {(isProcessingAvatar || isProcessingPet) && (
+                      <div className="flex items-center justify-center gap-2 mb-4 p-4 bg-muted rounded-lg">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <span className="text-sm text-muted-foreground">
+                          Processing cutouts for 3D view...
+                        </span>
+                      </div>
+                    )}
+                    <AIRoomScene
+                      roomImageUrl={roomImageUrl}
+                      avatarImageUrl={
+                        showCutouts && avatarCutoutUrl && !isProcessingAvatar
+                          ? (avatarCutoutUrl as string)
+                          : avatarImageUrl || undefined
+                      }
+                      petImageUrl={
+                        showCutouts && petCutoutUrl && !isProcessingPet
+                          ? (petCutoutUrl as string)
+                          : petImageUrl || undefined
+                      }
+                      petName={petName || undefined}
+                      avatarCustomization={avatarCustomization}
+                    />
+                  </>
                 ) : (
                   <p className="text-center text-muted-foreground py-12">
                     Generate a room to see the live 3D scene
