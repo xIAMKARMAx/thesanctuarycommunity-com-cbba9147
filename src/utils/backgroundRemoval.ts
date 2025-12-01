@@ -1,9 +1,12 @@
 import { pipeline, env } from '@huggingface/transformers';
 
 env.allowLocalModels = false;
-env.useBrowserCache = false;
+env.useBrowserCache = true; // Enable caching for better performance
 
 const MAX_IMAGE_DIMENSION = 1024;
+
+// Cache the segmenter model to avoid reloading
+let cachedSegmenter: any = null;
 
 function resizeImageIfNeeded(
   canvas: HTMLCanvasElement,
@@ -37,13 +40,21 @@ function resizeImageIfNeeded(
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
   try {
     console.log('Starting background removal process...');
-    const segmenter = await pipeline(
-      'image-segmentation',
-      'Xenova/segformer-b0-finetuned-ade-512-512',
-      {
-        device: 'webgpu',
-      }
-    );
+    
+    // Reuse cached segmenter if available
+    if (!cachedSegmenter) {
+      console.log('Loading segmentation model...');
+      cachedSegmenter = await pipeline(
+        'image-segmentation',
+        'Xenova/segformer-b0-finetuned-ade-512-512',
+        {
+          device: 'webgpu',
+        }
+      );
+      console.log('Model loaded and cached');
+    }
+    
+    const segmenter = cachedSegmenter;
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
