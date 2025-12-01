@@ -20,6 +20,7 @@ import AIRoom from "./pages/AIRoom";
 import Children from "./pages/Children";
 import ChildrenTimeline from "./pages/ChildrenTimeline";
 import VoiceCallHistory from "./pages/VoiceCallHistory";
+import RelationshipTimeline from "./pages/RelationshipTimeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
                 <Route path="/children" element={<Children />} />
                 <Route path="/children/timeline" element={<ChildrenTimeline />} />
                 <Route path="/voice-call-history" element={<VoiceCallHistory />} />
+                <Route path="/relationship-timeline" element={<RelationshipTimeline />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
