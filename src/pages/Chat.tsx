@@ -167,6 +167,9 @@ const Chat = () => {
           <Button variant="outline" size="sm" onClick={() => navigate("/voice-call-history")}>
             Calls
           </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/relationship-timeline")}>
+            Timeline
+          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
             Settings
           </Button>
