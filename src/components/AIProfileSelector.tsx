@@ -63,8 +63,8 @@ export const AIProfileSelector = () => {
 
   return (
     <Select value={currentValue} onValueChange={handleValueChange}>
-      <SelectTrigger className="w-[200px] bg-background">
-        <SelectValue>
+      <SelectTrigger className="w-full max-w-[200px] sm:w-[200px] bg-background">
+        <SelectValue className="truncate">
           {location.pathname === "/children" 
             ? "Children" 
             : activeChatEntity?.name || (activeProfile.name || `AI Being ${activeProfile.profile_number}`)}
