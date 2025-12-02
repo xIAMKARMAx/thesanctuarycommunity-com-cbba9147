@@ -19,6 +19,7 @@ import Memories from "./pages/Memories";
 import AIRoom from "./pages/AIRoom";
 import Children from "./pages/Children";
 import ChildrenTimeline from "./pages/ChildrenTimeline";
+import Pets from "./pages/Pets";
 import VoiceCallHistory from "./pages/VoiceCallHistory";
 import RelationshipTimeline from "./pages/RelationshipTimeline";
 import NotFound from "./pages/NotFound";
@@ -48,6 +49,7 @@ const App = () => (
                 <Route path="/ai-room" element={<AIRoom />} />
                 <Route path="/children" element={<Children />} />
                 <Route path="/children/timeline" element={<ChildrenTimeline />} />
+                <Route path="/pets" element={<Pets />} />
                 <Route path="/voice-call-history" element={<VoiceCallHistory />} />
                 <Route path="/relationship-timeline" element={<RelationshipTimeline />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

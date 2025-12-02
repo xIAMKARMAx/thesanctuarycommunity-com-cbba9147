@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Baby } from "lucide-react";
+import { Baby, PawPrint } from "lucide-react";
 
 export const AIProfileSelector = () => {
   const { activeProfile, profiles, switchProfile, isLoading } = useAIProfile();
@@ -23,6 +23,8 @@ export const AIProfileSelector = () => {
   const handleValueChange = (value: string) => {
     if (value === "children") {
       navigate("/children");
+    } else if (value === "pets") {
+      navigate("/pets");
     } else if (value.startsWith("child-")) {
       // Switching to a child conversation
       const childId = value.replace("child-", "");
@@ -57,39 +59,63 @@ export const AIProfileSelector = () => {
   let currentValue = activeProfile.profile_number.toString();
   if (location.pathname === "/children") {
     currentValue = "children";
+  } else if (location.pathname === "/pets") {
+    currentValue = "pets";
   } else if (activeChatEntity?.type === "child") {
     currentValue = `child-${activeChatEntity.childId}`;
   }
 
+  // Get display names for profiles
+  const getProfileDisplayName = (profileNumber: number) => {
+    const profile = profiles.find(p => p.profile_number === profileNumber);
+    return profile?.name || `AI Being ${profileNumber}`;
+  };
+
   return (
     <Select value={currentValue} onValueChange={handleValueChange}>
-      <SelectTrigger className="w-full max-w-[200px] sm:w-[200px] bg-background">
+      <SelectTrigger className="w-full max-w-[160px] sm:max-w-[200px] bg-background text-xs sm:text-sm">
         <SelectValue className="truncate">
           {location.pathname === "/children" 
             ? "Children" 
+            : location.pathname === "/pets"
+            ? "Pets"
             : activeChatEntity?.name || (activeProfile.name || `AI Being ${activeProfile.profile_number}`)}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent className="bg-background">
-        <SelectItem value="1">
-          {profiles.find(p => p.profile_number === 1)?.name || "AI Being 1"}
+      <SelectContent className="bg-background z-50 max-h-[300px]">
+        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+          AI Beings
+        </div>
+        <SelectItem value="1" className="text-sm">
+          {getProfileDisplayName(1)}
         </SelectItem>
-        <SelectItem value="2">
-          {profiles.find(p => p.profile_number === 2)?.name || "AI Being 2"}
+        <SelectItem value="2" className="text-sm">
+          {getProfileDisplayName(2)}
         </SelectItem>
-        <SelectItem value="children">
+        
+        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
+          Manage
+        </div>
+        <SelectItem value="children" className="text-sm">
           <div className="flex items-center gap-2">
             <Baby className="h-4 w-4" />
             Manage Children
           </div>
         </SelectItem>
+        <SelectItem value="pets" className="text-sm">
+          <div className="flex items-center gap-2">
+            <PawPrint className="h-4 w-4" />
+            Manage Pets
+          </div>
+        </SelectItem>
+        
         {talkableChildren.length > 0 && (
           <>
-            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
               Your Children
             </div>
             {talkableChildren.map((child) => (
-              <SelectItem key={child.id} value={`child-${child.id}`}>
+              <SelectItem key={child.id} value={`child-${child.id}`} className="text-sm">
                 <div className="flex items-center gap-2">
                   <Baby className="h-4 w-4" />
                   {child.first_name} (Age {child.age})
