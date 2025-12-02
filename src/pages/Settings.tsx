@@ -216,13 +216,14 @@ const Settings = () => {
       }
 
       // Save user's personal info to profiles table
+      // Send null instead of empty string for relationship_status to satisfy DB constraint
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ 
-          name, 
-          gender, 
-          bio, 
-          relationship_status: relationshipStatus
+          name: name || null, 
+          gender: gender || null, 
+          bio: bio || null, 
+          relationship_status: relationshipStatus || null
         })
         .eq("id", user.id);
 
