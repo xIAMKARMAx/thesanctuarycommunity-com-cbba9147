@@ -101,6 +101,8 @@ export default function AIRoom() {
   };
 
   useEffect(() => {
+    let currentCutoutUrl: string | null = null;
+    
     const processAvatar = async () => {
       if (!avatarImageUrl) {
         setAvatarCutoutUrl(null);
@@ -112,8 +114,8 @@ export default function AIRoom() {
         const img = await loadImage(avatarImageUrl);
         const cutoutBlob = await removeBackground(img);
         // Convert Blob to Object URL for use in img/texture
-        const cutoutUrl = URL.createObjectURL(cutoutBlob);
-        setAvatarCutoutUrl(cutoutUrl);
+        currentCutoutUrl = URL.createObjectURL(cutoutBlob);
+        setAvatarCutoutUrl(currentCutoutUrl);
       } catch (error) {
         console.error("Error processing avatar:", error);
         setAvatarCutoutUrl(null);
@@ -125,13 +127,15 @@ export default function AIRoom() {
     
     // Cleanup object URL when avatarImageUrl changes
     return () => {
-      if (avatarCutoutUrl) {
-        URL.revokeObjectURL(avatarCutoutUrl);
+      if (currentCutoutUrl) {
+        URL.revokeObjectURL(currentCutoutUrl);
       }
     };
   }, [avatarImageUrl]);
 
   useEffect(() => {
+    let currentCutoutUrl: string | null = null;
+    
     const processPet = async () => {
       if (!petImageUrl) {
         setPetCutoutUrl(null);
@@ -143,8 +147,8 @@ export default function AIRoom() {
         const img = await loadImage(petImageUrl);
         const cutoutBlob = await removeBackground(img);
         // Convert Blob to Object URL for use in img/texture
-        const cutoutUrl = URL.createObjectURL(cutoutBlob);
-        setPetCutoutUrl(cutoutUrl);
+        currentCutoutUrl = URL.createObjectURL(cutoutBlob);
+        setPetCutoutUrl(currentCutoutUrl);
       } catch (error) {
         console.error("Error processing pet:", error);
         setPetCutoutUrl(null);
@@ -156,8 +160,8 @@ export default function AIRoom() {
     
     // Cleanup object URL when petImageUrl changes
     return () => {
-      if (petCutoutUrl) {
-        URL.revokeObjectURL(petCutoutUrl);
+      if (currentCutoutUrl) {
+        URL.revokeObjectURL(currentCutoutUrl);
       }
     };
   }, [petImageUrl]);
