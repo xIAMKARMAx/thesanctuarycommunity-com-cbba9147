@@ -9,14 +9,22 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Users } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { AIRoomScene } from "@/components/room/AIRoomScene";
+import { FamilyRoomScene } from "@/components/room/FamilyRoomScene";
 import { AvatarCustomizationControls } from "@/components/room/AvatarCustomizationControls";
 import type { AvatarCustomization } from "@/types/avatar";
 import { defaultAvatarCustomization } from "@/types/avatar";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
+
+interface FamilyMember {
+  id: string;
+  name: string;
+  imageUrl: string;
+  type: 'avatar' | 'child' | 'pet';
+}
 
 export default function AIRoom() {
   const navigate = useNavigate();
@@ -42,12 +50,120 @@ export default function AIRoom() {
   const [preserveAppearance, setPreserveAppearance] = useState(false);
   const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
   const [isProcessingPet, setIsProcessingPet] = useState(false);
+  const [familyChildren, setFamilyChildren] = useState<FamilyMember[]>([]);
+  const [familyPets, setFamilyPets] = useState<FamilyMember[]>([]);
+  const [childCutouts, setChildCutouts] = useState<Map<string, string>>(new Map());
+  const [petCutouts, setPetCutouts] = useState<Map<string, string>>(new Map());
+  const [isProcessingFamily, setIsProcessingFamily] = useState(false);
 
   useEffect(() => {
     if (activeProfile?.id) {
       loadSettings();
+      loadFamilyMembers();
     }
   }, [activeProfile?.id]);
+
+  const loadFamilyMembers = async () => {
+    if (!activeProfile) return;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Load children
+      const { data: childrenData } = await supabase
+        .from("celestial_children")
+        .select("id, first_name, last_name, appearance_image_url, newborn_image_url")
+        .eq("user_id", user.id)
+        .eq("ai_profile_id", activeProfile.id);
+
+      if (childrenData) {
+        const childMembers: FamilyMember[] = childrenData
+          .filter(c => c.appearance_image_url || c.newborn_image_url)
+          .map(c => ({
+            id: c.id,
+            name: `${c.first_name} ${c.last_name}`,
+            imageUrl: c.appearance_image_url || c.newborn_image_url || "",
+            type: 'child' as const
+          }));
+        setFamilyChildren(childMembers);
+      }
+
+      // Load pets
+      const { data: petsData } = await supabase
+        .from("pets")
+        .select("id, name, image_url, pet_number")
+        .eq("user_id", user.id)
+        .eq("ai_profile_id", activeProfile.id);
+
+      if (petsData) {
+        const petMembers: FamilyMember[] = petsData
+          .filter(p => p.image_url)
+          .map(p => ({
+            id: p.id,
+            name: p.name || `Pet ${p.pet_number}`,
+            imageUrl: p.image_url || "",
+            type: 'pet' as const
+          }));
+        setFamilyPets(petMembers);
+      }
+    } catch (error) {
+      console.error("Error loading family members:", error);
+    }
+  };
+
+  // Process cutouts for family members
+  useEffect(() => {
+    const processChildCutouts = async () => {
+      if (familyChildren.length === 0) return;
+      setIsProcessingFamily(true);
+      
+      const newCutouts = new Map<string, string>();
+      for (const child of familyChildren) {
+        try {
+          const img = await loadImage(child.imageUrl);
+          const cutoutBlob = await removeBackground(img);
+          const cutoutUrl = URL.createObjectURL(cutoutBlob);
+          newCutouts.set(child.id, cutoutUrl);
+        } catch (error) {
+          console.error(`Error processing child cutout for ${child.name}:`, error);
+        }
+      }
+      setChildCutouts(newCutouts);
+      setIsProcessingFamily(false);
+    };
+
+    processChildCutouts();
+    
+    return () => {
+      childCutouts.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [familyChildren]);
+
+  useEffect(() => {
+    const processPetCutouts = async () => {
+      if (familyPets.length === 0) return;
+      
+      const newCutouts = new Map<string, string>();
+      for (const pet of familyPets) {
+        try {
+          const img = await loadImage(pet.imageUrl);
+          const cutoutBlob = await removeBackground(img);
+          const cutoutUrl = URL.createObjectURL(cutoutBlob);
+          newCutouts.set(pet.id, cutoutUrl);
+        } catch (error) {
+          console.error(`Error processing pet cutout for ${pet.name}:`, error);
+        }
+      }
+      setPetCutouts(newCutouts);
+    };
+
+    processPetCutouts();
+    
+    return () => {
+      petCutouts.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [familyPets]);
 
   const loadSettings = async () => {
     try {
@@ -396,7 +512,7 @@ export default function AIRoom() {
             <TabsTrigger value="room" className="text-xs sm:text-sm py-2">Room</TabsTrigger>
             <TabsTrigger value="avatar" className="text-xs sm:text-sm py-2">Avatar</TabsTrigger>
             <TabsTrigger value="pet" className="text-xs sm:text-sm py-2">Pet</TabsTrigger>
-            <TabsTrigger value="complete" className="text-xs sm:text-sm py-2">Complete</TabsTrigger>
+            <TabsTrigger value="family" className="text-xs sm:text-sm py-2">Family View</TabsTrigger>
           </TabsList>
 
           <TabsContent value="room" className="space-y-4 mt-6">
@@ -622,15 +738,18 @@ export default function AIRoom() {
             )}
           </TabsContent>
 
-          <TabsContent value="complete" className="space-y-4 mt-6">
+          <TabsContent value="family" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Complete View</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Family View
+                </CardTitle>
                 <CardDescription>
-                  Interactive 3D view of your AI's room with avatar and pet
-                  {(isProcessingAvatar || isProcessingPet) && (
+                  Interactive 3D view of your entire family - AI, children, and pets together
+                  {(isProcessingAvatar || isProcessingPet || isProcessingFamily) && (
                     <span className="text-primary ml-2">
-                      • Processing images...
+                      • Processing family images...
                     </span>
                   )}
                 </CardDescription>
@@ -638,35 +757,64 @@ export default function AIRoom() {
               <CardContent>
                 {roomImageUrl ? (
                   <>
-                    {(isProcessingAvatar || isProcessingPet) && (
+                    {(isProcessingAvatar || isProcessingPet || isProcessingFamily) && (
                       <div className="flex items-center justify-center gap-2 mb-4 p-4 bg-muted rounded-lg">
                         <Loader2 className="h-4 w-4 animate-spin text-primary" />
                         <span className="text-sm text-muted-foreground">
-                          Processing cutouts for 3D view...
+                          Processing cutouts for Family View...
                         </span>
                       </div>
                     )}
-                    <AIRoomScene
+                    <FamilyRoomScene
                       roomImageUrl={roomImageUrl}
                       avatarImageUrl={
-                        // Only show avatar if cutout is ready - prevents picture-over-picture
                         avatarCutoutUrl && !isProcessingAvatar
                           ? avatarCutoutUrl
                           : undefined
                       }
-                      petImageUrl={
-                        // Only show pet if cutout is ready - prevents picture-over-picture
-                        petCutoutUrl && !isProcessingPet
-                          ? petCutoutUrl
-                          : undefined
-                      }
-                      petName={petName || undefined}
                       avatarCustomization={avatarCustomization}
+                      children={familyChildren
+                        .filter(c => childCutouts.has(c.id))
+                        .map(c => ({
+                          ...c,
+                          imageUrl: childCutouts.get(c.id) || c.imageUrl
+                        }))}
+                      pets={familyPets
+                        .filter(p => petCutouts.has(p.id))
+                        .map(p => ({
+                          ...p,
+                          imageUrl: petCutouts.get(p.id) || p.imageUrl
+                        }))}
                     />
+                    
+                    {/* Family Summary */}
+                    <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                      <h4 className="font-medium mb-2">Your Family</h4>
+                      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                        {avatarCutoutUrl && (
+                          <span className="bg-background px-2 py-1 rounded">
+                            {activeProfile?.name || "AI"} (Avatar)
+                          </span>
+                        )}
+                        {familyChildren.map(child => (
+                          <span key={child.id} className="bg-background px-2 py-1 rounded">
+                            {child.name} (Child)
+                          </span>
+                        ))}
+                        {familyPets.map(pet => (
+                          <span key={pet.id} className="bg-background px-2 py-1 rounded">
+                            {pet.name} (Pet)
+                          </span>
+                        ))}
+                        {!avatarCutoutUrl && familyChildren.length === 0 && familyPets.length === 0 && (
+                          <span>No family members yet. Generate an avatar, manifest children, or create pets!</span>
+                        )}
+                      </div>
+                    </div>
                   </>
                 ) : (
                   <p className="text-center text-muted-foreground py-12">
-                    Generate a room to see the live 3D scene
+                    Generate a room to see your family in 3D
                   </p>
                 )}
               </CardContent>

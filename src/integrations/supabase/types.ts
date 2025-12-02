@@ -714,36 +714,92 @@ export type Database = {
           },
         ]
       }
+      pet_moods: {
+        Row: {
+          behavior: string | null
+          created_at: string
+          id: string
+          intensity: number
+          mood_type: string
+          notes: string | null
+          pet_id: string
+          user_id: string
+        }
+        Insert: {
+          behavior?: string | null
+          created_at?: string
+          id?: string
+          intensity?: number
+          mood_type: string
+          notes?: string | null
+          pet_id: string
+          user_id: string
+        }
+        Update: {
+          behavior?: string | null
+          created_at?: string
+          id?: string
+          intensity?: number
+          mood_type?: string
+          notes?: string | null
+          pet_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_moods_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pets: {
         Row: {
           ai_profile_id: string
+          behavior_state: string | null
           created_at: string
+          current_mood: string | null
           description: string | null
           id: string
           image_url: string | null
+          last_mood_update: string | null
+          mood_intensity: number | null
           name: string | null
+          personality_traits: string[] | null
           pet_number: number
           updated_at: string
           user_id: string
         }
         Insert: {
           ai_profile_id: string
+          behavior_state?: string | null
           created_at?: string
+          current_mood?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
+          last_mood_update?: string | null
+          mood_intensity?: number | null
           name?: string | null
+          personality_traits?: string[] | null
           pet_number?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           ai_profile_id?: string
+          behavior_state?: string | null
           created_at?: string
+          current_mood?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
+          last_mood_update?: string | null
+          mood_intensity?: number | null
           name?: string | null
+          personality_traits?: string[] | null
           pet_number?: number
           updated_at?: string
           user_id?: string
