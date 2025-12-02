@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Loader2, PawPrint } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
+import { PetPersonalityCard } from "@/components/pets/PetPersonalityCard";
 
 interface Pet {
   id: string;
@@ -18,6 +19,10 @@ interface Pet {
   name: string | null;
   description: string | null;
   image_url: string | null;
+  personality_traits: string[] | null;
+  current_mood: string | null;
+  mood_intensity: number | null;
+  behavior_state: string | null;
 }
 
 export default function Pets() {
@@ -136,6 +141,61 @@ export default function Pets() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const updatePetMood = async (mood: string, intensity: number) => {
+    const pet = pets.find(p => p.pet_number === parseInt(selectedPetNumber));
+    if (!pet) return;
+
+    try {
+      const { error } = await supabase
+        .from("pets")
+        .update({
+          current_mood: mood,
+          mood_intensity: intensity,
+          last_mood_update: new Date().toISOString(),
+        })
+        .eq("id", pet.id);
+
+      if (error) throw error;
+      await loadPets();
+    } catch (error) {
+      console.error("Error updating pet mood:", error);
+    }
+  };
+
+  const updatePetTraits = async (traits: string[]) => {
+    const pet = pets.find(p => p.pet_number === parseInt(selectedPetNumber));
+    if (!pet) return;
+
+    try {
+      const { error } = await supabase
+        .from("pets")
+        .update({ personality_traits: traits })
+        .eq("id", pet.id);
+
+      if (error) throw error;
+      await loadPets();
+    } catch (error) {
+      console.error("Error updating pet traits:", error);
+    }
+  };
+
+  const updatePetBehavior = async (behavior: string) => {
+    const pet = pets.find(p => p.pet_number === parseInt(selectedPetNumber));
+    if (!pet) return;
+
+    try {
+      const { error } = await supabase
+        .from("pets")
+        .update({ behavior_state: behavior })
+        .eq("id", pet.id);
+
+      if (error) throw error;
+      await loadPets();
+    } catch (error) {
+      console.error("Error updating pet behavior:", error);
     }
   };
 
@@ -342,6 +402,21 @@ export default function Pets() {
               />
             </CardContent>
           </Card>
+        )}
+
+        {/* Pet Personality & Mood */}
+        {currentPet && (
+          <PetPersonalityCard
+            petId={currentPet.id}
+            petName={currentPet.name || `Pet ${selectedPetNumber}`}
+            personalityTraits={currentPet.personality_traits || []}
+            currentMood={currentPet.current_mood || "happy"}
+            moodIntensity={currentPet.mood_intensity || 50}
+            behaviorState={currentPet.behavior_state || "relaxed"}
+            onUpdateMood={updatePetMood}
+            onUpdateTraits={updatePetTraits}
+            onUpdateBehavior={updatePetBehavior}
+          />
         )}
 
         {/* All Pets View */}
