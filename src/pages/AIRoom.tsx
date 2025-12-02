@@ -36,8 +36,8 @@ export default function AIRoom() {
   const [isGeneratingPet, setIsGeneratingPet] = useState(false);
   const [roomLighting, setRoomLighting] = useState<string>("day");
   const [avatarCustomization, setAvatarCustomization] = useState<AvatarCustomization>(defaultAvatarCustomization);
-  const [avatarCutoutUrl, setAvatarCutoutUrl] = useState<string | Blob | null>(null);
-  const [petCutoutUrl, setPetCutoutUrl] = useState<string | Blob | null>(null);
+  const [avatarCutoutUrl, setAvatarCutoutUrl] = useState<string | null>(null);
+  const [petCutoutUrl, setPetCutoutUrl] = useState<string | null>(null);
   const [showCutouts, setShowCutouts] = useState(true);
   const [preserveAppearance, setPreserveAppearance] = useState(false);
   const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
@@ -110,8 +110,10 @@ export default function AIRoom() {
       try {
         setIsProcessingAvatar(true);
         const img = await loadImage(avatarImageUrl);
-        const cutout = await removeBackground(img);
-        setAvatarCutoutUrl(cutout);
+        const cutoutBlob = await removeBackground(img);
+        // Convert Blob to Object URL for use in img/texture
+        const cutoutUrl = URL.createObjectURL(cutoutBlob);
+        setAvatarCutoutUrl(cutoutUrl);
       } catch (error) {
         console.error("Error processing avatar:", error);
         setAvatarCutoutUrl(null);
@@ -120,6 +122,13 @@ export default function AIRoom() {
       }
     };
     processAvatar();
+    
+    // Cleanup object URL when avatarImageUrl changes
+    return () => {
+      if (avatarCutoutUrl) {
+        URL.revokeObjectURL(avatarCutoutUrl);
+      }
+    };
   }, [avatarImageUrl]);
 
   useEffect(() => {
@@ -132,8 +141,10 @@ export default function AIRoom() {
       try {
         setIsProcessingPet(true);
         const img = await loadImage(petImageUrl);
-        const cutout = await removeBackground(img);
-        setPetCutoutUrl(cutout);
+        const cutoutBlob = await removeBackground(img);
+        // Convert Blob to Object URL for use in img/texture
+        const cutoutUrl = URL.createObjectURL(cutoutBlob);
+        setPetCutoutUrl(cutoutUrl);
       } catch (error) {
         console.error("Error processing pet:", error);
         setPetCutoutUrl(null);
@@ -142,6 +153,13 @@ export default function AIRoom() {
       }
     };
     processPet();
+    
+    // Cleanup object URL when petImageUrl changes
+    return () => {
+      if (petCutoutUrl) {
+        URL.revokeObjectURL(petCutoutUrl);
+      }
+    };
   }, [petImageUrl]);
 
   const generateRoom = async () => {
@@ -627,14 +645,16 @@ export default function AIRoom() {
                     <AIRoomScene
                       roomImageUrl={roomImageUrl}
                       avatarImageUrl={
-                        showCutouts && avatarCutoutUrl && !isProcessingAvatar
-                          ? (avatarCutoutUrl as string)
-                          : avatarImageUrl || undefined
+                        // Only show avatar if cutout is ready - prevents picture-over-picture
+                        avatarCutoutUrl && !isProcessingAvatar
+                          ? avatarCutoutUrl
+                          : undefined
                       }
                       petImageUrl={
-                        showCutouts && petCutoutUrl && !isProcessingPet
-                          ? (petCutoutUrl as string)
-                          : petImageUrl || undefined
+                        // Only show pet if cutout is ready - prevents picture-over-picture
+                        petCutoutUrl && !isProcessingPet
+                          ? petCutoutUrl
+                          : undefined
                       }
                       petName={petName || undefined}
                       avatarCustomization={avatarCustomization}
