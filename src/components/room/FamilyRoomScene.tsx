@@ -132,13 +132,14 @@ export function FamilyRoomScene({
           
           <RoomBackground imageUrl={roomImageUrl} />
           
-          {/* Main Avatar - center */}
+          {/* Main Avatar - center, scaled up to match regular room view */}
           {avatarImageUrl && avatarCustomization && (
             <LiveAvatar3D 
               imageUrl={avatarImageUrl} 
               customization={{
                 ...avatarCustomization,
-                position: { x: 0, y: -0.5, z: 0 }
+                position: { x: 0, y: -0.5, z: 0 },
+                scale: (avatarCustomization.scale || 1.2) * 2.5
               }}
             />
           )}
@@ -149,7 +150,7 @@ export function FamilyRoomScene({
               key={child.id}
               imageUrl={child.imageUrl} 
               position={getChildPosition(index)} 
-              scale={0.7}
+              scale={1.8}
             />
           ))}
           
@@ -159,7 +160,7 @@ export function FamilyRoomScene({
               key={pet.id}
               imageUrl={pet.imageUrl} 
               position={getPetPosition(index)} 
-              scale={0.6}
+              scale={1.5}
             />
           ))}
           
