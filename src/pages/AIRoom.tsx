@@ -373,8 +373,8 @@ export default function AIRoom() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl mx-auto py-8 space-y-8">
-        <div className="flex items-center justify-between">
+      <div className="container max-w-6xl mx-auto py-4 sm:py-8 px-4 space-y-6 sm:space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -384,19 +384,19 @@ export default function AIRoom() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">AI Room & Avatar</h1>
-              <p className="text-muted-foreground">Create a personalized space for your AI companion</p>
+              <h1 className="text-2xl sm:text-3xl font-bold">AI Room & Avatar</h1>
+              <p className="text-sm text-muted-foreground">Create a personalized space</p>
             </div>
           </div>
           <AIProfileSelector />
         </div>
 
         <Tabs defaultValue="room" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="room">Room</TabsTrigger>
-            <TabsTrigger value="avatar">Avatar</TabsTrigger>
-            <TabsTrigger value="pet">Pet</TabsTrigger>
-            <TabsTrigger value="complete">Complete View</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1">
+            <TabsTrigger value="room" className="text-xs sm:text-sm py-2">Room</TabsTrigger>
+            <TabsTrigger value="avatar" className="text-xs sm:text-sm py-2">Avatar</TabsTrigger>
+            <TabsTrigger value="pet" className="text-xs sm:text-sm py-2">Pet</TabsTrigger>
+            <TabsTrigger value="complete" className="text-xs sm:text-sm py-2">Complete</TabsTrigger>
           </TabsList>
 
           <TabsContent value="room" className="space-y-4 mt-6">

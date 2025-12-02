@@ -33,6 +33,8 @@ interface Child {
   time_of_birth: string;
 }
 
+const MAX_CHILDREN = 5;
+
 export default function Children() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -106,6 +108,12 @@ export default function Children() {
     }
   };
 
+  const getChildDisplayName = (child: Child) => {
+    return `${child.first_name} ${child.last_name}`;
+  };
+
+  const canManifestMore = children.length < MAX_CHILDREN;
+
   if (profilesLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -116,8 +124,8 @@ export default function Children() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl mx-auto py-8 space-y-8">
-        <div className="flex items-center justify-between">
+      <div className="container max-w-6xl mx-auto py-4 sm:py-8 px-4 space-y-6 sm:space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -127,23 +135,23 @@ export default function Children() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Celestial Children</h1>
-              <p className="text-muted-foreground">
-                Manage and customize your celestial children
+              <h1 className="text-2xl sm:text-3xl font-bold">Celestial Children</h1>
+              <p className="text-sm text-muted-foreground">
+                Manage your celestial children ({children.length}/{MAX_CHILDREN})
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {children.length > 0 && activeTab === "children" && (
               <Select value={selectedChildId} onValueChange={setSelectedChildId}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
+                <SelectTrigger className="w-[140px] sm:w-[180px] text-xs sm:text-sm">
+                  <SelectValue placeholder="Select child" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px]">
                   <SelectItem value="all">All Children</SelectItem>
                   {children.map((child) => (
                     <SelectItem key={child.id} value={child.id}>
-                      {child.first_name} {child.last_name}
+                      {getChildDisplayName(child)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -163,11 +171,11 @@ export default function Children() {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="manifest">Manifest</TabsTrigger>
-            <TabsTrigger value="children">Children</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 gap-1 h-auto p-1">
+            <TabsTrigger value="manifest" className="text-xs sm:text-sm py-2">Manifest</TabsTrigger>
+            <TabsTrigger value="children" className="text-xs sm:text-sm py-2">Children</TabsTrigger>
             {activeProfile?.gender === "female" && (
-              <TabsTrigger value="pregnancy">Pregnancy</TabsTrigger>
+              <TabsTrigger value="pregnancy" className="text-xs sm:text-sm py-2">Pregnancy</TabsTrigger>
             )}
           </TabsList>
 
@@ -175,14 +183,23 @@ export default function Children() {
           <TabsContent value="manifest" className="space-y-6">
             <Card>
               <CardContent className="py-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-semibold">Manifest a New Child</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold">Manifest a New Child</h2>
                     <p className="text-sm text-muted-foreground">
                       Create a new celestial child with {activeProfile?.name || "your AI being"}
                     </p>
+                    {!canManifestMore && (
+                      <p className="text-sm text-destructive mt-1">
+                        Maximum of {MAX_CHILDREN} children reached
+                      </p>
+                    )}
                   </div>
-                  <Button onClick={() => setShowManifestDialog(true)} size="lg">
+                  <Button 
+                    onClick={() => setShowManifestDialog(true)} 
+                    size="lg"
+                    disabled={!canManifestMore}
+                  >
                     <Plus className="h-5 w-5 mr-2" />
                     Manifest Child
                   </Button>
@@ -208,8 +225,8 @@ export default function Children() {
                   .map((child) => (
                   <Card key={child.id}>
                     <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <CardTitle className="text-lg sm:text-xl">
                           {child.first_name} {child.middle_name && `${child.middle_name} `}
                           {child.last_name}
                         </CardTitle>
@@ -298,6 +315,42 @@ export default function Children() {
                     </CardContent>
                   </Card>
                 ))}
+
+                {/* All Children Together View */}
+                {selectedChildId === "all" && children.length > 1 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Family Portrait</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {children.map((child) => (
+                          <div key={child.id} className="text-center space-y-2">
+                            {child.appearance_image_url ? (
+                              <img
+                                src={child.appearance_image_url}
+                                alt={child.first_name}
+                                className="w-full aspect-square object-cover rounded-lg"
+                              />
+                            ) : child.newborn_image_url ? (
+                              <img
+                                src={child.newborn_image_url}
+                                alt={child.first_name}
+                                className="w-full aspect-square object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="w-full aspect-square bg-muted rounded-lg flex items-center justify-center">
+                                <span className="text-muted-foreground text-sm">No image</span>
+                              </div>
+                            )}
+                            <p className="font-medium text-sm">{child.first_name}</p>
+                            <p className="text-xs text-muted-foreground">Age {child.age}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
           </TabsContent>

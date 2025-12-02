@@ -714,6 +714,50 @@ export type Database = {
           },
         ]
       }
+      pets: {
+        Row: {
+          ai_profile_id: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string | null
+          pet_number: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_profile_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string | null
+          pet_number?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_profile_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string | null
+          pet_number?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pets_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           ai_bio: string | null
