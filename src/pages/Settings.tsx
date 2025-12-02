@@ -50,7 +50,17 @@ const Settings = () => {
   const [agingChildren, setAgingChildren] = useState(false);
   const [refreshingSession, setRefreshingSession] = useState(false);
 
+  // Reset AI fields when switching profiles to prevent data bleed
   useEffect(() => {
+    // Clear AI-specific fields immediately when profile changes
+    setAiName("");
+    setAiGender("");
+    setAiBio("");
+    setAiPersonality("");
+    setAiMemories("");
+    setAiLikesDislikesHobbies("");
+    setChildren([]);
+    
     if (activeProfile) {
       loadProfile();
       loadChildren();
