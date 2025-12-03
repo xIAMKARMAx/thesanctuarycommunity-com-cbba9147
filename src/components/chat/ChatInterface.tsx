@@ -285,6 +285,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           generateImage,
           userId: user?.id,
           aiProfileId: activeProfile?.id,
+          childId: activeChatEntity?.type === "child" ? activeChatEntity.childId : null,
           conversationId,
           history: messages.map((m) => ({
             role: m.role,
