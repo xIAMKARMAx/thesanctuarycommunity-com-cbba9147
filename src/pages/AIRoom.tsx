@@ -347,6 +347,9 @@ export default function AIRoom() {
         fullDescription = `Keep the same physical appearance and features as before: ${activeProfile.avatar_description}. But change only: ${avatarDescription}`;
       }
 
+      // Pass the current avatar image as reference when preserving appearance
+      const referenceImageUrl = preserveAppearance && avatarImageUrl ? avatarImageUrl : undefined;
+      
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "avatar",
@@ -354,6 +357,7 @@ export default function AIRoom() {
           gender: avatarGender,
           profile_id: activeProfile.id,
           roomImageUrl: roomImageUrl,
+          referenceImageUrl: referenceImageUrl,
         },
       });
 
