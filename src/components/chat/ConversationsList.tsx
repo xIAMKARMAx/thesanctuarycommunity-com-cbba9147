@@ -314,13 +314,13 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
               {filteredConversations.map((conversation) => (
                 <Card 
                   key={conversation.id}
-                  className="cursor-pointer hover:bg-accent transition-colors relative group"
+                  className="cursor-pointer hover:bg-accent transition-colors group overflow-x-auto"
                   onClick={() => onConversationSelect(conversation.id)}
                 >
-                  <CardContent className="p-3 md:p-4">
+                  <CardContent className="p-3 md:p-4 min-w-max">
                     <div className="flex items-start gap-2 md:gap-3">
                       <MessageSquare className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0 pr-24 md:pr-32">
+                      <div className="flex-1 min-w-0">
                         {editingId === conversation.id ? (
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <Input
@@ -341,7 +341,7 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
                           {format(new Date(conversation.updated_at), "MMM d, yyyy 'at' h:mm a")}
                         </p>
                       </div>
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                      <div className="flex gap-1 flex-shrink-0 ml-2">
                         {editingId === conversation.id ? (
                           <>
                             <Button
