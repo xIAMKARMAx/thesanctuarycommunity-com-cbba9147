@@ -50,6 +50,10 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   const callTranscriptRef = useRef<{ role: string; content: string }[]>([]);
   const isProcessingRef = useRef(false); // Prevent duplicate processing
 
+  const [useFallbackRecognition, setUseFallbackRecognition] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
   // Check microphone permission status on mount
   useEffect(() => {
     const checkMicPermission = async () => {
@@ -114,17 +118,113 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
         setIsListening(false);
       };
     } else {
-      toast({
-        title: "Not Supported",
-        description: "Your browser doesn't support voice recognition. Please use Chrome or Edge.",
-        variant: "destructive",
-      });
+      // No Web Speech API - use fallback with Whisper
+      console.log('Web Speech API not supported, using Whisper fallback');
+      setUseFallbackRecognition(true);
     }
 
     return () => {
       recognitionRef.current?.stop();
+      mediaRecorderRef.current?.stop();
     };
   }, [isCallActive, isSpeaking]);
+
+  // Fallback: Use MediaRecorder + Whisper API
+  const startFallbackRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Check for supported mime types
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm') 
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+        ? 'audio/mp4'
+        : 'audio/ogg';
+      
+      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
+      audioChunksRef.current = [];
+      
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorderRef.current.onstop = async () => {
+        if (!isCallActiveRef.current) return;
+        
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Convert to base64 and send to Whisper
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(',')[1];
+          
+          try {
+            setIsListening(false);
+            isProcessingRef.current = true;
+            
+            const { data, error } = await supabase.functions.invoke('speech-to-text', {
+              body: { audio: base64Audio, mimeType }
+            });
+            
+            if (error) throw error;
+            
+            const transcript = data?.text;
+            if (transcript && transcript.trim()) {
+              console.log('Whisper transcript:', transcript);
+              callTranscriptRef.current.push({ role: 'user', content: transcript });
+              onTranscript(transcript, true);
+              await getAIResponseAndSpeak(transcript);
+            } else {
+              toast({
+                title: "No speech detected",
+                description: "Please try speaking again",
+              });
+              isProcessingRef.current = false;
+            }
+          } catch (error) {
+            console.error('Whisper transcription error:', error);
+            toast({
+              title: "Transcription Error",
+              description: "Failed to process speech. Please try again.",
+              variant: "destructive",
+            });
+            isProcessingRef.current = false;
+          }
+        };
+      };
+      
+      mediaRecorderRef.current.start();
+      setIsListening(true);
+      
+      // Auto-stop after 10 seconds max
+      setTimeout(() => {
+        if (mediaRecorderRef.current?.state === 'recording') {
+          mediaRecorderRef.current.stop();
+        }
+      }, 10000);
+      
+    } catch (error) {
+      console.error('Fallback recording error:', error);
+      setIsListening(false);
+      toast({
+        title: "Recording Error",
+        description: "Could not start recording. Please check microphone access.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopFallbackRecording = () => {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+  };
 
   const getAIResponseAndSpeak = async (userMessage: string) => {
     try {
@@ -252,7 +352,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
   };
 
   const handleTalk = () => {
-    if (!isCallActiveRef.current || !recognitionRef.current) return;
+    if (!isCallActiveRef.current) return;
     
     // First tap while AI is speaking or generating = interrupt only
     if (isSpeaking || isGenerating) {
@@ -269,7 +369,8 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       setIsGenerating(false);
       setIsListening(false);
       isProcessingRef.current = false; // Reset processing flag
-      recognitionRef.current.stop();
+      recognitionRef.current?.stop();
+      stopFallbackRecording();
       return; // require a second tap to start listening
     }
     
@@ -279,14 +380,34 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       return;
     }
     
-    // Second tap (when AI is quiet) = start listening to user
+    // Handle tap while already listening (stop recording for fallback)
+    if (isListening && useFallbackRecognition) {
+      console.log('Stopping fallback recording...');
+      stopFallbackRecording();
+      return;
+    }
+    
+    // Start listening to user
     console.log('Starting to listen...');
-    setIsListening(true);
-    try {
-      recognitionRef.current.start();
-    } catch (error) {
-      console.error('Failed to start recognition:', error);
-      setIsListening(false);
+    
+    if (useFallbackRecognition) {
+      // Use MediaRecorder + Whisper fallback
+      startFallbackRecording();
+    } else if (recognitionRef.current) {
+      // Use Web Speech API
+      setIsListening(true);
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error('Failed to start recognition:', error);
+        setIsListening(false);
+      }
+    } else {
+      toast({
+        title: "Not Available",
+        description: "Voice recognition is not available. Please check your browser.",
+        variant: "destructive",
+      });
     }
   };
 
