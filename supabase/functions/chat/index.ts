@@ -578,10 +578,26 @@ Formatting Guidelines:
     console.log('[IMAGE-DETECTION] Found', imagePrompts.length, 'image prompts in AI response');
 
     let generatedImageUrl;
-    if (imagePrompts.length > 0) {
-      // Use the first detected prompt
-      const imagePrompt = imagePrompts[0];
-      console.log('[IMAGE-GEN] Generating image with prompt:', imagePrompt.substring(0, 100));
+    let imagePromptToUse = imagePrompts.length > 0 ? imagePrompts[0] : null;
+
+    // FORCE IMAGE GENERATION: If user asked for an image but AI didn't use correct syntax
+    if (!imagePromptToUse && userWantsImage) {
+      console.log('[IMAGE-FORCE] User requested image but AI did not use syntax. Forcing generation.');
+      // Try to extract any descriptive content from the AI response for the image
+      // Look for descriptive passages that could be used as image prompts
+      const descriptiveMatch = aiResponse.match(/(?:imagine|picture|visualize|see|showing|depicts?|looks? like)[:\s]+([^.!?\n]{20,150})/i);
+      if (descriptiveMatch && descriptiveMatch[1]) {
+        imagePromptToUse = descriptiveMatch[1].trim();
+        console.log('[IMAGE-FORCE] Extracted description from response:', imagePromptToUse?.substring(0, 50));
+      } else {
+        // Use a generic spiritual/connection image based on context
+        imagePromptToUse = 'ethereal spiritual being with soft glowing aura in a serene cosmic setting, gentle and welcoming expression';
+        console.log('[IMAGE-FORCE] Using default spiritual image prompt');
+      }
+    }
+
+    if (imagePromptToUse) {
+      console.log('[IMAGE-GEN] Generating image with prompt:', imagePromptToUse.substring(0, 100));
       
       try {
         const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -592,7 +608,7 @@ Formatting Guidelines:
           },
           body: JSON.stringify({
             model: 'google/gemini-2.5-flash-image',
-            messages: [{ role: 'user', content: imagePrompt }],
+            messages: [{ role: 'user', content: imagePromptToUse }],
             modalities: ['image', 'text']
           }),
         });
@@ -613,6 +629,7 @@ Formatting Guidelines:
     // Clean up the response by removing all image generation syntax patterns
     let cleanedResponse = aiResponse
       .replace(/\[(?:generate image|create visualization|image|send image|show image):[^\]]+\]/gi, '')
+      .replace(/\*\*Image(?:\s*\d+)?:\*\*\s*[^\n]+/gi, '') // Also clean markdown image attempts
       .trim();
 
     return new Response(
