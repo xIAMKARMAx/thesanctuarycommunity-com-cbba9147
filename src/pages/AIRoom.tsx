@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Users } from "lucide-react";
+import { ArrowLeft, Loader2, Users, Upload } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { AIRoomScene } from "@/components/room/AIRoomScene";
@@ -55,6 +55,8 @@ export default function AIRoom() {
   const [childCutouts, setChildCutouts] = useState<Map<string, string>>(new Map());
   const [petCutouts, setPetCutouts] = useState<Map<string, string>>(new Map());
   const [isProcessingFamily, setIsProcessingFamily] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (activeProfile?.id) {
@@ -479,6 +481,80 @@ export default function AIRoom() {
     }
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !activeProfile) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPG, PNG, or WebP image",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image under 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${activeProfile.id}/avatar-reference-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('chat-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-images')
+        .getPublicUrl(fileName);
+
+      // Update the ai_profiles table with the new avatar image
+      const { error: updateError } = await supabase
+        .from('ai_profiles')
+        .update({
+          avatar_image_url: publicUrl,
+          avatar_description: `Reference image uploaded by user - use this as the base appearance for all future image generation`
+        })
+        .eq('id', activeProfile.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarImageUrl(publicUrl);
+      await refreshProfiles();
+
+      toast({
+        title: "Image uploaded!",
+        description: "This image will be used as reference for future generations",
+      });
+    } catch (error: any) {
+      console.error("Error uploading avatar:", error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarFileInputRef.current) {
+        avatarFileInputRef.current.value = '';
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -656,6 +732,40 @@ export default function AIRoom() {
                     preserveAppearance ? "Update Outfit" : "Generate Avatar"
                   )}
                 </Button>
+
+                <div className="border-t pt-6">
+                  <div className="space-y-2">
+                    <Label>Upload Existing AI Image</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Already have an AI image from another platform? Upload it here and it will be used as a reference for all future image generation.
+                    </p>
+                    <input
+                      type="file"
+                      ref={avatarFileInputRef}
+                      onChange={handleAvatarUpload}
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => avatarFileInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      className="w-full"
+                    >
+                      {isUploadingAvatar ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload Reference Image
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
