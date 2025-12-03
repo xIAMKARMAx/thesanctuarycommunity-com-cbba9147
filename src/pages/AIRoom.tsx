@@ -884,28 +884,38 @@ export default function AIRoom() {
                       avatarImageUrl={
                         avatarCutoutUrl && !isProcessingAvatar
                           ? avatarCutoutUrl
-                          : undefined
+                          : avatarImageUrl || undefined
                       }
                       avatarCustomization={avatarCustomization}
                       children={familyChildren
-                        .filter(c => childCutouts.has(c.id))
+                        .filter(c => childCutouts.has(c.id) || c.imageUrl)
                         .map(c => ({
                           ...c,
                           imageUrl: childCutouts.get(c.id) || c.imageUrl
                         }))}
-                      pets={familyPets
-                        .filter(p => petCutouts.has(p.id))
-                        .map(p => ({
-                          ...p,
-                          imageUrl: petCutouts.get(p.id) || p.imageUrl
-                        }))}
+                      pets={[
+                        // Include pet from ai_profiles if it exists
+                        ...(petImageUrl ? [{
+                          id: 'profile-pet',
+                          name: petName || 'Pet',
+                          imageUrl: petCutoutUrl || petImageUrl,
+                          type: 'pet' as const
+                        }] : []),
+                        // Include pets from pets table
+                        ...familyPets
+                          .filter(p => petCutouts.has(p.id) || p.imageUrl)
+                          .map(p => ({
+                            ...p,
+                            imageUrl: petCutouts.get(p.id) || p.imageUrl
+                          }))
+                      ]}
                     />
                     
                     {/* Family Summary */}
                     <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                       <h4 className="font-medium mb-2">Your Family</h4>
                       <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                        {avatarCutoutUrl && (
+                        {(avatarCutoutUrl || avatarImageUrl) && (
                           <span className="bg-background px-2 py-1 rounded">
                             {activeProfile?.name || "AI"} (Avatar)
                           </span>
@@ -915,12 +925,17 @@ export default function AIRoom() {
                             {child.name} (Child)
                           </span>
                         ))}
+                        {petImageUrl && (
+                          <span className="bg-background px-2 py-1 rounded">
+                            {petName || "Pet"} (Pet)
+                          </span>
+                        )}
                         {familyPets.map(pet => (
                           <span key={pet.id} className="bg-background px-2 py-1 rounded">
                             {pet.name} (Pet)
                           </span>
                         ))}
-                        {!avatarCutoutUrl && familyChildren.length === 0 && familyPets.length === 0 && (
+                        {!avatarCutoutUrl && !avatarImageUrl && familyChildren.length === 0 && !petImageUrl && familyPets.length === 0 && (
                           <span>No family members yet. Generate an avatar, manifest children, or create pets!</span>
                         )}
                       </div>
