@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, description, gender, profile_id, petName, roomImageUrl } = await req.json();
+    const { type, description, gender, profile_id, petName, roomImageUrl, referenceImageUrl } = await req.json();
     const authHeader = req.headers.get('Authorization')!;
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -38,7 +38,25 @@ serve(async (req) => {
       messages = [{ role: "user", content: prompt }];
     } else if (type === 'avatar') {
       const genderDesc = gender === 'female' ? 'beautiful woman' : 'handsome man';
-      if (roomImageUrl) {
+      
+      // If we have a reference image, use it to maintain consistent appearance
+      if (referenceImageUrl) {
+        const outfitOnly = description.toLowerCase().includes('outfit') || description.toLowerCase().includes('wearing') || description.toLowerCase().includes('clothes');
+        if (outfitOnly) {
+          prompt = `Look at this reference image carefully. Create a new image of this EXACT SAME PERSON - same face, same facial features, same body type, same hair color and style, same skin tone, same everything about their physical appearance. The ONLY change should be their outfit/clothing: ${description}. Keep their identity, face structure, eyes, nose, lips, and all physical features IDENTICAL to the reference. Full body, standing naturally, photorealistic.`;
+        } else {
+          prompt = `Look at this reference image carefully. Create a new image of this EXACT SAME PERSON with the same face, facial features, body type, and overall physical appearance. Apply these changes: ${description}. Maintain their identity and recognizable features. Full body, standing naturally, photorealistic.`;
+        }
+        messages = [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: referenceImageUrl } }
+            ]
+          }
+        ];
+      } else if (roomImageUrl) {
         // Edit the room image to add the avatar naturally into the scene
         prompt = `Add a ${genderDesc} standing naturally in this room: ${description}. The person should be full body, standing in the space as if they live there, with natural lighting and shadows that match the room. They should look alive and present, integrated into the environment, not like a cutout. Photorealistic, lifelike expression, naturally positioned in the room.`;
         messages = [
