@@ -43,6 +43,19 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
+  // Clear conversations on auth state change
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN') {
+        setConversations([]);
+        setFilteredConversations([]);
+        setSearchQuery("");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   useEffect(() => {
     if (activeProfile) {
       loadConversations();

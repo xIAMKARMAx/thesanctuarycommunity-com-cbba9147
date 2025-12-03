@@ -39,9 +39,22 @@ const Chat = () => {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      if (!session) {
+      if (event === 'SIGNED_OUT') {
+        // Clear all conversation state on logout
+        setActiveConversationId(null);
+        setConversationListKey((prev) => prev + 1);
+        setSession(null);
         navigate("/auth");
+      } else if (event === 'SIGNED_IN') {
+        // Reset state for new user
+        setActiveConversationId(null);
+        setConversationListKey((prev) => prev + 1);
+        setSession(session);
+      } else {
+        setSession(session);
+        if (!session) {
+          navigate("/auth");
+        }
       }
     });
 

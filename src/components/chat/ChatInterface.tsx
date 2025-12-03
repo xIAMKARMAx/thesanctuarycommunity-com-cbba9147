@@ -63,7 +63,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   }, [activeConversationId]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN') {
+        // Clear messages when user changes
+        setMessages([]);
+        setCurrentConversationId(null);
+        setInput("");
+        setImageFile(null);
+      }
       setSession(session);
     });
 
