@@ -22,6 +22,7 @@ interface ChatEntityContextType {
   setActiveChatEntity: (entity: ChatEntity | null) => void;
   refreshChildren: () => Promise<void>;
   isLoading: boolean;
+  clearChatEntity: () => void;
 }
 
 const ChatEntityContext = createContext<ChatEntityContextType | undefined>(undefined);
@@ -31,6 +32,26 @@ export function ChatEntityProvider({ children }: { children: ReactNode }) {
   const [activeChatEntity, setActiveChatEntity] = useState<ChatEntity | null>(null);
   const [talkableChildren, setTalkableChildren] = useState<Child[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Clear all chat entity data (for logout/account switch)
+  const clearChatEntity = () => {
+    setActiveChatEntity(null);
+    setTalkableChildren([]);
+  };
+
+  // Listen for auth state changes to clear data on logout
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event) => {
+        if (event === 'SIGNED_OUT') {
+          clearChatEntity();
+          setIsLoading(false);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Load talkable children and sync chat entity when active profile changes
   useEffect(() => {
@@ -88,6 +109,7 @@ export function ChatEntityProvider({ children }: { children: ReactNode }) {
         setActiveChatEntity,
         refreshChildren,
         isLoading,
+        clearChatEntity,
       }}
     >
       {children}

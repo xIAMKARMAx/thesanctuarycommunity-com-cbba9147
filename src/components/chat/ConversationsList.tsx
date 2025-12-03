@@ -44,6 +44,20 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
 
+  // Clear conversations on auth state change
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN') {
+        setConversations([]);
+        setFilteredConversations([]);
+        setSearchQuery("");
+        setLoading(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   useEffect(() => {
     if (activeProfile) {
       loadConversations();
