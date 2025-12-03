@@ -110,18 +110,18 @@ const Chat = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-x-hidden">
-      <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {/* Mobile menu button (hidden on md and up) */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
-                size="default"
-                className="border-primary/30 md:hidden"
+                size="sm"
+                className="border-primary/30 md:hidden shrink-0"
               >
-                <Menu className="h-6 w-6 mr-2" />
-                Menu
+                <Menu className="h-5 w-5 mr-1" />
+                <span className="sr-only sm:not-sr-only">Menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-64">
@@ -135,18 +135,18 @@ const Chat = () => {
               />
             </SheetContent>
           </Sheet>
-          <h1 className="text-xl font-semibold truncate">Chat</h1>
+          <h1 className="text-lg sm:text-xl font-semibold truncate">Chat</h1>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <ConnectionStatus />
           {!isSubscribed && (
             <Button
               variant="default"
               size="sm"
               onClick={() => navigate("/settings")}
-              className="gap-2 bg-gradient-to-r from-primary to-primary/80"
+              className="gap-1 sm:gap-2 bg-gradient-to-r from-primary to-primary/80 text-xs sm:text-sm px-2 sm:px-3"
             >
-              <Crown className="h-4 w-4" />
+              <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Upgrade to Pro</span>
               <span className="sm:hidden">Pro</span>
             </Button>
