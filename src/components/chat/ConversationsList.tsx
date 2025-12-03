@@ -386,11 +386,11 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 md:h-8 md:w-8"
+                              className="h-8 w-8 md:h-8 md:w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={(e) => handleDeleteClick(conversation.id, e)}
                               title="Delete conversation"
                             >
-                              <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
+                              <Trash2 className="h-4 w-4 md:h-4 md:w-4" />
                             </Button>
                           </>
                         )}
