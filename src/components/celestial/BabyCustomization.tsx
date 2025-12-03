@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Download, History } from "lucide-react";
+import { Loader2, Download, History, Upload, ImageIcon } from "lucide-react";
 
 interface ImageHistoryItem {
   id: string;
@@ -38,9 +38,11 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
   const [appearanceDescription, setAppearanceDescription] = useState(childData.appearance_description || "");
   const [isGeneratingRoom, setIsGeneratingRoom] = useState(false);
   const [isGeneratingAppearance, setIsGeneratingAppearance] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [localChildData, setLocalChildData] = useState(childData);
   const [appearanceHistory, setAppearanceHistory] = useState<ImageHistoryItem[]>([]);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Update local state when childData changes
@@ -230,6 +232,100 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG, GIF, or WebP image",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      // Upload to storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `child-appearance-${childId}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("chat-images")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("chat-images")
+        .getPublicUrl(fileName);
+
+      // Update child's appearance image URL
+      const { error: updateError } = await supabase
+        .from("celestial_children")
+        .update({ 
+          appearance_image_url: publicUrl,
+          appearance_description: appearanceDescription || `Uploaded reference image for ${childData.first_name}`
+        })
+        .eq("id", childId);
+
+      if (updateError) throw updateError;
+
+      // Log to history
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from("child_image_history")
+          .insert({
+            child_id: childId,
+            user_id: user.id,
+            image_type: "appearance",
+            image_url: publicUrl,
+            description: "Uploaded reference image",
+          });
+      }
+
+      // Update local state
+      setLocalChildData((prev) => ({
+        ...prev,
+        appearance_image_url: publicUrl,
+      }));
+
+      toast({
+        title: "Success",
+        description: "Reference image uploaded! Future AI-generated images will be based on this appearance.",
+      });
+
+      await loadAppearanceHistory();
+      onUpdate();
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -276,6 +372,53 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
           </TabsContent>
           
           <TabsContent value="appearance" className="space-y-4">
+            {/* Upload existing image section */}
+            <div className="border-2 border-dashed border-border rounded-lg p-4 text-center space-y-3">
+              <div className="flex items-center justify-center">
+                <ImageIcon className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div>
+                <h4 className="font-medium text-sm">Upload Existing Image</h4>
+                <p className="text-xs text-muted-foreground">
+                  Already have an image from another platform? Upload it as a reference for future generations.
+                </p>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+              >
+                {isUploadingImage ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Reference Image
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div className="relative flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <span className="relative bg-card px-2 text-xs text-muted-foreground">
+                or generate new
+              </span>
+            </div>
+
             <Textarea
               placeholder="Describe how you want the baby to look..."
               value={appearanceDescription}
@@ -299,7 +442,7 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
             {localChildData.appearance_image_url && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">Current Baby's Appearance</h3>
+                  <h3 className="text-sm font-medium">Current Appearance (Reference)</h3>
                   <Button
                     size="sm"
                     variant="outline"
@@ -309,6 +452,9 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
                     Download
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  AI will use this as reference when generating images in chat
+                </p>
                 <img 
                   src={localChildData.appearance_image_url} 
                   alt="Baby" 

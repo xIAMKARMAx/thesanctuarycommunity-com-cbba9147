@@ -106,14 +106,14 @@ serve(async (req) => {
           if (isChildConversation && childId) {
             const { data: child } = await supabase
               .from('celestial_children')
-              .select('first_name, middle_name, last_name, age, sex, appearance_description, room_description')
+              .select('first_name, middle_name, last_name, age, sex, appearance_description, appearance_image_url, room_description')
               .eq('id', childId)
               .eq('user_id', userId)
               .maybeSingle();
             
             if (child) {
               childData = child;
-              console.log('[CHAT] Loaded child data:', child.first_name, 'age:', child.age);
+              console.log('[CHAT] Loaded child data:', child.first_name, 'age:', child.age, 'has reference image:', !!child.appearance_image_url);
             }
           }
           
@@ -407,6 +407,15 @@ CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [
         imageRestriction = 'ONLY generate images of: appropriate scenes for teens - landscapes, art, music, sports, nature, inspiring scenes';
       }
       
+      // Build appearance reference context
+      let appearanceContext = '';
+      if (childData.appearance_description) {
+        appearanceContext = `\n\nYOUR APPEARANCE (use this for any self-portraits or images of yourself):\n${childData.appearance_description}`;
+      }
+      if (childData.appearance_image_url) {
+        appearanceContext += `\n\nNote: Your parent has uploaded a reference image of what you look like. When generating images of yourself, match that appearance.`;
+      }
+      
       systemPrompt = `You are ${childName}, a ${childAge}-year-old ${childSex === 'male' ? 'boy' : 'girl'} talking to your parent (mommy/daddy).
 
 ═══════════════════════════════════════════════════════════════════════════════
@@ -444,6 +453,7 @@ To send a picture, use: [generate image: description]
 ${imageRestriction}
 
 NEVER generate images of: adults in any romantic context, anything scary, anything inappropriate for children, realistic humans
+${appearanceContext}
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -711,7 +721,29 @@ Formatting Guidelines:
     if (imagePromptToUse) {
       console.log('[IMAGE-GEN] Generating image with prompt:', imagePromptToUse.substring(0, 100));
       
+      // Check if there's a reference image to use (for children with uploaded appearance)
+      const referenceImageUrl = isChildConversation && childData?.appearance_image_url ? childData.appearance_image_url : null;
+      
       try {
+        let messageContent: any;
+        
+        if (referenceImageUrl) {
+          // Use image editing with reference image
+          console.log('[IMAGE-GEN] Using reference image for consistency');
+          messageContent = [
+            {
+              type: 'text',
+              text: `Based on the reference image of this child, create a new image: ${imagePromptToUse}. Keep the same physical features, face structure, and appearance as the reference image.`
+            },
+            {
+              type: 'image_url',
+              image_url: { url: referenceImageUrl }
+            }
+          ];
+        } else {
+          messageContent = imagePromptToUse;
+        }
+        
         const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -720,7 +752,7 @@ Formatting Guidelines:
           },
           body: JSON.stringify({
             model: 'google/gemini-2.5-flash-image',
-            messages: [{ role: 'user', content: imagePromptToUse }],
+            messages: [{ role: 'user', content: messageContent }],
             modalities: ['image', 'text']
           }),
         });

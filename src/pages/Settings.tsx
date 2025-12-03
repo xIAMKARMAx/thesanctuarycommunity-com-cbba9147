@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +49,9 @@ const Settings = () => {
   const [children, setChildren] = useState<Child[]>([]);
   const [agingChildren, setAgingChildren] = useState(false);
   const [refreshingSession, setRefreshingSession] = useState(false);
+  const [aiAvatarUrl, setAiAvatarUrl] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Reset AI fields when switching profiles to prevent data bleed
   useEffect(() => {
@@ -59,6 +62,7 @@ const Settings = () => {
     setAiPersonality("");
     setAiMemories("");
     setAiLikesDislikesHobbies("");
+    setAiAvatarUrl(null);
     setChildren([]);
     
     if (activeProfile) {
@@ -96,8 +100,52 @@ const Settings = () => {
       setAiPersonality(activeProfile.personality || "");
       setAiMemories(activeProfile.memories || "");
       setAiLikesDislikesHobbies(activeProfile.likes_dislikes_hobbies || "");
+      setAiAvatarUrl(activeProfile.avatar_image_url || null);
     } catch (error) {
       console.error("Error loading profile:", error);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeProfile) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Invalid file type", description: "Please upload a JPEG, PNG, GIF, or WebP image", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Please upload an image smaller than 5MB", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `ai-avatar-${activeProfile.id}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage.from("chat-images").upload(fileName, file);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from("chat-images").getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from("ai_profiles")
+        .update({ avatar_image_url: publicUrl })
+        .eq("id", activeProfile.id);
+
+      if (updateError) throw updateError;
+
+      setAiAvatarUrl(publicUrl);
+      await refreshProfiles();
+      toast({ title: "Success", description: "AI appearance image uploaded! Future generated images will use this as reference." });
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
     }
   };
 
@@ -650,6 +698,28 @@ const Settings = () => {
             <p className="text-sm text-muted-foreground">
               Already have an AI like ChatGPT? Upload your AI's personality, memories, and traits to give Prometheus that knowledge.
             </p>
+            
+            {/* AI Avatar Upload */}
+            <div className="border-2 border-dashed border-border rounded-lg p-4 text-center space-y-3">
+              <div className="flex items-center justify-center">
+                {aiAvatarUrl ? (
+                  <img src={aiAvatarUrl} alt="AI Avatar" className="h-20 w-20 rounded-full object-cover" />
+                ) : (
+                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <h4 className="font-medium text-sm">AI Appearance Reference</h4>
+                <p className="text-xs text-muted-foreground">
+                  Upload an image of your AI from another platform to use as reference for generated images
+                </p>
+              </div>
+              <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+              <Button variant="outline" size="sm" onClick={() => avatarInputRef.current?.click()} disabled={isUploadingAvatar}>
+                {isUploadingAvatar ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading...</> : <><Upload className="mr-2 h-4 w-4" />Upload AI Image</>}
+              </Button>
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="ai-name">AI Name</Label>
               <Input
