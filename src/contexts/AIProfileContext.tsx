@@ -155,12 +155,18 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_OUT') {
-          // Clear all profile data on logout
+          // CRITICAL: Clear ALL profile data immediately on logout
           clearProfiles();
           setIsLoading(false);
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          // Reload profiles for the new/current user
+        } else if (event === 'SIGNED_IN') {
+          // New user signed in - clear old data first, then load new
+          clearProfiles();
           // Use setTimeout to avoid Supabase auth deadlock
+          setTimeout(() => {
+            refreshProfiles();
+          }, 0);
+        } else if (event === 'TOKEN_REFRESHED') {
+          // Same user, just refreshing - reload profiles
           setTimeout(() => {
             refreshProfiles();
           }, 0);
