@@ -314,53 +314,55 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
               {filteredConversations.map((conversation) => (
                 <Card 
                   key={conversation.id}
-                  className="cursor-pointer hover:bg-accent transition-colors group overflow-x-auto"
+                  className="cursor-pointer hover:bg-accent transition-colors group"
                   onClick={() => onConversationSelect(conversation.id)}
                 >
-                  <CardContent className="p-3 md:p-4 min-w-max">
-                    <div className="flex items-start gap-2 md:gap-3">
-                      <MessageSquare className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        {editingId === conversation.id ? (
-                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Input
-                              value={editTitle}
-                              onChange={(e) => setEditTitle(e.target.value)}
-                              className="h-8 text-sm"
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSaveEdit(conversation.id, e as any);
-                                if (e.key === 'Escape') handleCancelEdit(e as any);
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          <p className="font-medium truncate text-sm md:text-base">{conversation.title}</p>
-                        )}
-                        <p className="text-xs md:text-sm text-muted-foreground">
-                          {format(new Date(conversation.updated_at), "MMM d, yyyy 'at' h:mm a")}
-                        </p>
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-start gap-2 md:gap-3">
+                        <MessageSquare className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          {editingId === conversation.id ? (
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Input
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                className="h-8 text-sm"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveEdit(conversation.id, e as any);
+                                  if (e.key === 'Escape') handleCancelEdit(e as any);
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <p className="font-medium text-sm md:text-base break-words">{conversation.title}</p>
+                          )}
+                          <p className="text-xs md:text-sm text-muted-foreground">
+                            {format(new Date(conversation.updated_at), "MMM d, yyyy 'at' h:mm a")}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex gap-1 flex-shrink-0 ml-2">
+                      <div className="flex justify-end gap-1 border-t pt-2 md:border-0 md:pt-0 md:absolute md:right-2 md:top-1/2 md:-translate-y-1/2">
                         {editingId === conversation.id ? (
                           <>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 md:h-8 md:w-8"
+                              className="h-8 w-8"
                               onClick={(e) => handleSaveEdit(conversation.id, e)}
                               title="Save"
                             >
-                              <Check className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
+                              <Check className="h-4 w-4 text-green-600" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 md:h-8 md:w-8"
+                              className="h-8 w-8"
                               onClick={handleCancelEdit}
                               title="Cancel"
                             >
-                              <X className="h-3 w-3 md:h-4 md:w-4 text-red-600" />
+                              <X className="h-4 w-4 text-red-600" />
                             </Button>
                           </>
                         ) : (
@@ -368,29 +370,29 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 md:h-8 md:w-8"
+                              className="h-8 w-8"
                               onClick={(e) => handleEditClick(conversation.id, conversation.title, e)}
                               title="Edit title"
                             >
-                              <Pencil className="h-3 w-3 md:h-4 md:w-4" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 md:h-8 md:w-8"
+                              className="h-8 w-8"
                               onClick={(e) => handleExportConversation(conversation.id, e)}
                               title="Export conversation"
                             >
-                              <Download className="h-3 w-3 md:h-4 md:w-4" />
+                              <Download className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 md:h-8 md:w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={(e) => handleDeleteClick(conversation.id, e)}
                               title="Delete conversation"
                             >
-                              <Trash2 className="h-4 w-4 md:h-4 md:w-4" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </>
                         )}
