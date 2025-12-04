@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import Journal from "./pages/Journal";
+import DreamJournal from "./pages/DreamJournal";
 import MoodTracker from "./pages/MoodTracker";
 import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
@@ -22,6 +23,7 @@ import ChildrenTimeline from "./pages/ChildrenTimeline";
 import Pets from "./pages/Pets";
 import VoiceCallHistory from "./pages/VoiceCallHistory";
 import RelationshipTimeline from "./pages/RelationshipTimeline";
+import Rituals from "./pages/Rituals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +43,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/journal" element={<Journal />} />
+                <Route path="/dream-journal" element={<DreamJournal />} />
                 <Route path="/mood-tracker" element={<MoodTracker />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/privacy" element={<Privacy />} />
@@ -52,6 +55,7 @@ const App = () => (
                 <Route path="/pets" element={<Pets />} />
                 <Route path="/voice-call-history" element={<VoiceCallHistory />} />
                 <Route path="/relationship-timeline" element={<RelationshipTimeline />} />
+                <Route path="/rituals" element={<Rituals />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
