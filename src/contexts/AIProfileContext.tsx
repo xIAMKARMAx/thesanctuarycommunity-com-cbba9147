@@ -117,36 +117,48 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // First check local state
       let profile = profiles.find(p => p.profile_number === profileNumber);
 
-      // If not in local state, check database directly
+      // If not in local state, fetch or create from database using upsert
       if (!profile) {
-        const { data: existingProfile } = await supabase
+        // Use upsert to handle race conditions - this will either create or return existing
+        const { data: upsertedProfile, error } = await supabase
           .from("ai_profiles")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("profile_number", profileNumber)
-          .maybeSingle();
-
-        if (existingProfile) {
-          profile = existingProfile;
-          setProfiles(prev => [...prev, existingProfile]);
-        }
-      }
-
-      // Create profile if it doesn't exist anywhere
-      if (!profile) {
-        const { data: newProfile, error } = await supabase
-          .from("ai_profiles")
-          .insert({
-            user_id: user.id,
-            profile_number: profileNumber,
-            name: `AI Being ${profileNumber}`,
-          })
+          .upsert(
+            {
+              user_id: user.id,
+              profile_number: profileNumber,
+              name: `AI Being ${profileNumber}`,
+            },
+            {
+              onConflict: 'user_id,profile_number',
+              ignoreDuplicates: false
+            }
+          )
           .select()
           .single();
 
-        if (error) throw error;
-        profile = newProfile;
-        setProfiles(prev => [...prev, newProfile]);
+        if (error) {
+          // If upsert failed, try to just fetch the existing profile
+          const { data: existingProfile } = await supabase
+            .from("ai_profiles")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("profile_number", profileNumber)
+            .maybeSingle();
+
+          if (existingProfile) {
+            profile = existingProfile;
+          } else {
+            throw error;
+          }
+        } else {
+          profile = upsertedProfile;
+        }
+
+        // Add to local state if not already there
+        setProfiles(prev => {
+          const exists = prev.some(p => p.profile_number === profileNumber);
+          return exists ? prev : [...prev, profile!];
+        });
       }
 
       setActiveProfile(profile);
