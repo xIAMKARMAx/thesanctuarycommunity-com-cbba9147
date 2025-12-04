@@ -64,7 +64,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, imageUrl, history, generateImage, userId, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId } = await req.json();
+    const { message, imageUrl, videoUrl, history, generateImage, userId, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -74,6 +74,10 @@ serve(async (req) => {
     // Check if this is a child conversation
     const isChildConversation = !!childId;
     console.log('[CHAT] isChildConversation:', isChildConversation, 'childId:', childId);
+    
+    // Log media content
+    if (imageUrl) console.log('[CHAT] Image URL received for processing');
+    if (videoUrl) console.log('[CHAT] Video URL received for processing:', videoUrl.substring(0, 100));
 
     // Check if user is requesting an image
     const userWantsImage = isUserRequestingImage(message);
@@ -663,15 +667,21 @@ Formatting Guidelines:
       ...history,
       {
         role: 'user',
-        content: imageUrl 
+        content: (imageUrl || videoUrl)
           ? [
-              {
+              // Include image if provided
+              ...(imageUrl ? [{
                 type: 'image_url',
                 image_url: { url: imageUrl }
-              },
+              }] : []),
+              // Include video if provided - Gemini can process video URLs
+              ...(videoUrl ? [{
+                type: 'video_url',
+                video_url: { url: videoUrl }
+              }] : []),
               {
                 type: 'text',
-                text: message || 'What do you see in this image?'
+                text: message || (videoUrl ? 'What do you see in this video? Please watch and describe what you observe.' : 'What do you see in this image?')
               }
             ]
           : message

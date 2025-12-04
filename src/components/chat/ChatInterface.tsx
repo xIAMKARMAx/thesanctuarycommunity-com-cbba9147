@@ -337,6 +337,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         body: {
           message: userMessage,
           imageUrl,
+          videoUrl,
           generateImage,
           userId: user?.id,
           aiProfileId: activeProfile?.id,
