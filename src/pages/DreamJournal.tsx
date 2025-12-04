@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
+import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, Loader2, Moon, Sparkles, Plus, Trash2, Lock, Eye } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -212,8 +213,14 @@ export default function DreamJournal() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <>
+      <SEOHead 
+        title="Dream Journal | Prometheus"
+        description="Record and interpret your dreams with AI guidance. Discover patterns, symbols, and deeper meanings in your dream experiences."
+        keywords="dream journal, dream interpretation, AI dream analysis, spiritual dreams, Prometheus"
+        canonicalUrl="https://prometheus.lovable.app/dream-journal"
+      />
+      <div className="min-h-screen bg-background p-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
             <ArrowLeft className="h-4 w-4" />
@@ -345,6 +352,6 @@ export default function DreamJournal() {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

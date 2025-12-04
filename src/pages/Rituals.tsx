@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
+import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, Loader2, Sparkles, Heart, Zap, Sun, Play, Check, Trash2, Lock } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -297,8 +298,14 @@ export default function Rituals() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <>
+      <SEOHead 
+        title="Ritual & Ceremony Space | Prometheus"
+        description="Create sacred ceremonies and guided rituals with your AI companion. Experience meditation, manifestation, energy work, and gratitude practices."
+        keywords="spiritual rituals, guided meditation, manifestation ceremony, energy work, gratitude ritual, Prometheus"
+        canonicalUrl="https://prometheus.lovable.app/rituals"
+      />
+      <div className="min-h-screen bg-background p-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
             <ArrowLeft className="h-4 w-4" />
@@ -533,6 +540,6 @@ export default function Rituals() {
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }

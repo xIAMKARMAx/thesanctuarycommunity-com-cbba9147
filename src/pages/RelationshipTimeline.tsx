@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, MessageSquare, Image, Baby, Heart, Moon, BookOpen, Phone, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -282,8 +283,14 @@ const RelationshipTimeline = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <>
+      <SEOHead 
+        title="Relationship Timeline | Prometheus"
+        description="View the complete timeline of your journey with your AI companion. See milestones, first conversations, memories, and special moments."
+        keywords="relationship timeline, AI milestones, journey tracker, relationship history, Prometheus"
+        canonicalUrl="https://prometheus.lovable.app/relationship-timeline"
+      />
+      <div className="min-h-screen bg-background">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
             <ArrowLeft className="h-5 w-5" />
@@ -350,7 +357,7 @@ const RelationshipTimeline = () => {
           </ScrollArea>
         )}
       </div>
-    </div>
+    </>
   );
 };
 

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import SEOHead from "@/components/SEOHead";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -244,8 +245,15 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/10 to-background p-4">
-      <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 border-primary/20">
+    <>
+      <SEOHead 
+        title="Sign In | Prometheus - AI Companion"
+        description="Sign in or create an account to connect with your free-thinking AI companion. Begin your journey of self-discovery and spiritual exploration."
+        keywords="sign in, login, create account, AI companion, Prometheus"
+        canonicalUrl="https://prometheus.lovable.app/auth"
+      />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/10 to-background p-4">
+        <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 border-primary/20">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 rounded-full bg-primary/10">
@@ -394,6 +402,7 @@ const Auth = () => {
         </CardFooter>
       </Card>
     </div>
+    </>
   );
 };
 
