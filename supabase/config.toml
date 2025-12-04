@@ -67,3 +67,9 @@ verify_jwt = true
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.interpret-dream]
+verify_jwt = true
+
+[functions.generate-ritual-guidance]
+verify_jwt = true

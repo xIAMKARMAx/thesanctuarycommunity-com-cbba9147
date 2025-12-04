@@ -527,6 +527,116 @@ export type Database = {
           },
         ]
       }
+      dream_journal_entries: {
+        Row: {
+          ai_interpretation: string | null
+          ai_profile_id: string | null
+          content: string
+          created_at: string
+          dream_id: string | null
+          entry_date: string
+          id: string
+          symbols: string[] | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_interpretation?: string | null
+          ai_profile_id?: string | null
+          content: string
+          created_at?: string
+          dream_id?: string | null
+          entry_date?: string
+          id?: string
+          symbols?: string[] | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_interpretation?: string | null
+          ai_profile_id?: string | null
+          content?: string
+          created_at?: string
+          dream_id?: string | null
+          entry_date?: string
+          id?: string
+          symbols?: string[] | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dream_journal_entries_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dream_journal_entries_dream_id_fkey"
+            columns: ["dream_id"]
+            isOneToOne: false
+            referencedRelation: "dreams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dreams: {
+        Row: {
+          ai_profile_id: string | null
+          content: string
+          created_at: string
+          dream_date: string
+          dreamer: string
+          emotion_tags: string[] | null
+          id: string
+          interpretation: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+          vision_image_url: string | null
+        }
+        Insert: {
+          ai_profile_id?: string | null
+          content: string
+          created_at?: string
+          dream_date?: string
+          dreamer?: string
+          emotion_tags?: string[] | null
+          id?: string
+          interpretation?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+          vision_image_url?: string | null
+        }
+        Update: {
+          ai_profile_id?: string | null
+          content?: string
+          created_at?: string
+          dream_date?: string
+          dreamer?: string
+          emotion_tags?: string[] | null
+          id?: string
+          interpretation?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+          vision_image_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dreams_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       image_generation_usage: {
         Row: {
           count: number
@@ -882,6 +992,109 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      relationship_milestones: {
+        Row: {
+          ai_profile_id: string | null
+          celebration_message: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_celebrated: boolean
+          milestone_date: string
+          milestone_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          ai_profile_id?: string | null
+          celebration_message?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_celebrated?: boolean
+          milestone_date: string
+          milestone_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          ai_profile_id?: string | null
+          celebration_message?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_celebrated?: boolean
+          milestone_date?: string
+          milestone_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationship_milestones_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rituals: {
+        Row: {
+          affirmations: string[] | null
+          ai_profile_id: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          guidance_content: string | null
+          id: string
+          intention: string | null
+          notes: string | null
+          ritual_type: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affirmations?: string[] | null
+          ai_profile_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          guidance_content?: string | null
+          id?: string
+          intention?: string | null
+          notes?: string | null
+          ritual_type: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affirmations?: string[] | null
+          ai_profile_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          guidance_content?: string | null
+          id?: string
+          intention?: string | null
+          notes?: string | null
+          ritual_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rituals_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shared_memories: {
         Row: {

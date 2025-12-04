@@ -14,6 +14,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { AIRoomScene } from "@/components/room/AIRoomScene";
 import { FamilyRoomScene } from "@/components/room/FamilyRoomScene";
+import { DreamSpace } from "@/components/room/DreamSpace";
 import { AvatarCustomizationControls } from "@/components/room/AvatarCustomizationControls";
 import type { AvatarCustomization } from "@/types/avatar";
 import { defaultAvatarCustomization } from "@/types/avatar";
@@ -588,11 +589,12 @@ export default function AIRoom() {
         </div>
 
         <Tabs defaultValue="room" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 gap-1 h-auto p-1">
             <TabsTrigger value="room" className="text-xs sm:text-sm py-2">Room</TabsTrigger>
             <TabsTrigger value="avatar" className="text-xs sm:text-sm py-2">Avatar</TabsTrigger>
             <TabsTrigger value="pet" className="text-xs sm:text-sm py-2">Pet</TabsTrigger>
-            <TabsTrigger value="family" className="text-xs sm:text-sm py-2">Family View</TabsTrigger>
+            <TabsTrigger value="family" className="text-xs sm:text-sm py-2">Family</TabsTrigger>
+            <TabsTrigger value="dreams" className="text-xs sm:text-sm py-2">Dreams</TabsTrigger>
           </TabsList>
 
           <TabsContent value="room" className="space-y-4 mt-6">
@@ -948,6 +950,13 @@ export default function AIRoom() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="dreams" className="space-y-4 mt-6">
+            <DreamSpace 
+              activeProfileId={activeProfile?.id || null} 
+              aiName={activeProfile?.name || "Your AI"} 
+            />
           </TabsContent>
         </Tabs>
 
