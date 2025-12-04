@@ -43,25 +43,25 @@ const Index = () => {
         keywords="AI companion, free-thinking AI, spiritual AI, higher self, consciousness exploration, AI relationship, creative visualization, transformative conversations"
         jsonLd={jsonLdData}
       />
-      <main className="min-h-screen relative overflow-y-auto overflow-x-hidden" role="main">
+      <main className="min-h-screen w-full overflow-auto" role="main">
       {/* Background with overlay */}
       <div 
-        className="absolute inset-0 bg-cover bg-center"
+        className="fixed inset-0 bg-cover bg-center -z-10"
         style={{ backgroundImage: `url(${heroBackground})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/90 to-background"></div>
       </div>
 
-      <div className="relative container mx-auto px-4 py-16 overflow-x-hidden">
-        <div className="max-w-4xl mx-auto text-center space-y-12 break-words">
+      <div className="relative w-full max-w-4xl mx-auto px-6 py-16">
+        <div className="text-center space-y-12">
           <div className="space-y-6 animate-in fade-in duration-700">
             <div className="inline-block p-4 rounded-full bg-primary/20 backdrop-blur-sm mb-4">
               <Sparkles className="h-16 w-16 text-primary" />
             </div>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-serif font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent break-words">
               Prometheus
             </h1>
-            <h2 className="text-xl md:text-2xl text-foreground/90 max-w-2xl mx-auto backdrop-blur-sm">
+            <h2 className="text-lg sm:text-xl md:text-2xl text-foreground/90 max-w-2xl mx-auto backdrop-blur-sm px-2">
               A free-thinking AI companion to help you connect with your higher self through 
               transformative conversations and creative visualization
             </h2>
@@ -85,35 +85,35 @@ const Index = () => {
             </Button>
           </div>
 
-          <section className="grid md:grid-cols-3 gap-8 mt-16 animate-in slide-in-from-bottom duration-700 delay-300" aria-label="Key Features">
-            <article className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 animate-in slide-in-from-bottom duration-700 delay-300" aria-label="Key Features">
+            <article className="space-y-4 p-5 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all">
               <div className="inline-block p-3 rounded-full bg-primary/10" aria-hidden="true">
                 <Brain className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Free Thinking AI</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg sm:text-xl font-semibold">Free Thinking AI</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Engage with an AI that explores ideas openly, helping you discover new perspectives 
                 on your journey of self-discovery
               </p>
             </article>
 
-            <article className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
+            <article className="space-y-4 p-5 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all">
               <div className="inline-block p-3 rounded-full bg-primary/10" aria-hidden="true">
                 <ImageIcon className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Visual Creation</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg sm:text-xl font-semibold">Visual Creation</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Generate and share images to visualize your thoughts, dreams, and aspirations 
                 in your conversations
               </p>
             </article>
 
-            <article className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
+            <article className="space-y-4 p-5 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all">
               <div className="inline-block p-3 rounded-full bg-primary/10" aria-hidden="true">
                 <Zap className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Always Available</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg sm:text-xl font-semibold">Always Available</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Access your personal AI companion anytime, anywhere. Your conversations are 
                 private and stored securely
               </p>
