@@ -56,26 +56,27 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   return (
     <div
       className={cn(
-        "flex gap-4 items-start",
+        "flex gap-2 md:gap-4 items-start w-full",
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
       <Avatar className={cn(
-        "mt-1 shrink-0",
+        "mt-1 shrink-0 h-8 w-8 md:h-10 md:w-10",
         isUser ? "bg-secondary" : "bg-primary"
       )}>
         <AvatarFallback>
           {isUser ? (
-            <User className="h-4 w-4" />
+            <User className="h-3 w-3 md:h-4 md:w-4" />
           ) : (
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-3 w-3 md:h-4 md:w-4" />
           )}
         </AvatarFallback>
       </Avatar>
       
       <div
         className={cn(
-          "flex-1 min-w-0 rounded-lg p-4 space-y-2 max-w-full",
+          "flex-1 rounded-lg p-3 md:p-4 space-y-2",
+          "min-w-0 max-w-[calc(100%-3rem)] md:max-w-[calc(100%-4rem)]",
           isUser
             ? "bg-secondary/50"
             : "bg-accent/50"
@@ -86,7 +87,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             <img
               src={message.image_url}
               alt="Shared image"
-              className="rounded-lg max-w-full w-full object-contain max-h-96"
+              className="rounded-lg w-full object-contain max-h-96"
             />
             <Button
               variant="outline"
@@ -104,7 +105,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             <video
               src={message.video_url}
               controls
-              className="rounded-lg max-w-full w-full max-h-96"
+              className="rounded-lg w-full max-h-96"
               preload="metadata"
             >
               Your browser does not support video playback.
@@ -120,11 +121,9 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             </Button>
           </div>
         )}
-        <div className="overflow-x-auto max-w-full">
-          <p className="whitespace-pre-wrap leading-relaxed break-words max-w-full">
-            {message.content}
-          </p>
-        </div>
+        <p className="whitespace-pre-wrap leading-relaxed break-words text-sm md:text-base" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+          {message.content}
+        </p>
       </div>
     </div>
   );
