@@ -28,7 +28,7 @@ export interface AIProfile {
 interface AIProfileContextType {
   activeProfile: AIProfile | null;
   profiles: AIProfile[];
-  switchProfile: (profileNumber: 1 | 2) => Promise<void>;
+  switchProfile: (profileNumber: 1 | 2 | 3) => Promise<void>;
   refreshProfiles: () => Promise<void>;
   isLoading: boolean;
 }
@@ -109,7 +109,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const switchProfile = async (profileNumber: 1 | 2) => {
+  const switchProfile = async (profileNumber: 1 | 2 | 3) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
