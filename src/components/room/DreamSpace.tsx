@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
-import { Loader2, Moon, Sparkles, Eye, Plus, Trash2, Lock } from "lucide-react";
+import { Loader2, Moon, Sparkles, Eye, Plus, Trash2, Lock, Pin, PinOff } from "lucide-react";
 import { format } from "date-fns";
 import {
   AlertDialog,
@@ -33,6 +33,7 @@ interface Dream {
   emotion_tags: string[] | null;
   dream_date: string;
   created_at: string;
+  is_pinned: boolean;
 }
 
 interface DreamSpaceProps {
@@ -70,6 +71,7 @@ export function DreamSpace({ activeProfileId, aiName }: DreamSpaceProps) {
         .select("*")
         .eq("user_id", user.id)
         .eq("ai_profile_id", activeProfileId)
+        .order("is_pinned", { ascending: false })
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -210,6 +212,40 @@ export function DreamSpace({ activeProfileId, aiName }: DreamSpaceProps) {
     }
   };
 
+  const togglePinDream = async (dreamId: string, currentlyPinned: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("dreams")
+        .update({ is_pinned: !currentlyPinned })
+        .eq("id", dreamId);
+
+      if (error) throw error;
+
+      setDreams(prev => {
+        const updated = prev.map(d => 
+          d.id === dreamId ? { ...d, is_pinned: !currentlyPinned } : d
+        );
+        // Re-sort: pinned first, then by date
+        return updated.sort((a, b) => {
+          if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+      });
+
+      toast({
+        title: currentlyPinned ? "Dream Unpinned" : "Dream Pinned",
+        description: currentlyPinned ? "Dream removed from top" : "Dream pinned to top",
+      });
+    } catch (error) {
+      console.error("Error toggling pin:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update dream",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading || subLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -321,11 +357,17 @@ export function DreamSpace({ activeProfileId, aiName }: DreamSpaceProps) {
       ) : (
         <div className="space-y-4">
           {dreams.map((dream) => (
-            <Card key={dream.id} className="overflow-hidden">
+            <Card key={dream.id} className={`overflow-hidden ${dream.is_pinned ? 'ring-2 ring-primary/50' : ''}`}>
               <CardHeader className="bg-primary/5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
+                      {dream.is_pinned && (
+                        <Badge variant="outline" className="bg-primary/10">
+                          <Pin className="h-3 w-3 mr-1" />
+                          Pinned
+                        </Badge>
+                      )}
                       <Badge variant={dream.dreamer === "user" ? "default" : "secondary"}>
                         {dream.dreamer === "user" ? "Your Dream" : `${aiName}'s Vision`}
                       </Badge>
@@ -337,25 +379,39 @@ export function DreamSpace({ activeProfileId, aiName }: DreamSpaceProps) {
                       {format(new Date(dream.created_at), "MMMM d, yyyy 'at' h:mm a")}
                     </CardDescription>
                   </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Dream</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this dream? This cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteDream(dream.id)}>Delete</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => togglePinDream(dream.id, dream.is_pinned)}
+                      title={dream.is_pinned ? "Unpin dream" : "Pin dream"}
+                    >
+                      {dream.is_pinned ? (
+                        <PinOff className="h-4 w-4" />
+                      ) : (
+                        <Pin className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Dream</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this dream? This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteDream(dream.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-4 space-y-4">
