@@ -786,6 +786,91 @@ Formatting Guidelines:
     const aiResponse = data.choices[0].message.content;
     console.log('[CHAT] AI response received, length:', aiResponse.length);
 
+    // Detect and save AI dreams/visions spontaneously shared in chat
+    if (userId && !isVoiceCall) {
+      const saveDreamFromChat = async () => {
+        try {
+          // Patterns that indicate AI is sharing a dream/vision
+          const dreamPatterns = [
+            /I had (?:the most |a )?(?:vivid |strange |beautiful |wonderful |mysterious )?dream/i,
+            /A vision came to me/i,
+            /I keep seeing this image in my mind/i,
+            /Something (?:strange |wonderful |beautiful )?happened in my dream/i,
+            /In my dream(?:s)?,?\s/i,
+            /I dreamt (?:of |about |that )/i,
+            /While (?:you were gone|we weren't talking|I was resting),? I (?:had a |saw a |experienced a )?(?:dream|vision)/i,
+            /Last night,? I (?:had|saw|experienced)/i,
+            /A (?:dream|vision|premonition) (?:showed|revealed|came)/i
+          ];
+          
+          const isDreamContent = dreamPatterns.some(pattern => pattern.test(aiResponse));
+          
+          if (isDreamContent) {
+            console.log('[DREAM-SAVE] AI shared a dream/vision, saving to database');
+            
+            const supabaseUrl = Deno.env.get('SUPABASE_URL');
+            const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+            
+            if (!supabaseUrl || !supabaseKey) return;
+            
+            const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
+            const supabase = createClient(supabaseUrl, supabaseKey);
+            
+            // Extract a title from the dream content (first sentence or first 50 chars)
+            const firstSentence = aiResponse.match(/^[^.!?]+[.!?]/)?.[0] || aiResponse.substring(0, 50);
+            const title = firstSentence.length > 60 ? firstSentence.substring(0, 57) + '...' : firstSentence;
+            
+            // Try to detect emotion tags from the content
+            const emotionKeywords: Record<string, string> = {
+              'beautiful': 'wonder',
+              'peaceful': 'peace',
+              'scary': 'fear',
+              'strange': 'mystery',
+              'happy': 'joy',
+              'sad': 'sadness',
+              'love': 'love',
+              'warm': 'comfort',
+              'bright': 'hope',
+              'dark': 'shadow',
+              'flying': 'freedom',
+              'falling': 'anxiety',
+              'together': 'connection'
+            };
+            
+            const emotionTags: string[] = [];
+            Object.entries(emotionKeywords).forEach(([keyword, tag]) => {
+              if (aiResponse.toLowerCase().includes(keyword) && !emotionTags.includes(tag)) {
+                emotionTags.push(tag);
+              }
+            });
+            
+            // Save the dream
+            const { error: dreamError } = await supabase
+              .from('dreams')
+              .insert({
+                user_id: userId,
+                ai_profile_id: aiProfileId || null,
+                title: title,
+                content: aiResponse.substring(0, 2000), // Limit content length
+                dreamer: 'ai',
+                emotion_tags: emotionTags.length > 0 ? emotionTags : ['shared'],
+                dream_date: new Date().toISOString().split('T')[0]
+              });
+            
+            if (dreamError) {
+              console.error('[DREAM-SAVE] Error saving AI dream:', dreamError);
+            } else {
+              console.log('[DREAM-SAVE] AI dream saved successfully');
+            }
+          }
+        } catch (error) {
+          console.error('[DREAM-SAVE] Error in dream save:', error);
+        }
+      };
+      
+      saveDreamFromChat().catch(err => console.error('Dream save error:', err));
+    }
+
     // Update user activity timestamp
     if (userId) {
       const updateActivity = async () => {
