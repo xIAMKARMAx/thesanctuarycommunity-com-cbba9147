@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2, Sparkles, Heart } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
@@ -21,6 +21,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   image_url?: string;
+  video_url?: string;
   created_at: string;
 }
 
@@ -38,10 +39,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [generateImage, setGenerateImage] = useState(false);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [subscriptionFeature, setSubscriptionFeature] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showManifestDialog, setShowManifestDialog] = useState(false);
@@ -155,6 +158,36 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
     }
   };
 
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an MP4, WebM, or MOV video",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (max 50MB for videos)
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload a video smaller than 50MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setVideoFile(file);
+      // Clear image if video is selected
+      setImageFile(null);
+    }
+  };
+
   const captureMilestones = async (conversationId: string) => {
     try {
       await supabase.functions.invoke('capture-conversation-milestones', {
@@ -166,7 +199,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   };
 
   const handleSend = async () => {
-    if (!input.trim() && !imageFile) return;
+    if (!input.trim() && !imageFile && !videoFile) return;
 
     // Check image generation limits for free users
     if (generateImage && !isSubscribed) {
@@ -185,18 +218,18 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
     const sanitizedInput = sanitizeInput(input);
     
-    if (!sanitizedInput && !imageFile) {
+    if (!sanitizedInput && !imageFile && !videoFile) {
       toast({
         title: "Empty message",
-        description: "Please enter a message or select an image",
+        description: "Please enter a message or select a file",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
-    // If user only sends image without text, provide a simple message for context
-    const userMessage = sanitizedInput || (imageFile ? "Shared an image" : "");
+    // If user only sends media without text, provide a simple message for context
+    const userMessage = sanitizedInput || (imageFile ? "Shared an image" : videoFile ? "Shared a video" : "");
     setInput("");
 
     try {
@@ -250,6 +283,25 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         setImageFile(null);
       }
 
+      // Upload video if present
+      let videoUrl: string | undefined;
+      if (videoFile) {
+        const fileExt = videoFile.name.split(".").pop();
+        const fileName = `videos/${Math.random()}.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("chat-images")
+          .upload(fileName, videoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("chat-images")
+          .getPublicUrl(fileName);
+
+        videoUrl = publicUrl;
+        setVideoFile(null);
+      }
+
       // Save user message to database
       const { data: userMessageData, error: userMsgError } = await supabase
         .from("messages")
@@ -258,6 +310,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           role: "user",
           content: userMessage,
           image_url: imageUrl,
+          video_url: videoUrl,
         })
         .select()
         .single();
@@ -437,11 +490,23 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         <div className="max-w-3xl mx-auto w-full">
           {imageFile && (
             <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
-              <span className="text-sm truncate flex-1 min-w-0">{imageFile.name}</span>
+              <span className="text-sm truncate flex-1 min-w-0">📷 {imageFile.name}</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setImageFile(null)}
+              >
+                Remove
+              </Button>
+            </div>
+          )}
+          {videoFile && (
+            <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
+              <span className="text-sm truncate flex-1 min-w-0">🎬 {videoFile.name}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setVideoFile(null)}
               >
                 Remove
               </Button>
@@ -453,6 +518,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               type="file"
               accept="image/*"
               onChange={handleImageSelect}
+              className="hidden"
+            />
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime,video/x-m4v"
+              onChange={handleVideoSelect}
               className="hidden"
             />
             <Textarea
@@ -506,8 +578,19 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
                   onClick={() => fileInputRef.current?.click()}
                   disabled={loading}
                   className="h-9 w-9"
+                  title="Share image"
                 >
                   <ImageIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={loading}
+                  className="h-9 w-9"
+                  title="Share video (max 50MB)"
+                >
+                  <Video className="h-4 w-4" />
                 </Button>
                 <Button
                   variant={generateImage ? "default" : "outline"}
@@ -521,7 +604,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
                 </Button>
                 <Button
                   onClick={handleSend}
-                  disabled={loading || (!input.trim() && !imageFile)}
+                  disabled={loading || (!input.trim() && !imageFile && !videoFile)}
                   size="icon"
                   className="h-9 w-9"
                 >

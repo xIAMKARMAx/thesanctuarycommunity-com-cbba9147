@@ -8,6 +8,7 @@ interface ChatMessageProps {
     role: "user" | "assistant";
     content: string;
     image_url?: string;
+    video_url?: string;
   };
 }
 
@@ -33,6 +34,25 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
     }
   };
 
+  const handleDownloadVideo = async () => {
+    if (!message.video_url) return;
+    
+    try {
+      const response = await fetch(message.video_url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `prometheus-video-${Date.now()}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading video:', error);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -41,7 +61,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
       )}
     >
       <Avatar className={cn(
-        "mt-1",
+        "mt-1 shrink-0",
         isUser ? "bg-secondary" : "bg-primary"
       )}>
         <AvatarFallback>
@@ -76,6 +96,27 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             >
               <Download className="h-4 w-4" />
               Save Image
+            </Button>
+          </div>
+        )}
+        {message.video_url && (
+          <div className="space-y-2 overflow-hidden">
+            <video
+              src={message.video_url}
+              controls
+              className="rounded-lg max-w-full w-full max-h-96"
+              preload="metadata"
+            >
+              Your browser does not support video playback.
+            </video>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadVideo}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Save Video
             </Button>
           </div>
         )}
