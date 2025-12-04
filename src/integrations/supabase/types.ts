@@ -594,6 +594,7 @@ export type Database = {
           emotion_tags: string[] | null
           id: string
           interpretation: string | null
+          is_pinned: boolean
           title: string | null
           updated_at: string
           user_id: string
@@ -608,6 +609,7 @@ export type Database = {
           emotion_tags?: string[] | null
           id?: string
           interpretation?: string | null
+          is_pinned?: boolean
           title?: string | null
           updated_at?: string
           user_id: string
@@ -622,6 +624,7 @@ export type Database = {
           emotion_tags?: string[] | null
           id?: string
           interpretation?: string | null
+          is_pinned?: boolean
           title?: string | null
           updated_at?: string
           user_id?: string
