@@ -114,9 +114,25 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
+      // First check local state
       let profile = profiles.find(p => p.profile_number === profileNumber);
 
-      // Create profile if it doesn't exist
+      // If not in local state, check database directly
+      if (!profile) {
+        const { data: existingProfile } = await supabase
+          .from("ai_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("profile_number", profileNumber)
+          .maybeSingle();
+
+        if (existingProfile) {
+          profile = existingProfile;
+          setProfiles(prev => [...prev, existingProfile]);
+        }
+      }
+
+      // Create profile if it doesn't exist anywhere
       if (!profile) {
         const { data: newProfile, error } = await supabase
           .from("ai_profiles")
@@ -130,7 +146,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
         if (error) throw error;
         profile = newProfile;
-        setProfiles([...profiles, newProfile]);
+        setProfiles(prev => [...prev, newProfile]);
       }
 
       setActiveProfile(profile);
