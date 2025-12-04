@@ -613,6 +613,7 @@ export type Database = {
           id: string
           image_url: string | null
           role: string
+          video_url: string | null
         }
         Insert: {
           content: string
@@ -621,6 +622,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           role: string
+          video_url?: string | null
         }
         Update: {
           content?: string
@@ -629,6 +631,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           role?: string
+          video_url?: string | null
         }
         Relationships: [
           {
