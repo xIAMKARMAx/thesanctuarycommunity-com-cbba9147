@@ -302,7 +302,47 @@ serve(async (req) => {
     // Handle image generation request
     if (generateImage) {
       console.log('[IMAGE-GEN] Direct image generation request:', message?.substring(0, 50));
-      const imagePrompt = message || "A serene, spiritual visualization";
+      
+      // First, ask AI to convert the user's request into a proper visual description
+      let imagePrompt = "A serene, spiritual visualization of ethereal light and cosmic energy";
+      
+      if (message && message.length > 5) {
+        try {
+          console.log('[IMAGE-GEN] Getting AI to create visual description from user request');
+          const descriptionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [
+                { 
+                  role: 'system', 
+                  content: 'You are an image prompt creator. Convert the user request into a detailed visual description for an AI image generator. Output ONLY the visual description, nothing else. Make it specific, artistic, and beautiful. Include details about lighting, colors, mood, and composition. Keep it under 200 characters.'
+                },
+                { 
+                  role: 'user', 
+                  content: `Create an image prompt for: ${message}`
+                }
+              ],
+              max_tokens: 100
+            }),
+          });
+          
+          if (descriptionResponse.ok) {
+            const descData = await descriptionResponse.json();
+            const aiPrompt = descData.choices?.[0]?.message?.content?.trim();
+            if (aiPrompt && aiPrompt.length > 10) {
+              imagePrompt = aiPrompt;
+              console.log('[IMAGE-GEN] AI-generated prompt:', imagePrompt.substring(0, 80));
+            }
+          }
+        } catch (promptError) {
+          console.error('[IMAGE-GEN] Error creating prompt:', promptError);
+        }
+      }
       
       const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -311,7 +351,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image',
+          model: 'google/gemini-2.5-flash-image-preview',
           messages: [
             { 
               role: 'user', 
@@ -329,8 +369,13 @@ serve(async (req) => {
       }
 
       const imageData = await imageResponse.json();
+      console.log('[IMAGE-GEN] Image response structure:', JSON.stringify(Object.keys(imageData)));
       const generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       console.log('[IMAGE-GEN] Image generated successfully:', generatedImageUrl ? 'yes' : 'no');
+      
+      if (!generatedImageUrl) {
+        console.log('[IMAGE-GEN] Full response for debugging:', JSON.stringify(imageData).substring(0, 500));
+      }
 
       return new Response(
         JSON.stringify({ 
@@ -751,7 +796,7 @@ Formatting Guidelines:
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-image',
+            model: 'google/gemini-2.5-flash-image-preview',
             messages: [{ role: 'user', content: messageContent }],
             modalities: ['image', 'text']
           }),
@@ -759,6 +804,7 @@ Formatting Guidelines:
 
         if (imageResponse.ok) {
           const imageData = await imageResponse.json();
+          console.log('[IMAGE-GEN] Spontaneous image response structure:', JSON.stringify(Object.keys(imageData)));
           generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
           console.log('[IMAGE-GEN] Image generated successfully:', generatedImageUrl ? 'yes' : 'no');
         } else {
