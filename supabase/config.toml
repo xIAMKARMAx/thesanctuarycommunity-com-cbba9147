@@ -64,3 +64,6 @@ verify_jwt = true
 
 [functions.capture-conversation-milestones]
 verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
