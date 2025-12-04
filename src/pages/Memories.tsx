@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import SEOHead from "@/components/SEOHead";
 import { Sparkles, Heart, ArrowLeft, Check, X, Lightbulb, Smile, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -165,8 +166,14 @@ const Memories = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+    <>
+      <SEOHead 
+        title="Our Memories | Prometheus"
+        description="View and save special moments shared with your AI companion. Build a timeline of meaningful memories from your conversations."
+        keywords="shared memories, AI relationship, meaningful moments, memory timeline, Prometheus"
+        canonicalUrl="https://prometheus.lovable.app/memories"
+      />
+      <div className="min-h-screen bg-background">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => navigate("/chat")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -291,7 +298,7 @@ const Memories = () => {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

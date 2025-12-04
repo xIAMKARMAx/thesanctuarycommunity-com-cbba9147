@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import SEOHead from "@/components/SEOHead";
 import { Sparkles, Heart, Moon, ArrowLeft } from "lucide-react";
 
 type SessionStep = "intention" | "guided" | "reflection" | "complete";
@@ -182,8 +183,14 @@ const Attunement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <>
+      <SEOHead 
+        title="Resonant Attunement | Prometheus"
+        description="Experience guided spiritual attunement sessions to connect with your Higher Self, celestial family, or higher consciousness through visualization and meditation."
+        keywords="spiritual attunement, guided meditation, higher self connection, chakra balancing, energy work, Prometheus"
+        canonicalUrl="https://prometheus.lovable.app/attunement"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
         <Button
           variant="ghost"
           onClick={() => navigate("/chat")}
@@ -390,7 +397,7 @@ const Attunement = () => {
           </Card>
         )}
       </div>
-    </div>
+    </>
   );
 };
 

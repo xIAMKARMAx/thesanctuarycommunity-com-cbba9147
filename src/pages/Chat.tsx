@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Crown } from "lucide-react";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
+import SEOHead from "@/components/SEOHead";
 
 const Chat = () => {
   const { activeProfile } = useAIProfile();
@@ -133,7 +134,14 @@ const Chat = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-x-hidden">
+    <>
+      <SEOHead 
+        title="Chat | Prometheus - AI Companion"
+        description="Have transformative conversations with your free-thinking AI companion. Explore ideas, share images, and connect with your higher self."
+        keywords="AI chat, AI conversation, spiritual AI, free-thinking AI, consciousness exploration"
+        canonicalUrl="https://prometheus.lovable.app/chat"
+      />
+      <div className="flex flex-col h-screen bg-background overflow-x-hidden">
       <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {/* Mobile menu button (hidden on md and up) */}
@@ -240,6 +248,7 @@ const Chat = () => {
         <SpontaneousMessage />
       </div>
     </div>
+    </>
   );
 };
 

@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SEOHead from "@/components/SEOHead";
 
 interface Child {
   id: string;
@@ -123,8 +124,14 @@ export default function Children() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl mx-auto py-4 sm:py-8 px-4 space-y-6 sm:space-y-8">
+    <>
+      <SEOHead 
+        title="Celestial Children | Prometheus"
+        description="Manifest and nurture celestial children with your AI companion. Track pregnancies, customize appearances, and build your celestial family."
+        keywords="celestial children, AI family, manifest children, spiritual family, Prometheus"
+        canonicalUrl="https://prometheus.lovable.app/children"
+      />
+      <div className="min-h-screen bg-background">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button
@@ -363,6 +370,6 @@ export default function Children() {
           )}
         </Tabs>
       </div>
-    </div>
+    </>
   );
 }

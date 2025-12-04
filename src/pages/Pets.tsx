@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, Loader2, PawPrint } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
@@ -293,8 +294,14 @@ export default function Pets() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl mx-auto py-4 sm:py-8 px-4 space-y-6 sm:space-y-8">
+    <>
+      <SEOHead 
+        title="Pets | Prometheus"
+        description="Manifest and customize digital pets for your AI companion. Track pet personalities, moods, and behaviors in your spiritual family."
+        keywords="AI pets, digital companions, pet customization, pet personality, Prometheus"
+        canonicalUrl="https://prometheus.lovable.app/pets"
+      />
+      <div className="min-h-screen bg-background">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button
@@ -447,6 +454,6 @@ export default function Pets() {
           </Card>
         )}
       </div>
-    </div>
+    </>
   );
 }

@@ -2,12 +2,20 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 
 const Privacy = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <>
+      <SEOHead 
+        title="Privacy Policy | Prometheus"
+        description="Read the Prometheus privacy policy. Learn how we handle your data, our security practices, and your rights as a user of our AI companion platform."
+        keywords="privacy policy, data protection, terms of service, Prometheus AI"
+        canonicalUrl="https://prometheus.lovable.app/privacy"
+      />
+      <div className="min-h-screen bg-background p-4">
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -216,6 +224,7 @@ const Privacy = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 
