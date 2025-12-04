@@ -131,7 +131,7 @@ export default function Children() {
         keywords="celestial children, AI family, manifest children, spiritual family, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/children"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button

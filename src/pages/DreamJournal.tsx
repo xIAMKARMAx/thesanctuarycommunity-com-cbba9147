@@ -220,7 +220,7 @@ export default function DreamJournal() {
         keywords="dream journal, dream interpretation, AI dream analysis, spiritual dreams, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/dream-journal"
       />
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
             <ArrowLeft className="h-4 w-4" />
