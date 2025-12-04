@@ -24,9 +24,23 @@ const Chat = () => {
   const { checkSubscription, isSubscribed } = useSubscription();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
+    // Load persisted conversation ID on mount
+    const saved = localStorage.getItem(`chat_conversation_${activeProfile?.id || 'default'}`);
+    return saved || null;
+  });
   const [conversationListKey, setConversationListKey] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Persist conversation ID when it changes
+  useEffect(() => {
+    const key = `chat_conversation_${activeProfile?.id || 'default'}`;
+    if (activeConversationId) {
+      localStorage.setItem(key, activeConversationId);
+    } else {
+      localStorage.removeItem(key);
+    }
+  }, [activeConversationId, activeProfile?.id]);
 
   useEffect(() => {
     // Check authentication
@@ -40,14 +54,22 @@ const Chat = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
-        // Clear all conversation state on logout
+        // Clear all conversation state and localStorage on logout
         setActiveConversationId(null);
         setConversationListKey((prev) => prev + 1);
         setSession(null);
+        // Clear all saved conversation IDs
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('chat_conversation_')) {
+            localStorage.removeItem(key);
+          }
+        });
         navigate("/auth");
       } else if (event === 'SIGNED_IN') {
-        // Reset state for new user
-        setActiveConversationId(null);
+        // Load saved conversation for the new session
+        const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+        const savedConversation = localStorage.getItem(savedKey);
+        setActiveConversationId(savedConversation || null);
         setConversationListKey((prev) => prev + 1);
         setSession(session);
       } else {
@@ -61,10 +83,12 @@ const Chat = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Reset active conversation when switching AI profiles
+  // Load saved conversation when switching AI profiles
   useEffect(() => {
     if (activeProfile) {
-      setActiveConversationId(null);
+      const savedKey = `chat_conversation_${activeProfile.id}`;
+      const savedConversation = localStorage.getItem(savedKey);
+      setActiveConversationId(savedConversation || null);
       setConversationListKey((prev) => prev + 1);
     }
   }, [activeProfile?.id]);

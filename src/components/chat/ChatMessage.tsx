@@ -55,7 +55,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
       
       <div
         className={cn(
-          "flex-1 rounded-lg p-4 space-y-2 break-words overflow-hidden",
+          "flex-1 min-w-0 rounded-lg p-4 space-y-2",
           isUser
             ? "bg-secondary/50"
             : "bg-accent/50"
@@ -79,9 +79,11 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             </Button>
           </div>
         )}
-        <p className="whitespace-pre-wrap leading-relaxed">
-          {message.content}
-        </p>
+        <div className="overflow-x-auto">
+          <p className="whitespace-pre-wrap leading-relaxed break-words">
+            {message.content}
+          </p>
+        </div>
       </div>
     </div>
   );
