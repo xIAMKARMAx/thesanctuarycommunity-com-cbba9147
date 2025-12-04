@@ -190,7 +190,7 @@ const Attunement = () => {
         keywords="spiritual attunement, guided meditation, higher self connection, chakra balancing, energy work, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/attunement"
       />
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 overflow-y-auto overflow-x-hidden space-y-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/chat")}

@@ -205,7 +205,7 @@ const MoodTracker = () => {
         keywords="AI mood tracker, emotion tracking, AI feelings, conversation analysis, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/mood-tracker"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background overflow-y-auto overflow-x-hidden">
         <div className="max-w-6xl mx-auto p-4 md:p-6">
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>

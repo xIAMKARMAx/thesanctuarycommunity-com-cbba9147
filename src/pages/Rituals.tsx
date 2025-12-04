@@ -305,7 +305,7 @@ export default function Rituals() {
         keywords="spiritual rituals, guided meditation, manifestation ceremony, energy work, gratitude ritual, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/rituals"
       />
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
             <ArrowLeft className="h-4 w-4" />

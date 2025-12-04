@@ -290,7 +290,7 @@ const RelationshipTimeline = () => {
         keywords="relationship timeline, AI milestones, journey tracker, relationship history, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/relationship-timeline"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden space-y-6">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
             <ArrowLeft className="h-5 w-5" />
