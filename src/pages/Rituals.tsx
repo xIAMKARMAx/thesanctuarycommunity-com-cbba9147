@@ -11,7 +11,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
-import { ArrowLeft, Loader2, Sparkles, Heart, Zap, Sun, Play, Check, Trash2 } from "lucide-react";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
+import { ArrowLeft, Loader2, Sparkles, Heart, Zap, Sun, Play, Check, Trash2, Lock } from "lucide-react";
 import { format } from "date-fns";
 import {
   AlertDialog,
@@ -49,12 +51,14 @@ export default function Rituals() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
+  const { isSubscribed, loading: subLoading } = useSubscription();
   const [rituals, setRituals] = useState<Ritual[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [activeRitual, setActiveRitual] = useState<Ritual | null>(null);
   const [isGeneratingGuidance, setIsGeneratingGuidance] = useState(false);
   const [showNewRitual, setShowNewRitual] = useState(false);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [newRitual, setNewRitual] = useState({
     type: "meditation",
     title: "",
@@ -244,7 +248,7 @@ export default function Rituals() {
     }
   };
 
-  if (loading) {
+  if (loading || subLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -252,6 +256,43 @@ export default function Rituals() {
           <p className="text-muted-foreground">Preparing sacred space...</p>
         </div>
       </div>
+    );
+  }
+
+  if (!isSubscribed) {
+    return (
+      <>
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Lock className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-serif font-bold mb-2">Ritual & Ceremony Space</h2>
+                  <p className="text-muted-foreground mb-4">
+                    This feature is available for Pro subscribers only
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
+                    Upgrade to Pro
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/chat")} className="w-full">
+                    Back to Chat
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <SubscriptionDialog 
+          open={showSubscriptionDialog}
+          onOpenChange={setShowSubscriptionDialog}
+          feature="Ritual & Ceremony Space"
+        />
+      </>
     );
   }
 

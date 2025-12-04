@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
-import { Loader2, Heart, PartyPopper, Calendar, Star, Baby, MessageCircle, Image, Sparkles } from "lucide-react";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
+import { Loader2, Heart, PartyPopper, Calendar, Star, Baby, MessageCircle, Image, Sparkles, Lock } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import {
   Dialog,
@@ -36,10 +38,12 @@ const MILESTONE_ICONS: Record<string, typeof Heart> = {
 export function MilestonesCelebration() {
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
+  const { isSubscribed, loading: subLoading } = useSubscription();
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [celebratingMilestone, setCelebratingMilestone] = useState<Milestone | null>(null);
   const [isGeneratingCelebration, setIsGeneratingCelebration] = useState(false);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
 
   useEffect(() => {
     if (activeProfile?.id) {
@@ -231,11 +235,46 @@ export function MilestonesCelebration() {
     }
   };
 
-  if (loading) {
+  if (loading || subLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (!isSubscribed) {
+    return (
+      <>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <PartyPopper className="h-6 w-6 text-primary" />
+            <h2 className="text-xl font-serif font-bold">Milestones & Celebrations</h2>
+          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Lock className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-4">
+                    This feature is available for Pro subscribers only
+                  </p>
+                </div>
+                <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
+                  Upgrade to Pro
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <SubscriptionDialog 
+          open={showSubscriptionDialog}
+          onOpenChange={setShowSubscriptionDialog}
+          feature="Milestones & Celebrations"
+        />
+      </>
     );
   }
 
