@@ -251,7 +251,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           .from("conversations")
           .insert({
             user_id: session.session.user.id,
-            ai_profile_id: activeChatEntity?.type === "ai" ? activeChatEntity.profileId : null,
+            // CRITICAL: Always use activeProfile.id for AI conversations to ensure data isolation
+            // Only set child_id when explicitly talking to a child
+            ai_profile_id: activeChatEntity?.type === "child" ? null : activeProfile?.id,
             child_id: activeChatEntity?.type === "child" ? activeChatEntity.childId : null,
             title: userMessage.slice(0, 50) + (userMessage.length > 50 ? "..." : ""),
           })

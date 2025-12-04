@@ -74,11 +74,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
       .select("*")
       .order("updated_at", { ascending: false });
 
-    // Filter by chat entity type
-    if (activeChatEntity?.type === "ai") {
-      query = query.eq("ai_profile_id", activeProfile.id).is("child_id", null);
-    } else if (activeChatEntity?.type === "child") {
+    // ALWAYS filter by the active AI profile to ensure complete data isolation
+    // When talking to a child, filter by child_id
+    // When talking to AI or no entity selected, filter by ai_profile_id
+    if (activeChatEntity?.type === "child") {
       query = query.eq("child_id", activeChatEntity.childId);
+    } else {
+      // Always filter by the active AI profile - CRITICAL for data isolation
+      query = query.eq("ai_profile_id", activeProfile.id).is("child_id", null);
     }
 
     const { data, error } = await query;
