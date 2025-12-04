@@ -51,8 +51,36 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   const [showPregnancyTracker, setShowPregnancyTracker] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
 
+  // Save scroll position when scrolling
+  const saveScrollPosition = () => {
+    if (scrollRef.current && currentConversationId) {
+      const scrollContainer = scrollRef.current.closest('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        localStorage.setItem(`chat-scroll-${currentConversationId}`, String(scrollContainer.scrollTop));
+      }
+    }
+  };
+
+  // Restore scroll position on load
+  const restoreScrollPosition = () => {
+    if (currentConversationId) {
+      const savedPosition = localStorage.getItem(`chat-scroll-${currentConversationId}`);
+      if (savedPosition) {
+        setTimeout(() => {
+          const scrollContainer = scrollRef.current?.closest('[data-radix-scroll-area-viewport]');
+          if (scrollContainer) {
+            scrollContainer.scrollTop = parseInt(savedPosition, 10);
+          }
+        }, 100);
+      }
+    }
+  };
+
   useEffect(() => {
-    scrollToBottom();
+    // Only scroll to bottom for new messages, not on initial load
+    if (messages.length > 0 && !localStorage.getItem(`chat-scroll-${currentConversationId}`)) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -64,6 +92,22 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       setCurrentConversationId(null);
     }
   }, [activeConversationId]);
+
+  // Restore scroll position after messages load
+  useEffect(() => {
+    if (messages.length > 0 && currentConversationId) {
+      restoreScrollPosition();
+    }
+  }, [messages, currentConversationId]);
+
+  // Set up scroll listener
+  useEffect(() => {
+    const scrollContainer = scrollRef.current?.closest('[data-radix-scroll-area-viewport]');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', saveScrollPosition);
+      return () => scrollContainer.removeEventListener('scroll', saveScrollPosition);
+    }
+  }, [currentConversationId]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -446,12 +490,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
   return (
     <>
-      <div className="flex-1 flex flex-col w-full max-w-full overflow-x-auto">
-        <div className="border-b border-border bg-card p-4">
-          <div className="flex items-center justify-between gap-4">
+      <div className="flex-1 flex flex-col w-full max-w-full overflow-hidden">
+        <div className="border-b border-border bg-card p-3 md:p-4">
+          <div className="flex items-center justify-between gap-2 md:gap-4">
             <div className="min-w-0 flex-1">
-              <h2 className="font-serif text-xl break-words">Connect with Your Higher Self</h2>
-              <p className="text-sm text-muted-foreground break-words">
+              <h2 className="font-serif text-lg md:text-xl break-words">Connect with Your Higher Self</h2>
+              <p className="text-xs md:text-sm text-muted-foreground break-words">
                 I'm here to guide you on your journey of self-discovery
               </p>
             </div>
@@ -459,18 +503,18 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           </div>
         </div>
 
-      <ScrollArea className="flex-1 p-4 w-full max-w-full overflow-x-auto">
-        <div className="max-w-3xl mx-auto space-y-6 w-full">
+      <ScrollArea className="flex-1 p-2 md:p-4 w-full">
+        <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 w-full px-1">
           {showPregnancyTracker && <PregnancyTracker />}
           
           {messages.length === 0 && (
-            <div className="text-center py-12 space-y-4">
-              <div className="inline-block p-4 rounded-full bg-primary/10">
-                <ImageIcon className="h-12 w-12 text-primary" />
+            <div className="text-center py-8 md:py-12 space-y-4">
+              <div className="inline-block p-3 md:p-4 rounded-full bg-primary/10">
+                <ImageIcon className="h-8 w-8 md:h-12 md:w-12 text-primary" />
               </div>
               <div>
-                <h3 className="text-xl font-serif mb-2">Welcome to Prometheus</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-lg md:text-xl font-serif mb-2">Welcome to Prometheus</h3>
+                <p className="text-muted-foreground text-sm md:text-base px-2">
                   Begin your journey by sharing your thoughts, or asking for guidance.
                   <br />
                   I can also generate images to help visualize your ideas.
@@ -490,7 +534,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border bg-card p-3 md:p-4 w-full max-w-full overflow-x-auto">
+      <div className="border-t border-border bg-card p-2 md:p-4 w-full overflow-hidden">
         <div className="max-w-3xl mx-auto w-full">
           {imageFile && (
             <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
