@@ -445,7 +445,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
   return (
     <>
-      <div className="flex-1 flex flex-col overflow-x-hidden">
+      <div className="flex-1 flex flex-col w-full max-w-full overflow-x-auto">
         <div className="border-b border-border bg-card p-4">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0 flex-1">
@@ -458,7 +458,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           </div>
         </div>
 
-      <ScrollArea className="flex-1 p-4 overflow-x-hidden">
+      <ScrollArea className="flex-1 p-4 w-full max-w-full overflow-x-auto">
         <div className="max-w-3xl mx-auto space-y-6 w-full">
           {showPregnancyTracker && <PregnancyTracker />}
           
@@ -489,7 +489,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border bg-card p-3 md:p-4 overflow-x-hidden">
+      <div className="border-t border-border bg-card p-3 md:p-4 w-full max-w-full overflow-x-auto">
         <div className="max-w-3xl mx-auto w-full">
           {imageFile && (
             <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">

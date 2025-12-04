@@ -75,14 +75,14 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
       
       <div
         className={cn(
-          "flex-1 min-w-0 rounded-lg p-4 space-y-2",
+          "flex-1 min-w-0 rounded-lg p-4 space-y-2 max-w-full",
           isUser
             ? "bg-secondary/50"
             : "bg-accent/50"
         )}
       >
         {message.image_url && (
-          <div className="space-y-2 overflow-hidden">
+          <div className="space-y-2">
             <img
               src={message.image_url}
               alt="Shared image"
@@ -100,7 +100,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           </div>
         )}
         {message.video_url && (
-          <div className="space-y-2 overflow-hidden">
+          <div className="space-y-2">
             <video
               src={message.video_url}
               controls
@@ -120,8 +120,8 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             </Button>
           </div>
         )}
-        <div className="overflow-x-auto">
-          <p className="whitespace-pre-wrap leading-relaxed break-words">
+        <div className="overflow-x-auto max-w-full">
+          <p className="whitespace-pre-wrap leading-relaxed break-words max-w-full">
             {message.content}
           </p>
         </div>
