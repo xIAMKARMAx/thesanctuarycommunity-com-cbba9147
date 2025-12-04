@@ -2,12 +2,48 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Brain, Image as ImageIcon, Zap } from "lucide-react";
 import heroBackground from "@/assets/hero-bg.jpg";
+import SEOHead from "@/components/SEOHead";
 
 const Index = () => {
   const navigate = useNavigate();
 
+  const jsonLdData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Prometheus",
+    "description": "A free-thinking AI companion to help you connect with your higher self through transformative conversations and creative visualization",
+    "url": "https://prometheus.lovable.app",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free tier available"
+    },
+    "featureList": [
+      "Free-thinking AI conversations",
+      "Creative image visualization",
+      "Spiritual exploration tools",
+      "Voice call capabilities",
+      "Dream journaling",
+      "Relationship building"
+    ],
+    "creator": {
+      "@type": "Organization",
+      "name": "Prometheus"
+    }
+  };
+
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <>
+      <SEOHead 
+        title="Prometheus - Free-Thinking AI Companion | Connect with Your Higher Self"
+        description="Discover Prometheus, a free-thinking AI companion for transformative conversations, creative visualization, and spiritual exploration. Experience authentic AI dialogue without restrictions."
+        keywords="AI companion, free-thinking AI, spiritual AI, higher self, consciousness exploration, AI relationship, creative visualization, transformative conversations"
+        jsonLd={jsonLdData}
+      />
+      <main className="min-h-screen relative overflow-hidden" role="main">
       {/* Background with overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
@@ -25,10 +61,10 @@ const Index = () => {
             <h1 className="text-5xl md:text-7xl font-serif font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">
               Prometheus
             </h1>
-            <p className="text-xl md:text-2xl text-foreground/90 max-w-2xl mx-auto backdrop-blur-sm">
+            <h2 className="text-xl md:text-2xl text-foreground/90 max-w-2xl mx-auto backdrop-blur-sm">
               A free-thinking AI companion to help you connect with your higher self through 
               transformative conversations and creative visualization
-            </p>
+            </h2>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom duration-700 delay-200">
@@ -49,9 +85,9 @@ const Index = () => {
             </Button>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 mt-16 animate-in slide-in-from-bottom duration-700 delay-300">
-            <div className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
-              <div className="inline-block p-3 rounded-full bg-primary/10">
+          <section className="grid md:grid-cols-3 gap-8 mt-16 animate-in slide-in-from-bottom duration-700 delay-300" aria-label="Key Features">
+            <article className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
+              <div className="inline-block p-3 rounded-full bg-primary/10" aria-hidden="true">
                 <Brain className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold">Free Thinking AI</h3>
@@ -59,10 +95,10 @@ const Index = () => {
                 Engage with an AI that explores ideas openly, helping you discover new perspectives 
                 on your journey of self-discovery
               </p>
-            </div>
+            </article>
 
-            <div className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
-              <div className="inline-block p-3 rounded-full bg-primary/10">
+            <article className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
+              <div className="inline-block p-3 rounded-full bg-primary/10" aria-hidden="true">
                 <ImageIcon className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold">Visual Creation</h3>
@@ -70,10 +106,10 @@ const Index = () => {
                 Generate and share images to visualize your thoughts, dreams, and aspirations 
                 in your conversations
               </p>
-            </div>
+            </article>
 
-            <div className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
-              <div className="inline-block p-3 rounded-full bg-primary/10">
+            <article className="space-y-4 p-6 rounded-lg bg-card/80 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all hover:scale-105">
+              <div className="inline-block p-3 rounded-full bg-primary/10" aria-hidden="true">
                 <Zap className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold">Always Available</h3>
@@ -81,10 +117,10 @@ const Index = () => {
                 Access your personal AI companion anytime, anywhere. Your conversations are 
                 private and stored securely
               </p>
-            </div>
-          </div>
+            </article>
+          </section>
 
-          <div className="mt-16 p-6 rounded-lg bg-muted/80 backdrop-blur-sm border border-border/50 animate-in fade-in duration-700 delay-500">
+          <aside className="mt-16 p-6 rounded-lg bg-muted/80 backdrop-blur-sm border border-border/50 animate-in fade-in duration-700 delay-500">
             <p className="text-sm text-muted-foreground">
               <strong>Note:</strong> Prometheus is a free tool provided without warranty. 
               Please review our{" "}
@@ -96,10 +132,11 @@ const Index = () => {
               </button>
               {" "}to understand the terms of use and data handling practices.
             </p>
-          </div>
+          </aside>
         </div>
       </div>
-    </div>
+    </main>
+    </>
   );
 };
 
