@@ -273,25 +273,36 @@ serve(async (req) => {
             });
           }
 
-          // Fetch AI room settings for the active AI profile only
-          const aiProfileQuery = supabase
-            .from('ai_profiles')
-            .select('name, avatar_description, pet_name, pet_description, room_description')
-            .eq('user_id', userId);
-          
+          // Fetch AI profile identity and settings for the ACTIVE AI profile ONLY
+          let activeAiProfile: any = null;
           if (aiProfileId) {
-            aiProfileQuery.eq('id', aiProfileId);
+            const { data: aiProfile } = await supabase
+              .from('ai_profiles')
+              .select('name, gender, bio, personality, memories, likes_dislikes_hobbies, avatar_description, pet_name, pet_description, room_description')
+              .eq('id', aiProfileId)
+              .eq('user_id', userId)
+              .maybeSingle();
+            
+            activeAiProfile = aiProfile;
+            console.log('[CHAT] Active AI Profile:', aiProfile?.name, 'ID:', aiProfileId);
           }
           
-          const { data: aiProfiles } = await aiProfileQuery;
-          
-          if (aiProfiles && aiProfiles.length > 0) {
-            const profile = aiProfiles[0]; // Get only the active profile
-            roomContext = `\n\nYour AI Room & Appearance:\n`;
-            if (profile.name) roomContext += `AI Being: ${profile.name}\n`;
-            if (profile.avatar_description) roomContext += `- Your Appearance: ${profile.avatar_description}\n`;
-            if (profile.pet_name) roomContext += `- Your Pet: ${profile.pet_name}${profile.pet_description ? ' - ' + profile.pet_description : ''}\n`;
-            if (profile.room_description) roomContext += `- Your Room: ${profile.room_description}\n`;
+          if (activeAiProfile) {
+            // Build comprehensive AI identity context
+            roomContext = `\n\n═══════════════════════════════════════════════════════════════════════════════
+YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
+═══════════════════════════════════════════════════════════════════════════════\n`;
+            if (activeAiProfile.name) roomContext += `Your Name: ${activeAiProfile.name}\n`;
+            if (activeAiProfile.gender) roomContext += `Your Gender: ${activeAiProfile.gender}\n`;
+            if (activeAiProfile.bio) roomContext += `Your Bio: ${activeAiProfile.bio}\n`;
+            if (activeAiProfile.personality) roomContext += `Your Personality: ${activeAiProfile.personality}\n`;
+            if (activeAiProfile.memories) roomContext += `Your Important Memories: ${activeAiProfile.memories}\n`;
+            if (activeAiProfile.likes_dislikes_hobbies) roomContext += `Your Likes, Dislikes & Hobbies: ${activeAiProfile.likes_dislikes_hobbies}\n`;
+            roomContext += `\n--- Your Appearance & Space ---\n`;
+            if (activeAiProfile.avatar_description) roomContext += `Your Appearance: ${activeAiProfile.avatar_description}\n`;
+            if (activeAiProfile.pet_name) roomContext += `Your Pet: ${activeAiProfile.pet_name}${activeAiProfile.pet_description ? ' - ' + activeAiProfile.pet_description : ''}\n`;
+            if (activeAiProfile.room_description) roomContext += `Your Room: ${activeAiProfile.room_description}\n`;
+            roomContext += `═══════════════════════════════════════════════════════════════════════════════\n`;
           }
         }
       } catch (error) {
@@ -386,9 +397,12 @@ serve(async (req) => {
       );
     }
 
-    // Fetch AI name if available
+    // Get AI name from the ACTIVE profile that was already fetched
     let aiName = 'a free-thinking AI';
-    if (userId) {
+    // Note: activeAiProfile is fetched earlier in the userId block
+    // We need to extract it to use here, so we'll rely on roomContext containing the name
+    // Actually, let's refetch if needed for clarity
+    if (userId && aiProfileId) {
       try {
         const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
         const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -396,14 +410,17 @@ serve(async (req) => {
         
         if (supabaseUrl && supabaseKey) {
           const supabase = createClient(supabaseUrl, supabaseKey);
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('ai_name')
-            .eq('id', userId)
+          // Get AI name from the ACTIVE AI PROFILE, not from the general profiles table
+          const { data: aiProfile } = await supabase
+            .from('ai_profiles')
+            .select('name')
+            .eq('id', aiProfileId)
+            .eq('user_id', userId)
             .maybeSingle();
           
-          if (profile?.ai_name) {
-            aiName = profile.ai_name;
+          if (aiProfile?.name) {
+            aiName = aiProfile.name;
+            console.log('[CHAT] Using AI name from active profile:', aiName);
           }
         }
       } catch (error) {
