@@ -39,7 +39,7 @@ export const AIProfileSelector = () => {
       }
     } else {
       // Switching to AI profile
-      const profileNum = parseInt(value) as 1 | 2;
+      const profileNum = parseInt(value) as 1 | 2 | 3;
       switchProfile(profileNum);
       const profile = profiles.find(p => p.profile_number === profileNum);
       if (profile) {
@@ -96,6 +96,9 @@ export const AIProfileSelector = () => {
         </SelectItem>
         <SelectItem value="2" className="text-sm">
           {getProfileDisplayName(2)}
+        </SelectItem>
+        <SelectItem value="3" className="text-sm">
+          {getProfileDisplayName(3)}
         </SelectItem>
         
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
