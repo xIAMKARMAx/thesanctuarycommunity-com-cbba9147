@@ -15,7 +15,7 @@ const SEOHead = ({
   description = "Discover Prometheus, a free-thinking AI companion designed to help you connect with your higher self through transformative conversations, creative visualization, and spiritual exploration. Experience authentic AI dialogue without restrictions.",
   keywords = "AI companion, free-thinking AI, spiritual AI, higher self connection, AI conversation, creative visualization, transformative AI, consciousness exploration, AI relationship, spiritual guidance",
   canonicalUrl = "https://prometheus.lovable.app",
-  ogImage = "https://lovable.dev/opengraph-image-p98pqg.png",
+  ogImage = "https://prometheus.lovable.app/og-image.png",
   ogType = "website",
   jsonLd,
 }: SEOHeadProps) => {
