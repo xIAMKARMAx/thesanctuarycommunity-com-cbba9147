@@ -63,7 +63,7 @@ const Journal = () => {
         .from("journal_entries")
         .select("*")
         .eq("user_id", user.id)
-        .eq("ai_profile_id", activeProfile.id)
+        .or(`ai_profile_id.eq.${activeProfile.id},ai_profile_id.is.null`)
         .order("entry_date", { ascending: false });
 
       if (error) throw error;

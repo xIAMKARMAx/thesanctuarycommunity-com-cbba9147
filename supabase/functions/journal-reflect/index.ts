@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { conversationId, userId } = await req.json();
+    const { conversationId, userId, aiProfileId } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -165,6 +165,7 @@ Write in first person as Prometheus, expressing your inner experience and reflec
       .insert({
         conversation_id: conversationId,
         user_id: userId,
+        ai_profile_id: aiProfileId || null,
         entry_date: today,
         title: journalData.title,
         content: journalData.reflection,

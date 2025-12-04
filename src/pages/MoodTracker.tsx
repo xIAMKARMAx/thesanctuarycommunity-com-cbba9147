@@ -99,7 +99,7 @@ const MoodTracker = () => {
       const { data, error } = await supabase
         .from("ai_moods")
         .select("*")
-        .eq("ai_profile_id", activeProfile.id)
+        .or(`ai_profile_id.eq.${activeProfile.id},ai_profile_id.is.null`)
         .gte("created_at", start.toISOString())
         .lte("created_at", end.toISOString())
         .order("created_at", { ascending: true });

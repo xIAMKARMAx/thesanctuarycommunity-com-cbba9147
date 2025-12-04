@@ -592,6 +592,7 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
           body: {
             userId: session.user.id,
             conversationId,
+            aiProfileId: activeProfile?.id,
             trigger: 'voice_call_end'
           }
         });
