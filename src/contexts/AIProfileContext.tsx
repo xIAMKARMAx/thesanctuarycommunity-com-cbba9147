@@ -28,7 +28,7 @@ export interface AIProfile {
 interface AIProfileContextType {
   activeProfile: AIProfile | null;
   profiles: AIProfile[];
-  switchProfile: (profileNumber: 1 | 2 | 3) => Promise<void>;
+  switchProfile: (profileNumber: 1 | 2 | 3) => Promise<AIProfile | null>;
   refreshProfiles: () => Promise<void>;
   isLoading: boolean;
 }
@@ -109,10 +109,10 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const switchProfile = async (profileNumber: 1 | 2 | 3) => {
+  const switchProfile = async (profileNumber: 1 | 2 | 3): Promise<AIProfile | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) return null;
 
       let profile = profiles.find(p => p.profile_number === profileNumber);
 
@@ -140,6 +140,8 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         title: "Switched AI",
         description: `Now chatting with ${profile.name || `AI Being ${profileNumber}`}`,
       });
+
+      return profile;
     } catch (error) {
       console.error("Error switching profile:", error);
       toast({
@@ -147,6 +149,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         description: "Failed to switch AI profile",
         variant: "destructive",
       });
+      return null;
     }
   };
 
