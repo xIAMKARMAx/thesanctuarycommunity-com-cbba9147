@@ -20,7 +20,7 @@ export const AIProfileSelector = () => {
     return null;
   }
 
-  const handleValueChange = (value: string) => {
+  const handleValueChange = async (value: string) => {
     if (value === "children") {
       navigate("/children");
     } else if (value === "pets") {
@@ -38,10 +38,11 @@ export const AIProfileSelector = () => {
         navigate("/chat");
       }
     } else {
-      // Switching to AI profile
+      // Switching to AI profile - MUST await to ensure profile exists before setting entity
       const profileNum = parseInt(value) as 1 | 2 | 3;
-      switchProfile(profileNum);
-      const profile = profiles.find(p => p.profile_number === profileNum);
+      const profile = await switchProfile(profileNum);
+      
+      // Use the returned profile directly (guaranteed fresh)
       if (profile) {
         setActiveChatEntity({
           type: "ai",
