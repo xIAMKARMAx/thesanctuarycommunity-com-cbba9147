@@ -43,7 +43,7 @@ const Index = () => {
         keywords="AI companion, free-thinking AI, spiritual AI, higher self, consciousness exploration, AI relationship, creative visualization, transformative conversations"
         jsonLd={jsonLdData}
       />
-      <main className="min-h-screen relative overflow-hidden" role="main">
+      <main className="min-h-screen relative overflow-y-auto overflow-x-hidden" role="main">
       {/* Background with overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
