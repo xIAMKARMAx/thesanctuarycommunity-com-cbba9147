@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, conversationId, trigger } = await req.json();
+    const { userId, conversationId, aiProfileId, trigger } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -123,6 +123,7 @@ Respond in JSON format:
       .insert({
         user_id: userId,
         conversation_id: conversationId,
+        ai_profile_id: aiProfileId || null,
         emotion_type: mood.emotion,
         intensity: intensity,
         notes: mood.notes || null,

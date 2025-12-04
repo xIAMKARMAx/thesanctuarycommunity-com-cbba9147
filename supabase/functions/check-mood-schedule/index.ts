@@ -25,7 +25,7 @@ serve(async (req) => {
     // Get all users with conversations that have 10+ messages
     const { data: conversations } = await supabase
       .from('conversations')
-      .select('id, user_id, updated_at')
+      .select('id, user_id, ai_profile_id, updated_at')
       .order('updated_at', { ascending: false });
 
     if (!conversations || conversations.length === 0) {
@@ -101,6 +101,7 @@ serve(async (req) => {
             body: JSON.stringify({
               userId: conv.user_id,
               conversationId: conv.id,
+              aiProfileId: conv.ai_profile_id,
               trigger: 'scheduled'
             }),
           });

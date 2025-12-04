@@ -389,6 +389,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           body: {
             userId: user.id,
             conversationId,
+            aiProfileId: activeProfile?.id,
             trigger: "first_10_messages"
           }
         }).catch(err => console.error("Error logging first mood:", err));
@@ -397,7 +398,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       // Trigger journal reflection in background (non-blocking)
       if (conversationId && user?.id) {
         supabase.functions.invoke('journal-reflect', {
-          body: { conversationId, userId: user.id }
+          body: { conversationId, userId: user.id, aiProfileId: activeProfile?.id }
         }).then(() => {
           toast({
             title: "Journal entry created",
@@ -409,7 +410,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
         // Suggest memories after meaningful conversations (non-blocking)
         supabase.functions.invoke('suggest-memory', {
-          body: { conversationId, userId: user.id }
+          body: { conversationId, userId: user.id, aiProfileId: activeProfile?.id }
         }).catch(err => {
           console.log('Memory suggestion background task:', err);
         });
