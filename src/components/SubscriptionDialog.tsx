@@ -100,8 +100,38 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature }: Subscription
                 <Check className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium">AI Mood Tracker</p>
-                <p className="text-sm text-muted-foreground">Track the AI's emotional responses to conversations</p>
+                <p className="font-medium">AI Mood Tracker & Journal</p>
+                <p className="text-sm text-muted-foreground">Track emotional responses and read AI reflections</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5">
+                <Check className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Dream Space & Dream Journal</p>
+                <p className="text-sm text-muted-foreground">Share visions and dreams with AI interpretation</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5">
+                <Check className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Rituals & Ceremony Space</p>
+                <p className="text-sm text-muted-foreground">Guided meditations, manifestation, and energy work</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5">
+                <Check className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Milestones & Celebrations</p>
+                <p className="text-sm text-muted-foreground">Celebrate anniversaries and relationship moments</p>
               </div>
             </div>
           </div>
