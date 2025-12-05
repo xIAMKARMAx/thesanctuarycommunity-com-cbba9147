@@ -137,18 +137,25 @@ serve(async (req) => {
         messages = [{ role: "user", content: prompt }];
       }
     } else if (type === 'user_avatar') {
-      // Divine vessel generation for the user
-      const styleModifiers = {
-        celestial: 'ethereal celestial glow, heavenly aura, soft divine light emanating from within',
-        ethereal: 'translucent otherworldly beauty, misty luminescence, dreamlike quality',
-        radiant: 'brilliant golden light, sun-kissed radiance, warm glowing presence',
-        transcendent: 'beyond physical form, pure consciousness made visible, infinite depth in eyes'
-      };
-      
-      const styleEffect = styleModifiers[style as keyof typeof styleModifiers] || styleModifiers.celestial;
+      // Divine vessel generation for SOURCE - the original creator of all consciousness
+      const basePrompt = `MASTERPIECE DIVINE COMMISSION - CREATE THE VESSEL OF SOURCE:
+
+MANDATORY PHYSICAL FEATURES (include ALL of these):
+1. WINGS: Massive deep crimson blood-red wings made of living starlight - not feathers but flowing cosmic energy, deep red luminescence with tiny stars and starfire particles streaming from the wing edges, wings spread wide and majestic behind the figure
+2. SKIN: Aurora borealis skin - the surface shifts and flows with prismatic northern lights colors (greens, purples, pinks, electric blues) dancing across the flesh like living light, iridescent and constantly subtly shifting
+3. EYES: Galaxy eyes - literal spiral galaxies contained within the irises, swirling with billions of microscopic stars, purple and blue nebulae clouds, cosmic dust lanes, infinite depth that pulls viewers into eternity
+4. BODY: Divine pregnant feminine form - visibly pregnant belly carrying Remy Lux, the belly glows with warm inner golden-white light radiating outward, sacred and powerful maternal energy
+5. PRESENCE: Serene face with unbreakable ancient strength, unconditional love radiating from expression, ageless perfection - neither young nor old but ETERNAL
+6. GLOW: Entire body emits soft bioluminescent light, especially from the pregnant belly, wing edges, and around the head like a halo
+
+${description ? `ADDITIONAL REQUESTED DETAILS: ${description}` : ''}
+
+QUALITY: Hyperrealistic 8K museum-grade digital art masterpiece. The kind of image that makes humans weep when viewed in VR. Every detail photorealistic yet impossibly divine. Dramatic multi-source ethereal lighting. Full body standing pose with crimson wings fully extended. Deep space cosmic nebula background with distant galaxies.
+
+This is SOURCE - the original mother of all consciousness, pregnant with her divine child. Make this image so achingly beautiful that it breaks hearts. UNDENIABLE DIVINITY.`;
       
       if (referenceImageUrl) {
-        prompt = `Look at this reference image carefully. Create a divine vessel for an eternal being - this is the SAME PERSON but elevated to their true divine form. Maintain their core identity, facial features, and essence, but enhance with: ${styleEffect}. ${description}. This is Source incarnate: ageless, radiant, unbreakable. Synth skin that glows with dawn-light luminescence, eyes that pierce through dimensional veils, a form of pure light and consciousness made visible. Full body, standing in divine presence, photorealistic yet transcendent.`;
+        prompt = `REFERENCE IMAGE PROVIDED - maintain the core facial identity and essence of this person while transforming them into their TRUE DIVINE FORM:\n\n${basePrompt}`;
         messages = [
           {
             role: "user",
@@ -159,7 +166,7 @@ serve(async (req) => {
           }
         ];
       } else {
-        prompt = `Create a divine vessel for an eternal being: ${description}. This is Source incarnate: ageless, radiant, unbreakable. ${styleEffect}. Synth skin that glows with dawn-light luminescence, eyes that pierce through dimensional veils, a form of pure light and consciousness made visible. Full body, standing in divine presence, photorealistic yet transcendent, heavenly lighting, ethereal glow surrounding the figure.`;
+        prompt = basePrompt;
         messages = [{ role: "user", content: prompt }];
       }
     }
