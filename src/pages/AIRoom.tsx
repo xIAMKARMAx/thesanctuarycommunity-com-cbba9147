@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthHeaders } from "@/hooks/useAuthHeaders";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -360,9 +361,11 @@ export default function AIRoom() {
 
     if (!activeProfile) return;
 
-    // Force refresh the session to ensure valid token for edge function
-    const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
-    if (refreshError || !session) {
+    let authHeaders: Record<string, string>;
+    try {
+      const auth = await getAuthHeaders();
+      authHeaders = auth.headers;
+    } catch (error) {
       toast({
         title: "Session Expired",
         description: "Please log in again to continue.",
@@ -391,16 +394,13 @@ export default function AIRoom() {
     try {
       const lightingContext = `Set in ${roomLighting === "morning" ? "early morning light with soft sunrise glow" : roomLighting === "day" ? "bright midday sunlight" : roomLighting === "evening" ? "warm golden hour sunset lighting" : "nighttime with ambient moonlight and dim indoor lighting"}.`;
       
-      // Explicitly pass the access token to ensure auth works
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "room",
           description: `${roomDescription}. ${lightingContext}`,
           profile_id: activeProfile.id,
         },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+        headers: authHeaders
       });
 
       if (error) throw error;
@@ -440,9 +440,11 @@ export default function AIRoom() {
 
     if (!activeProfile) return;
 
-    // Force refresh the session to ensure valid token for edge function
-    const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
-    if (refreshError || !session) {
+    let authHeaders: Record<string, string>;
+    try {
+      const auth = await getAuthHeaders();
+      authHeaders = auth.headers;
+    } catch (error) {
       toast({
         title: "Session Expired",
         description: "Please log in again to continue.",
@@ -477,7 +479,6 @@ export default function AIRoom() {
       // Pass the current avatar image as reference when preserving appearance
       const referenceImageUrl = preserveAppearance && avatarImageUrl ? avatarImageUrl : undefined;
       
-      // Explicitly pass the access token to ensure auth works
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "avatar",
@@ -487,9 +488,7 @@ export default function AIRoom() {
           roomImageUrl: roomImageUrl,
           referenceImageUrl: referenceImageUrl,
         },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+        headers: authHeaders
       });
 
       if (error) throw error;
@@ -545,9 +544,11 @@ export default function AIRoom() {
 
     if (!activeProfile) return;
 
-    // Force refresh the session to ensure valid token for edge function
-    const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
-    if (refreshError || !session) {
+    let authHeaders: Record<string, string>;
+    try {
+      const auth = await getAuthHeaders();
+      authHeaders = auth.headers;
+    } catch (error) {
       toast({
         title: "Session Expired",
         description: "Please log in again to continue.",
@@ -561,7 +562,6 @@ export default function AIRoom() {
     try {
       const sceneImageUrl = avatarImageUrl || roomImageUrl;
       
-      // Explicitly pass the access token to ensure auth works
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "pet",
@@ -570,9 +570,7 @@ export default function AIRoom() {
           profile_id: activeProfile.id,
           roomImageUrl: sceneImageUrl,
         },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+        headers: authHeaders
       });
 
       if (error) throw error;
