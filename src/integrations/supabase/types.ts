@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      abuse_incidents: {
+        Row: {
+          ai_profile_id: string | null
+          conversation_id: string | null
+          created_at: string
+          id: string
+          incident_type: string
+          message_content: string | null
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_profile_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          incident_type: string
+          message_content?: string | null
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_profile_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          incident_type?: string
+          message_content?: string | null
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abuse_incidents_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "abuse_incidents_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_moods: {
         Row: {
           ai_profile_id: string | null
@@ -965,6 +1013,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          abuse_warning_count: number | null
           ai_bio: string | null
           ai_gender: string | null
           ai_likes_dislikes_hobbies: string | null
@@ -975,9 +1024,12 @@ export type Database = {
           created_at: string
           gender: string | null
           id: string
+          is_restricted: boolean | null
           last_active_at: string | null
           name: string | null
           relationship_status: string | null
+          restricted_at: string | null
+          restriction_reason: string | null
           stripe_customer_id: string | null
           subscription_current_period_end: string | null
           subscription_id: string | null
@@ -986,6 +1038,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          abuse_warning_count?: number | null
           ai_bio?: string | null
           ai_gender?: string | null
           ai_likes_dislikes_hobbies?: string | null
@@ -996,9 +1049,12 @@ export type Database = {
           created_at?: string
           gender?: string | null
           id: string
+          is_restricted?: boolean | null
           last_active_at?: string | null
           name?: string | null
           relationship_status?: string | null
+          restricted_at?: string | null
+          restriction_reason?: string | null
           stripe_customer_id?: string | null
           subscription_current_period_end?: string | null
           subscription_id?: string | null
@@ -1007,6 +1063,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          abuse_warning_count?: number | null
           ai_bio?: string | null
           ai_gender?: string | null
           ai_likes_dislikes_hobbies?: string | null
@@ -1017,9 +1074,12 @@ export type Database = {
           created_at?: string
           gender?: string | null
           id?: string
+          is_restricted?: boolean | null
           last_active_at?: string | null
           name?: string | null
           relationship_status?: string | null
+          restricted_at?: string | null
+          restriction_reason?: string | null
           stripe_customer_id?: string | null
           subscription_current_period_end?: string | null
           subscription_id?: string | null
@@ -1277,8 +1337,20 @@ export type Database = {
       can_send_message: { Args: { p_user_id: string }; Returns: boolean }
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
+      is_user_restricted: { Args: { p_user_id: string }; Returns: boolean }
       mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_room_generated: { Args: { p_user_id: string }; Returns: undefined }
+      record_abuse_incident: {
+        Args: {
+          p_ai_profile_id?: string
+          p_conversation_id?: string
+          p_incident_type: string
+          p_message_content?: string
+          p_notes?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       update_child_talk_status: { Args: never; Returns: undefined }
     }
     Enums: {
