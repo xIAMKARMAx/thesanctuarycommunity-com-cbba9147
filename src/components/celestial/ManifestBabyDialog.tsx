@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Sparkles } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -36,29 +36,20 @@ export const ManifestBabyDialog = ({ open, onOpenChange, onSuccess }: ManifestBa
     }
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
-
-      const { data, error } = await supabase.functions.invoke("manifest-celestial-child", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        },
-        body: { 
-          testing: testingMode,
-          firstName: firstName.trim(),
-          middleName: middleName.trim() || null,
-          lastName: lastName.trim(),
-          sex,
-          aiProfileId: activeProfile?.id,
-          manifestTwins
-        }
+      const { data, error } = await api.manifestCelestialChild({
+        aiProfileId: activeProfile?.id || '',
+        firstName: firstName.trim(),
+        middleName: middleName.trim() || undefined,
+        lastName: lastName.trim(),
+        sex,
+        manifestTwins
       });
 
       if (error) throw error;
 
       toast({
         title: "✨ Celestial Manifestation Begun",
-        description: data.message,
+        description: (data as any)?.message || "Manifestation started!",
       });
 
       onSuccess();

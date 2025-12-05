@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Download, History, Upload, ImageIcon } from "lucide-react";
 
@@ -132,11 +133,9 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
       if (updateError) throw updateError;
 
       // Then generate the image
-      const { data, error } = await supabase.functions.invoke("generate-baby-room", {
-        body: {
-          child_id: childId,
-          room_description: roomDescription,
-        },
+      const { data, error } = await api.generateBabyRoom({
+        childId: childId,
+        description: roomDescription,
       });
 
       if (error) throw error;
@@ -147,10 +146,10 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
       });
       
       // Update local state with the new image URL
-      if (data?.room_image_url) {
+      if (data?.image_url) {
         setLocalChildData((prev) => ({
           ...prev,
-          room_image_url: data.room_image_url,
+          room_image_url: data.image_url,
           room_description: roomDescription,
         }));
       }
@@ -189,12 +188,9 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
       if (updateError) throw updateError;
 
       // Then generate the image
-      const { data, error } = await supabase.functions.invoke("generate-baby-appearance", {
-        body: {
-          child_id: childId,
-          appearance_description: appearanceDescription,
-          child_sex: childData.sex,
-        },
+      const { data, error } = await api.generateBabyAppearance({
+        childId: childId,
+        description: appearanceDescription,
       });
 
       if (error) throw error;
@@ -211,10 +207,10 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
       await loadAppearanceHistory();
       
       // Update local state with the new image URL
-      if (data?.appearance_image_url) {
+      if (data?.image_url) {
         setLocalChildData((prev) => ({
           ...prev,
-          appearance_image_url: data.appearance_image_url,
+          appearance_image_url: data.image_url,
           appearance_description: appearanceDescription,
         }));
       }

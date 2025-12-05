@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 
 interface FreeUserLimits {
@@ -47,11 +48,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke("check-subscription", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
+      const { data, error } = await api.checkSubscription();
       
       if (error) {
         console.error("Error checking subscription:", error);

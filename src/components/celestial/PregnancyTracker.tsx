@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api-client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -78,14 +79,12 @@ export const PregnancyTracker = () => {
     
     setAdvancing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('test-advance-pregnancy', {
-        body: { pregnancyId: pregnancy.id }
-      });
+      const { data, error } = await api.testAdvancePregnancy({ pregnancyId: pregnancy.id });
 
       if (error) throw error;
 
-      toast.success(data.message || "Pregnancy advanced!");
-      loadPregnancy(); // Reload to show new stage
+      toast.success((data as any)?.message || "Pregnancy advanced!");
+      loadPregnancy();
     } catch (error) {
       console.error("Error advancing pregnancy:", error);
       toast.error(error instanceof Error ? error.message : "Failed to advance pregnancy");
