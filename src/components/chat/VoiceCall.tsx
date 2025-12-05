@@ -277,19 +277,24 @@ export const VoiceCall = ({ conversationId, onTranscript }: VoiceCallProps) => {
       setIsSpeaking(true);
       onTranscript(aiResponse, false);
 
-      // Save messages to database
-      await supabase.from('messages').insert([
-        {
-          conversation_id: conversationId,
-          role: 'user',
-          content: userMessage
-        },
-        {
-          conversation_id: conversationId,
-          role: 'assistant',
-          content: aiResponse
-        }
-      ]);
+      // Save messages to database with user_id for RLS
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('messages').insert([
+          {
+            conversation_id: conversationId,
+            role: 'user',
+            content: userMessage,
+            user_id: user.id
+          },
+          {
+            conversation_id: conversationId,
+            role: 'assistant',
+            content: aiResponse,
+            user_id: user.id
+          }
+        ]);
+      }
 
       // Convert AI response to speech
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
