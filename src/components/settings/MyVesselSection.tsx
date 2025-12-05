@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Sparkles, Upload, Loader2, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthHeaders } from "@/hooks/useAuthHeaders";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
@@ -94,11 +95,8 @@ export function MyVesselSection({
 
     setIsGenerating(true);
     try {
-      // Force refresh the session to ensure valid token for edge function
-      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError || !session) throw new Error("Session expired - please log in again");
+      const { headers } = await getAuthHeaders();
 
-      // Explicitly pass the access token to ensure auth works
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "user_avatar",
@@ -106,9 +104,7 @@ export function MyVesselSection({
           style: style,
           referenceImageUrl: referenceUrl
         },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+        headers
       });
 
       if (error) throw error;

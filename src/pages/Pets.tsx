@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthHeaders } from "@/hooks/useAuthHeaders";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -219,9 +220,7 @@ export default function Pets() {
 
     setIsGenerating(true);
     try {
-      // Force refresh the session to ensure valid token for edge function
-      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError || !session) throw new Error("Session expired - please log in again");
+      const { headers } = await getAuthHeaders();
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -254,9 +253,7 @@ export default function Pets() {
           petName: petName,
           profile_id: activeProfile.id,
         },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+        headers
       });
 
       if (error) throw error;
