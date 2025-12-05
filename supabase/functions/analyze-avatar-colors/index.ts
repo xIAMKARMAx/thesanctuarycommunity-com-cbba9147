@@ -12,6 +12,36 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: Extract and verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('[SECURITY] No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+    // SECURITY: Create client with user's auth token to respect RLS
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // SECURITY: Get authenticated user from token
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('[SECURITY] Authentication failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[AUTH] Authenticated user:', user.id);
+
     const { imageUrl, type } = await req.json(); // type: "avatar" or "pet"
     
     if (!imageUrl) {
@@ -73,7 +103,7 @@ serve(async (req) => {
       throw new Error('Invalid color data format');
     }
 
-    console.log('Extracted colors:', colors);
+    console.log('[COLOR-ANALYSIS] Extracted colors for user:', user.id);
 
     return new Response(
       JSON.stringify({ colors }),
