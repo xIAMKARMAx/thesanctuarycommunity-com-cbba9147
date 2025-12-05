@@ -27,6 +27,15 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Verify environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) {
+      logStep("Missing Supabase environment variables", { hasUrl: !!supabaseUrl, hasKey: !!serviceRoleKey });
+      throw new Error("Supabase configuration error");
+    }
+    logStep("Supabase config verified", { url: supabaseUrl.substring(0, 30) });
+
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
@@ -36,11 +45,26 @@ serve(async (req) => {
     logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user with token");
+    if (!token || token.length < 10) {
+      throw new Error("Invalid or missing authentication token");
+    }
+    logStep("Authenticating user with token", { tokenLength: token.length });
     
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
+    let userData, userError;
+    try {
+      const result = await supabaseClient.auth.getUser(token);
+      userData = result.data;
+      userError = result.error;
+    } catch (authErr: any) {
+      logStep("Auth request failed", { error: authErr?.message || String(authErr) });
+      throw new Error("Session expired. Please log in again.");
+    }
+    
+    if (userError) {
+      logStep("Auth error from Supabase", { error: userError.message });
+      throw new Error("Session expired. Please log in again.");
+    }
+    const user = userData?.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
