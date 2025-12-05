@@ -94,8 +94,9 @@ export function MyVesselSection({
 
     setIsGenerating(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+      // Use getUser() instead of getSession() to force token refresh
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated - please log in again");
 
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
