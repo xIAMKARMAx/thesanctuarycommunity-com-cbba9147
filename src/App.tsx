@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { AIProfileProvider } from "@/contexts/AIProfileContext";
 import { ChatEntityProvider } from "@/contexts/ChatEntityContext";
+import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -38,6 +39,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <IdleTimeoutHandler />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
