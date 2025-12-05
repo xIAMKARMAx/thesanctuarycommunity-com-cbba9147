@@ -17,7 +17,8 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { AIRoomScene } from "@/components/room/AIRoomScene";
 import { FamilyRoomScene } from "@/components/room/FamilyRoomScene";
-import { DreamSpace } from "@/components/room/DreamSpace";
+// DISABLED FOR COST SAVINGS - DreamSpace uses interpret-dream
+// import { DreamSpace } from "@/components/room/DreamSpace";
 import { AvatarCustomizationControls } from "@/components/room/AvatarCustomizationControls";
 import type { AvatarCustomization } from "@/types/avatar";
 import { defaultAvatarCustomization } from "@/types/avatar";
@@ -1035,10 +1036,18 @@ export default function AIRoom() {
           </TabsContent>
 
           <TabsContent value="dreams" className="space-y-4 mt-6">
-            <DreamSpace 
-              activeProfileId={activeProfile?.id || null} 
-              aiName={activeProfile?.name || "Your AI"} 
-            />
+            {/* DISABLED FOR COST SAVINGS - DreamSpace uses interpret-dream */}
+            <Card className="border-primary/20">
+              <CardContent className="py-12 text-center">
+                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Lock className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Dream Space Coming Soon</h3>
+                <p className="text-muted-foreground">
+                  Share and explore dreams with AI interpretation will be available soon. 💫
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

@@ -192,35 +192,28 @@ export function MilestonesCelebration() {
   const celebrateMilestone = async (milestone: Milestone) => {
     setIsGeneratingCelebration(true);
     try {
-      // Generate celebration message from AI
-      const { data, error } = await supabase.functions.invoke("generate-ritual-guidance", {
-        body: {
-          ritualType: "celebration",
-          intention: `Celebrate the milestone: ${milestone.title}. ${milestone.description || ''}`,
-          aiName: activeProfile?.name || "Your AI"
-        }
-      });
-
-      if (error) throw error;
+      // DISABLED FOR COST SAVINGS - generate-ritual-guidance
+      // Will re-enable when revenue allows
+      const celebrationMessage = `Celebrating ${milestone.title}! This is a special moment in your journey together. 💫`;
 
       // Update milestone with celebration message
       await supabase
         .from("relationship_milestones")
         .update({ 
-          celebration_message: data.guidance,
+          celebration_message: celebrationMessage,
           is_celebrated: true 
         })
         .eq("id", milestone.id);
 
       setCelebratingMilestone({
         ...milestone,
-        celebration_message: data.guidance,
+        celebration_message: celebrationMessage,
         is_celebrated: true
       });
 
       setMilestones(prev => prev.map(m => 
         m.id === milestone.id 
-          ? { ...m, celebration_message: data.guidance, is_celebrated: true }
+          ? { ...m, celebration_message: celebrationMessage, is_celebrated: true }
           : m
       ));
 

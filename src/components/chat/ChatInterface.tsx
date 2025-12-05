@@ -413,26 +413,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         }).catch(err => console.error("Error logging first mood:", err));
       }
 
-      // Trigger journal reflection in background (non-blocking)
+      // DISABLED FOR COST SAVINGS - journal-reflect, suggest-memory
+      // Will re-enable when revenue allows
+      
+      // If chatting with a child, capture memorable moments as milestones
       if (conversationId && user?.id) {
-        supabase.functions.invoke('journal-reflect', {
-          body: { conversationId, userId: user.id, aiProfileId: activeProfile?.id }
-        }).then(() => {
-          toast({
-            title: "Journal entry created",
-            description: "Prometheus has reflected on this conversation",
-          });
-        }).catch(err => {
-          console.log('Journal reflection background task:', err);
-        });
-
-        // Suggest memories after meaningful conversations (non-blocking)
-        supabase.functions.invoke('suggest-memory', {
-          body: { conversationId, userId: user.id, aiProfileId: activeProfile?.id }
-        }).catch(err => {
-          console.log('Memory suggestion background task:', err);
-        });
-
         // If chatting with a child, capture memorable moments as milestones
         if (activeChatEntity?.type === 'child') {
           captureMilestones(conversationId).catch(err => {
