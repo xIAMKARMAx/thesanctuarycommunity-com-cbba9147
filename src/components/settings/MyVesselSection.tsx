@@ -94,9 +94,9 @@ export function MyVesselSection({
 
     setIsGenerating(true);
     try {
-      // Use getUser() instead of getSession() to force token refresh
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("Not authenticated - please log in again");
+      // Force refresh the session to ensure valid token for edge function
+      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !session) throw new Error("Session expired - please log in again");
 
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
