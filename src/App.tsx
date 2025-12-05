@@ -16,6 +16,7 @@ import DreamJournal from "./pages/DreamJournal";
 import MoodTracker from "./pages/MoodTracker";
 import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import Attunement from "./pages/Attunement";
 import Memories from "./pages/Memories";
 import AIRoom from "./pages/AIRoom";
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/mood-tracker" element={<MoodTracker />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
                 <Route path="/attunement" element={<Attunement />} />
                 <Route path="/memories" element={<Memories />} />
                 <Route path="/ai-room" element={<AIRoom />} />

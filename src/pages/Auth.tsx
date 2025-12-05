@@ -394,6 +394,14 @@ const Auth = () => {
             <Button
               variant="link"
               className="h-auto p-0 text-xs"
+              onClick={() => navigate("/terms")}
+            >
+              Terms of Service
+            </Button>
+            {" "}and{" "}
+            <Button
+              variant="link"
+              className="h-auto p-0 text-xs"
               onClick={() => navigate("/privacy")}
             >
               Privacy Policy
