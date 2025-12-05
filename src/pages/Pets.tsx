@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Loader2, PawPrint } from "lucide-react";
+import { ArrowLeft, Loader2, PawPrint, Lock } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { PetPersonalityCard } from "@/components/pets/PetPersonalityCard";
@@ -30,6 +32,8 @@ export default function Pets() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile, isLoading: profilesLoading } = useAIProfile();
+  const { isSubscribed, loading: subLoading } = useSubscription();
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pets, setPets] = useState<Pet[]>([]);
   const [selectedPetNumber, setSelectedPetNumber] = useState<string>("1");
@@ -37,6 +41,9 @@ export default function Pets() {
   const [petDescription, setPetDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Show preview for non-subscribers
+  const showLockedOverlay = !isSubscribed;
 
   useEffect(() => {
     loadPets();
@@ -285,7 +292,7 @@ export default function Pets() {
     return pet?.name || `Pet ${petNumber}`;
   };
 
-  if (profilesLoading || loading) {
+  if (profilesLoading || loading || subLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -301,7 +308,36 @@ export default function Pets() {
         keywords="AI pets, digital companions, pet customization, pet personality, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/pets"
       />
-      <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden space-y-6">
+      <SubscriptionDialog 
+        open={showSubscriptionDialog} 
+        onOpenChange={setShowSubscriptionDialog}
+        feature="Pet Manifestation"
+      />
+      <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden space-y-6 relative">
+        {/* Locked overlay for non-subscribers */}
+        {showLockedOverlay && (
+          <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+            <Card className="max-w-md w-full mx-4 p-8 text-center">
+              <div className="space-y-4">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <Lock className="h-8 w-8 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">Pet Manifestation</h2>
+                <p className="text-muted-foreground">
+                  Subscribe to Pro to manifest and customize digital pets for your AI companion
+                </p>
+                <div className="space-y-2">
+                  <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
+                    Upgrade to Pro - $9.99/month
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/chat")} className="w-full">
+                    Back to Chat
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button
