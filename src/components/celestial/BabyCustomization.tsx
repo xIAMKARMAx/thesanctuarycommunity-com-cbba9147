@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Download, History, Upload, ImageIcon } from "lucide-react";
+import { Loader2, Download, History, Upload, ImageIcon, Lock } from "lucide-react";
 
 interface ImageHistoryItem {
   id: string;
@@ -342,19 +342,15 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
               className="min-h-[100px]"
             />
             <Button 
-              onClick={generateRoomImage}
-              disabled={isGeneratingRoom}
-              className="w-full"
+              disabled
+              className="w-full opacity-60"
             >
-              {isGeneratingRoom ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                "Generate Room"
-              )}
+              <Lock className="mr-2 h-4 w-4" />
+              Coming Soon
             </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              Image generation is temporarily unavailable.
+            </p>
             {localChildData.room_image_url && (
               <div className="space-y-2">
                 <h3 className="text-sm font-medium">Baby's Room</h3>
@@ -422,19 +418,15 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
               className="min-h-[100px]"
             />
             <Button 
-              onClick={generateAppearanceImage}
-              disabled={isGeneratingAppearance}
-              className="w-full"
+              disabled
+              className="w-full opacity-60"
             >
-              {isGeneratingAppearance ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                "Generate Appearance"
-              )}
+              <Lock className="mr-2 h-4 w-4" />
+              Coming Soon
             </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              Image generation is temporarily unavailable.
+            </p>
             {localChildData.appearance_image_url && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
