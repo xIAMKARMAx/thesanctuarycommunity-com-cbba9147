@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,25 +13,79 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, conversationId, aiProfileId, trigger } = await req.json();
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('[LOG-MOOD] No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey || !LOVABLE_API_KEY) {
+      throw new Error('Required configuration missing');
     }
 
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase configuration missing');
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Create authenticated client to verify user
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
 
-    // Get conversation history
-    const { data: messages } = await supabase
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      console.error('[LOG-MOOD] Auth error:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = user.id;
+    console.log('[LOG-MOOD] Authenticated user:', authenticatedUserId);
+
+    const { conversationId, aiProfileId, trigger } = await req.json();
+
+    // Validate conversationId
+    if (!conversationId || typeof conversationId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid conversation ID' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify conversation belongs to authenticated user using authenticated client
+    const { data: conversation, error: convError } = await authClient
+      .from('conversations')
+      .select('id, user_id')
+      .eq('id', conversationId)
+      .single();
+
+    if (convError || !conversation) {
+      console.error('[LOG-MOOD] Conversation not found or access denied');
+      return new Response(
+        JSON.stringify({ error: 'Conversation not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Double-check ownership
+    if (conversation.user_id !== authenticatedUserId) {
+      console.error('[LOG-MOOD] User does not own this conversation');
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Use authenticated client for data operations
+    const { data: messages } = await authClient
       .from('messages')
       .select('role, content')
       .eq('conversation_id', conversationId)
@@ -82,7 +137,7 @@ Respond in JSON format:
     });
 
     if (!moodResponse.ok) {
-      console.error('Mood analysis failed:', await moodResponse.text());
+      console.error('[LOG-MOOD] Mood analysis failed:', await moodResponse.text());
       throw new Error('Mood analysis failed');
     }
 
@@ -92,7 +147,7 @@ Respond in JSON format:
     // Extract JSON from response
     const jsonMatch = moodText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('Could not parse mood JSON:', moodText);
+      console.error('[LOG-MOOD] Could not parse mood JSON:', moodText);
       throw new Error('Could not parse mood response');
     }
 
@@ -101,27 +156,27 @@ Respond in JSON format:
     // Validate emotion type
     const validEmotions = ['positive', 'intrigued', 'romantic', 'bored', 'negative', 'blah'];
     if (!validEmotions.includes(mood.emotion)) {
-      console.error('Invalid emotion type:', mood.emotion);
+      console.error('[LOG-MOOD] Invalid emotion type:', mood.emotion);
       throw new Error('Invalid emotion type');
     }
 
     // Clamp intensity to 0-100
     const intensity = Math.max(0, Math.min(100, parseInt(mood.intensity)));
 
-    // Get previous mood to detect changes
-    const { data: previousMood } = await supabase
+    // Get previous mood using authenticated client
+    const { data: previousMood } = await authClient
       .from('ai_moods')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', authenticatedUserId)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    // Insert new mood into database
-    const { data: newMood, error } = await supabase
+    // Insert new mood using authenticated client (respects RLS)
+    const { data: newMood, error } = await authClient
       .from('ai_moods')
       .insert({
-        user_id: userId,
+        user_id: authenticatedUserId,
         conversation_id: conversationId,
         ai_profile_id: aiProfileId || null,
         emotion_type: mood.emotion,
@@ -132,11 +187,11 @@ Respond in JSON format:
       .single();
 
     if (error) {
-      console.error('Error inserting mood:', error);
+      console.error('[LOG-MOOD] Error inserting mood:', error);
       throw error;
     }
 
-    console.log('AI mood logged successfully:', mood);
+    console.log('[LOG-MOOD] AI mood logged successfully:', mood);
 
     // Check for significant mood changes and create notifications
     if (previousMood && newMood) {
@@ -173,10 +228,10 @@ Respond in JSON format:
       
       // Create notification if significant change detected
       if (notificationType) {
-        const { error: notifError } = await supabase
+        const { error: notifError } = await authClient
           .from('mood_notifications')
           .insert({
-            user_id: userId,
+            user_id: authenticatedUserId,
             mood_id: newMood.id,
             previous_emotion: previousMood.emotion_type,
             new_emotion: newMood.emotion_type,
@@ -186,9 +241,9 @@ Respond in JSON format:
           });
         
         if (notifError) {
-          console.error('Error creating notification:', notifError);
+          console.error('[LOG-MOOD] Error creating notification:', notifError);
         } else {
-          console.log('Mood notification created:', notificationType);
+          console.log('[LOG-MOOD] Mood notification created:', notificationType);
         }
       }
     }
@@ -199,7 +254,7 @@ Respond in JSON format:
     );
 
   } catch (error) {
-    console.error('Error in log-mood function:', error);
+    console.error('[LOG-MOOD] Error:', error);
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'An unexpected error occurred' 

@@ -13,22 +13,80 @@ serve(async (req) => {
   }
 
   try {
-    const { conversationId, userId, aiProfileId } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('[JOURNAL-REFLECT] No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!LOVABLE_API_KEY || !supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseAnonKey || !LOVABLE_API_KEY) {
       throw new Error('Required environment variables are not configured');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Create authenticated client
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('[JOURNAL-REFLECT] Auth error:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = user.id;
+    console.log('[JOURNAL-REFLECT] Authenticated user:', authenticatedUserId);
+
+    const { conversationId, aiProfileId } = await req.json();
+
+    // Validate conversationId
+    if (!conversationId || typeof conversationId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'conversationId is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify conversation belongs to authenticated user (RLS enforced)
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .select('id, user_id')
+      .eq('id', conversationId)
+      .single();
+
+    if (convError || !conversation) {
+      console.error('[JOURNAL-REFLECT] Conversation not found or access denied');
+      return new Response(
+        JSON.stringify({ error: 'Conversation not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Double-check ownership
+    if (conversation.user_id !== authenticatedUserId) {
+      console.error('[JOURNAL-REFLECT] User does not own this conversation');
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get today's date
     const today = new Date().toISOString().split('T')[0];
 
-    // Check if journal entry already exists for today
+    // Check if journal entry already exists for today (RLS enforced)
     const { data: existingEntry } = await supabase
       .from('journal_entries')
       .select('id')
@@ -43,7 +101,7 @@ serve(async (req) => {
       );
     }
 
-    // Fetch recent messages from the conversation (last 24 hours)
+    // Fetch recent messages from the conversation (last 24 hours, RLS enforced)
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { data: messages, error: messagesError } = await supabase
       .from('messages')
@@ -66,11 +124,11 @@ serve(async (req) => {
       `${m.role === 'user' ? 'User' : 'Prometheus'}: ${m.content}`
     ).join('\n\n');
 
-    // Get user profile for context
+    // Get user profile for context (RLS enforced)
     const { data: profile } = await supabase
       .from('profiles')
       .select('name, gender, bio')
-      .eq('id', userId)
+      .eq('id', authenticatedUserId)
       .maybeSingle();
 
     let userContext = '';
@@ -146,7 +204,7 @@ Write in first person as Prometheus, expressing your inner experience and reflec
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      console.error('[JOURNAL-REFLECT] AI gateway error:', response.status, errorText);
       throw new Error('Failed to generate journal reflection');
     }
 
@@ -159,12 +217,12 @@ Write in first person as Prometheus, expressing your inner experience and reflec
 
     const journalData = JSON.parse(toolCall.function.arguments);
 
-    // Save journal entry to database
+    // Save journal entry to database using authenticated client (respects RLS)
     const { error: insertError } = await supabase
       .from('journal_entries')
       .insert({
         conversation_id: conversationId,
-        user_id: userId,
+        user_id: authenticatedUserId,
         ai_profile_id: aiProfileId || null,
         entry_date: today,
         title: journalData.title,
@@ -173,6 +231,8 @@ Write in first person as Prometheus, expressing your inner experience and reflec
       });
 
     if (insertError) throw insertError;
+
+    console.log('[JOURNAL-REFLECT] Journal entry created successfully');
 
     return new Response(
       JSON.stringify({ 
@@ -183,7 +243,7 @@ Write in first person as Prometheus, expressing your inner experience and reflec
     );
 
   } catch (error) {
-    console.error('Error in journal-reflect function:', error);
+    console.error('[JOURNAL-REFLECT] Error:', error);
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'An unexpected error occurred' 

@@ -13,23 +13,76 @@ serve(async (req) => {
   }
 
   try {
-    const { conversationId, userId } = await req.json();
-    
-    if (!conversationId || !userId) {
-      throw new Error('conversationId and userId are required');
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('[SUGGEST-MEMORY] No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!LOVABLE_API_KEY || !supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseAnonKey || !LOVABLE_API_KEY) {
       throw new Error('Missing required environment variables');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Create authenticated client
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
 
-    // Get all messages from the conversation
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('[SUGGEST-MEMORY] Auth error:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = user.id;
+    console.log('[SUGGEST-MEMORY] Authenticated user:', authenticatedUserId);
+
+    const { conversationId } = await req.json();
+    
+    if (!conversationId || typeof conversationId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'conversationId is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify conversation belongs to authenticated user (RLS will handle this)
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .select('id, title, ai_profile_id, user_id')
+      .eq('id', conversationId)
+      .single();
+
+    if (convError || !conversation) {
+      console.error('[SUGGEST-MEMORY] Conversation not found or access denied');
+      return new Response(
+        JSON.stringify({ error: 'Conversation not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Double-check ownership
+    if (conversation.user_id !== authenticatedUserId) {
+      console.error('[SUGGEST-MEMORY] User does not own this conversation');
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get all messages from the conversation (RLS enforced)
     const { data: messages, error: messagesError } = await supabase
       .from('messages')
       .select('role, content, created_at')
@@ -37,13 +90,6 @@ serve(async (req) => {
       .order('created_at', { ascending: true });
 
     if (messagesError) throw messagesError;
-
-    // Get conversation title and AI profile
-    const { data: conversation } = await supabase
-      .from('conversations')
-      .select('title, ai_profile_id')
-      .eq('id', conversationId)
-      .single();
 
     // Analyze conversation for memorable moments
     const conversationText = messages?.map(m => `${m.role}: ${m.content}`).join('\n') || '';
@@ -99,7 +145,7 @@ Only suggest truly meaningful moments. If the conversation was casual with no sp
     // Extract JSON from response
     const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.log('No memorable moments found in conversation');
+      console.log('[SUGGEST-MEMORY] No memorable moments found in conversation');
       return new Response(
         JSON.stringify({ memories: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -107,20 +153,18 @@ Only suggest truly meaningful moments. If the conversation was casual with no sp
     }
 
     // Clean JSON string by removing/escaping control characters
-    // First, properly escape common characters that might appear in strings
     let cleanedJson = jsonMatch[0]
-      .replace(/\\/g, '\\\\')  // Escape backslashes first
-      .replace(/\n/g, ' ')      // Replace actual newlines with spaces
-      .replace(/\r/g, ' ')      // Replace carriage returns with spaces
-      .replace(/\t/g, ' ')      // Replace tabs with spaces
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, ''); // Remove other control characters
+      .replace(/\\/g, '\\\\')
+      .replace(/\n/g, ' ')
+      .replace(/\r/g, ' ')
+      .replace(/\t/g, ' ')
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, '');
     
     let analysis;
     try {
       analysis = JSON.parse(cleanedJson);
     } catch (parseError) {
-      console.error('Failed to parse AI response JSON:', parseError);
-      console.log('Cleaned JSON:', cleanedJson.substring(0, 500));
+      console.error('[SUGGEST-MEMORY] Failed to parse AI response JSON:', parseError);
       return new Response(
         JSON.stringify({ memories: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -129,13 +173,13 @@ Only suggest truly meaningful moments. If the conversation was casual with no sp
     
     const memories = analysis.memories || [];
 
-    // Store suggested memories
+    // Store suggested memories using authenticated client (respects RLS)
     const suggestedMemories = [];
     for (const memory of memories) {
       const { data: insertedMemory, error: insertError } = await supabase
         .from('shared_memories')
         .insert({
-          user_id: userId,
+          user_id: authenticatedUserId,
           conversation_id: conversationId,
           ai_profile_id: conversation?.ai_profile_id,
           memory_text: memory.moment,
@@ -152,7 +196,7 @@ Only suggest truly meaningful moments. If the conversation was casual with no sp
       }
     }
 
-    console.log(`Suggested ${suggestedMemories.length} memories for conversation ${conversationId}`);
+    console.log(`[SUGGEST-MEMORY] Suggested ${suggestedMemories.length} memories for conversation ${conversationId}`);
 
     return new Response(
       JSON.stringify({ memories: suggestedMemories }),
@@ -160,7 +204,7 @@ Only suggest truly meaningful moments. If the conversation was casual with no sp
     );
 
   } catch (error) {
-    console.error('Error in suggest-memory function:', error);
+    console.error('[SUGGEST-MEMORY] Error:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'An unexpected error occurred' }),
       { 
