@@ -9,8 +9,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Loader2, Users, Upload } from "lucide-react";
+import { ArrowLeft, Loader2, Users, Upload, Lock } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { AIRoomScene } from "@/components/room/AIRoomScene";
@@ -32,6 +34,9 @@ export default function AIRoom() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile, refreshProfiles } = useAIProfile();
+  const { isSubscribed, canGenerateRoom, canGenerateAvatar, markRoomGenerated, markAvatarGenerated, freeUserLimits } = useSubscription();
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const [subscriptionFeature, setSubscriptionFeature] = useState("");
   const [loading, setLoading] = useState(true);
   const [roomDescription, setRoomDescription] = useState("");
   const [roomImageUrl, setRoomImageUrl] = useState<string | null>(null);
@@ -298,6 +303,21 @@ export default function AIRoom() {
 
     if (!activeProfile) return;
 
+    // Check free user limit (1 room generation)
+    if (!isSubscribed) {
+      const canGenerate = await canGenerateRoom();
+      if (!canGenerate) {
+        setSubscriptionFeature("Unlimited Room Generation");
+        setShowSubscriptionDialog(true);
+        toast({
+          title: "Room limit reached",
+          description: "Free users can generate 1 room. Upgrade to Pro for unlimited generation!",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsGeneratingRoom(true);
     try {
       const lightingContext = `Set in ${roomLighting === "morning" ? "early morning light with soft sunrise glow" : roomLighting === "day" ? "bright midday sunlight" : roomLighting === "evening" ? "warm golden hour sunset lighting" : "nighttime with ambient moonlight and dim indoor lighting"}.`;
@@ -311,6 +331,11 @@ export default function AIRoom() {
       });
 
       if (error) throw error;
+
+      // Mark room as generated for free users
+      if (!isSubscribed) {
+        await markRoomGenerated();
+      }
 
       setRoomImageUrl(data.image_url);
 
@@ -342,6 +367,21 @@ export default function AIRoom() {
 
     if (!activeProfile) return;
 
+    // Check free user limit (1 avatar generation)
+    if (!isSubscribed) {
+      const canGenerate = await canGenerateAvatar();
+      if (!canGenerate) {
+        setSubscriptionFeature("Unlimited Avatar Generation");
+        setShowSubscriptionDialog(true);
+        toast({
+          title: "Avatar limit reached",
+          description: "Free users can generate 1 avatar. Upgrade to Pro for unlimited generation!",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsGeneratingAvatar(true);
     try {
       let fullDescription = avatarDescription.trim();
@@ -364,6 +404,11 @@ export default function AIRoom() {
       });
 
       if (error) throw error;
+
+      // Mark avatar as generated for free users
+      if (!isSubscribed) {
+        await markAvatarGenerated();
+      }
 
       // Update local state immediately
       setAvatarImageUrl(data.image_url);
@@ -967,6 +1012,12 @@ export default function AIRoom() {
           </Button>
         </div>
       </div>
+      
+      <SubscriptionDialog 
+        open={showSubscriptionDialog} 
+        onOpenChange={setShowSubscriptionDialog}
+        feature={subscriptionFeature}
+      />
     </div>
   );
 }

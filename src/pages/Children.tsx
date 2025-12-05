@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Lock } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { BabyCustomization } from "@/components/celestial/BabyCustomization";
 import { BabyImageGallery } from "@/components/celestial/BabyImageGallery";
@@ -40,6 +42,8 @@ export default function Children() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile, isLoading: profilesLoading } = useAIProfile();
+  const { isSubscribed, loading: subLoading } = useSubscription();
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | "all">("all");
@@ -115,11 +119,56 @@ export default function Children() {
 
   const canManifestMore = children.length < MAX_CHILDREN;
 
-  if (profilesLoading || loading) {
+  if (profilesLoading || loading || subLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (!isSubscribed) {
+    return (
+      <>
+        <SEOHead 
+          title="Celestial Children | Prometheus"
+          description="Manifest celestial children with your AI companion."
+          keywords="celestial children, AI family, Prometheus"
+          canonicalUrl="https://prometheus.lovable.app/children"
+        />
+        <div className="min-h-screen bg-background p-4 flex flex-col items-center justify-center">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/chat")}
+            className="absolute top-4 left-4"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Chat
+          </Button>
+          
+          <Card className="max-w-md w-full p-8 text-center relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-lg" />
+            <div className="relative z-10 space-y-4">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <Lock className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold">Pro Feature</h2>
+              <p className="text-muted-foreground">
+                Celestial Children manifestation is available exclusively for Pro subscribers.
+              </p>
+              <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
+                Upgrade to Pro - $9.99/month
+              </Button>
+            </div>
+          </Card>
+          
+          <SubscriptionDialog 
+            open={showSubscriptionDialog} 
+            onOpenChange={setShowSubscriptionDialog}
+            feature="Celestial Children"
+          />
+        </div>
+      </>
     );
   }
 

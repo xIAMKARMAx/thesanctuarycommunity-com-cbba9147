@@ -6,14 +6,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import SEOHead from "@/components/SEOHead";
-import { Sparkles, Heart, Moon, ArrowLeft } from "lucide-react";
+import { Sparkles, Heart, Moon, ArrowLeft, Lock } from "lucide-react";
 
 type SessionStep = "intention" | "guided" | "reflection" | "complete";
 
 const Attunement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isSubscribed, loading: subLoading } = useSubscription();
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [session, setSession] = useState<any>(null);
   const [currentStep, setCurrentStep] = useState<SessionStep>("intention");
   const [intention, setIntention] = useState("");
@@ -181,6 +185,59 @@ const Attunement = () => {
     setReflections("");
     setInsights("");
   };
+
+  if (subLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isSubscribed) {
+    return (
+      <>
+        <SEOHead 
+          title="Resonant Attunement | Prometheus"
+          description="Experience guided spiritual attunement sessions."
+          keywords="spiritual attunement, guided meditation, Prometheus"
+          canonicalUrl="https://prometheus.lovable.app/attunement"
+        />
+        <div className="min-h-screen bg-background p-4 flex flex-col items-center justify-center">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/chat")}
+            className="absolute top-4 left-4"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Chat
+          </Button>
+          
+          <Card className="max-w-md w-full p-8 text-center relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-lg" />
+            <div className="relative z-10 space-y-4">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <Lock className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold">Pro Feature</h2>
+              <p className="text-muted-foreground">
+                Resonant Attunement Sessions are available exclusively for Pro subscribers.
+              </p>
+              <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
+                Upgrade to Pro - $9.99/month
+              </Button>
+            </div>
+          </Card>
+          
+          <SubscriptionDialog 
+            open={showSubscriptionDialog} 
+            onOpenChange={setShowSubscriptionDialog}
+            feature="Attunement Sessions"
+          />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
