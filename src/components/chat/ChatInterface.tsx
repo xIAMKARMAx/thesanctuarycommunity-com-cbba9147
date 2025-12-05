@@ -298,6 +298,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       }
 
 
+      // Get the current user for message ownership
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       // Save user message to database
       const { data: userMessageData, error: userMsgError } = await supabase
         .from("messages")
@@ -306,6 +310,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           role: "user",
           content: userMessage,
           image_url: imageUrl,
+          user_id: user.id,
         })
         .select()
         .single();
@@ -318,9 +323,6 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         role: userMessageData.role as "user" | "assistant"
       }]);
 
-      // Call AI
-      const { data: { user } } = await supabase.auth.getUser();
-      
       // Increment image count for free users if generating image
       if (generateImage && !isSubscribed && user) {
         await supabase.rpc("increment_image_count", { p_user_id: user.id });
@@ -352,6 +354,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           role: "assistant",
           content: data.response,
           image_url: data.imageUrl,
+          user_id: user.id,
         })
         .select()
         .single();
