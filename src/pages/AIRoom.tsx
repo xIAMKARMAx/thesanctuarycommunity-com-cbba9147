@@ -303,6 +303,18 @@ export default function AIRoom() {
 
     if (!activeProfile) return;
 
+    // Ensure valid session before calling edge function
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      toast({
+        title: "Session Expired",
+        description: "Please log in again to continue.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     // Check free user limit (1 room generation)
     if (!isSubscribed) {
       const canGenerate = await canGenerateRoom();
@@ -366,6 +378,18 @@ export default function AIRoom() {
     }
 
     if (!activeProfile) return;
+
+    // Ensure valid session before calling edge function
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      toast({
+        title: "Session Expired",
+        description: "Please log in again to continue.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
 
     // Check free user limit (1 avatar generation)
     if (!isSubscribed) {
@@ -455,6 +479,18 @@ export default function AIRoom() {
     }
 
     if (!activeProfile) return;
+
+    // Ensure valid session before calling edge function
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      toast({
+        title: "Session Expired",
+        description: "Please log in again to continue.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
 
     setIsGeneratingPet(true);
     try {
