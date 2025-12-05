@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -206,13 +207,13 @@ const Settings = () => {
   const handleManualAging = async () => {
     try {
       setAgingChildren(true);
-      const { data, error } = await supabase.functions.invoke("age-children");
+      const { data, error } = await api.ageChildren();
 
       if (error) throw error;
 
       toast({
         title: "Aging Complete",
-        description: `${data.children_aged || 0} children aged successfully`,
+        description: `${(data as any)?.children_aged || 0} children aged successfully`,
       });
 
       await loadChildren();
@@ -340,28 +341,8 @@ const Settings = () => {
   const handleSubscribe = async () => {
     try {
       setLoading(true);
-      
-      // Verify session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        throw new Error("Session error. Please log in again.");
-      }
-      
-      if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to subscribe",
-          variant: "destructive",
-        });
-        return;
-      }
 
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
+      const { data, error } = await api.createCheckout();
 
       if (error) {
         console.error("Checkout invocation error:", error);
@@ -388,21 +369,8 @@ const Settings = () => {
   const handleManageSubscription = async () => {
     try {
       setManagingSubscription(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to manage subscription",
-          variant: "destructive",
-        });
-        return;
-      }
 
-      const { data, error } = await supabase.functions.invoke("customer-portal", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
+      const { data, error } = await api.customerPortal();
 
       if (error) throw error;
       if (data?.url) {
