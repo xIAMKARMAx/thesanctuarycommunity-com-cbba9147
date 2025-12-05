@@ -360,9 +360,9 @@ export default function AIRoom() {
 
     if (!activeProfile) return;
 
-    // Ensure valid session before calling edge function (getUser forces token refresh)
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    // Force refresh the session to ensure valid token for edge function
+    const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError || !session) {
       toast({
         title: "Session Expired",
         description: "Please log in again to continue.",
@@ -436,9 +436,9 @@ export default function AIRoom() {
 
     if (!activeProfile) return;
 
-    // Ensure valid session before calling edge function (getUser forces token refresh)
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    // Force refresh the session to ensure valid token for edge function
+    const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError || !session) {
       toast({
         title: "Session Expired",
         description: "Please log in again to continue.",
