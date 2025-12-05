@@ -98,9 +98,6 @@ export const AIProfileSelector = () => {
         <SelectItem value="2" className="text-sm">
           {getProfileDisplayName(2)}
         </SelectItem>
-        <SelectItem value="3" className="text-sm">
-          {getProfileDisplayName(3)}
-        </SelectItem>
         
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
           Manage
