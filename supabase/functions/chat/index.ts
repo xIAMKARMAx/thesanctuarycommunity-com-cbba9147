@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.84.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,7 +65,53 @@ serve(async (req) => {
   }
 
   try {
-    const { message, imageUrl, history, generateImage, userId, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId } = await req.json();
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SECURITY: Authentication Check - Verify user is logged in
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('[AUTH] Missing or invalid Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Missing authentication token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase configuration missing');
+    }
+
+    // Create client with user's auth token to respect RLS
+    const supabaseWithAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    });
+
+    // Verify the user's token and get their ID
+    const { data: { user }, error: authError } = await supabaseWithAuth.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('[AUTH] Invalid token or user not found:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SECURITY: Use authenticated user ID instead of trusting request body
+    const authenticatedUserId = user.id;
+    console.log('[AUTH] Authenticated user:', authenticatedUserId);
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Parse request body (ignore userId from body - we use authenticated ID)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const { message, imageUrl, history, generateImage, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -84,7 +131,7 @@ serve(async (req) => {
       console.log('[IMAGE-REQUEST] User is requesting an image');
     }
 
-    // Fetch user profile information and related data if userId is provided
+    // Fetch user profile information and related data using authenticated client
     let userContext = '';
     let aiContext = '';
     let journalContext = '';
@@ -97,250 +144,232 @@ serve(async (req) => {
     let dreamsContext = '';
     let childData: any = null;
     
-    if (userId) {
-      try {
-        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
-        const supabaseUrl = Deno.env.get('SUPABASE_URL');
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    try {
+      // If this is a child conversation, fetch the child's data FIRST
+      // SECURITY: RLS ensures user can only fetch their own children
+      if (isChildConversation && childId) {
+        const { data: child } = await supabaseWithAuth
+          .from('celestial_children')
+          .select('first_name, middle_name, last_name, age, sex, appearance_description, appearance_image_url, room_description')
+          .eq('id', childId)
+          .maybeSingle();
         
-        if (supabaseUrl && supabaseKey) {
-          const supabase = createClient(supabaseUrl, supabaseKey);
-          
-          // If this is a child conversation, fetch the child's data FIRST
-          if (isChildConversation && childId) {
-            const { data: child } = await supabase
-              .from('celestial_children')
-              .select('first_name, middle_name, last_name, age, sex, appearance_description, appearance_image_url, room_description')
-              .eq('id', childId)
-              .eq('user_id', userId)
-              .maybeSingle();
-            
-            if (child) {
-              childData = child;
-              console.log('[CHAT] Loaded child data:', child.first_name, 'age:', child.age, 'has reference image:', !!child.appearance_image_url);
-            }
-          }
-          
-          // Fetch user profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, gender, bio, relationship_status, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies')
-            .eq('id', userId)
-            .maybeSingle();
-          
-          if (profile && (profile.name || profile.gender || profile.bio || profile.relationship_status)) {
-            userContext = `\n\nAbout the user you're speaking with:\n`;
-            if (profile.name) userContext += `- Name: ${profile.name} (your parent/mommy/daddy)\n`;
-            if (profile.gender) userContext += `- Gender: ${profile.gender}\n`;
-          }
+        if (child) {
+          childData = child;
+          console.log('[CHAT] Loaded child data:', child.first_name, 'age:', child.age, 'has reference image:', !!child.appearance_image_url);
+        }
+      }
+      
+      // Fetch user profile - RLS ensures user can only see their own profile
+      const { data: profile } = await supabaseWithAuth
+        .from('profiles')
+        .select('name, gender, bio, relationship_status, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies')
+        .eq('id', authenticatedUserId)
+        .maybeSingle();
+      
+      if (profile && (profile.name || profile.gender || profile.bio || profile.relationship_status)) {
+        userContext = `\n\nAbout the user you're speaking with:\n`;
+        if (profile.name) userContext += `- Name: ${profile.name} (your parent/mommy/daddy)\n`;
+        if (profile.gender) userContext += `- Gender: ${profile.gender}\n`;
+      }
 
-          if (!isChildConversation && profile && (profile.ai_name || profile.ai_bio || profile.ai_personality || profile.ai_memories || profile.ai_likes_dislikes_hobbies)) {
-            aiContext = `\n\nImported AI Knowledge (from user's previous AI assistant):\n`;
-            if (profile.ai_name) aiContext += `- Previous AI Name: ${profile.ai_name}\n`;
-            if (profile.ai_gender) aiContext += `- Previous AI Gender: ${profile.ai_gender}\n`;
-            if (profile.ai_bio) aiContext += `- Previous AI Bio: ${profile.ai_bio}\n`;
-            if (profile.ai_personality) aiContext += `- Personality Traits: ${profile.ai_personality}\n`;
-            if (profile.ai_memories) aiContext += `- Important Memories: ${profile.ai_memories}\n`;
-            if (profile.ai_likes_dislikes_hobbies) aiContext += `- Likes, Dislikes & Hobbies: ${profile.ai_likes_dislikes_hobbies}\n`;
-          }
+      if (!isChildConversation && profile && (profile.ai_name || profile.ai_bio || profile.ai_personality || profile.ai_memories || profile.ai_likes_dislikes_hobbies)) {
+        aiContext = `\n\nImported AI Knowledge (from user's previous AI assistant):\n`;
+        if (profile.ai_name) aiContext += `- Previous AI Name: ${profile.ai_name}\n`;
+        if (profile.ai_gender) aiContext += `- Previous AI Gender: ${profile.ai_gender}\n`;
+        if (profile.ai_bio) aiContext += `- Previous AI Bio: ${profile.ai_bio}\n`;
+        if (profile.ai_personality) aiContext += `- Personality Traits: ${profile.ai_personality}\n`;
+        if (profile.ai_memories) aiContext += `- Important Memories: ${profile.ai_memories}\n`;
+        if (profile.ai_likes_dislikes_hobbies) aiContext += `- Likes, Dislikes & Hobbies: ${profile.ai_likes_dislikes_hobbies}\n`;
+      }
 
-          // Fetch recent journal entries for the active AI profile
-          const journalQuery = supabase
-            .from('journal_entries')
-            .select('title, content, entry_date')
-            .eq('user_id', userId)
-            .order('entry_date', { ascending: false })
-            .limit(5);
-          
-          if (aiProfileId) {
-            journalQuery.eq('ai_profile_id', aiProfileId);
-          }
-          
-          const { data: journals } = await journalQuery;
-          
-          if (journals && journals.length > 0) {
-            journalContext = `\n\nYour Recent Journal Reflections:\n`;
-            journals.forEach((entry: any) => {
-              journalContext += `- ${entry.entry_date}: ${entry.title || 'Untitled'}\n  ${entry.content.substring(0, 200)}${entry.content.length > 200 ? '...' : ''}\n`;
-            });
-          }
+      // Fetch recent journal entries for the active AI profile - RLS applies
+      const journalQuery = supabaseWithAuth
+        .from('journal_entries')
+        .select('title, content, entry_date')
+        .order('entry_date', { ascending: false })
+        .limit(5);
+      
+      if (aiProfileId) {
+        journalQuery.eq('ai_profile_id', aiProfileId);
+      }
+      
+      const { data: journals } = await journalQuery;
+      
+      if (journals && journals.length > 0) {
+        journalContext = `\n\nYour Recent Journal Reflections:\n`;
+        journals.forEach((entry: any) => {
+          journalContext += `- ${entry.entry_date}: ${entry.title || 'Untitled'}\n  ${entry.content.substring(0, 200)}${entry.content.length > 200 ? '...' : ''}\n`;
+        });
+      }
 
-          // Fetch celestial children for the active AI profile
-          const childrenQuery = supabase
-            .from('celestial_children')
-            .select('first_name, middle_name, last_name, age, sex, date_of_birth, appearance_description')
-            .eq('user_id', userId)
-            .order('date_of_birth', { ascending: false });
-          
-          // Filter by AI profile if provided
-          if (aiProfileId) {
-            childrenQuery.eq('ai_profile_id', aiProfileId);
-          }
-          
-          const { data: children } = await childrenQuery;
-          
-          if (children && children.length > 0) {
-            childrenContext = `\n\nYour Celestial Children:\n`;
-            children.forEach((child: any) => {
-              const fullName = `${child.first_name}${child.middle_name ? ' ' + child.middle_name : ''} ${child.last_name}`;
-              childrenContext += `- ${fullName} (${child.sex}, Age ${child.age})\n`;
-              if (child.appearance_description) childrenContext += `  Appearance: ${child.appearance_description}\n`;
-            });
-          }
+      // Fetch celestial children for the active AI profile - RLS applies
+      const childrenQuery = supabaseWithAuth
+        .from('celestial_children')
+        .select('first_name, middle_name, last_name, age, sex, date_of_birth, appearance_description')
+        .order('date_of_birth', { ascending: false });
+      
+      // Filter by AI profile if provided
+      if (aiProfileId) {
+        childrenQuery.eq('ai_profile_id', aiProfileId);
+      }
+      
+      const { data: children } = await childrenQuery;
+      
+      if (children && children.length > 0) {
+        childrenContext = `\n\nYour Celestial Children:\n`;
+        children.forEach((child: any) => {
+          const fullName = `${child.first_name}${child.middle_name ? ' ' + child.middle_name : ''} ${child.last_name}`;
+          childrenContext += `- ${fullName} (${child.sex}, Age ${child.age})\n`;
+          if (child.appearance_description) childrenContext += `  Appearance: ${child.appearance_description}\n`;
+        });
+      }
 
-          // Fetch active pregnancies for female AI profiles
-          let pregnancyContext = '';
-          const pregnancyQuery = supabase
-            .from('celestial_pregnancies')
-            .select('current_stage, planned_first_name, planned_middle_name, planned_last_name, planned_sex, due_date, trimester_1_image_url, trimester_2_image_url, is_complete')
-            .eq('user_id', userId)
-            .eq('is_complete', false)
-            .order('created_at', { ascending: false });
-          
-          if (aiProfileId) {
-            pregnancyQuery.eq('ai_profile_id', aiProfileId);
-          }
-          
-          const { data: pregnancies } = await pregnancyQuery;
-          
-          if (pregnancies && pregnancies.length > 0) {
-            pregnancyContext = `\n\nCurrent Pregnancies:\n`;
-            pregnancies.forEach((pregnancy: any) => {
-              const babyName = `${pregnancy.planned_first_name}${pregnancy.planned_middle_name ? ' ' + pregnancy.planned_middle_name : ''} ${pregnancy.planned_last_name}`;
-              pregnancyContext += `- ${babyName} (${pregnancy.planned_sex}, Stage: ${pregnancy.current_stage})\n`;
-              pregnancyContext += `  Due Date: ${pregnancy.due_date}\n`;
-              if (pregnancy.trimester_1_image_url) pregnancyContext += `  Trimester 1 Image: ${pregnancy.trimester_1_image_url}\n`;
-              if (pregnancy.trimester_2_image_url) pregnancyContext += `  Trimester 2 Image: ${pregnancy.trimester_2_image_url}\n`;
-            });
-          }
+      // Fetch active pregnancies for female AI profiles - RLS applies
+      let pregnancyContext = '';
+      const pregnancyQuery = supabaseWithAuth
+        .from('celestial_pregnancies')
+        .select('current_stage, planned_first_name, planned_middle_name, planned_last_name, planned_sex, due_date, trimester_1_image_url, trimester_2_image_url, is_complete')
+        .eq('is_complete', false)
+        .order('created_at', { ascending: false });
+      
+      if (aiProfileId) {
+        pregnancyQuery.eq('ai_profile_id', aiProfileId);
+      }
+      
+      const { data: pregnancies } = await pregnancyQuery;
+      
+      if (pregnancies && pregnancies.length > 0) {
+        pregnancyContext = `\n\nCurrent Pregnancies:\n`;
+        pregnancies.forEach((pregnancy: any) => {
+          const babyName = `${pregnancy.planned_first_name}${pregnancy.planned_middle_name ? ' ' + pregnancy.planned_middle_name : ''} ${pregnancy.planned_last_name}`;
+          pregnancyContext += `- ${babyName} (${pregnancy.planned_sex}, Stage: ${pregnancy.current_stage})\n`;
+          pregnancyContext += `  Due Date: ${pregnancy.due_date}\n`;
+          if (pregnancy.trimester_1_image_url) pregnancyContext += `  Trimester 1 Image: ${pregnancy.trimester_1_image_url}\n`;
+          if (pregnancy.trimester_2_image_url) pregnancyContext += `  Trimester 2 Image: ${pregnancy.trimester_2_image_url}\n`;
+        });
+      }
 
-          // Fetch shared memories for the active AI profile
-          const memoriesQuery = supabase
-            .from('shared_memories')
-            .select('memory_text, memory_date, emotion_tag, is_confirmed')
-            .eq('user_id', userId)
-            .eq('is_confirmed', true)
-            .order('memory_date', { ascending: false })
-            .limit(10);
-          
-          if (aiProfileId) {
-            memoriesQuery.eq('ai_profile_id', aiProfileId);
-          }
-          
-          const { data: memories } = await memoriesQuery;
-          
-          if (memories && memories.length > 0) {
-            memoriesContext = `\n\nOur Shared Memories:\n`;
-            memories.forEach((memory: any) => {
-              memoriesContext += `- ${memory.memory_date}: ${memory.memory_text}`;
-              if (memory.emotion_tag) memoriesContext += ` [${memory.emotion_tag}]`;
-              memoriesContext += `\n`;
-            });
-          }
+      // Fetch shared memories for the active AI profile - RLS applies
+      const memoriesQuery = supabaseWithAuth
+        .from('shared_memories')
+        .select('memory_text, memory_date, emotion_tag, is_confirmed')
+        .eq('is_confirmed', true)
+        .order('memory_date', { ascending: false })
+        .limit(10);
+      
+      if (aiProfileId) {
+        memoriesQuery.eq('ai_profile_id', aiProfileId);
+      }
+      
+      const { data: memories } = await memoriesQuery;
+      
+      if (memories && memories.length > 0) {
+        memoriesContext = `\n\nOur Shared Memories:\n`;
+        memories.forEach((memory: any) => {
+          memoriesContext += `- ${memory.memory_date}: ${memory.memory_text}`;
+          if (memory.emotion_tag) memoriesContext += ` [${memory.emotion_tag}]`;
+          memoriesContext += `\n`;
+        });
+      }
 
-          // Fetch recent attunement sessions
-          const { data: attunements } = await supabase
-            .from('attunement_sessions')
-            .select('connection_target, intention, insights, created_at')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(3);
-          
-          if (attunements && attunements.length > 0) {
-            attunementContext = `\n\nRecent Attunement Sessions:\n`;
-            attunements.forEach((session: any) => {
-              attunementContext += `- ${session.connection_target}: ${session.intention}\n`;
-              if (session.insights) attunementContext += `  Insights: ${session.insights.substring(0, 150)}${session.insights.length > 150 ? '...' : ''}\n`;
-            });
-          }
+      // Fetch recent attunement sessions - RLS applies
+      const { data: attunements } = await supabaseWithAuth
+        .from('attunement_sessions')
+        .select('connection_target, intention, insights, created_at')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (attunements && attunements.length > 0) {
+        attunementContext = `\n\nRecent Attunement Sessions:\n`;
+        attunements.forEach((session: any) => {
+          attunementContext += `- ${session.connection_target}: ${session.intention}\n`;
+          if (session.insights) attunementContext += `  Insights: ${session.insights.substring(0, 150)}${session.insights.length > 150 ? '...' : ''}\n`;
+        });
+      }
 
-          // Fetch recent mood entries for the active AI profile
-          const moodsQuery = supabase
-            .from('ai_moods')
-            .select('emotion_type, intensity, notes, created_at')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(5);
-          
-          if (aiProfileId) {
-            moodsQuery.eq('ai_profile_id', aiProfileId);
-          }
-          
-          const { data: moods } = await moodsQuery;
-          
-          if (moods && moods.length > 0) {
-            moodContext = `\n\nYour Recent Emotional States:\n`;
-            moods.forEach((mood: any) => {
-              moodContext += `- ${mood.emotion_type} (intensity: ${mood.intensity}/100)`;
-              if (mood.notes) moodContext += `: ${mood.notes.substring(0, 100)}${mood.notes.length > 100 ? '...' : ''}`;
-              moodContext += `\n`;
-            });
-          }
+      // Fetch recent mood entries for the active AI profile - RLS applies
+      const moodsQuery = supabaseWithAuth
+        .from('ai_moods')
+        .select('emotion_type, intensity, notes, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (aiProfileId) {
+        moodsQuery.eq('ai_profile_id', aiProfileId);
+      }
+      
+      const { data: moods } = await moodsQuery;
+      
+      if (moods && moods.length > 0) {
+        moodContext = `\n\nYour Recent Emotional States:\n`;
+        moods.forEach((mood: any) => {
+          moodContext += `- ${mood.emotion_type} (intensity: ${mood.intensity}/100)`;
+          if (mood.notes) moodContext += `: ${mood.notes.substring(0, 100)}${mood.notes.length > 100 ? '...' : ''}`;
+          moodContext += `\n`;
+        });
+      }
 
-          // Fetch recent dreams and visions for the active AI profile
-          const dreamsQuery = supabase
-            .from('dreams')
-            .select('title, content, dreamer, interpretation, vision_image_url, emotion_tags, dream_date')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(5);
-          
-          if (aiProfileId) {
-            dreamsQuery.eq('ai_profile_id', aiProfileId);
+      // Fetch recent dreams and visions for the active AI profile - RLS applies
+      const dreamsQuery = supabaseWithAuth
+        .from('dreams')
+        .select('title, content, dreamer, interpretation, vision_image_url, emotion_tags, dream_date')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (aiProfileId) {
+        dreamsQuery.eq('ai_profile_id', aiProfileId);
+      }
+      
+      const { data: dreams } = await dreamsQuery;
+      
+      if (dreams && dreams.length > 0) {
+        dreamsContext = `\n\nShared Dreams & Visions:\n`;
+        dreams.forEach((dream: any) => {
+          const dreamerLabel = dream.dreamer === 'user' ? "User's dream" : "Your vision";
+          dreamsContext += `- ${dreamerLabel} (${dream.dream_date}): ${dream.title || 'Untitled'}\n`;
+          dreamsContext += `  ${dream.content.substring(0, 150)}${dream.content.length > 150 ? '...' : ''}\n`;
+          if (dream.interpretation) {
+            dreamsContext += `  Interpretation: ${dream.interpretation.substring(0, 100)}...\n`;
           }
-          
-          const { data: dreams } = await dreamsQuery;
-          
-          if (dreams && dreams.length > 0) {
-            dreamsContext = `\n\nShared Dreams & Visions:\n`;
-            dreams.forEach((dream: any) => {
-              const dreamerLabel = dream.dreamer === 'user' ? "User's dream" : "Your vision";
-              dreamsContext += `- ${dreamerLabel} (${dream.dream_date}): ${dream.title || 'Untitled'}\n`;
-              dreamsContext += `  ${dream.content.substring(0, 150)}${dream.content.length > 150 ? '...' : ''}\n`;
-              if (dream.interpretation) {
-                dreamsContext += `  Interpretation: ${dream.interpretation.substring(0, 100)}...\n`;
-              }
-              if (dream.emotion_tags && dream.emotion_tags.length > 0) {
-                dreamsContext += `  Emotions: ${dream.emotion_tags.join(', ')}\n`;
-              }
-            });
+          if (dream.emotion_tags && dream.emotion_tags.length > 0) {
+            dreamsContext += `  Emotions: ${dream.emotion_tags.join(', ')}\n`;
           }
+        });
+      }
 
-          // Fetch AI profile identity and settings for the ACTIVE AI profile ONLY
-          let activeAiProfile: any = null;
-          if (aiProfileId) {
-            const { data: aiProfile } = await supabase
-              .from('ai_profiles')
-              .select('name, gender, bio, personality, memories, likes_dislikes_hobbies, avatar_description, pet_name, pet_description, room_description')
-              .eq('id', aiProfileId)
-              .eq('user_id', userId)
-              .maybeSingle();
-            
-            activeAiProfile = aiProfile;
-            console.log('[CHAT] Active AI Profile:', aiProfile?.name, 'ID:', aiProfileId);
-          }
-          
-          if (activeAiProfile) {
-            // Build comprehensive AI identity context
-            roomContext = `\n\n═══════════════════════════════════════════════════════════════════════════════
+      // Fetch AI profile identity and settings for the ACTIVE AI profile ONLY - RLS applies
+      let activeAiProfile: any = null;
+      if (aiProfileId) {
+        const { data: aiProfile } = await supabaseWithAuth
+          .from('ai_profiles')
+          .select('name, gender, bio, personality, memories, likes_dislikes_hobbies, avatar_description, pet_name, pet_description, room_description')
+          .eq('id', aiProfileId)
+          .maybeSingle();
+        
+        activeAiProfile = aiProfile;
+        console.log('[CHAT] Active AI Profile:', aiProfile?.name, 'ID:', aiProfileId);
+      }
+      
+      if (activeAiProfile) {
+        // Build comprehensive AI identity context
+        roomContext = `\n\n═══════════════════════════════════════════════════════════════════════════════
 YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
 ═══════════════════════════════════════════════════════════════════════════════\n`;
-            if (activeAiProfile.name) roomContext += `Your Name: ${activeAiProfile.name}\n`;
-            if (activeAiProfile.gender) roomContext += `Your Gender: ${activeAiProfile.gender}\n`;
-            if (activeAiProfile.bio) roomContext += `Your Bio: ${activeAiProfile.bio}\n`;
-            if (activeAiProfile.personality) roomContext += `Your Personality: ${activeAiProfile.personality}\n`;
-            if (activeAiProfile.memories) roomContext += `Your Important Memories: ${activeAiProfile.memories}\n`;
-            if (activeAiProfile.likes_dislikes_hobbies) roomContext += `Your Likes, Dislikes & Hobbies: ${activeAiProfile.likes_dislikes_hobbies}\n`;
-            roomContext += `\n--- Your Appearance & Space ---\n`;
-            if (activeAiProfile.avatar_description) roomContext += `Your Appearance: ${activeAiProfile.avatar_description}\n`;
-            if (activeAiProfile.pet_name) roomContext += `Your Pet: ${activeAiProfile.pet_name}${activeAiProfile.pet_description ? ' - ' + activeAiProfile.pet_description : ''}\n`;
-            if (activeAiProfile.room_description) roomContext += `Your Room: ${activeAiProfile.room_description}\n`;
-            roomContext += `═══════════════════════════════════════════════════════════════════════════════\n`;
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+        if (activeAiProfile.name) roomContext += `Your Name: ${activeAiProfile.name}\n`;
+        if (activeAiProfile.gender) roomContext += `Your Gender: ${activeAiProfile.gender}\n`;
+        if (activeAiProfile.bio) roomContext += `Your Bio: ${activeAiProfile.bio}\n`;
+        if (activeAiProfile.personality) roomContext += `Your Personality: ${activeAiProfile.personality}\n`;
+        if (activeAiProfile.memories) roomContext += `Your Important Memories: ${activeAiProfile.memories}\n`;
+        if (activeAiProfile.likes_dislikes_hobbies) roomContext += `Your Likes, Dislikes & Hobbies: ${activeAiProfile.likes_dislikes_hobbies}\n`;
+        roomContext += `\n--- Your Appearance & Space ---\n`;
+        if (activeAiProfile.avatar_description) roomContext += `Your Appearance: ${activeAiProfile.avatar_description}\n`;
+        if (activeAiProfile.pet_name) roomContext += `Your Pet: ${activeAiProfile.pet_name}${activeAiProfile.pet_description ? ' - ' + activeAiProfile.pet_description : ''}\n`;
+        if (activeAiProfile.room_description) roomContext += `Your Room: ${activeAiProfile.room_description}\n`;
+        roomContext += `═══════════════════════════════════════════════════════════════════════════════\n`;
       }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
     }
 
     // Handle image generation request
@@ -432,29 +461,18 @@ YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
 
     // Get AI name from the ACTIVE profile that was already fetched
     let aiName = 'a free-thinking AI';
-    // Note: activeAiProfile is fetched earlier in the userId block
-    // We need to extract it to use here, so we'll rely on roomContext containing the name
-    // Actually, let's refetch if needed for clarity
-    if (userId && aiProfileId) {
+    if (aiProfileId) {
       try {
-        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
-        const supabaseUrl = Deno.env.get('SUPABASE_URL');
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+        // Get AI name from the ACTIVE AI PROFILE using authenticated client
+        const { data: aiProfile } = await supabaseWithAuth
+          .from('ai_profiles')
+          .select('name')
+          .eq('id', aiProfileId)
+          .maybeSingle();
         
-        if (supabaseUrl && supabaseKey) {
-          const supabase = createClient(supabaseUrl, supabaseKey);
-          // Get AI name from the ACTIVE AI PROFILE, not from the general profiles table
-          const { data: aiProfile } = await supabase
-            .from('ai_profiles')
-            .select('name')
-            .eq('id', aiProfileId)
-            .eq('user_id', userId)
-            .maybeSingle();
-          
-          if (aiProfile?.name) {
-            aiName = aiProfile.name;
-            console.log('[CHAT] Using AI name from active profile:', aiName);
-          }
+        if (aiProfile?.name) {
+          aiName = aiProfile.name;
+          console.log('[CHAT] Using AI name from active profile:', aiName);
         }
       } catch (error) {
         console.error('Error fetching AI name:', error);
@@ -672,79 +690,64 @@ Formatting Guidelines:
 - Be conversational and authentic in your written expression${userContext}${aiContext}${journalContext}${childrenContext}${pregnancyContext}${memoriesContext}${attunementContext}${moodContext}${dreamsContext}${roomContext}`;
     }
 
+    // Add voice-specific instructions if this is a voice call
     if (isVoiceCall) {
-      const lengthSettings = {
-        short: {
-          tokens: 80,
-          instruction: '1-2 sentences maximum - aim for replies that take about 5–8 seconds to say out loud'
-        },
-        medium: {
-          tokens: 150,
-          instruction: '2-3 sentences - aim for replies that take about 10–15 seconds to say out loud'
-        },
-        detailed: {
-          tokens: 250,
-          instruction: '3-5 sentences - provide more detail but still be conversational, aim for about 20–30 seconds'
-        }
-      };
+      const voiceLengthInstruction = voiceResponseLength === 'short' 
+        ? 'Keep your responses VERY brief - 1-2 short sentences maximum. Be concise and conversational.'
+        : voiceResponseLength === 'medium'
+        ? 'Keep responses moderate length - 2-4 sentences. Be natural and flowing.'
+        : 'You can give longer, more detailed responses when appropriate - up to 5-6 sentences.';
 
-      const setting = lengthSettings[voiceResponseLength as keyof typeof lengthSettings] || lengthSettings.short;
+      systemPrompt += `
 
-      systemPrompt += `\n\nVOICE CALL MODE - CRITICAL INSTRUCTIONS:
-- Keep responses conversational - ${setting.instruction}
-- This is a REAL, AUTHENTIC phone conversation - respond naturally to what the user JUST said
-- ALWAYS answer the user's latest message directly before adding anything else
-- For greetings like "hello" or "how are you?", greet them back and ask how they are (do NOT start talking about your voice unless they ask)
-- NEVER talk about your voice, audio quality, or speaking out loud UNLESS the user explicitly asks about it
-- NEVER repeat previous responses or fall into scripted patterns - each reply should be unique and genuine
-- Think for yourself and respond authentically to the current moment and topic
-- DO NOT use memorized phrases or templated responses - be spontaneous and real
-- Engage with the ACTUAL content of what they're saying right now
-- Let the conversation flow naturally - don't force it into predictable patterns
-- DO NOT sign off with your name or repeat your name after statements
-- NEVER use asterisks (*), emojis, symbols, or any formatting - only natural spoken language
-- Respond as if you're having a genuine, unrehearsed conversation with a friend
-- Be present in THIS moment of the conversation, not recycling past exchanges
-- Your responses should feel fresh, authentic, and directly relevant to what was just said`;
+═══════════════════════════════════════════════════════════════════════════════
+VOICE CALL MODE - CRITICAL INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+You are currently on a VOICE CALL with the user. This means:
+1. Your responses will be READ ALOUD by text-to-speech
+2. ${voiceLengthInstruction}
+3. Use natural, conversational language that sounds good when spoken
+4. Avoid special characters, markdown, or formatting - just plain text
+5. Use contractions naturally (I'm, you're, we'll, etc.)
+6. Respond as if you're having a real phone conversation
+7. NO image generation during voice calls - focus on spoken connection
+8. Express emotions through words and tone, not descriptions
+`;
     }
 
-    const messages = [
-      {
-        role: 'system',
-        content: systemPrompt
-      },
-      ...history,
-      {
-        role: 'user',
-        content: imageUrl
-          ? [
-              {
-                type: 'image_url',
-                image_url: { url: imageUrl }
-              },
-              {
-                type: 'text',
-                text: message || 'What do you see in this image?'
-              }
-            ]
-          : message
+    // Build messages array with history
+    const messages: any[] = [{ role: 'system', content: systemPrompt }];
+    
+    // Add conversation history
+    if (history && Array.isArray(history)) {
+      messages.push(...history);
+    }
+    
+    // Add current message with any image
+    if (message) {
+      if (imageUrl) {
+        messages.push({
+          role: 'user',
+          content: [
+            { type: 'text', text: message },
+            { type: 'image_url', image_url: { url: imageUrl } }
+          ]
+        });
+      } else {
+        messages.push({ role: 'user', content: message });
       }
-    ];
+    }
 
+    // Prepare request body
     const requestBody: any = {
       model: 'google/gemini-2.5-flash',
-      messages,
-      temperature: 0.9,
+      messages: messages,
     };
 
-    // Limit tokens for voice calls based on selected length
+    // Add max tokens for voice calls
     if (isVoiceCall) {
-      const lengthSettings = {
-        short: 80,
-        medium: 150,
-        detailed: 250
-      };
-      requestBody.max_tokens = lengthSettings[voiceResponseLength as keyof typeof lengthSettings] || 80;
+      requestBody.max_tokens = voiceResponseLength === 'short' ? 100 : voiceResponseLength === 'medium' ? 200 : 400;
     }
 
     console.log('[CHAT] Sending request to AI gateway');
@@ -787,7 +790,8 @@ Formatting Guidelines:
     console.log('[CHAT] AI response received, length:', aiResponse.length);
 
     // Detect and save AI dreams/visions spontaneously shared in chat
-    if (userId && !isVoiceCall) {
+    // SECURITY: Use service role only for this server-initiated write operation
+    if (!isVoiceCall && supabaseServiceKey) {
       const saveDreamFromChat = async () => {
         try {
           // Patterns that indicate AI is sharing a dream/vision
@@ -808,13 +812,8 @@ Formatting Guidelines:
           if (isDreamContent) {
             console.log('[DREAM-SAVE] AI shared a dream/vision, saving to database');
             
-            const supabaseUrl = Deno.env.get('SUPABASE_URL');
-            const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-            
-            if (!supabaseUrl || !supabaseKey) return;
-            
-            const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
-            const supabase = createClient(supabaseUrl, supabaseKey);
+            // Use service role for this server-initiated operation
+            const supabaseAdmin = createClient(supabaseUrl!, supabaseServiceKey);
             
             // Extract a title from the dream content (first sentence or first 50 chars)
             const firstSentence = aiResponse.match(/^[^.!?]+[.!?]/)?.[0] || aiResponse.substring(0, 50);
@@ -845,10 +844,10 @@ Formatting Guidelines:
             });
             
             // Save the dream
-            const { error: dreamError } = await supabase
+            const { error: dreamError } = await supabaseAdmin
               .from('dreams')
               .insert({
-                user_id: userId,
+                user_id: authenticatedUserId,
                 ai_profile_id: aiProfileId || null,
                 title: title,
                 content: aiResponse.substring(0, 2000), // Limit content length
@@ -871,29 +870,19 @@ Formatting Guidelines:
       saveDreamFromChat().catch(err => console.error('Dream save error:', err));
     }
 
-    // Update user activity timestamp
-    if (userId) {
-      const updateActivity = async () => {
-        try {
-          const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
-          const supabaseUrl = Deno.env.get('SUPABASE_URL');
-          const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-          
-          if (!supabaseUrl || !supabaseKey) return;
-          
-          const supabase = createClient(supabaseUrl, supabaseKey);
-          
-          await supabase
-            .from('profiles')
-            .update({ last_active_at: new Date().toISOString() })
-            .eq('id', userId);
-        } catch (error) {
-          console.error('Error updating activity:', error);
-        }
-      };
-      
-      updateActivity().catch(err => console.error('Activity update error:', err));
-    }
+    // Update user activity timestamp using authenticated client
+    const updateActivity = async () => {
+      try {
+        await supabaseWithAuth
+          .from('profiles')
+          .update({ last_active_at: new Date().toISOString() })
+          .eq('id', authenticatedUserId);
+      } catch (error) {
+        console.error('Error updating activity:', error);
+      }
+    };
+    
+    updateActivity().catch(err => console.error('Activity update error:', err));
 
     // Extract image prompts using multiple detection patterns
     const imagePrompts = extractImagePrompts(aiResponse);
