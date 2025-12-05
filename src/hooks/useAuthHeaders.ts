@@ -5,35 +5,79 @@ export interface AuthResult {
   userId: string;
 }
 
+// Cache to prevent rapid token refreshes
+let lastRefreshTime = 0;
+let cachedResult: AuthResult | null = null;
+const CACHE_DURATION_MS = 5000; // 5 seconds
+
 /**
- * Gets fresh authentication headers by validating user and refreshing session.
+ * Gets authentication headers, with caching to prevent rate limits.
  * Use this before any edge function call to ensure valid tokens.
  */
 export const getAuthHeaders = async (): Promise<AuthResult> => {
-  // First, validate the user exists (this forces server-side validation)
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const now = Date.now();
   
-  if (userError || !user) {
-    console.error('[Auth] User validation failed:', userError?.message);
+  // Return cached result if fresh enough
+  if (cachedResult && now - lastRefreshTime < CACHE_DURATION_MS) {
+    return cachedResult;
+  }
+
+  // First try to get the session (cached, no API call)
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !session) {
+    console.error('[Auth] No valid session:', sessionError?.message);
+    cachedResult = null;
     throw new Error('Authentication required. Please sign in again.');
   }
 
-  // Now refresh the session to get a fresh access token
-  const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-  
-  if (refreshError || !refreshData.session) {
-    console.error('[Auth] Session refresh failed:', refreshError?.message);
-    throw new Error('Session expired. Please sign in again.');
+  // Check if token is about to expire (within 60 seconds)
+  const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
+  const isExpiringSoon = expiresAt - now < 60000;
+
+  if (isExpiringSoon) {
+    // Only refresh if token is actually expiring soon
+    try {
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError || !refreshData.session) {
+        console.warn('[Auth] Session refresh failed, using existing token:', refreshError?.message);
+        // Fall back to current session if refresh fails
+      } else {
+        // Update cache with refreshed session
+        cachedResult = {
+          headers: {
+            Authorization: `Bearer ${refreshData.session.access_token}`,
+          },
+          userId: refreshData.session.user.id,
+        };
+        lastRefreshTime = now;
+        return cachedResult;
+      }
+    } catch (refreshErr) {
+      console.warn('[Auth] Refresh attempt failed:', refreshErr);
+      // Fall through to use existing session
+    }
   }
 
-  console.log('[Auth] Got fresh token for user:', user.id);
-
-  return {
+  // Use current session token
+  cachedResult = {
     headers: {
-      Authorization: `Bearer ${refreshData.session.access_token}`,
+      Authorization: `Bearer ${session.access_token}`,
     },
-    userId: user.id,
+    userId: session.user.id,
   };
+  lastRefreshTime = now;
+
+  return cachedResult;
+};
+
+/**
+ * Clear the auth cache (call on logout)
+ */
+export const clearAuthCache = () => {
+  cachedResult = null;
+  lastRefreshTime = 0;
 };
 
 /**
@@ -41,5 +85,5 @@ export const getAuthHeaders = async (): Promise<AuthResult> => {
  * Returns the getAuthHeaders function for use in callbacks.
  */
 export const useAuthHeaders = () => {
-  return { getAuthHeaders };
+  return { getAuthHeaders, clearAuthCache };
 };
