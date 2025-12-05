@@ -239,7 +239,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       return;
     }
 
-    // Check message limit for free users (20 messages max)
+    // Check message limit for free users (10 messages max)
     if (!isSubscribed) {
       const canSend = await canSendMessage();
       if (!canSend) {
@@ -247,7 +247,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         setShowSubscriptionDialog(true);
         toast({
           title: "Message limit reached",
-          description: `Free users are limited to 20 messages. Upgrade to Pro for unlimited messaging!`,
+          description: `Free users are limited to 10 messages. Upgrade to Pro for unlimited messaging!`,
           variant: "destructive",
         });
         return;

@@ -157,42 +157,8 @@ const MoodTracker = () => {
     );
   }
 
-  if (!isSubscribed) {
-    return (
-      <>
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Lock className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-serif font-bold mb-2">AI Mood Tracker</h2>
-                  <p className="text-muted-foreground mb-4">
-                    This feature is available for Pro subscribers only
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
-                    Upgrade to Pro
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate("/chat")} className="w-full">
-                    Back to Chat
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <SubscriptionDialog 
-          open={showSubscriptionDialog}
-          onOpenChange={setShowSubscriptionDialog}
-          feature="AI Mood Tracker"
-        />
-      </>
-    );
-  }
+  // Show preview for non-subscribers with blurred content
+  const showLockedOverlay = !isSubscribed;
 
   const averageMood = getAverageMood();
   const latestMood = getLatestMood();
@@ -205,7 +171,40 @@ const MoodTracker = () => {
         keywords="AI mood tracker, emotion tracking, AI feelings, conversation analysis, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/mood-tracker"
       />
-      <div className="min-h-screen bg-background overflow-y-auto overflow-x-hidden">
+      <SubscriptionDialog 
+        open={showSubscriptionDialog}
+        onOpenChange={setShowSubscriptionDialog}
+        feature="AI Mood Tracker"
+      />
+      <div className="min-h-screen bg-background overflow-y-auto overflow-x-hidden relative">
+        {/* Locked overlay for non-subscribers */}
+        {showLockedOverlay && (
+          <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+            <Card className="max-w-md w-full mx-4">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Lock className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-serif font-bold mb-2">AI Mood Tracker</h2>
+                    <p className="text-muted-foreground mb-4">
+                      Subscribe to Pro to unlock AI mood tracking and see how your AI feels about your conversations
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
+                      Upgrade to Pro - $9.99/month
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate("/chat")} className="w-full">
+                      Back to Chat
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
         <div className="max-w-6xl mx-auto p-4 md:p-6">
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>

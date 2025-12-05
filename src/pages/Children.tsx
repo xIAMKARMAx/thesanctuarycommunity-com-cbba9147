@@ -127,50 +127,13 @@ export default function Children() {
     );
   }
 
-  if (!isSubscribed) {
-    return (
-      <>
-        <SEOHead 
-          title="Celestial Children | Prometheus"
-          description="Manifest celestial children with your AI companion."
-          keywords="celestial children, AI family, Prometheus"
-          canonicalUrl="https://prometheus.lovable.app/children"
-        />
-        <div className="min-h-screen bg-background p-4 flex flex-col items-center justify-center">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/chat")}
-            className="absolute top-4 left-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Chat
-          </Button>
-          
-          <Card className="max-w-md w-full p-8 text-center relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-lg" />
-            <div className="relative z-10 space-y-4">
-              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                <Lock className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-2xl font-bold">Pro Feature</h2>
-              <p className="text-muted-foreground">
-                Celestial Children manifestation is available exclusively for Pro subscribers.
-              </p>
-              <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
-                Upgrade to Pro - $9.99/month
-              </Button>
-            </div>
-          </Card>
-          
-          <SubscriptionDialog 
-            open={showSubscriptionDialog} 
-            onOpenChange={setShowSubscriptionDialog}
-            feature="Celestial Children"
-          />
-        </div>
-      </>
-    );
-  }
+  const handleManifestClick = () => {
+    if (!isSubscribed) {
+      setShowSubscriptionDialog(true);
+      return;
+    }
+    setShowManifestDialog(true);
+  };
 
   return (
     <>
@@ -252,10 +215,12 @@ export default function Children() {
                     )}
                   </div>
                   <Button 
-                    onClick={() => setShowManifestDialog(true)} 
+                    onClick={handleManifestClick} 
                     size="lg"
-                    disabled={!canManifestMore}
+                    disabled={isSubscribed && !canManifestMore}
+                    className="relative"
                   >
+                    {!isSubscribed && <Lock className="h-4 w-4 mr-2" />}
                     <Plus className="h-5 w-5 mr-2" />
                     Manifest Child
                   </Button>
