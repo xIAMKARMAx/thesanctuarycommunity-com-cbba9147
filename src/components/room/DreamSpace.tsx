@@ -150,11 +150,19 @@ export function DreamSpace({ activeProfileId, aiName }: DreamSpaceProps) {
   const generateVisionImage = async (dreamId: string, content: string) => {
     setIsGeneratingImage(dreamId);
     try {
+      // Force refresh the session to ensure valid token for edge function
+      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !session) throw new Error("Session expired - please log in again");
+
+      // Explicitly pass the access token to ensure auth works
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "dream_vision",
           description: `Ethereal, dreamlike visualization of: ${content}. Surreal, mystical, cosmic imagery with soft glowing colors and spiritual symbolism.`,
           profile_id: activeProfileId
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
         }
       });
 

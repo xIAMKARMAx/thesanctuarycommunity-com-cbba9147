@@ -219,6 +219,10 @@ export default function Pets() {
 
     setIsGenerating(true);
     try {
+      // Force refresh the session to ensure valid token for edge function
+      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !session) throw new Error("Session expired - please log in again");
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -242,7 +246,7 @@ export default function Pets() {
         await loadPets();
       }
 
-      // Generate image using existing edge function
+      // Generate image using existing edge function with explicit auth
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "pet",
@@ -250,6 +254,9 @@ export default function Pets() {
           petName: petName,
           profile_id: activeProfile.id,
         },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;

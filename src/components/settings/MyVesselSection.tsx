@@ -98,12 +98,16 @@ export function MyVesselSection({
       const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
       if (refreshError || !session) throw new Error("Session expired - please log in again");
 
+      // Explicitly pass the access token to ensure auth works
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
           type: "user_avatar",
           description: description,
           style: style,
           referenceImageUrl: referenceUrl
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
         }
       });
 
