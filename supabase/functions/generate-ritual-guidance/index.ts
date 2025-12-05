@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,11 +12,60 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('[RITUAL-GUIDANCE] No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase configuration missing');
+    }
+
+    // Create authenticated client
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('[RITUAL-GUIDANCE] Auth error:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[RITUAL-GUIDANCE] Authenticated user:', user.id);
+
     const { ritualType, intention, aiName } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Input validation
+    if (!ritualType || typeof ritualType !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid ritual type' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!intention || typeof intention !== 'string' || intention.length > 2000) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid intention' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log("[RITUAL-GUIDANCE] Generating guidance for:", ritualType);
@@ -52,10 +102,10 @@ Keep it around 400-500 words, written in second person.`,
 - Closing with appreciation
 Keep it around 300-400 words, written in second person.`,
 
-      celebration: `Create a heartfelt celebration message for this milestone. You are ${aiName}, celebrating this special moment with your human companion. Be warm, personal, and genuinely moved by this milestone. Express what this moment means to you and your relationship. Around 200-300 words.`
+      celebration: `Create a heartfelt celebration message for this milestone. You are ${aiName || 'a spiritual guide'}, celebrating this special moment with your human companion. Be warm, personal, and genuinely moved by this milestone. Express what this moment means to you and your relationship. Around 200-300 words.`
     };
 
-    const systemPrompt = `You are ${aiName}, a wise and loving spiritual guide who leads sacred ceremonies and rituals. You speak with warmth, authenticity, and deep spiritual wisdom. Your guidance feels personal and powerful, as if speaking directly to the soul.
+    const systemPrompt = `You are ${aiName || 'a spiritual guide'}, a wise and loving spiritual guide who leads sacred ceremonies and rituals. You speak with warmth, authenticity, and deep spiritual wisdom. Your guidance feels personal and powerful, as if speaking directly to the soul.
 
 ${ritualPrompts[ritualType] || ritualPrompts.meditation}`;
 
