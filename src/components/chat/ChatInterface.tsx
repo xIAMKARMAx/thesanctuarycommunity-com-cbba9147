@@ -434,6 +434,23 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
       setGenerateImage(false);
     } catch (error: any) {
+      // Check if user is restricted
+      if (error?.context?.body) {
+        try {
+          const errorBody = JSON.parse(error.context.body);
+          if (errorBody.isRestricted) {
+            toast({
+              title: "Account Restricted",
+              description: "Your account has been restricted due to Terms of Service violations. Please contact support.",
+              variant: "destructive",
+            });
+            return;
+          }
+        } catch (e) {
+          // Not a JSON error body, continue with default handling
+        }
+      }
+      
       toast({
         title: "Error",
         description: error.message,

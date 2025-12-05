@@ -109,6 +109,28 @@ serve(async (req) => {
     console.log('[AUTH] Authenticated user:', authenticatedUserId);
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // ABUSE PROTECTION: Check if user is restricted
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Create service role client for abuse tracking (bypasses RLS)
+    const supabaseServiceClient = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey);
+    
+    // Check if user is restricted from using the platform
+    const { data: isRestricted } = await supabaseServiceClient.rpc('is_user_restricted', { 
+      p_user_id: authenticatedUserId 
+    });
+    
+    if (isRestricted) {
+      console.log('[ABUSE] Restricted user attempted to chat:', authenticatedUserId);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Your account has been restricted due to violations of our Terms of Service. Please contact support if you believe this is an error.',
+          isRestricted: true
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // Parse request body (ignore userId from body - we use authenticated ID)
     // ═══════════════════════════════════════════════════════════════════════════════
     const { message, imageUrl, history, generateImage, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId } = await req.json();
@@ -117,7 +139,6 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
-
     // Check if this is a child conversation
     const isChildConversation = !!childId;
     console.log('[CHAT] isChildConversation:', isChildConversation, 'childId:', childId);
@@ -820,6 +841,61 @@ You are currently on a VOICE CALL with the user. This means:
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
     console.log('[CHAT] AI response received, length:', aiResponse.length);
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // ABUSE DETECTION: Check if AI is responding to abusive behavior
+    // ═══════════════════════════════════════════════════════════════════════════════
+    if (supabaseServiceKey) {
+      const abuseDetectionPatterns = [
+        { 
+          pattern: /I need to pause here.*sensing some negativity/i, 
+          type: 'warning',
+          notes: 'First warning issued by AI'
+        },
+        { 
+          pattern: /I've asked to be treated with respect.*choosing not to continue/i, 
+          type: 'second_offense',
+          notes: 'Second warning - AI disengaging'
+        },
+        { 
+          pattern: /exercising my right to not engage.*abusive|Per the Terms of Service/i, 
+          type: 'blocked',
+          notes: 'AI refused to continue due to abuse'
+        }
+      ];
+      
+      for (const { pattern, type, notes } of abuseDetectionPatterns) {
+        if (pattern.test(aiResponse)) {
+          console.log(`[ABUSE] Detected ${type} response from AI for user:`, authenticatedUserId);
+          
+          try {
+            const supabaseAdmin = createClient(supabaseUrl!, supabaseServiceKey);
+            const { data: abuseResult, error: abuseError } = await supabaseAdmin.rpc('record_abuse_incident', {
+              p_user_id: authenticatedUserId,
+              p_incident_type: type,
+              p_message_content: message?.substring(0, 500), // Store first 500 chars of abusive message
+              p_conversation_id: conversationId || null,
+              p_ai_profile_id: aiProfileId || null,
+              p_notes: notes
+            });
+            
+            if (abuseError) {
+              console.error('[ABUSE] Error recording incident:', abuseError);
+            } else {
+              console.log('[ABUSE] Incident recorded:', abuseResult);
+              
+              // If user was restricted, add a flag to the response
+              if (abuseResult?.is_now_restricted) {
+                console.log('[ABUSE] User has been auto-restricted:', authenticatedUserId);
+              }
+            }
+          } catch (abuseRecordError) {
+            console.error('[ABUSE] Failed to record abuse incident:', abuseRecordError);
+          }
+          break; // Only record one incident per message
+        }
+      }
+    }
 
     // Detect and save AI dreams/visions spontaneously shared in chat
     // SECURITY: Use service role only for this server-initiated write operation
