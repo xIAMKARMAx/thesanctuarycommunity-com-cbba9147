@@ -12,23 +12,70 @@ serve(async (req) => {
   }
 
   try {
-    const { type, description, gender, profile_id, petName, roomImageUrl, referenceImageUrl } = await req.json();
-    const authHeader = req.headers.get('Authorization')!;
+    // SECURITY: Extract and verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('[SECURITY] No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
+    // SECURITY: Create client with user's auth token to respect RLS
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // SECURITY: Get authenticated user from token
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('[SECURITY] Authentication failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = user.id;
+    console.log('[AUTH] Authenticated user:', authenticatedUserId);
+
+    const { type, description, gender, profile_id, petName, roomImageUrl, referenceImageUrl } = await req.json();
+
     if (!profile_id) {
       throw new Error('profile_id is required');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    // SECURITY: Verify the user owns the profile they're trying to modify
+    const { data: profile, error: profileError } = await supabase
+      .from('ai_profiles')
+      .select('id, user_id')
+      .eq('id', profile_id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('[SECURITY] Profile not found:', profileError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Profile not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (profile.user_id !== authenticatedUserId) {
+      console.error('[SECURITY] User attempted to access another user\'s profile');
+      return new Response(
+        JSON.stringify({ error: 'Access denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     let prompt = '';
     let messages: any[] = [];
@@ -39,7 +86,6 @@ serve(async (req) => {
     } else if (type === 'avatar') {
       const genderDesc = gender === 'female' ? 'beautiful woman' : 'handsome man';
       
-      // If we have a reference image, use it to maintain consistent appearance
       if (referenceImageUrl) {
         const outfitOnly = description.toLowerCase().includes('outfit') || description.toLowerCase().includes('wearing') || description.toLowerCase().includes('clothes');
         if (outfitOnly) {
@@ -57,7 +103,6 @@ serve(async (req) => {
           }
         ];
       } else if (roomImageUrl) {
-        // Edit the room image to add the avatar naturally into the scene
         prompt = `Add a ${genderDesc} standing naturally in this room: ${description}. The person should be full body, standing in the space as if they live there, with natural lighting and shadows that match the room. They should look alive and present, integrated into the environment, not like a cutout. Photorealistic, lifelike expression, naturally positioned in the room.`;
         messages = [
           {
@@ -74,7 +119,6 @@ serve(async (req) => {
       }
     } else if (type === 'pet') {
       if (roomImageUrl) {
-        // Edit the existing scene to add the pet naturally
         prompt = `Add ${petName}, ${description} into this scene. The pet should look alive and natural in the space, with proper lighting, shadows, and positioning that makes it look like it belongs in this environment. Show the pet in a natural, lively pose - not like a cutout pasted on top. Photorealistic integration into the scene.`;
         messages = [
           {
@@ -91,7 +135,7 @@ serve(async (req) => {
       }
     }
 
-    console.log("Generating image with prompt:", prompt);
+    console.log("[IMAGE-GEN] Generating image with prompt:", prompt);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -131,9 +175,9 @@ serve(async (req) => {
       throw new Error("No image generated");
     }
 
-    console.log("Image generated successfully");
+    console.log("[IMAGE-GEN] Image generated successfully");
 
-    // Save the image URL to the database
+    // Save the image URL to the database (RLS ensures user can only update their own profile)
     const updateData: any = {};
     if (type === 'room') {
       updateData.room_description = description;
@@ -158,7 +202,7 @@ serve(async (req) => {
       throw new Error('Failed to save image to database');
     }
 
-    console.log("Image saved to database successfully");
+    console.log("[IMAGE-GEN] Image saved to database successfully");
 
     return new Response(
       JSON.stringify({ image_url: imageUrl }),
