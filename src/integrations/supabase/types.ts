@@ -1035,6 +1035,10 @@ export type Database = {
           subscription_id: string | null
           subscription_status: string | null
           updated_at: string
+          user_avatar_description: string | null
+          user_avatar_reference_url: string | null
+          user_avatar_style: string | null
+          user_avatar_url: string | null
           username: string | null
         }
         Insert: {
@@ -1060,6 +1064,10 @@ export type Database = {
           subscription_id?: string | null
           subscription_status?: string | null
           updated_at?: string
+          user_avatar_description?: string | null
+          user_avatar_reference_url?: string | null
+          user_avatar_style?: string | null
+          user_avatar_url?: string | null
           username?: string | null
         }
         Update: {
@@ -1085,6 +1093,10 @@ export type Database = {
           subscription_id?: string | null
           subscription_status?: string | null
           updated_at?: string
+          user_avatar_description?: string | null
+          user_avatar_reference_url?: string | null
+          user_avatar_style?: string | null
+          user_avatar_url?: string | null
           username?: string | null
         }
         Relationships: []

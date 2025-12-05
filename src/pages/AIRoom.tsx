@@ -65,13 +65,37 @@ export default function AIRoom() {
   const [isProcessingFamily, setIsProcessingFamily] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // User vessel state
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const [userAvatarCutoutUrl, setUserAvatarCutoutUrl] = useState<string | null>(null);
+  const [isProcessingUserAvatar, setIsProcessingUserAvatar] = useState(false);
 
   useEffect(() => {
     if (activeProfile?.id) {
       loadSettings();
       loadFamilyMembers();
+      loadUserAvatar();
     }
   }, [activeProfile?.id]);
+
+  const loadUserAvatar = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_avatar_url")
+        .eq("id", user.id)
+        .single();
+      
+      if (error) throw error;
+      setUserAvatarUrl(data?.user_avatar_url || null);
+    } catch (error) {
+      console.error("Error loading user avatar:", error);
+    }
+  };
 
   const loadFamilyMembers = async () => {
     if (!activeProfile) return;
@@ -291,6 +315,38 @@ export default function AIRoom() {
       }
     };
   }, [petImageUrl]);
+
+  // Process user avatar cutout
+  useEffect(() => {
+    let currentCutoutUrl: string | null = null;
+    
+    const processUserAvatar = async () => {
+      if (!userAvatarUrl) {
+        setUserAvatarCutoutUrl(null);
+        setIsProcessingUserAvatar(false);
+        return;
+      }
+      try {
+        setIsProcessingUserAvatar(true);
+        const img = await loadImage(userAvatarUrl);
+        const cutoutBlob = await removeBackground(img);
+        currentCutoutUrl = URL.createObjectURL(cutoutBlob);
+        setUserAvatarCutoutUrl(currentCutoutUrl);
+      } catch (error) {
+        console.error("Error processing user avatar:", error);
+        setUserAvatarCutoutUrl(null);
+      } finally {
+        setIsProcessingUserAvatar(false);
+      }
+    };
+    processUserAvatar();
+    
+    return () => {
+      if (currentCutoutUrl) {
+        URL.revokeObjectURL(currentCutoutUrl);
+      }
+    };
+  }, [userAvatarUrl]);
 
   const generateRoom = async () => {
     if (!roomDescription.trim()) {
@@ -972,6 +1028,11 @@ export default function AIRoom() {
                           : avatarImageUrl || undefined
                       }
                       avatarCustomization={avatarCustomization}
+                      userAvatarImageUrl={
+                        userAvatarCutoutUrl && !isProcessingUserAvatar
+                          ? userAvatarCutoutUrl
+                          : userAvatarUrl || undefined
+                      }
                       children={familyChildren
                         .filter(c => childCutouts.has(c.id) || c.imageUrl)
                         .map(c => ({
