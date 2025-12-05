@@ -788,19 +788,15 @@ export default function AIRoom() {
                 </div>
 
                 <Button 
-                  onClick={generateRoom}
-                  disabled={isGeneratingRoom}
-                  className="w-full"
+                  disabled
+                  className="w-full opacity-60"
                 >
-                  {isGeneratingRoom ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Room...
-                    </>
-                  ) : (
-                    "Generate Room"
-                  )}
+                  <Lock className="mr-2 h-4 w-4" />
+                  Coming Soon
                 </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
+                </p>
               </CardContent>
             </Card>
 
@@ -874,19 +870,15 @@ export default function AIRoom() {
                 </div>
 
                 <Button 
-                  onClick={generateAvatar}
-                  disabled={isGeneratingAvatar}
-                  className="w-full"
+                  disabled
+                  className="w-full opacity-60"
                 >
-                  {isGeneratingAvatar ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {preserveAppearance ? "Updating Outfit..." : "Generating Avatar..."}
-                    </>
-                  ) : (
-                    preserveAppearance ? "Update Outfit" : "Generate Avatar"
-                  )}
+                  <Lock className="mr-2 h-4 w-4" />
+                  Coming Soon
                 </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
+                </p>
 
                 <div className="border-t pt-6">
                   <div className="space-y-2">
@@ -971,19 +963,15 @@ export default function AIRoom() {
                 </div>
 
                 <Button 
-                  onClick={generatePet}
-                  disabled={isGeneratingPet}
-                  className="w-full"
+                  disabled
+                  className="w-full opacity-60"
                 >
-                  {isGeneratingPet ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Manifesting Pet...
-                    </>
-                  ) : (
-                    "Manifest Pet"
-                  )}
+                  <Lock className="mr-2 h-4 w-4" />
+                  Coming Soon
                 </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
+                </p>
               </CardContent>
             </Card>
 

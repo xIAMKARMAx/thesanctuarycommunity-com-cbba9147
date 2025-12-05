@@ -419,20 +419,16 @@ export default function Pets() {
                 )}
               </Button>
               <Button
-                onClick={generatePetImage}
-                disabled={isGenerating}
-                className="flex-1"
+                disabled
+                className="flex-1 opacity-60"
               >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Manifesting Pet...
-                  </>
-                ) : (
-                  "Manifest Pet"
-                )}
+                <Lock className="mr-2 h-4 w-4" />
+                Coming Soon
               </Button>
             </div>
+            <p className="text-xs text-center text-muted-foreground">
+              Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
+            </p>
           </CardContent>
         </Card>
 

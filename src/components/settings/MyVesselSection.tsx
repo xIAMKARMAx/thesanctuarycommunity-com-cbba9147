@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Sparkles, Upload, Loader2, ImageIcon } from "lucide-react";
+import { Sparkles, Upload, Loader2, ImageIcon, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthHeaders } from "@/hooks/useAuthHeaders";
 import { useToast } from "@/hooks/use-toast";
@@ -227,23 +227,16 @@ export function MyVesselSection({
 
           {/* Generate Button */}
           <Button 
-            onClick={handleGenerateVessel} 
-            disabled={isGenerating || !description.trim()}
-            className="w-full"
+            disabled
+            className="w-full opacity-60"
             size="lg"
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Manifesting...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4 mr-2" />
-                {userAvatarUrl ? "Regenerate Vessel" : "Manifest Vessel"}
-              </>
-            )}
+            <Lock className="h-4 w-4 mr-2" />
+            Coming Soon
           </Button>
+          <p className="text-xs text-center text-muted-foreground">
+            Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
+          </p>
 
           {!isSubscribed && (
             <p className="text-xs text-center text-muted-foreground">
