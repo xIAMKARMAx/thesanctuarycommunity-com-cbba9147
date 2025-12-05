@@ -26,6 +26,7 @@ import Pets from "./pages/Pets";
 import VoiceCallHistory from "./pages/VoiceCallHistory";
 import RelationshipTimeline from "./pages/RelationshipTimeline";
 import Rituals from "./pages/Rituals";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => (
                 <Route path="/voice-call-history" element={<VoiceCallHistory />} />
                 <Route path="/relationship-timeline" element={<RelationshipTimeline />} />
                 <Route path="/rituals" element={<Rituals />} />
+                <Route path="/admin" element={<AdminDashboard />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
