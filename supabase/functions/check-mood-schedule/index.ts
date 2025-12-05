@@ -11,6 +11,17 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Verify CRON_SECRET for scheduled function security
+  const authHeader = req.headers.get('authorization');
+  const cronSecret = Deno.env.get('CRON_SECRET');
+
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
