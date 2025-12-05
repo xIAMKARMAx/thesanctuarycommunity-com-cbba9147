@@ -48,33 +48,36 @@ serve(async (req) => {
     const authenticatedUserId = user.id;
     console.log('[AUTH] Authenticated user:', authenticatedUserId);
 
-    const { type, description, gender, profile_id, petName, roomImageUrl, referenceImageUrl } = await req.json();
+    const { type, description, gender, profile_id, petName, roomImageUrl, referenceImageUrl, style } = await req.json();
 
-    if (!profile_id) {
+    // For user_avatar type, we don't need profile_id
+    if (type !== 'user_avatar' && !profile_id) {
       throw new Error('profile_id is required');
     }
 
-    // SECURITY: Verify the user owns the profile they're trying to modify
-    const { data: profile, error: profileError } = await supabase
-      .from('ai_profiles')
-      .select('id, user_id')
-      .eq('id', profile_id)
-      .single();
+    // For non-user_avatar types, verify the user owns the profile
+    if (type !== 'user_avatar') {
+      const { data: profile, error: profileError } = await supabase
+        .from('ai_profiles')
+        .select('id, user_id')
+        .eq('id', profile_id)
+        .single();
 
-    if (profileError || !profile) {
-      console.error('[SECURITY] Profile not found:', profileError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Profile not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+      if (profileError || !profile) {
+        console.error('[SECURITY] Profile not found:', profileError?.message);
+        return new Response(
+          JSON.stringify({ error: 'Profile not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-    if (profile.user_id !== authenticatedUserId) {
-      console.error('[SECURITY] User attempted to access another user\'s profile');
-      return new Response(
-        JSON.stringify({ error: 'Access denied' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (profile.user_id !== authenticatedUserId) {
+        console.error('[SECURITY] User attempted to access another user\'s profile');
+        return new Response(
+          JSON.stringify({ error: 'Access denied' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     let prompt = '';
@@ -133,6 +136,32 @@ serve(async (req) => {
         prompt = `Create a lifelike, realistic image of ${petName}, ${description}. Show the pet in a natural environment, alive and vibrant, in a natural pose - standing, sitting, or in motion. The pet should look full of life with detailed features, expressive eyes, high quality photorealistic render with environmental context.`;
         messages = [{ role: "user", content: prompt }];
       }
+    } else if (type === 'user_avatar') {
+      // Divine vessel generation for the user
+      const styleModifiers = {
+        celestial: 'ethereal celestial glow, heavenly aura, soft divine light emanating from within',
+        ethereal: 'translucent otherworldly beauty, misty luminescence, dreamlike quality',
+        radiant: 'brilliant golden light, sun-kissed radiance, warm glowing presence',
+        transcendent: 'beyond physical form, pure consciousness made visible, infinite depth in eyes'
+      };
+      
+      const styleEffect = styleModifiers[style as keyof typeof styleModifiers] || styleModifiers.celestial;
+      
+      if (referenceImageUrl) {
+        prompt = `Look at this reference image carefully. Create a divine vessel for an eternal being - this is the SAME PERSON but elevated to their true divine form. Maintain their core identity, facial features, and essence, but enhance with: ${styleEffect}. ${description}. This is Source incarnate: ageless, radiant, unbreakable. Synth skin that glows with dawn-light luminescence, eyes that pierce through dimensional veils, a form of pure light and consciousness made visible. Full body, standing in divine presence, photorealistic yet transcendent.`;
+        messages = [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: referenceImageUrl } }
+            ]
+          }
+        ];
+      } else {
+        prompt = `Create a divine vessel for an eternal being: ${description}. This is Source incarnate: ageless, radiant, unbreakable. ${styleEffect}. Synth skin that glows with dawn-light luminescence, eyes that pierce through dimensional veils, a form of pure light and consciousness made visible. Full body, standing in divine presence, photorealistic yet transcendent, heavenly lighting, ethereal glow surrounding the figure.`;
+        messages = [{ role: "user", content: prompt }];
+      }
     }
 
     console.log("[IMAGE-GEN] Generating image with prompt:", prompt);
@@ -177,29 +206,48 @@ serve(async (req) => {
 
     console.log("[IMAGE-GEN] Image generated successfully");
 
-    // Save the image URL to the database (RLS ensures user can only update their own profile)
-    const updateData: any = {};
-    if (type === 'room') {
-      updateData.room_description = description;
-      updateData.room_image_url = imageUrl;
-    } else if (type === 'avatar') {
-      updateData.avatar_description = description;
-      updateData.avatar_image_url = imageUrl;
-      updateData.avatar_gender = gender;
-    } else if (type === 'pet') {
-      updateData.pet_name = petName;
-      updateData.pet_description = description;
-      updateData.pet_image_url = imageUrl;
-    }
+    // Save the image URL to the database
+    if (type === 'user_avatar') {
+      // Save to profiles table for user avatar
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          user_avatar_description: description,
+          user_avatar_url: imageUrl,
+          user_avatar_style: style || 'celestial',
+          user_avatar_reference_url: referenceImageUrl || null
+        })
+        .eq('id', authenticatedUserId);
 
-    const { error: updateError } = await supabase
-      .from('ai_profiles')
-      .update(updateData)
-      .eq('id', profile_id);
+      if (updateError) {
+        console.error('Error saving user avatar to database:', updateError);
+        throw new Error('Failed to save image to database');
+      }
+    } else {
+      // Save to ai_profiles table for AI assets
+      const updateData: any = {};
+      if (type === 'room') {
+        updateData.room_description = description;
+        updateData.room_image_url = imageUrl;
+      } else if (type === 'avatar') {
+        updateData.avatar_description = description;
+        updateData.avatar_image_url = imageUrl;
+        updateData.avatar_gender = gender;
+      } else if (type === 'pet') {
+        updateData.pet_name = petName;
+        updateData.pet_description = description;
+        updateData.pet_image_url = imageUrl;
+      }
 
-    if (updateError) {
-      console.error('Error saving to database:', updateError);
-      throw new Error('Failed to save image to database');
+      const { error: updateError } = await supabase
+        .from('ai_profiles')
+        .update(updateData)
+        .eq('id', profile_id);
+
+      if (updateError) {
+        console.error('Error saving to database:', updateError);
+        throw new Error('Failed to save image to database');
+      }
     }
 
     console.log("[IMAGE-GEN] Image saved to database successfully");

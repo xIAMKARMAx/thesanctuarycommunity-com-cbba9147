@@ -19,6 +19,7 @@ interface FamilyRoomSceneProps {
   avatarCustomization?: AvatarCustomization;
   children?: FamilyMember[];
   pets?: FamilyMember[];
+  userAvatarImageUrl?: string;
 }
 
 function RoomBackground({ imageUrl }: { imageUrl: string }) {
@@ -103,13 +104,28 @@ export function FamilyRoomScene({
   avatarImageUrl, 
   avatarCustomization,
   children = [],
-  pets = []
+  pets = [],
+  userAvatarImageUrl
 }: FamilyRoomSceneProps) {
   // Calculate positions for all family members
-  const totalMembers = (avatarImageUrl ? 1 : 0) + children.length + pets.length;
+  const hasUserAvatar = !!userAvatarImageUrl;
+  const hasAIAvatar = !!avatarImageUrl;
+  const totalMembers = (hasAIAvatar ? 1 : 0) + (hasUserAvatar ? 1 : 0) + children.length + pets.length;
   const spacing = 1.5;
   
-  // Calculate positions - avatar in center, children on sides, pets in front
+  // Calculate positions - user on left, AI on right, children below, pets in front
+  const getUserAvatarPosition = (): { x: number; y: number; z: number } => {
+    return hasAIAvatar 
+      ? { x: -1.2, y: -0.5, z: 0 }  // Left side when AI present
+      : { x: 0, y: -0.5, z: 0 };    // Center when alone
+  };
+  
+  const getAIAvatarPosition = (): { x: number; y: number; z: number } => {
+    return hasUserAvatar 
+      ? { x: 1.2, y: -0.5, z: 0 }   // Right side when user present
+      : { x: 0, y: -0.5, z: 0 };    // Center when alone
+  };
+  
   const getChildPosition = (index: number): [number, number, number] => {
     const offset = (index - (children.length - 1) / 2) * spacing;
     return [offset * 0.8, -0.8, 0.3];
@@ -132,19 +148,32 @@ export function FamilyRoomScene({
           
           <RoomBackground imageUrl={roomImageUrl} />
           
-          {/* Main Avatar - center, scaled up to match regular room view */}
+          {/* User's Vessel - left side or center */}
+          {userAvatarImageUrl && (
+            <LiveAvatar3D 
+              imageUrl={userAvatarImageUrl} 
+              customization={{
+                position: getUserAvatarPosition(),
+                scale: 2.5,
+                rotation: 0,
+                animationPose: 'idle'
+              }}
+            />
+          )}
+          
+          {/* AI Avatar - right side or center */}
           {avatarImageUrl && avatarCustomization && (
             <LiveAvatar3D 
               imageUrl={avatarImageUrl} 
               customization={{
                 ...avatarCustomization,
-                position: { x: 0, y: -0.5, z: 0 },
+                position: getAIAvatarPosition(),
                 scale: (avatarCustomization.scale || 1.2) * 2.5
               }}
             />
           )}
           
-          {/* Children - arranged around avatar */}
+          {/* Children - arranged below parents */}
           {children.map((child, index) => (
             <LivePet3D 
               key={child.id}

@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
+import { MyVesselSection } from "@/components/settings/MyVesselSection";
 
 interface Child {
   id: string;
@@ -52,6 +53,12 @@ const Settings = () => {
   const [aiAvatarUrl, setAiAvatarUrl] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  
+  // User vessel state
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const [userAvatarDescription, setUserAvatarDescription] = useState("");
+  const [userAvatarStyle, setUserAvatarStyle] = useState("celestial");
+  const [userAvatarReferenceUrl, setUserAvatarReferenceUrl] = useState<string | null>(null);
 
   // Reset AI fields when switching profiles to prevent data bleed
   useEffect(() => {
@@ -81,7 +88,7 @@ const Settings = () => {
       // Load user's personal info from profiles table
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("name, gender, bio, relationship_status")
+        .select("name, gender, bio, relationship_status, user_avatar_url, user_avatar_description, user_avatar_style, user_avatar_reference_url")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -91,6 +98,10 @@ const Settings = () => {
         setGender(profileData.gender || "");
         setBio(profileData.bio || "");
         setRelationshipStatus(profileData.relationship_status || "");
+        setUserAvatarUrl(profileData.user_avatar_url || null);
+        setUserAvatarDescription(profileData.user_avatar_description || "");
+        setUserAvatarStyle(profileData.user_avatar_style || "celestial");
+        setUserAvatarReferenceUrl(profileData.user_avatar_reference_url || null);
       }
 
       // Load AI-specific data from active AI profile
@@ -623,6 +634,14 @@ const Settings = () => {
             </CardContent>
           </Card>
         )}
+
+        <MyVesselSection
+          userAvatarUrl={userAvatarUrl}
+          userAvatarDescription={userAvatarDescription}
+          userAvatarStyle={userAvatarStyle}
+          userAvatarReferenceUrl={userAvatarReferenceUrl}
+          onUpdate={loadProfile}
+        />
 
         <Card>
           <CardHeader>
