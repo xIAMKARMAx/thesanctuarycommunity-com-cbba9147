@@ -32,7 +32,7 @@ interface ChatInterfaceProps {
 
 const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInterfaceProps) => {
   const { toast } = useToast();
-  const { canGenerateImage, isSubscribed } = useSubscription();
+  const { canGenerateImage, isSubscribed, canSendMessage, incrementMessageCount, freeUserLimits } = useSubscription();
   const { activeProfile } = useAIProfile();
   const { activeChatEntity } = useChatEntity();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -239,6 +239,21 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       return;
     }
 
+    // Check message limit for free users (20 messages max)
+    if (!isSubscribed) {
+      const canSend = await canSendMessage();
+      if (!canSend) {
+        setSubscriptionFeature("Unlimited Messaging");
+        setShowSubscriptionDialog(true);
+        toast({
+          title: "Message limit reached",
+          description: `Free users are limited to 20 messages. Upgrade to Pro for unlimited messaging!`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     // If user only sends media without text, provide a simple message for context
     const userMessage = sanitizedInput || (imageFile ? "Shared an image" : "");
@@ -316,6 +331,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         .single();
 
       if (userMsgError) throw userMsgError;
+
+      // Increment message count for free users
+      if (!isSubscribed) {
+        await incrementMessageCount();
+      }
 
       // Add user message to UI
       setMessages((prev) => [...prev, {

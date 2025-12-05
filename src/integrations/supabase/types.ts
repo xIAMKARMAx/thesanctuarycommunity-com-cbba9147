@@ -640,6 +640,36 @@ export type Database = {
           },
         ]
       }
+      free_user_limits: {
+        Row: {
+          avatar_generated: boolean | null
+          created_at: string | null
+          id: string
+          room_generated: boolean | null
+          total_messages: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_generated?: boolean | null
+          created_at?: string | null
+          id?: string
+          room_generated?: boolean | null
+          total_messages?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_generated?: boolean | null
+          created_at?: string | null
+          id?: string
+          room_generated?: boolean | null
+          total_messages?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       image_generation_usage: {
         Row: {
           count: number
@@ -1241,8 +1271,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_generate_avatar: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
+      can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
+      can_send_message: { Args: { p_user_id: string }; Returns: boolean }
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
+      increment_message_count: { Args: { p_user_id: string }; Returns: number }
+      mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
+      mark_room_generated: { Args: { p_user_id: string }; Returns: undefined }
       update_child_talk_status: { Args: never; Returns: undefined }
     }
     Enums: {
