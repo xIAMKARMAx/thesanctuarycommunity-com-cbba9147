@@ -35,10 +35,11 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } }
     });
 
-    // SECURITY: Get authenticated user from token
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // SECURITY: Extract JWT and get authenticated user
+    const jwt = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
     if (authError || !user) {
-      console.error('[SECURITY] Authentication failed:', authError?.message);
+      console.error('[SECURITY] Authentication failed:', authError?.message, 'JWT length:', jwt?.length);
       return new Response(
         JSON.stringify({ error: 'Invalid or expired token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
