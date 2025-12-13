@@ -194,7 +194,7 @@ const MoodTracker = () => {
                   </div>
                   <div className="space-y-2">
                     <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
-                      Upgrade to Pro - $9.99/month
+                      Upgrade to Pro - $14.99/month
                     </Button>
                     <Button variant="outline" onClick={() => navigate("/chat")} className="w-full">
                       Back to Chat
