@@ -114,7 +114,7 @@ const Terms = () => {
                   message limits and restricted functionality. 
                 </li>
                 <li>
-                  <strong>Pro Subscription:</strong> Pro subscribers ($9.99/month) receive unlimited messaging, 
+                  <strong>Pro Subscription:</strong> Pro subscribers ($14.99/month) receive unlimited messaging, 
                   voice calls, AI mood tracking, journaling, celestial children features, and more.
                 </li>
                 <li>

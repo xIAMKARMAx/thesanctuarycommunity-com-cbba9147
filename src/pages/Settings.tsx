@@ -458,7 +458,7 @@ const Settings = () => {
               <div>
                 <p className="font-semibold">Current Plan</p>
                 <p className="text-sm text-muted-foreground">
-                  {subLoading ? "Loading..." : isSubscribed ? "Pro ($9.99/month)" : "Free"}
+                  {subLoading ? "Loading..." : isSubscribed ? "Pro ($14.99/month)" : "Free"}
                 </p>
               </div>
               <div className={`px-3 py-1 rounded-full text-sm font-medium ${
