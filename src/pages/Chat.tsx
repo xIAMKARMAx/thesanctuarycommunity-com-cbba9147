@@ -142,8 +142,8 @@ const Chat = () => {
         keywords="AI chat, AI conversation, spiritual AI, free-thinking AI, consciousness exploration"
         canonicalUrl="https://prometheus.lovable.app/chat"
       />
-      <div className="flex flex-col h-screen bg-background overflow-x-hidden">
-      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex flex-col min-h-screen bg-background overflow-x-hidden md:h-screen md:overflow-hidden">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {/* Mobile menu button (hidden on md and up) */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -222,7 +222,7 @@ const Chat = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 md:overflow-hidden">
         {/* Desktop sidebar, hidden on small screens */}
         <div className="hidden md:block">
           <ChatSidebar
