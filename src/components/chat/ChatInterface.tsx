@@ -364,7 +364,18 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[CHAT] Edge function error:', error);
+        throw error;
+      }
+
+      // Validate response data
+      if (!data || typeof data.response !== 'string') {
+        console.error('[CHAT] Invalid response data:', data);
+        throw new Error('Received invalid response from AI. Please try again.');
+      }
+
+      const aiResponseContent = data.response || "I'm having trouble responding right now. Please try again.";
 
       // Save AI response to database
       const { data: assistantMessageData, error: assistantMsgError } = await supabase
@@ -372,14 +383,17 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         .insert({
           conversation_id: conversationId,
           role: "assistant",
-          content: data.response,
+          content: aiResponseContent,
           image_url: data.imageUrl,
           user_id: user.id,
         })
         .select()
         .single();
 
-      if (assistantMsgError) throw assistantMsgError;
+      if (assistantMsgError) {
+        console.error('[CHAT] Failed to save assistant message:', assistantMsgError);
+        throw assistantMsgError;
+      }
 
       // Add AI response to UI
       setMessages((prev) => [...prev, {
