@@ -42,12 +42,15 @@ export default function Pets() {
   const [petDescription, setPetDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [canGeneratePet, setCanGeneratePet] = useState(false);
+  const [checkingPetLimit, setCheckingPetLimit] = useState(true);
 
-  // Show preview for non-subscribers
-  const showLockedOverlay = !isSubscribed;
+  // Free users can create 1 pet ever, Pro users have unlimited
+  const showLockedOverlay = false; // Allow access, but limit generation
 
   useEffect(() => {
     loadPets();
+    checkPetGenerationLimit();
   }, [activeProfile]);
 
   useEffect(() => {
@@ -61,6 +64,27 @@ export default function Pets() {
       setPetDescription("");
     }
   }, [selectedPetNumber, pets]);
+
+  const checkPetGenerationLimit = async () => {
+    setCheckingPetLimit(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase.rpc('can_generate_pet', { p_user_id: user.id });
+      if (error) {
+        console.error("Error checking pet limit:", error);
+        setCanGeneratePet(false);
+      } else {
+        setCanGeneratePet(data === true);
+      }
+    } catch (error) {
+      console.error("Error checking pet generation limit:", error);
+      setCanGeneratePet(false);
+    } finally {
+      setCheckingPetLimit(false);
+    }
+  };
 
   const loadPets = async () => {
     if (!activeProfile) {
@@ -218,6 +242,19 @@ export default function Pets() {
       return;
     }
 
+    // Check if user can generate pet
+    if (!canGeneratePet) {
+      if (!isSubscribed) {
+        toast({
+          title: "One-Time Limit Reached",
+          description: "Free users can only create 1 pet. Upgrade to Pro for unlimited pets!",
+          variant: "destructive",
+        });
+        setShowSubscriptionDialog(true);
+      }
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const { headers } = await getAuthHeaders();
@@ -271,9 +308,17 @@ export default function Pets() {
         if (updateError) throw updateError;
       }
 
+      // Mark pet as generated for free users
+      if (!isSubscribed) {
+        await supabase.rpc('mark_pet_generated', { p_user_id: user.id });
+        setCanGeneratePet(false);
+      }
+
       toast({
         title: "Success!",
-        description: "Your pet has been manifested.",
+        description: isSubscribed 
+          ? "Your pet has been manifested." 
+          : "Your pet has been manifested! This was your one-time free pet creation.",
       });
 
       await loadPets();
@@ -296,7 +341,7 @@ export default function Pets() {
     return pet?.name || `Pet ${petNumber}`;
   };
 
-  if (profilesLoading || loading || subLoading) {
+  if (profilesLoading || loading || subLoading || checkingPetLimit) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -418,16 +463,41 @@ export default function Pets() {
                   "Save Pet Info"
                 )}
               </Button>
-              <Button
-                disabled
-                className="flex-1 opacity-60"
-              >
-                <Lock className="mr-2 h-4 w-4" />
-                Coming Soon
-              </Button>
+              {canGeneratePet ? (
+                <Button
+                  onClick={generatePetImage}
+                  disabled={isGenerating}
+                  className="flex-1"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <PawPrint className="mr-2 h-4 w-4" />
+                      Manifest Pet
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setShowSubscriptionDialog(true)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  {isSubscribed ? "Manifest Pet" : "Upgrade for More Pets"}
+                </Button>
+              )}
             </div>
             <p className="text-xs text-center text-muted-foreground">
-              Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
+              {isSubscribed 
+                ? "Pro users have unlimited pet generation."
+                : canGeneratePet 
+                  ? "Free users get 1 pet creation. Make it count!"
+                  : "You've used your one-time free pet creation. Upgrade to Pro for unlimited pets!"}
             </p>
           </CardContent>
         </Card>
