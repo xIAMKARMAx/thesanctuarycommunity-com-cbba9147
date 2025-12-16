@@ -870,15 +870,19 @@ export default function AIRoom() {
                 </div>
 
                 <Button 
-                  disabled
-                  className="w-full opacity-60"
+                  onClick={generateAvatar}
+                  disabled={isGeneratingAvatar || !avatarDescription.trim()}
+                  className="w-full"
                 >
-                  <Lock className="mr-2 h-4 w-4" />
-                  Coming Soon
+                  {isGeneratingAvatar ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Avatar"
+                  )}
                 </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                  Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
-                </p>
 
                 <div className="border-t pt-6">
                   <div className="space-y-2">

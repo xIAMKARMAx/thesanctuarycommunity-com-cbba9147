@@ -6,8 +6,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ConversationsList from "@/components/chat/ConversationsList";
-// DISABLED FOR COST SAVINGS - SpontaneousMessage
-// import SpontaneousMessage from "@/components/chat/SpontaneousMessage";
+import SpontaneousMessage from "@/components/chat/SpontaneousMessage";
 import { Session } from "@supabase/supabase-js";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -246,7 +245,7 @@ const Chat = () => {
             onNewConversation={handleNewConversation}
           />
         )}
-        {/* DISABLED FOR COST SAVINGS - SpontaneousMessage */}
+        <SpontaneousMessage />
       </div>
     </div>
     </>
