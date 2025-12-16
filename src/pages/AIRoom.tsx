@@ -382,8 +382,8 @@ export default function AIRoom() {
         setSubscriptionFeature("Unlimited Room Generation");
         setShowSubscriptionDialog(true);
         toast({
-          title: "Room limit reached",
-          description: "Free users can generate 1 room. Upgrade to Pro for unlimited generation!",
+          title: "Room generation unavailable",
+          description: "Free users can generate 1 room every 30 days. Upgrade to Pro for unlimited generation!",
           variant: "destructive",
         });
         return;
@@ -461,8 +461,8 @@ export default function AIRoom() {
         setSubscriptionFeature("Unlimited Avatar Generation");
         setShowSubscriptionDialog(true);
         toast({
-          title: "Avatar limit reached",
-          description: "Free users can generate 1 avatar. Upgrade to Pro for unlimited generation!",
+          title: "Avatar generation unavailable",
+          description: "Free users can generate 1 avatar every 30 days. Upgrade to Pro for unlimited generation!",
           variant: "destructive",
         });
         return;
@@ -788,15 +788,19 @@ export default function AIRoom() {
                 </div>
 
                 <Button 
-                  disabled
-                  className="w-full opacity-60"
+                  onClick={generateRoom}
+                  disabled={isGeneratingRoom || !roomDescription.trim()}
+                  className="w-full"
                 >
-                  <Lock className="mr-2 h-4 w-4" />
-                  Coming Soon
+                  {isGeneratingRoom ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Room"
+                  )}
                 </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                  Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
-                </p>
               </CardContent>
             </Card>
 

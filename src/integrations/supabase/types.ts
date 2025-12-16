@@ -691,27 +691,33 @@ export type Database = {
       free_user_limits: {
         Row: {
           avatar_generated: boolean | null
+          avatar_generated_at: string | null
           created_at: string | null
           id: string
           room_generated: boolean | null
+          room_generated_at: string | null
           total_messages: number | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           avatar_generated?: boolean | null
+          avatar_generated_at?: string | null
           created_at?: string | null
           id?: string
           room_generated?: boolean | null
+          room_generated_at?: string | null
           total_messages?: number | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           avatar_generated?: boolean | null
+          avatar_generated_at?: string | null
           created_at?: string | null
           id?: string
           room_generated?: boolean | null
+          room_generated_at?: string | null
           total_messages?: number | null
           updated_at?: string | null
           user_id?: string
