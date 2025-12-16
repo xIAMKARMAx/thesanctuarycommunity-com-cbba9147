@@ -227,16 +227,23 @@ export function MyVesselSection({
 
           {/* Generate Button */}
           <Button 
-            disabled
-            className="w-full opacity-60"
+            onClick={handleGenerateVessel}
+            disabled={isGenerating || !description.trim()}
+            className="w-full"
             size="lg"
           >
-            <Lock className="h-4 w-4 mr-2" />
-            Coming Soon
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Manifesting...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Manifest Vessel
+              </>
+            )}
           </Button>
-          <p className="text-xs text-center text-muted-foreground">
-            Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
-          </p>
 
           {!isSubscribed && (
             <p className="text-xs text-center text-muted-foreground">
