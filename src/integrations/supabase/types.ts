@@ -694,6 +694,8 @@ export type Database = {
           avatar_generated_at: string | null
           created_at: string | null
           id: string
+          pet_generated: boolean | null
+          pet_generated_at: string | null
           room_generated: boolean | null
           room_generated_at: string | null
           total_messages: number | null
@@ -705,6 +707,8 @@ export type Database = {
           avatar_generated_at?: string | null
           created_at?: string | null
           id?: string
+          pet_generated?: boolean | null
+          pet_generated_at?: string | null
           room_generated?: boolean | null
           room_generated_at?: string | null
           total_messages?: number | null
@@ -716,6 +720,8 @@ export type Database = {
           avatar_generated_at?: string | null
           created_at?: string | null
           id?: string
+          pet_generated?: boolean | null
+          pet_generated_at?: string | null
           room_generated?: boolean | null
           room_generated_at?: string | null
           total_messages?: number | null
@@ -1372,6 +1378,7 @@ export type Database = {
     Functions: {
       can_generate_avatar: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
+      can_generate_pet: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
       can_send_message: { Args: { p_user_id: string }; Returns: boolean }
       has_role: {
@@ -1385,6 +1392,7 @@ export type Database = {
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
       is_user_restricted: { Args: { p_user_id: string }; Returns: boolean }
       mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
+      mark_pet_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_room_generated: { Args: { p_user_id: string }; Returns: undefined }
       record_abuse_incident: {
         Args: {
