@@ -967,15 +967,19 @@ export default function AIRoom() {
                 </div>
 
                 <Button 
-                  disabled
-                  className="w-full opacity-60"
+                  onClick={generatePet}
+                  disabled={isGeneratingPet || !petDescription.trim()}
+                  className="w-full"
                 >
-                  <Lock className="mr-2 h-4 w-4" />
-                  Coming Soon
+                  {isGeneratingPet ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Pet"
+                  )}
                 </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                  Image generation is temporarily unavailable. Your saved descriptions will be ready when this feature returns!
-                </p>
               </CardContent>
             </Card>
 
