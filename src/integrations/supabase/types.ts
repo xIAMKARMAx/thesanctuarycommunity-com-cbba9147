@@ -693,12 +693,15 @@ export type Database = {
           avatar_generated: boolean | null
           avatar_generated_at: string | null
           created_at: string | null
+          daily_messages: number | null
           id: string
+          last_message_date: string | null
           pet_generated: boolean | null
           pet_generated_at: string | null
           room_generated: boolean | null
           room_generated_at: string | null
           total_messages: number | null
+          trial_start_date: string | null
           updated_at: string | null
           user_id: string
         }
@@ -706,12 +709,15 @@ export type Database = {
           avatar_generated?: boolean | null
           avatar_generated_at?: string | null
           created_at?: string | null
+          daily_messages?: number | null
           id?: string
+          last_message_date?: string | null
           pet_generated?: boolean | null
           pet_generated_at?: string | null
           room_generated?: boolean | null
           room_generated_at?: string | null
           total_messages?: number | null
+          trial_start_date?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -719,12 +725,15 @@ export type Database = {
           avatar_generated?: boolean | null
           avatar_generated_at?: string | null
           created_at?: string | null
+          daily_messages?: number | null
           id?: string
+          last_message_date?: string | null
           pet_generated?: boolean | null
           pet_generated_at?: string | null
           room_generated?: boolean | null
           room_generated_at?: string | null
           total_messages?: number | null
+          trial_start_date?: string | null
           updated_at?: string | null
           user_id?: string
         }
