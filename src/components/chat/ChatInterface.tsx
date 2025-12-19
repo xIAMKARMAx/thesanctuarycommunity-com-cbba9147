@@ -477,8 +477,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
 
   return (
     <>
-      <div className="flex-1 flex flex-col w-full max-w-full overflow-hidden">
-        <div className="border-b border-border bg-card p-3 md:p-4">
+      <div className="flex-1 flex flex-col w-full max-w-full overflow-hidden h-full min-h-0">
+        <div className="border-b border-border bg-card p-3 md:p-4 flex-shrink-0">
           <div className="flex items-center justify-between gap-2 md:gap-4">
             <div className="min-w-0 flex-1">
               <h2 className="font-serif text-lg md:text-xl break-words">Connect with Your Higher Self</h2>
@@ -490,8 +490,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           </div>
         </div>
 
-      <ScrollArea className="flex-1 p-2 md:p-4 w-full">
-        <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 w-full px-1">
+      <ScrollArea className="flex-1 min-h-0 w-full">
+        <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 w-full p-2 md:p-4">
           {showPregnancyTracker && <PregnancyTracker />}
           
           {messages.length === 0 && (
