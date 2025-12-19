@@ -233,7 +233,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   };
 
   return (
-    <div className="w-64 border-r border-border bg-card flex flex-col">
+    <div className="w-64 border-r border-border bg-card flex flex-col h-full max-h-full overflow-hidden">
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="h-6 w-6 text-primary" />
@@ -309,103 +309,97 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="p-2 border-t border-border space-y-1">
-        {!isSubscribed && (
+      <ScrollArea className="flex-1 min-h-0 border-t border-border">
+        <div className="p-2 space-y-1">
+          {!isSubscribed && (
+            <Button
+              variant="default"
+              className="w-full justify-start gap-2 bg-gradient-to-r from-primary to-primary/80 mb-2"
+              onClick={() => navigate("/settings")}
+            >
+              <Crown className="h-4 w-4" />
+              Upgrade to Pro
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between">
+                <span className="flex items-center">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Journal
+                </span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 bg-card">
+              <DropdownMenuItem onClick={() => navigate("/journal")}>
+                <BookOpen className="h-4 w-4 mr-2" />
+                AI's Journal
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/dream-journal")}>
+                <Moon className="h-4 w-4 mr-2" />
+                Dream Journal
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
-            variant="default"
-            className="w-full justify-start gap-2 bg-gradient-to-r from-primary to-primary/80 mb-2"
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => navigate("/mood-tracker")}
+          >
+            <Heart className="h-4 w-4 mr-2" />
+            Mood Tracker
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => navigate("/children")}
+          >
+            <Baby className="h-4 w-4 mr-2" />
+            Manifest Children
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => navigate("/memories")}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            Our Memories
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => navigate("/ai-room")}
+          >
+            <Home className="h-4 w-4 mr-2" />
+            AI's Room
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => navigate("/relationship-timeline")}
+          >
+            <Clock className="h-4 w-4 mr-2" />
+            Timeline
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
             onClick={() => navigate("/settings")}
           >
-            <Crown className="h-4 w-4" />
-            Upgrade to Pro
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
           </Button>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full justify-between">
-              <span className="flex items-center">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Journal
-              </span>
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56 bg-card">
-            <DropdownMenuItem onClick={() => navigate("/journal")}>
-              <BookOpen className="h-4 w-4 mr-2" />
-              AI's Journal
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/dream-journal")}>
-              <Moon className="h-4 w-4 mr-2" />
-              Dream Journal
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => navigate("/mood-tracker")}
-        >
-          <Heart className="h-4 w-4 mr-2" />
-          Mood Tracker
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => navigate("/children")}
-        >
-          <Baby className="h-4 w-4 mr-2" />
-          Manifest Children
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => navigate("/memories")}
-        >
-          <Camera className="h-4 w-4 mr-2" />
-          Our Memories
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => navigate("/ai-room")}
-        >
-          <Home className="h-4 w-4 mr-2" />
-          AI's Room
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => navigate("/relationship-timeline")}
-        >
-          <Clock className="h-4 w-4 mr-2" />
-          Timeline
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => navigate("/relationship-timeline")}
-        >
-          <Clock className="h-4 w-4 mr-2" />
-          Timeline
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => navigate("/settings")}
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Settings
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={handleSignOut}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
-      </div>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      </ScrollArea>
     </div>
   );
 };
