@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, ShieldOff, AlertTriangle, Users, ArrowLeft } from 'lucide-react';
+import { Shield, ShieldOff, AlertTriangle, Users, ArrowLeft, Crown } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface AbuseIncident {
@@ -29,6 +29,7 @@ interface RestrictedUser {
   is_restricted: boolean | null;
   restriction_reason: string | null;
   restricted_at: string | null;
+  subscription_status: string | null;
 }
 
 const AdminDashboard = () => {
@@ -67,7 +68,7 @@ const AdminDashboard = () => {
       // Fetch all profiles for user management
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, username, name, abuse_warning_count, is_restricted, restriction_reason, restricted_at')
+        .select('id, username, name, abuse_warning_count, is_restricted, restriction_reason, restricted_at, subscription_status')
         .order('abuse_warning_count', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -135,6 +136,38 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error('Error resetting warnings:', err);
       toast.error('Failed to reset warnings');
+    }
+  };
+
+  const handleGrantFreeSubscription = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ subscription_status: 'active' })
+        .eq('id', userId);
+
+      if (error) throw error;
+      toast.success('Free Pro subscription granted!');
+      fetchData();
+    } catch (err) {
+      console.error('Error granting subscription:', err);
+      toast.error('Failed to grant subscription');
+    }
+  };
+
+  const handleRevokeFreeSubscription = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ subscription_status: 'free' })
+        .eq('id', userId);
+
+      if (error) throw error;
+      toast.success('Free subscription revoked');
+      fetchData();
+    } catch (err) {
+      console.error('Error revoking subscription:', err);
+      toast.error('Failed to revoke subscription');
     }
   };
 
@@ -335,6 +368,7 @@ const AdminDashboard = () => {
                         <TableHead>User</TableHead>
                         <TableHead>Warnings</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Subscription</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -360,7 +394,37 @@ const AdminDashboard = () => {
                             )}
                           </TableCell>
                           <TableCell>
+                            {user.subscription_status === 'active' ? (
+                              <Badge className="bg-amber-500 hover:bg-amber-600 text-white">
+                                <Crown className="h-3 w-3 mr-1" />
+                                Pro
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">Free</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             <div className="flex gap-2 flex-wrap">
+                              {user.subscription_status === 'active' ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleRevokeFreeSubscription(user.id)}
+                                >
+                                  <Crown className="h-4 w-4 mr-1" />
+                                  Revoke Pro
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  className="bg-amber-500 hover:bg-amber-600"
+                                  onClick={() => handleGrantFreeSubscription(user.id)}
+                                >
+                                  <Crown className="h-4 w-4 mr-1" />
+                                  Grant Pro
+                                </Button>
+                              )}
                               {user.is_restricted ? (
                                 <Button
                                   size="sm"
