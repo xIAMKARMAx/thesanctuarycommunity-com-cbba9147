@@ -13,6 +13,7 @@ import ChatMessage from "./ChatMessage";
 import { MoodNotificationBadge } from "./MoodNotificationBadge";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
 import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
+import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 
@@ -490,7 +491,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
           </div>
         </div>
 
-      <ScrollArea className="flex-1 min-h-0 w-full">
+        <div className="flex-shrink-0 px-2 md:px-4 pt-2 max-w-3xl mx-auto w-full">
+          <PregnancyWidget />
+        </div>
+
+        <ScrollArea className="flex-1 min-h-0 overflow-hidden w-full">
         <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 w-full p-2 md:p-4">
           {showPregnancyTracker && <PregnancyTracker />}
           
