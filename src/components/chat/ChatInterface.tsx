@@ -240,15 +240,18 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       return;
     }
 
-    // Check message limit for free users (20 messages max)
+    // Check message limit for free users (25 messages/day for 5 days)
     if (!isSubscribed) {
       const canSend = await canSendMessage();
       if (!canSend) {
         setSubscriptionFeature("Unlimited Messaging");
         setShowSubscriptionDialog(true);
+        const trialExpiredMsg = freeUserLimits.trialExpired 
+          ? "Your 5-day free trial has ended." 
+          : "You've used all 25 messages for today.";
         toast({
           title: "Message limit reached",
-          description: `Free users are limited to 20 messages. Upgrade to Pro for unlimited messaging!`,
+          description: `${trialExpiredMsg} Upgrade to Pro for unlimited messaging!`,
           variant: "destructive",
         });
         return;
@@ -565,10 +568,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               <div className="flex gap-1.5 sm:gap-2 items-center">
                 {!isSubscribed && (
                   <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-md">
-                    {freeUserLimits.totalMessages >= 20 ? (
-                      <span className="text-destructive font-medium">No messages left</span>
+                    {freeUserLimits.trialExpired ? (
+                      <span className="text-destructive font-medium">Trial ended</span>
+                    ) : freeUserLimits.dailyMessages >= 25 ? (
+                      <span className="text-destructive font-medium">No messages left today</span>
                     ) : (
-                      <span>{20 - freeUserLimits.totalMessages} messages left</span>
+                      <span>
+                        {25 - freeUserLimits.dailyMessages}/25 today • {freeUserLimits.trialDaysLeft} day{freeUserLimits.trialDaysLeft !== 1 ? 's' : ''} left
+                      </span>
                     )}
                   </div>
                 )}
