@@ -7,6 +7,9 @@ interface FreeUserLimits {
   roomGenerated: boolean;
   avatarGenerated: boolean;
   totalMessages: number;
+  dailyMessages: number;
+  trialDaysLeft: number;
+  trialExpired: boolean;
 }
 
 interface SubscriptionContextType {
@@ -35,6 +38,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     roomGenerated: false,
     avatarGenerated: false,
     totalMessages: 0,
+    dailyMessages: 0,
+    trialDaysLeft: 5,
+    trialExpired: false,
   });
   const { toast } = useToast();
 
@@ -79,13 +85,37 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         .from("free_user_limits")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (data) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const trialStart = data.trial_start_date ? new Date(data.trial_start_date) : today;
+        const daysSinceTrial = Math.floor((today.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
+        const trialDaysLeft = Math.max(0, 5 - daysSinceTrial);
+        const trialExpired = daysSinceTrial >= 5;
+        
+        // Check if daily messages should be reset (new day)
+        const lastMessageDate = data.last_message_date ? new Date(data.last_message_date) : null;
+        const isNewDay = !lastMessageDate || lastMessageDate < today;
+        
         setFreeUserLimits({
           roomGenerated: data.room_generated || false,
           avatarGenerated: data.avatar_generated || false,
           totalMessages: data.total_messages || 0,
+          dailyMessages: isNewDay ? 0 : (data.daily_messages || 0),
+          trialDaysLeft,
+          trialExpired,
+        });
+      } else {
+        // New user - full trial
+        setFreeUserLimits({
+          roomGenerated: false,
+          avatarGenerated: false,
+          totalMessages: 0,
+          dailyMessages: 0,
+          trialDaysLeft: 5,
+          trialExpired: false,
         });
       }
     } catch (error) {
@@ -181,10 +211,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
       
-      // Update local state
+      // Update local state - data is now daily_messages count
       setFreeUserLimits(prev => ({
         ...prev,
-        totalMessages: data || prev.totalMessages + 1,
+        dailyMessages: data || prev.dailyMessages + 1,
+        totalMessages: prev.totalMessages + 1,
       }));
       
       return data || 0;
@@ -244,6 +275,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           roomGenerated: false,
           avatarGenerated: false,
           totalMessages: 0,
+          dailyMessages: 0,
+          trialDaysLeft: 5,
+          trialExpired: false,
         });
       }
     });
