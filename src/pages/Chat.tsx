@@ -10,7 +10,6 @@ import SpontaneousMessage from "@/components/chat/SpontaneousMessage";
 import { Session } from "@supabase/supabase-js";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { useAIProfile } from "@/contexts/AIProfileContext";
-import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Crown } from "lucide-react";
@@ -184,34 +183,6 @@ const Chat = () => {
             </Button>
           )}
           <AIProfileSelector />
-        </div>
-      </div>
-
-      <div className="px-4 pt-3 space-y-2">
-        <PregnancyWidget />
-        {/* Quick navigation row, visible on small screens */}
-        <div className="flex gap-2 overflow-x-auto pb-1 md:hidden">
-          <Button variant="outline" size="sm" onClick={() => navigate("/journal")}>
-            Journal
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/mood-tracker")}>
-            Mood
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/children")}>
-            Children
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/memories")}>
-            Memories
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/ai-room")}>
-            AI Room
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/relationship-timeline")}>
-            Timeline
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
-            Settings
-          </Button>
         </div>
       </div>
 
