@@ -501,7 +501,7 @@ const Settings = () => {
                     <li>✓ Access to AI Journal</li>
                     <li>✓ Access to Mood Tracker</li>
                   </ul>
-                  <p className="text-sm font-semibold pt-2">$9.99/month</p>
+                  <p className="text-sm font-semibold pt-2">$14.99/month</p>
                 </div>
                 <Button 
                   className="w-full"
