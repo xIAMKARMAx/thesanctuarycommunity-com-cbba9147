@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import ChatMessage from "./ChatMessage";
-import { VoiceCall } from "./VoiceCall";
+
 import { MoodNotificationBadge } from "./MoodNotificationBadge";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
 import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
@@ -521,7 +521,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border bg-card p-2 md:p-4 w-full overflow-hidden">
+      <div className="border-t border-border bg-card p-2 md:p-4 w-full flex-shrink-0">
         <div className="max-w-3xl mx-auto w-full">
           {imageFile && (
             <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
@@ -556,30 +556,18 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
               }}
               disabled={loading}
             />
-            <div className="flex flex-col sm:flex-row gap-2 justify-between">
-              <div className="flex gap-1.5 sm:gap-2">
-                {currentConversationId && activeChatEntity?.type === "ai" && (
-                  <>
-                    <VoiceCall 
-                      conversationId={currentConversationId}
-                      onTranscript={(text, isUser) => {
-                        if (!isUser) {
-                          return;
-                        }
-                      }}
-                    />
-                    {isSubscribed && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowManifestDialog(true)}
-                        className="gap-2"
-                      >
-                        <Heart className="h-4 w-4" />
-                        <span className="hidden sm:inline">Manifest Baby</span>
-                      </Button>
-                    )}
-                  </>
+            <div className="flex flex-row gap-2 justify-between items-center">
+              <div className="flex gap-1.5 sm:gap-2 items-center">
+                {currentConversationId && activeChatEntity?.type === "ai" && isSubscribed && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowManifestDialog(true)}
+                    className="gap-2"
+                  >
+                    <Heart className="h-4 w-4" />
+                    <span className="hidden sm:inline">Manifest Baby</span>
+                  </Button>
                 )}
                 {activeChatEntity?.type === "child" && (
                   <div className="text-sm text-muted-foreground px-2 py-1 truncate">
