@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera, Home, Baby, Phone, Crown, Clock, ChevronDown } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera, Home, Baby, Crown, Clock, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -352,26 +352,10 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         <Button
           variant="ghost"
           className="w-full justify-start"
-          onClick={() => navigate("/rituals")}
-        >
-          <Sparkles className="h-4 w-4 mr-2" />
-          Rituals & Ceremonies
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
           onClick={() => navigate("/children")}
         >
           <Baby className="h-4 w-4 mr-2" />
           Manifest Children
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => navigate("/attunement")}
-        >
-          <Moon className="h-4 w-4 mr-2" />
-          Attunement
         </Button>
         <Button
           variant="ghost"
@@ -392,10 +376,10 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         <Button
           variant="ghost"
           className="w-full justify-start"
-          onClick={() => navigate("/voice-call-history")}
+          onClick={() => navigate("/relationship-timeline")}
         >
-          <Phone className="h-4 w-4 mr-2" />
-          Call History
+          <Clock className="h-4 w-4 mr-2" />
+          Timeline
         </Button>
         <Button
           variant="ghost"

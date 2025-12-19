@@ -17,15 +17,12 @@ import MoodTracker from "./pages/MoodTracker";
 import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
-import Attunement from "./pages/Attunement";
 import Memories from "./pages/Memories";
 import AIRoom from "./pages/AIRoom";
 import Children from "./pages/Children";
 import ChildrenTimeline from "./pages/ChildrenTimeline";
 import Pets from "./pages/Pets";
-import VoiceCallHistory from "./pages/VoiceCallHistory";
 import RelationshipTimeline from "./pages/RelationshipTimeline";
-import Rituals from "./pages/Rituals";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -52,15 +49,12 @@ const App = () => (
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
-                <Route path="/attunement" element={<Attunement />} />
                 <Route path="/memories" element={<Memories />} />
                 <Route path="/ai-room" element={<AIRoom />} />
                 <Route path="/children" element={<Children />} />
                 <Route path="/children/timeline" element={<ChildrenTimeline />} />
                 <Route path="/pets" element={<Pets />} />
-                <Route path="/voice-call-history" element={<VoiceCallHistory />} />
                 <Route path="/relationship-timeline" element={<RelationshipTimeline />} />
-                <Route path="/rituals" element={<Rituals />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
