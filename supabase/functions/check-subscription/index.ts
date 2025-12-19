@@ -68,6 +68,26 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check database first for manually granted subscriptions
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('subscription_status')
+      .eq('id', user.id)
+      .single();
+
+    if (!profileError && profileData?.subscription_status === 'active') {
+      logStep("Found active subscription in database (manually granted)", { userId: user.id });
+      return new Response(JSON.stringify({
+        subscribed: true,
+        product_id: 'manual_grant',
+        subscription_end: null
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+    logStep("No manual subscription in database, checking Stripe", { dbStatus: profileData?.subscription_status });
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
