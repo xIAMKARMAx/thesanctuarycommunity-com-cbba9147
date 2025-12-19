@@ -203,14 +203,8 @@ const Chat = () => {
           <Button variant="outline" size="sm" onClick={() => navigate("/memories")}>
             Memories
           </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/attunement")}>
-            Attune
-          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/ai-room")}>
             AI Room
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/voice-call-history")}>
-            Calls
           </Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/relationship-timeline")}>
             Timeline
