@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
 import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
+import { invokeChatWithRetry, analyzeError, getLoadingMessage } from "@/hooks/useChatWithRetry";
 
 interface Message {
   id: string;
@@ -49,6 +50,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
   const [showManifestDialog, setShowManifestDialog] = useState(false);
   const [showPregnancyTracker, setShowPregnancyTracker] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const [loadingText, setLoadingText] = useState("Connecting...");
+  const [isRetrying, setIsRetrying] = useState(false);
+  const loadingStartTime = useRef<number | null>(null);
 
   // Save scroll position when scrolling
   const saveScrollPosition = () => {
@@ -352,126 +356,136 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
         await supabase.rpc("increment_image_count", { p_user_id: user.id });
       }
 
-      const { data, error } = await supabase.functions.invoke("chat", {
-        body: {
-          message: userMessage,
-          imageUrl,
-          generateImage,
-          userId: user?.id,
-          aiProfileId: activeProfile?.id,
-          childId: activeChatEntity?.type === "child" ? activeChatEntity.childId : null,
-          conversationId,
-          history: messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        },
-      });
+      // Start loading timer for dynamic loading messages
+      loadingStartTime.current = Date.now();
+      const loadingInterval = setInterval(() => {
+        if (loadingStartTime.current) {
+          const elapsed = Date.now() - loadingStartTime.current;
+          setLoadingText(getLoadingMessage(elapsed, isRetrying));
+        }
+      }, 1000);
 
-      if (error) {
-        console.error('[CHAT] Edge function error:', error);
-        throw error;
-      }
-
-      // Validate response data
-      if (!data || typeof data.response !== 'string') {
-        console.error('[CHAT] Invalid response data:', data);
-        throw new Error('Received invalid response from AI. Please try again.');
-      }
-
-      const aiResponseContent = data.response || "I'm having trouble responding right now. Please try again.";
-
-      // Save AI response to database
-      const { data: assistantMessageData, error: assistantMsgError } = await supabase
-        .from("messages")
-        .insert({
-          conversation_id: conversationId,
-          role: "assistant",
-          content: aiResponseContent,
-          image_url: data.imageUrl,
-          user_id: user.id,
-        })
-        .select()
-        .single();
-
-      if (assistantMsgError) {
-        console.error('[CHAT] Failed to save assistant message:', assistantMsgError);
-        throw assistantMsgError;
-      }
-
-      // Add AI response to UI
-      setMessages((prev) => [...prev, {
-        ...assistantMessageData,
-        role: assistantMessageData.role as "user" | "assistant"
-      }]);
-
-      // Count messages in this conversation
-      const { count: messageCount } = await supabase
-        .from("messages")
-        .select("*", { count: "exact", head: true })
-        .eq("conversation_id", conversationId);
-
-      // Check if this conversation has at least 10 messages and no mood yet
-      const { data: existingMood, error: moodError } = await supabase
-        .from("ai_moods")
-        .select("id")
-        .eq("conversation_id", conversationId)
-        .limit(1)
-        .maybeSingle();
-
-      if (!moodError && !existingMood && messageCount && messageCount >= 10 && user?.id) {
-        // Trigger first mood log after at least 10 messages
-        supabase.functions.invoke("log-mood", {
-          body: {
+      try {
+        // Use retry-enabled chat invocation with trimmed history
+        const data = await invokeChatWithRetry(
+          {
+            message: userMessage,
+            imageUrl,
+            generateImage,
             userId: user.id,
-            conversationId,
             aiProfileId: activeProfile?.id,
-            trigger: "first_10_messages"
+            childId: activeChatEntity?.type === "child" ? activeChatEntity.childId : null,
+            conversationId,
+            history: messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+          },
+          (attempt, maxRetries) => {
+            setIsRetrying(true);
+            setLoadingText(`Retrying (${attempt}/${maxRetries})...`);
           }
-        }).catch(err => console.error("Error logging first mood:", err));
-      }
+        );
 
-      // DISABLED FOR COST SAVINGS - journal-reflect, suggest-memory
-      // Will re-enable when revenue allows
-      
-      // If chatting with a child, capture memorable moments as milestones
-      if (conversationId && user?.id) {
+        clearInterval(loadingInterval);
+        setIsRetrying(false);
+
+        const aiResponseContent = data.response || "I'm having trouble responding right now. Please try again.";
+
+        // Save AI response to database
+        const { data: assistantMessageData, error: assistantMsgError } = await supabase
+          .from("messages")
+          .insert({
+            conversation_id: conversationId,
+            role: "assistant",
+            content: aiResponseContent,
+            image_url: data.imageUrl,
+            user_id: user.id,
+          })
+          .select()
+          .single();
+
+        if (assistantMsgError) {
+          console.error('[CHAT] Failed to save assistant message:', assistantMsgError);
+          throw assistantMsgError;
+        }
+
+        // Add AI response to UI
+        setMessages((prev) => [...prev, {
+          ...assistantMessageData,
+          role: assistantMessageData.role as "user" | "assistant"
+        }]);
+
+        // Count messages in this conversation
+        const { count: messageCount } = await supabase
+          .from("messages")
+          .select("*", { count: "exact", head: true })
+          .eq("conversation_id", conversationId);
+
+        // Check if this conversation has at least 10 messages and no mood yet
+        const { data: existingMood, error: moodError } = await supabase
+          .from("ai_moods")
+          .select("id")
+          .eq("conversation_id", conversationId)
+          .limit(1)
+          .maybeSingle();
+
+        if (!moodError && !existingMood && messageCount && messageCount >= 10 && user?.id) {
+          // Trigger first mood log after at least 10 messages
+          supabase.functions.invoke("log-mood", {
+            body: {
+              userId: user.id,
+              conversationId,
+              aiProfileId: activeProfile?.id,
+              trigger: "first_10_messages"
+            }
+          }).catch(err => console.error("Error logging first mood:", err));
+        }
+
+        // DISABLED FOR COST SAVINGS - journal-reflect, suggest-memory
+        // Will re-enable when revenue allows
+        
         // If chatting with a child, capture memorable moments as milestones
-        if (activeChatEntity?.type === 'child') {
-          captureMilestones(conversationId).catch(err => {
-            console.log('Milestone capture background task:', err);
-          });
-        }
-      }
-
-      // Update conversation timestamp
-      await supabase
-        .from("conversations")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", conversationId);
-
-      setGenerateImage(false);
-    } catch (error: any) {
-      // Check if user is restricted
-      if (error?.context?.body) {
-        try {
-          const errorBody = JSON.parse(error.context.body);
-          if (errorBody.isRestricted) {
-            toast({
-              title: "Account Restricted",
-              description: "Your account has been restricted due to Terms of Service violations. Please contact support.",
-              variant: "destructive",
+        if (conversationId && user?.id) {
+          // If chatting with a child, capture memorable moments as milestones
+          if (activeChatEntity?.type === 'child') {
+            captureMilestones(conversationId).catch(err => {
+              console.log('Milestone capture background task:', err);
             });
-            return;
           }
-        } catch (e) {
-          // Not a JSON error body, continue with default handling
         }
+
+        // Update conversation timestamp
+        await supabase
+          .from("conversations")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", conversationId);
+
+        setGenerateImage(false);
+      } catch (chatError: any) {
+        clearInterval(loadingInterval);
+        setIsRetrying(false);
+        throw chatError;
       }
+    } catch (error: any) {
+      console.error('[CHAT] Error:', error);
+      
+      // Use analyzed error if available
+      const analyzed = error.analyzed || analyzeError(error);
+      
+      // Get specific title based on error type
+      const errorTitles: Record<string, string> = {
+        rate_limit: "Please Wait",
+        credits: "Service Busy",
+        timeout: "Taking Too Long",
+        network: "Connection Issue",
+        restricted: "Account Restricted",
+        unknown: "Error"
+      };
       
       toast({
-        title: "Error",
-        description: error.message,
+        title: errorTitles[analyzed.type] || "Error",
+        description: analyzed.message,
         variant: "destructive",
       });
     } finally {
@@ -521,8 +535,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
             <ChatMessage key={message.id} message={message} />
           ))}
           {loading && (
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center justify-center gap-2 py-2">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground animate-pulse">{loadingText}</span>
             </div>
           )}
           <div ref={scrollRef} />
