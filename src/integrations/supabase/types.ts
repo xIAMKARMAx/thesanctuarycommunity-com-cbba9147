@@ -1386,6 +1386,7 @@ export type Database = {
     }
     Functions: {
       can_generate_avatar: { Args: { p_user_id: string }; Returns: boolean }
+      can_generate_chat_image: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_pet: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
@@ -1396,6 +1397,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_chat_image_count: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
