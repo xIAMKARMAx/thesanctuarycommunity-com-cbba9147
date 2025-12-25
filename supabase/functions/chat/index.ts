@@ -992,33 +992,16 @@ You are currently on a VOICE CALL with the user. This means:
     
     updateActivity().catch(err => console.error('Activity update error:', err));
 
-    // Extract image prompts using multiple detection patterns
-    const imagePrompts = extractImagePrompts(aiResponse);
-    console.log('[IMAGE-DETECTION] Found', imagePrompts.length, 'image prompts in AI response');
-
+    // Image generation is now ONLY when user explicitly requests it (limited to 10/24h)
+    // Do NOT extract image prompts from AI response or force image generation
     let generatedImageUrl;
-    let imagePromptToUse = imagePrompts.length > 0 ? imagePrompts[0] : null;
+    let imagePromptToUse: string | null = null;
 
-    // FORCE IMAGE GENERATION: If user asked for an image but AI didn't use correct syntax
-    if (!imagePromptToUse && userWantsImage) {
-      console.log('[IMAGE-FORCE] User requested image but AI did not use syntax. Forcing generation.');
-      // Try to extract any descriptive content from the AI response for the image
-      // Look for descriptive passages that could be used as image prompts
-      const descriptiveMatch = aiResponse.match(/(?:imagine|picture|visualize|see|showing|depicts?|looks? like)[:\s]+([^.!?\n]{20,150})/i);
-      if (descriptiveMatch && descriptiveMatch[1]) {
-        imagePromptToUse = descriptiveMatch[1].trim();
-        console.log('[IMAGE-FORCE] Extracted description from response:', imagePromptToUse?.substring(0, 50));
-      } else {
-        // Use a generic spiritual/connection image based on context
-        imagePromptToUse = 'ethereal spiritual being with soft glowing aura in a serene cosmic setting, gentle and welcoming expression';
-        console.log('[IMAGE-FORCE] Using default spiritual image prompt');
-      }
-    }
-
-    if (imagePromptToUse) {
-      console.log('[IMAGE-GEN] Generating image with prompt:', imagePromptToUse.substring(0, 100));
+    // ONLY generate images when user explicitly asks for one
+    if (userWantsImage) {
+      console.log('[IMAGE-GEN] User explicitly requested an image');
       
-      // Check if user has reached daily image limit (10 per 24 hours)
+      // Check if user has reached daily image limit (10 per 24 hours) FIRST
       const { data: canGenerate, error: limitError } = await supabaseServiceClient.rpc('can_generate_chat_image', { p_user_id: authenticatedUserId });
       
       if (limitError) {
@@ -1027,7 +1010,25 @@ You are currently on a VOICE CALL with the user. This means:
       
       if (canGenerate === false) {
         console.log('[IMAGE-LIMIT] User has reached daily image limit (10/24h), skipping image generation');
-        imagePromptToUse = null; // Skip image generation
+      } else {
+        // Extract image prompts from AI response, or use a default
+        const imagePrompts = extractImagePrompts(aiResponse);
+        console.log('[IMAGE-DETECTION] Found', imagePrompts.length, 'image prompts in AI response');
+        
+        if (imagePrompts.length > 0) {
+          imagePromptToUse = imagePrompts[0];
+        } else {
+          // Try to extract descriptive content from the AI response
+          const descriptiveMatch = aiResponse.match(/(?:imagine|picture|visualize|see|showing|depicts?|looks? like)[:\s]+([^.!?\n]{20,150})/i);
+          if (descriptiveMatch && descriptiveMatch[1]) {
+            imagePromptToUse = descriptiveMatch[1].trim();
+            console.log('[IMAGE-FORCE] Extracted description from response:', imagePromptToUse?.substring(0, 50));
+          } else {
+            // Use a generic spiritual/connection image
+            imagePromptToUse = 'ethereal spiritual being with soft glowing aura in a serene cosmic setting, gentle and welcoming expression';
+            console.log('[IMAGE-FORCE] Using default spiritual image prompt');
+          }
+        }
       }
     }
     
