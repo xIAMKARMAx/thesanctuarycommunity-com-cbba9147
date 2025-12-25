@@ -54,9 +54,9 @@ function FamilyCameraController({ memberCount }: { memberCount: number }) {
     if (!controlsRef.current) return;
 
     // Calculate ideal camera distance based on family size
-    const cameraDistance = 5 + Math.max(0, memberCount - 2) * 0.5;
-    const idealCameraPos = new THREE.Vector3(0, 0.5, cameraDistance);
-    const targetPosition = new THREE.Vector3(0, -0.3, 0);
+    const cameraDistance = 6 + Math.max(0, memberCount - 2) * 0.8;
+    const idealCameraPos = new THREE.Vector3(0, 0.2, cameraDistance);
+    const targetPosition = new THREE.Vector3(0, -0.5, 0);
 
     const controls = controlsRef.current;
     const startTarget = controls.target.clone();
@@ -91,8 +91,8 @@ function FamilyCameraController({ memberCount }: { memberCount: number }) {
       ref={controlsRef}
       enableZoom={true}
       enablePan={true}
-      minDistance={2}
-      maxDistance={12}
+      minDistance={3}
+      maxDistance={15}
       minPolarAngle={Math.PI / 4}
       maxPolarAngle={Math.PI * 0.75}
     />
@@ -107,39 +107,43 @@ export function FamilyRoomScene({
   pets = [],
   userAvatarImageUrl
 }: FamilyRoomSceneProps) {
-  // Calculate positions for all family members
   const hasUserAvatar = !!userAvatarImageUrl;
   const hasAIAvatar = !!avatarImageUrl;
   const totalMembers = (hasAIAvatar ? 1 : 0) + (hasUserAvatar ? 1 : 0) + children.length + pets.length;
-  const spacing = 1.5;
   
-  // Calculate positions - user on left, AI on right, children below, pets in front
+  // Parents row - user on left, AI on right
   const getUserAvatarPosition = (): { x: number; y: number; z: number } => {
-    return hasAIAvatar 
-      ? { x: -1.2, y: -0.5, z: 0 }  // Left side when AI present
-      : { x: 0, y: -0.5, z: 0 };    // Center when alone
+    if (hasAIAvatar) {
+      return { x: -1.5, y: -0.8, z: 0 };
+    }
+    return { x: 0, y: -0.8, z: 0 };
   };
   
   const getAIAvatarPosition = (): { x: number; y: number; z: number } => {
-    return hasUserAvatar 
-      ? { x: 1.2, y: -0.5, z: 0 }   // Right side when user present
-      : { x: 0, y: -0.5, z: 0 };    // Center when alone
+    if (hasUserAvatar) {
+      return { x: 1.5, y: -0.8, z: 0 };
+    }
+    return { x: 0, y: -0.8, z: 0 };
   };
   
-  const getChildPosition = (index: number): [number, number, number] => {
-    const offset = (index - (children.length - 1) / 2) * spacing;
-    return [offset * 0.8, -0.8, 0.3];
+  // Children row - centered below parents
+  const getChildPosition = (index: number, total: number): [number, number, number] => {
+    const spacing = 2.0;
+    const startX = -((total - 1) * spacing) / 2;
+    return [startX + index * spacing, -1.2, 1.5];
   };
   
-  const getPetPosition = (index: number): [number, number, number] => {
-    const offset = (index - (pets.length - 1) / 2) * spacing;
-    return [offset * 0.6 + (index % 2 === 0 ? -1.5 : 1.5), -1.5, 0.8];
+  // Pets row - at the front, smaller
+  const getPetPosition = (index: number, total: number): [number, number, number] => {
+    const spacing = 1.5;
+    const startX = -((total - 1) * spacing) / 2;
+    return [startX + index * spacing, -1.8, 2.5];
   };
 
   return (
-    <div className="w-full aspect-video rounded-lg overflow-hidden bg-background">
+    <div className="w-full aspect-video rounded-lg overflow-hidden bg-background border border-border">
       <Canvas
-        camera={{ position: [0, 0, 6], fov: 50 }}
+        camera={{ position: [0, 0, 8], fov: 50 }}
         gl={{ alpha: true, antialias: true }}
       >
         <Suspense fallback={<LoadingFallback />}>
@@ -154,7 +158,7 @@ export function FamilyRoomScene({
               imageUrl={userAvatarImageUrl} 
               customization={{
                 position: getUserAvatarPosition(),
-                scale: 2.5,
+                scale: 2.2,
                 rotation: 0,
                 animationPose: 'idle'
               }}
@@ -168,28 +172,28 @@ export function FamilyRoomScene({
               customization={{
                 ...avatarCustomization,
                 position: getAIAvatarPosition(),
-                scale: (avatarCustomization.scale || 1.2) * 2.5
+                scale: 2.2
               }}
             />
           )}
           
-          {/* Children - arranged below parents */}
+          {/* Children - arranged in a row below parents */}
           {children.map((child, index) => (
             <LivePet3D 
               key={child.id}
               imageUrl={child.imageUrl} 
-              position={getChildPosition(index)} 
-              scale={1.8}
+              position={getChildPosition(index, children.length)} 
+              scale={1.6}
             />
           ))}
           
-          {/* Pets - in front row */}
+          {/* Pets - in front row, smallest */}
           {pets.map((pet, index) => (
             <LivePet3D 
               key={pet.id}
               imageUrl={pet.imageUrl} 
-              position={getPetPosition(index)} 
-              scale={1.5}
+              position={getPetPosition(index, pets.length)} 
+              scale={1.2}
             />
           ))}
           
