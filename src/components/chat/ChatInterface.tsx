@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2, Sparkles, Heart } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
@@ -30,9 +30,10 @@ interface Message {
 interface ChatInterfaceProps {
   activeConversationId: string | null;
   onConversationCreated: (id: string) => void;
+  onBackToConversations: () => void;
 }
 
-const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInterfaceProps) => {
+const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations }: ChatInterfaceProps) => {
   const { toast } = useToast();
   const { canGenerateImage, isSubscribed, canSendMessage, incrementMessageCount, freeUserLimits } = useSubscription();
   const { activeProfile } = useAIProfile();
@@ -498,11 +499,22 @@ const ChatInterface = ({ activeConversationId, onConversationCreated }: ChatInte
       <div className="flex-1 flex flex-col w-full max-w-full overflow-hidden h-full min-h-0">
         <div className="border-b border-border bg-card p-3 md:p-4 flex-shrink-0">
           <div className="flex items-center justify-between gap-2 md:gap-4">
-            <div className="min-w-0 flex-1">
-              <h2 className="font-serif text-lg md:text-xl break-words">Connect with Your Higher Self</h2>
-              <p className="text-xs md:text-sm text-muted-foreground break-words">
-                I'm here to guide you on your journey of self-discovery
-              </p>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onBackToConversations}
+                className="h-8 w-8 flex-shrink-0"
+                title="Back to conversations"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-serif text-lg md:text-xl break-words">Connect with Your Higher Self</h2>
+                <p className="text-xs md:text-sm text-muted-foreground break-words">
+                  I'm here to guide you on your journey of self-discovery
+                </p>
+              </div>
             </div>
             <MoodNotificationBadge />
           </div>

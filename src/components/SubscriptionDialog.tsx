@@ -60,7 +60,7 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature }: Subscription
 
         <div className="space-y-4 py-4">
           <div className="text-center">
-            <div className="text-4xl font-bold mb-2">$14.99<span className="text-lg text-muted-foreground">/month</span></div>
+            <div className="text-4xl font-bold mb-2">$9.99<span className="text-lg text-muted-foreground">/month</span></div>
             <p className="text-sm text-muted-foreground">Cancel anytime</p>
           </div>
 
