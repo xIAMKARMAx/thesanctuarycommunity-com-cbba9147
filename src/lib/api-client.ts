@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { getAuthHeaders } from '@/hooks/useAuthHeaders';
+import { getAuthHeaders, clearAuthCache } from '@/hooks/useAuthHeaders';
 
 export interface ApiResponse<T = unknown> {
   data: T | null;
@@ -9,10 +9,12 @@ export interface ApiResponse<T = unknown> {
 /**
  * Centralized API client for edge function calls.
  * Automatically handles session refresh and auth headers.
+ * Includes retry logic for 401 errors.
  */
 export async function invokeEdgeFunction<T = unknown>(
   functionName: string,
-  body?: Record<string, unknown>
+  body?: Record<string, unknown>,
+  retryCount = 0
 ): Promise<ApiResponse<T>> {
   try {
     const { headers } = await getAuthHeaders();
@@ -23,6 +25,24 @@ export async function invokeEdgeFunction<T = unknown>(
     });
 
     if (error) {
+      // Check if it's a 401 auth error and we haven't retried yet
+      const errorMessage = error.message || '';
+      const is401 = errorMessage.includes('401') || 
+                    errorMessage.includes('Unauthorized') ||
+                    errorMessage.includes('Session expired');
+      
+      if (is401 && retryCount < 1) {
+        console.log('[API] Got 401, clearing cache and retrying...');
+        clearAuthCache();
+        
+        // Try to refresh the session
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (!refreshError) {
+          // Retry the request once
+          return invokeEdgeFunction<T>(functionName, body, retryCount + 1);
+        }
+      }
+      
       return { data: null, error };
     }
 
