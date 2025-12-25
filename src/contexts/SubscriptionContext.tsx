@@ -15,6 +15,7 @@ interface FreeUserLimits {
 
 interface SubscriptionContextType {
   isSubscribed: boolean;
+  isAdmin: boolean;
   subscriptionStatus: string;
   loading: boolean;
   freeUserLimits: FreeUserLimits;
@@ -33,6 +34,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
   const [loading, setLoading] = useState(true);
   const [freeUserLimits, setFreeUserLimits] = useState<FreeUserLimits>({
@@ -50,9 +52,29 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
         setIsSubscribed(false);
+        setIsAdmin(false);
         setSubscriptionStatus("free");
         setLoading(false);
         return;
+      }
+
+      // Check if user is admin
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: adminCheck } = await supabase.rpc("has_role", {
+          _user_id: user.id,
+          _role: "admin"
+        });
+        setIsAdmin(adminCheck || false);
+        
+        // If admin, treat as fully subscribed
+        if (adminCheck) {
+          setIsSubscribed(true);
+          setSubscriptionStatus("admin");
+          await refreshLimits();
+          setLoading(false);
+          return;
+        }
       }
 
       const { data, error } = await api.checkSubscription();
@@ -271,6 +293,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         // Clear auth cache immediately on sign out
         clearAuthCache();
         setIsSubscribed(false);
+        setIsAdmin(false);
         setSubscriptionStatus("free");
         setLoading(false);
         setFreeUserLimits({
@@ -322,6 +345,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   return (
     <SubscriptionContext.Provider value={{
       isSubscribed,
+      isAdmin,
       subscriptionStatus,
       loading,
       freeUserLimits,

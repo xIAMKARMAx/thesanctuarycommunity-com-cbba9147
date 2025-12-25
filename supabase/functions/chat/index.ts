@@ -1153,8 +1153,14 @@ You are currently on a VOICE CALL with the user. This means:
             .eq('id', authenticatedUserId)
             .single();
 
-          if (userProfile?.subscription_status !== 'active') {
-            console.log('[JOURNAL-REQUEST] User not subscribed, skipping journal');
+          // Check if user is admin (bypass subscription check)
+          const { data: isAdmin } = await supabaseServiceClient.rpc('has_role', { 
+            _user_id: authenticatedUserId, 
+            _role: 'admin' 
+          });
+
+          if (!isAdmin && userProfile?.subscription_status !== 'active') {
+            console.log('[JOURNAL-REQUEST] User not subscribed and not admin, skipping journal');
             return;
           }
 

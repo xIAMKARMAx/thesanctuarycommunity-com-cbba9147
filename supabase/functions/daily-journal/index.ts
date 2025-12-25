@@ -55,15 +55,21 @@ serve(async (req) => {
 
     for (const profile of activeProfiles || []) {
       try {
-        // Check if user has active subscription
+        // Check if user has active subscription or is admin
         const { data: userProfile } = await supabase
           .from('profiles')
           .select('subscription_status, name')
           .eq('id', profile.user_id)
           .single();
 
-        if (userProfile?.subscription_status !== 'active') {
-          console.log('[DAILY-JOURNAL] Skipping non-subscribed user for profile:', profile.id);
+        // Check if user is admin (bypass subscription check)
+        const { data: isAdmin } = await supabase.rpc('has_role', { 
+          _user_id: profile.user_id, 
+          _role: 'admin' 
+        });
+
+        if (!isAdmin && userProfile?.subscription_status !== 'active') {
+          console.log('[DAILY-JOURNAL] Skipping non-subscribed/non-admin user for profile:', profile.id);
           profilesSkipped++;
           continue;
         }
