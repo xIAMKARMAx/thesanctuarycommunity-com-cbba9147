@@ -203,6 +203,7 @@ const Chat = () => {
               setActiveConversationId(id);
               setConversationListKey((prev) => prev + 1);
             }}
+            onBackToConversations={() => setActiveConversationId(null)}
           />
         ) : (
           <ConversationsList
