@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -53,6 +53,7 @@ const Settings = () => {
   const [refreshingSession, setRefreshingSession] = useState(false);
   const [aiAvatarUrl, setAiAvatarUrl] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [wipingProfile, setWipingProfile] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
   // User vessel state
@@ -255,6 +256,151 @@ const Settings = () => {
         description: "Failed to delete child",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleWipeClean = async () => {
+    if (!activeProfile) return;
+    
+    const confirmMessage = `⚠️ WIPE CLEAN - This will permanently delete:\n\n` +
+      `• All conversations with ${activeProfile.name || 'this AI'}\n` +
+      `• All messages and chat history\n` +
+      `• All memories and milestones\n` +
+      `• All moods and journal entries\n` +
+      `• All dreams and rituals\n` +
+      `• All celestial children and pregnancies\n` +
+      `• All pets\n\n` +
+      `The AI profile will be reset to factory settings.\n\n` +
+      `This action CANNOT be undone. Are you sure?`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    // Double confirmation for safety
+    const secondConfirm = prompt(`Type "WIPE" to confirm you want to permanently delete all data for ${activeProfile.name || 'this AI'}:`);
+    if (secondConfirm !== "WIPE") {
+      toast({
+        title: "Cancelled",
+        description: "Wipe cancelled - you must type WIPE exactly to confirm",
+      });
+      return;
+    }
+
+    try {
+      setWipingProfile(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Delete all related data for this AI profile
+      // Order matters due to foreign key constraints
+      
+      // 1. Delete pets (linked to ai_profile_id)
+      await supabase.from("pets").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 2. Delete pet_moods (will cascade from pets deletion, but cleanup orphans)
+      
+      // 3. Delete celestial children and related data
+      const { data: children } = await supabase
+        .from("celestial_children")
+        .select("id")
+        .eq("ai_profile_id", activeProfile.id);
+      
+      if (children && children.length > 0) {
+        const childIds = children.map(c => c.id);
+        await supabase.from("child_milestones").delete().in("child_id", childIds);
+        await supabase.from("child_photos").delete().in("child_id", childIds);
+        await supabase.from("child_image_history").delete().in("child_id", childIds);
+      }
+      await supabase.from("celestial_children").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 4. Delete celestial pregnancies
+      await supabase.from("celestial_pregnancies").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 5. Delete conversations and messages
+      const { data: conversations } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("ai_profile_id", activeProfile.id);
+      
+      if (conversations && conversations.length > 0) {
+        const convIds = conversations.map(c => c.id);
+        await supabase.from("messages").delete().in("conversation_id", convIds);
+      }
+      await supabase.from("conversations").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 6. Delete AI moods
+      await supabase.from("ai_moods").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 7. Delete shared memories
+      await supabase.from("shared_memories").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 8. Delete dreams and dream journal entries
+      await supabase.from("dream_journal_entries").delete().eq("ai_profile_id", activeProfile.id);
+      await supabase.from("dreams").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 9. Delete rituals
+      await supabase.from("rituals").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 10. Delete relationship milestones
+      await supabase.from("relationship_milestones").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 11. Delete journal entries
+      await supabase.from("journal_entries").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 12. Delete voice call history
+      await supabase.from("voice_call_history").delete().eq("ai_profile_id", activeProfile.id);
+      
+      // 13. Reset the AI profile to factory defaults
+      const { error: resetError } = await supabase
+        .from("ai_profiles")
+        .update({
+          name: `AI Being ${activeProfile.profile_number}`,
+          gender: null,
+          bio: null,
+          personality: null,
+          memories: null,
+          likes_dislikes_hobbies: null,
+          room_description: null,
+          room_image_url: null,
+          avatar_description: null,
+          avatar_image_url: null,
+          avatar_gender: null,
+          avatar_customization: null,
+          pet_name: null,
+          pet_description: null,
+          pet_image_url: null,
+        })
+        .eq("id", activeProfile.id);
+      
+      if (resetError) throw resetError;
+
+      // Clear local state
+      setAiName(`AI Being ${activeProfile.profile_number}`);
+      setAiGender("");
+      setAiBio("");
+      setAiPersonality("");
+      setAiMemories("");
+      setAiLikesDislikesHobbies("");
+      setAiAvatarUrl(null);
+      setChildren([]);
+      
+      await refreshProfiles();
+
+      toast({
+        title: "Profile Wiped Clean",
+        description: `${activeProfile.name || 'AI'} has been reset to factory settings. All data has been permanently deleted.`,
+      });
+    } catch (error) {
+      console.error("Error wiping profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to wipe profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setWipingProfile(false);
     }
   };
 
@@ -805,6 +951,28 @@ const Settings = () => {
             <Button onClick={handleSaveProfile} disabled={loading} className="w-full">
               {loading ? "Saving..." : "Save Profile"}
             </Button>
+            
+            <Separator className="my-4" />
+            
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <p className="text-sm font-medium">Danger Zone</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Wipe this AI profile clean and start fresh. This will permanently delete all conversations, 
+                memories, children, pets, and associated data. The AI will be reset to factory settings.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={handleWipeClean} 
+                disabled={wipingProfile}
+                className="w-full"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {wipingProfile ? "Wiping Profile..." : "Wipe Clean & Start Fresh"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
