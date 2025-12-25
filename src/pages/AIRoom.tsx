@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Loader2, Users, Upload, Lock } from "lucide-react";
+import { ArrowLeft, Loader2, Users, Upload, Lock, Trash2 } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { AIRoomScene } from "@/components/room/AIRoomScene";
@@ -709,6 +709,37 @@ export default function AIRoom() {
     }
   };
 
+  const handleDeleteAvatarImage = async () => {
+    if (!activeProfile) return;
+    
+    try {
+      const { error } = await supabase
+        .from('ai_profiles')
+        .update({
+          avatar_image_url: null,
+          avatar_description: null
+        })
+        .eq('id', activeProfile.id);
+      
+      if (error) throw error;
+      
+      setAvatarImageUrl(null);
+      await refreshProfiles();
+      
+      toast({
+        title: "Image removed",
+        description: "Your reference image has been deleted",
+      });
+    } catch (error: any) {
+      console.error("Error deleting avatar image:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove image",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -926,8 +957,16 @@ export default function AIRoom() {
 
             {avatarImageUrl && (
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Your AI's Avatar</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleDeleteAvatarImage}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <img 
