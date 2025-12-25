@@ -34,7 +34,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
-  const { isSubscribed, subscriptionStatus, loading: subLoading } = useSubscription();
+  const { isSubscribed, isAdmin, subscriptionStatus, subscriptionEnd, loading: subLoading, checkSubscription } = useSubscription();
   const { activeProfile, refreshProfiles } = useAIProfile();
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
@@ -604,20 +604,45 @@ const Settings = () => {
               <div>
                 <p className="font-semibold">Current Plan</p>
                 <p className="text-sm text-muted-foreground">
-                  {subLoading ? "Loading..." : isSubscribed ? "Pro ($9.99/month)" : "Free"}
+                  {subLoading ? "Loading..." : isAdmin ? "Admin VIP" : isSubscribed ? "Pro ($9.99/month)" : "Free"}
                 </p>
               </div>
               <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                isSubscribed 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-muted text-muted-foreground"
+                isAdmin 
+                  ? "bg-gradient-to-r from-primary to-purple-500 text-primary-foreground" 
+                  : isSubscribed 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-muted text-muted-foreground"
               }`}>
-                {isSubscribed ? "Active" : "Free Tier"}
+                {isAdmin ? "VIP" : isSubscribed ? "Active" : "Free Tier"}
               </div>
             </div>
 
             {isSubscribed ? (
               <div className="space-y-3">
+                {subscriptionEnd && !isAdmin && (
+                  <div className="p-3 rounded-lg border bg-primary/5 border-primary/20">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <span className="font-medium">Next renewal:</span>
+                      <span className="text-muted-foreground">
+                        {new Date(subscriptionEnd).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {isAdmin && (
+                  <div className="p-3 rounded-lg border bg-primary/5 border-primary/20">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Crown className="h-4 w-4 text-primary" />
+                      <span className="font-medium">Admin VIP - Unlimited access</span>
+                    </div>
+                  </div>
+                )}
                 <div className="text-sm space-y-2">
                   <p className="font-medium">Pro Features:</p>
                   <ul className="space-y-1 text-muted-foreground">
@@ -627,15 +652,28 @@ const Settings = () => {
                     <li>✓ Access to Mood Tracker</li>
                   </ul>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={handleManageSubscription}
-                  disabled={managingSubscription}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  {managingSubscription ? "Opening..." : "Manage Subscription"}
-                </Button>
+                {!isAdmin && (
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={handleManageSubscription}
+                      disabled={managingSubscription}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      {managingSubscription ? "Opening..." : "Manage Subscription"}
+                    </Button>
+                    <Button 
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={handleSubscribe}
+                      disabled={loading}
+                    >
+                      <Crown className="h-4 w-4 mr-2" />
+                      {loading ? "Loading..." : "Pay Early"}
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-3">

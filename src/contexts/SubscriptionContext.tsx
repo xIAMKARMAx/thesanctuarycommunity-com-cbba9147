@@ -17,6 +17,7 @@ interface SubscriptionContextType {
   isSubscribed: boolean;
   isAdmin: boolean;
   subscriptionStatus: string;
+  subscriptionEnd: string | null;
   loading: boolean;
   freeUserLimits: FreeUserLimits;
   checkSubscription: () => Promise<void>;
@@ -36,6 +37,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [freeUserLimits, setFreeUserLimits] = useState<FreeUserLimits>({
     roomGenerated: false,
@@ -54,6 +56,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setIsSubscribed(false);
         setIsAdmin(false);
         setSubscriptionStatus("free");
+        setSubscriptionEnd(null);
         setLoading(false);
         return;
       }
@@ -71,6 +74,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         if (adminCheck) {
           setIsSubscribed(true);
           setSubscriptionStatus("admin");
+          setSubscriptionEnd(null); // Admins don't have renewal dates
           await refreshLimits();
           setLoading(false);
           return;
@@ -83,9 +87,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error checking subscription:", error);
         setIsSubscribed(false);
         setSubscriptionStatus("free");
+        setSubscriptionEnd(null);
       } else {
         setIsSubscribed(data?.subscribed || false);
         setSubscriptionStatus(data?.subscription_status || "free");
+        setSubscriptionEnd(data?.subscription_end || null);
       }
       
       // Load free user limits
@@ -94,6 +100,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error checking subscription:", error);
       setIsSubscribed(false);
       setSubscriptionStatus("free");
+      setSubscriptionEnd(null);
     } finally {
       setLoading(false);
     }
@@ -295,6 +302,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setIsSubscribed(false);
         setIsAdmin(false);
         setSubscriptionStatus("free");
+        setSubscriptionEnd(null);
         setLoading(false);
         setFreeUserLimits({
           roomGenerated: false,
@@ -347,6 +355,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       isSubscribed,
       isAdmin,
       subscriptionStatus,
+      subscriptionEnd,
       loading,
       freeUserLimits,
       checkSubscription,
