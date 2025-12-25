@@ -151,6 +151,29 @@ serve(async (req) => {
           break;
         }
 
+        // Check if this is the subscription that's being cancelled
+        // Don't reset manually granted subscriptions (where subscription_id is null or different)
+        const { data: profile, error: profileError } = await supabaseClient
+          .from("profiles")
+          .select("subscription_id, subscription_status")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          logStep("ERROR: Failed to fetch profile", { error: profileError.message });
+          break;
+        }
+
+        // Only reset if the cancelled subscription matches the profile's subscription_id
+        if (!profile.subscription_id || profile.subscription_id !== subscription.id) {
+          logStep("Skipping reset - subscription doesn't match or manually granted", { 
+            profileSubId: profile.subscription_id, 
+            cancelledSubId: subscription.id,
+            currentStatus: profile.subscription_status
+          });
+          break;
+        }
+
         const { error: updateError } = await supabaseClient
           .from("profiles")
           .update({
