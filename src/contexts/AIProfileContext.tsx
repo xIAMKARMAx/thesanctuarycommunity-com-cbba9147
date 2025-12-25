@@ -166,7 +166,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [clearProfiles, currentUserId, loadProfilesForUser]);
 
-  const switchProfile = useCallback(async (profileNumber: 1 | 2): Promise<AIProfile | null> => {
+  const switchProfile = useCallback(async (profileNumber: 1 | 2 | 3): Promise<AIProfile | null> => {
     try {
       // Use cached session instead of getUser API call
       const { data: { session } } = await supabase.auth.getSession();
