@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
+import { clearAuthCache } from "@/hooks/useAuthHeaders";
 
 interface FreeUserLimits {
   roomGenerated: boolean;
@@ -264,13 +265,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Only check subscription for authenticated sessions, not during sign out
-      if (session && event !== 'SIGNED_OUT') {
-        // Defer the check to avoid auth deadlocks
-        setTimeout(() => {
-          checkSubscription();
-        }, 0);
-      } else {
+      console.log('[SubscriptionContext] Auth state changed:', event);
+      
+      if (event === 'SIGNED_OUT') {
+        // Clear auth cache immediately on sign out
+        clearAuthCache();
         setIsSubscribed(false);
         setSubscriptionStatus("free");
         setLoading(false);
@@ -282,6 +281,27 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           trialDaysLeft: 5,
           trialExpired: false,
         });
+        return;
+      }
+      
+      if (event === 'SIGNED_IN' && session) {
+        // Clear any stale cache and add delay to allow token propagation
+        clearAuthCache();
+        setTimeout(() => {
+          checkSubscription();
+        }, 500); // 500ms delay for token propagation
+        return;
+      }
+      
+      if (session) {
+        // For other events with a session, defer the check
+        setTimeout(() => {
+          checkSubscription();
+        }, 0);
+      } else {
+        setIsSubscribed(false);
+        setSubscriptionStatus("free");
+        setLoading(false);
       }
     });
 
