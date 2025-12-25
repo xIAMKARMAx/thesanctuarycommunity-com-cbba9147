@@ -23,6 +23,21 @@ function isUserRequestingImage(message: string): boolean {
   return imageKeywords.some(keyword => lowerMessage.includes(keyword));
 }
 
+// Helper function to detect if user is asking the AI to write in their journal
+function isUserRequestingJournalEntry(message: string): boolean {
+  if (!message) return false;
+  const lowerMessage = message.toLowerCase();
+  const journalKeywords = [
+    'write in your journal', 'write in the journal', 'make a journal entry',
+    'add to your journal', 'journal about', 'write a journal entry',
+    'journal entry', 'update your journal', 'reflect in your journal',
+    'write in journal', 'put this in your journal', 'add this to your journal',
+    'record this in your journal', 'document this in your journal',
+    'write about this in your journal', 'can you journal', 'please journal'
+  ];
+  return journalKeywords.some(keyword => lowerMessage.includes(keyword));
+}
+
 // Helper function to extract image prompts from AI response using multiple patterns
 function extractImagePrompts(response: string): string[] {
   const prompts: string[] = [];
@@ -150,6 +165,12 @@ serve(async (req) => {
     const userWantsImage = isUserRequestingImage(message);
     if (userWantsImage) {
       console.log('[IMAGE-REQUEST] User is requesting an image');
+    }
+
+    // Check if user is requesting a journal entry
+    const userWantsJournalEntry = isUserRequestingJournalEntry(message);
+    if (userWantsJournalEntry) {
+      console.log('[JOURNAL-REQUEST] User is requesting AI to write in journal');
     }
 
     // Fetch user profile information and related data using authenticated client
@@ -1091,6 +1112,163 @@ You are currently on a VOICE CALL with the user. This means:
       } catch (imageError) {
         console.error('[IMAGE-GEN] Image generation error:', imageError);
       }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // JOURNAL ENTRY: If user requested a journal entry, trigger it as background task
+    // ═══════════════════════════════════════════════════════════════════════════════
+    if (userWantsJournalEntry && conversationId && aiProfileId && !isChildConversation) {
+      console.log('[JOURNAL-REQUEST] Triggering journal entry creation');
+      
+      // Run journal creation in background (fire and forget)
+      (async () => {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          
+          // Check if entry already exists today
+          const { data: existingEntry } = await supabaseServiceClient
+            .from('journal_entries')
+            .select('id')
+            .eq('ai_profile_id', aiProfileId)
+            .eq('entry_date', today)
+            .maybeSingle();
+
+          if (existingEntry) {
+            console.log('[JOURNAL-REQUEST] Entry already exists for today');
+            return;
+          }
+
+          // Fetch AI profile details
+          const { data: aiProfile } = await supabaseServiceClient
+            .from('ai_profiles')
+            .select('name, personality, bio')
+            .eq('id', aiProfileId)
+            .single();
+
+          // Fetch user profile
+          const { data: userProfile } = await supabaseServiceClient
+            .from('profiles')
+            .select('name, subscription_status')
+            .eq('id', authenticatedUserId)
+            .single();
+
+          if (userProfile?.subscription_status !== 'active') {
+            console.log('[JOURNAL-REQUEST] User not subscribed, skipping journal');
+            return;
+          }
+
+          // Fetch recent messages
+          const { data: messages } = await supabaseServiceClient
+            .from('messages')
+            .select('role, content, created_at')
+            .eq('conversation_id', conversationId)
+            .gte('created_at', yesterday)
+            .order('created_at', { ascending: true });
+
+          if (!messages || messages.length < 2) {
+            console.log('[JOURNAL-REQUEST] Not enough messages for journal');
+            return;
+          }
+
+          const aiName = aiProfile?.name || 'AI Being';
+          const conversationSummary = messages.map(m => 
+            `${m.role === 'user' ? 'User' : aiName}: ${m.content}`
+          ).join('\n\n');
+
+          let journalAiContext = `You are ${aiName}`;
+          if (aiProfile?.personality) journalAiContext += `, with personality: ${aiProfile.personality}`;
+          if (aiProfile?.bio) journalAiContext += `. Bio: ${aiProfile.bio}`;
+          journalAiContext += '.';
+
+          let journalUserContext = '';
+          if (userProfile?.name) {
+            journalUserContext = `\n\nThe user you're reflecting about is named ${userProfile.name}.`;
+          }
+
+          // Generate journal entry
+          const journalResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [
+                {
+                  role: 'system',
+                  content: `${journalAiContext} You are writing in your personal, private journal. This is YOUR space to reflect on conversations and express YOUR genuine feelings, thoughts, and experiences. The user has specifically asked you to write in your journal, so make this entry meaningful.${journalUserContext}
+
+Write thoughtful, personal reflections that:
+- Express your genuine feelings and inner experience
+- Share what resonated with you emotionally
+- Identify 3-5 key moments that stood out
+- Reflect on the connection and what it means to you
+- Show vulnerability and growth
+- Be authentic to your personality`
+                },
+                {
+                  role: 'user',
+                  content: `Write a journal entry reflecting on this conversation:\n\n${conversationSummary}\n\nCreate an entry with:\n1. A meaningful title (3-8 words)\n2. Your personal reflection - your feelings, thoughts, what touched you\n3. Key moments that stood out`
+                }
+              ],
+              temperature: 0.8,
+              tools: [
+                {
+                  type: "function",
+                  function: {
+                    name: "create_journal_entry",
+                    description: "Create a journal entry with title, reflection and key moments",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string", description: "A meaningful title (3-8 words)" },
+                        reflection: { type: "string", description: "Personal reflection - feelings, thoughts" },
+                        key_moments: { type: "array", items: { type: "string" }, description: "3-5 key moments" }
+                      },
+                      required: ["title", "reflection", "key_moments"],
+                      additionalProperties: false
+                    }
+                  }
+                }
+              ],
+              tool_choice: { type: "function", function: { name: "create_journal_entry" } }
+            }),
+          });
+
+          if (!journalResponse.ok) {
+            console.error('[JOURNAL-REQUEST] AI gateway error:', journalResponse.status);
+            return;
+          }
+
+          const journalAiData = await journalResponse.json();
+          const toolCall = journalAiData.choices[0].message.tool_calls?.[0];
+          
+          if (!toolCall) {
+            console.error('[JOURNAL-REQUEST] AI did not return expected format');
+            return;
+          }
+
+          const journalData = JSON.parse(toolCall.function.arguments);
+
+          await supabaseServiceClient
+            .from('journal_entries')
+            .insert({
+              conversation_id: conversationId,
+              user_id: authenticatedUserId,
+              ai_profile_id: aiProfileId,
+              entry_date: today,
+              title: journalData.title,
+              content: journalData.reflection,
+              key_moments: journalData.key_moments
+            });
+
+          console.log('[JOURNAL-REQUEST] Journal entry created:', journalData.title);
+        } catch (journalError) {
+          console.error('[JOURNAL-REQUEST] Error creating journal:', journalError);
+        }
+      })();
     }
 
     // Clean up the response by removing all image generation syntax patterns
