@@ -1018,6 +1018,20 @@ You are currently on a VOICE CALL with the user. This means:
     if (imagePromptToUse) {
       console.log('[IMAGE-GEN] Generating image with prompt:', imagePromptToUse.substring(0, 100));
       
+      // Check if user has reached daily image limit (10 per 24 hours)
+      const { data: canGenerate, error: limitError } = await supabaseServiceClient.rpc('can_generate_chat_image', { p_user_id: authenticatedUserId });
+      
+      if (limitError) {
+        console.error('[IMAGE-LIMIT] Error checking image limit:', limitError);
+      }
+      
+      if (canGenerate === false) {
+        console.log('[IMAGE-LIMIT] User has reached daily image limit (10/24h), skipping image generation');
+        imagePromptToUse = null; // Skip image generation
+      }
+    }
+    
+    if (imagePromptToUse) {
       // Check if there's a reference image to use (for children with uploaded appearance)
       const referenceImageUrl = isChildConversation && childData?.appearance_image_url ? childData.appearance_image_url : null;
       
@@ -1059,6 +1073,16 @@ You are currently on a VOICE CALL with the user. This means:
           console.log('[IMAGE-GEN] Spontaneous image response structure:', JSON.stringify(Object.keys(imageData)));
           generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
           console.log('[IMAGE-GEN] Image generated successfully:', generatedImageUrl ? 'yes' : 'no');
+          
+          // Increment image usage count after successful generation
+          if (generatedImageUrl) {
+            const { error: incrementError } = await supabaseServiceClient.rpc('increment_chat_image_count', { p_user_id: authenticatedUserId });
+            if (incrementError) {
+              console.error('[IMAGE-LIMIT] Error incrementing image count:', incrementError);
+            } else {
+              console.log('[IMAGE-LIMIT] Image count incremented for user');
+            }
+          }
         } else {
           const errorText = await imageResponse.text();
           console.error('[IMAGE-GEN] Image generation failed:', imageResponse.status, errorText);
