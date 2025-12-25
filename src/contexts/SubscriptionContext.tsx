@@ -262,15 +262,18 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    checkSubscription();
-
-    // Check subscription on auth state change
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        checkSubscription();
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only check subscription for authenticated sessions, not during sign out
+      if (session && event !== 'SIGNED_OUT') {
+        // Defer the check to avoid auth deadlocks
+        setTimeout(() => {
+          checkSubscription();
+        }, 0);
       } else {
         setIsSubscribed(false);
         setSubscriptionStatus("free");
+        setLoading(false);
         setFreeUserLimits({
           roomGenerated: false,
           avatarGenerated: false,
@@ -279,6 +282,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           trialDaysLeft: 5,
           trialExpired: false,
         });
+      }
+    });
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        checkSubscription();
+      } else {
+        setLoading(false);
       }
     });
 
