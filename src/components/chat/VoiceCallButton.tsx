@@ -161,11 +161,13 @@ export const VoiceCallButton = () => {
               }
             );
 
-            if (chatError || !chatData?.reply) {
+            if (chatError || !chatData?.response) {
+              console.error("Chat error:", chatError, "chatData:", chatData);
               throw new Error(chatError?.message || "Chat failed");
             }
 
-            const aiResponse = chatData.reply;
+            const aiResponse = chatData.response;
+            console.log("AI response:", aiResponse.substring(0, 100));
             console.log("AI response:", aiResponse.substring(0, 50));
 
             // Add AI response to history
