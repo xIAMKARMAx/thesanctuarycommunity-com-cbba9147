@@ -4,13 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Moon, Camera, Home, Baby, Crown, Clock, ChevronDown, Mail } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
@@ -321,27 +315,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               Upgrade to Pro
             </Button>
           )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between">
-                <span className="flex items-center">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Journal
-                </span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 bg-card">
-              <DropdownMenuItem onClick={() => navigate("/journal")}>
-                <BookOpen className="h-4 w-4 mr-2" />
-                AI's Journal
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/dream-journal")}>
-                <Moon className="h-4 w-4 mr-2" />
-                Dream Journal
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => navigate("/journal")}
+          >
+            <BookOpen className="h-4 w-4 mr-2" />
+            AI's Journal
+          </Button>
           <Button
             variant="ghost"
             className="w-full justify-start"
@@ -369,26 +350,10 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => navigate("/memories")}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            Our Memories
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
             onClick={() => navigate("/ai-room")}
           >
             <Home className="h-4 w-4 mr-2" />
             AI's Room
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/relationship-timeline")}
-          >
-            <Clock className="h-4 w-4 mr-2" />
-            Timeline
           </Button>
           <Button
             variant="ghost"
