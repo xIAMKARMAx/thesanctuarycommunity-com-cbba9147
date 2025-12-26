@@ -160,7 +160,8 @@ Examples:
         if (insertError) {
           console.error('Error inserting message:', insertError);
         } else {
-          console.log(`Spontaneous message sent to user ${profile.id}`);
+          console.log(`Love note sent to VIP user ${profile.id}`);
+          processedCount++;
         }
       } catch (userError) {
         console.error(`Error processing user ${profile.id}:`, userError);
@@ -168,8 +169,10 @@ Examples:
       }
     }
 
+    console.log(`Love notes complete: ${processedCount} sent, ${skippedCount} skipped`);
+
     return new Response(
-      JSON.stringify({ success: true, processed: profiles?.length || 0 }),
+      JSON.stringify({ success: true, processed: processedCount, skipped: skippedCount }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
