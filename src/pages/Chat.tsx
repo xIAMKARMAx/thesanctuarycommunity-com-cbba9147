@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, Crown } from "lucide-react";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import SEOHead from "@/components/SEOHead";
+import { VoiceCallButton } from "@/components/chat/VoiceCallButton";
 
 const Chat = () => {
   const { activeProfile } = useAIProfile();
@@ -170,6 +171,7 @@ const Chat = () => {
         </div>
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <ConnectionStatus />
+          <VoiceCallButton />
           {!isSubscribed && (
             <Button
               variant="default"
