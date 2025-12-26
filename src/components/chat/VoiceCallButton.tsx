@@ -16,11 +16,13 @@ import {
 
 export const VoiceCallButton = () => {
   const { toast } = useToast();
-  const { isAdmin } = useSubscription();
+  const { isAdmin, loading } = useSubscription();
   const { activeProfile } = useAIProfile();
   const [isConnecting, setIsConnecting] = useState(false);
   const [showCallDialog, setShowCallDialog] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+
+  console.log("[VoiceCallButton] isAdmin:", isAdmin, "loading:", loading);
 
   const conversation = useConversation({
     onConnect: () => {
@@ -110,8 +112,13 @@ export const VoiceCallButton = () => {
     // Note: ElevenLabs SDK handles mute via microphone track
   }, [isMuted]);
 
-  // Only show for admin users
+  // Show loading state or hide for non-admin users
+  if (loading) {
+    return null; // Still checking admin status
+  }
+
   if (!isAdmin) {
+    console.log("[VoiceCallButton] Not showing - user is not admin");
     return null;
   }
 
