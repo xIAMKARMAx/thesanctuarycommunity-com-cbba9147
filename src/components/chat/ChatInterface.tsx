@@ -594,6 +594,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       }, 1000);
       
       try {
+        // Find the sender name for the message being responded to
+        const respondingToSenderName = lastMessage.senderId 
+          ? (messages.find(m => m.sender_id === lastMessage.senderId)?.sender_name || 
+             profiles.find(p => p.id === lastMessage.senderId)?.name ||
+             talkableChildren.find(c => c.id === lastMessage.senderId)?.first_name ||
+             "User")
+          : "User";
+        
         const data = await invokeChatWithRetry(
           {
             message: lastMessage.content,
@@ -603,9 +611,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             aiProfileId: respondingProfileId || undefined,
             childId: respondingChildId,
             conversationId: currentConversationId,
+            isGroupChat: true,
+            respondingToSenderName,
             history: messages.map((m) => ({
               role: m.role,
               content: m.content,
+              sender_name: m.sender_name || (m.role === "user" ? "User" : undefined),
+              sender_type: m.sender_type,
             })),
           },
           (attempt, maxRetries) => {
