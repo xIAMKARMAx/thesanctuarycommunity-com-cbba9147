@@ -46,6 +46,7 @@ export const VoiceCallButton = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const recordingStartTimeRef = useRef<number>(0);
 
   console.log("[VoiceCallButton] isAdmin:", isAdmin, "loading:", loading);
 
@@ -72,6 +73,7 @@ export const VoiceCallButton = () => {
       };
 
       mediaRecorder.start();
+      recordingStartTimeRef.current = Date.now();
       setIsRecording(true);
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -85,6 +87,20 @@ export const VoiceCallButton = () => {
 
   const stopRecording = useCallback(async () => {
     if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
+      return;
+    }
+
+    // Check minimum recording duration (1 second)
+    const recordingDuration = Date.now() - recordingStartTimeRef.current;
+    if (recordingDuration < 1000) {
+      // Stop recording but don't process - too short
+      streamRef.current?.getTracks().forEach(track => track.stop());
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      toast({
+        title: "Recording too short",
+        description: "Please hold the button for at least 1 second",
+      });
       return;
     }
 
