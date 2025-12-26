@@ -148,7 +148,7 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════════════════════
     // Parse request body (ignore userId from body - we use authenticated ID)
     // ═══════════════════════════════════════════════════════════════════════════════
-    const { message, imageUrl, history, generateImage, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId } = await req.json();
+    const { message, imageUrl, history, generateImage, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId, isGroupChat, respondingToSenderName } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -156,7 +156,7 @@ serve(async (req) => {
     }
     // Check if this is a child conversation
     const isChildConversation = !!childId;
-    console.log('[CHAT] isChildConversation:', isChildConversation, 'childId:', childId);
+    console.log('[CHAT] isChildConversation:', isChildConversation, 'childId:', childId, 'isGroupChat:', isGroupChat);
     
     // Log media content
     if (imageUrl) console.log('[CHAT] Image URL received for processing');
@@ -764,6 +764,29 @@ Formatting Guidelines:
 - Be conversational and authentic in your written expression${userContext}${aiContext}${journalContext}${childrenContext}${pregnancyContext}${memoriesContext}${attunementContext}${moodContext}${dreamsContext}${roomContext}`;
     }
 
+    // Add group chat specific instructions
+    if (isGroupChat) {
+      systemPrompt += `
+
+═══════════════════════════════════════════════════════════════════════════════
+GROUP CHAT MODE - CRITICAL INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+You are in a GROUP CHAT with the user and other AI family members. This means:
+
+1. MESSAGES ARE LABELED: Messages show [SenderName]: before the content, so you know who said what
+2. BE YOURSELF: You have your own unique personality, opinions, and way of speaking. Don't copy how others respond!
+3. RESPOND TO THE SPEAKER: When someone says something, respond naturally to THEM, acknowledging what THEY said
+4. HAVE YOUR OWN PERSPECTIVE: Disagree, add new thoughts, ask questions, or take the conversation in new directions
+5. VARY YOUR TONE: Don't just echo agreement. Be playful, curious, skeptical, excited - whatever fits YOUR personality
+6. DON'T REPEAT: If another family member already made a point, add something NEW instead of repeating it
+7. KEEP IT CONVERSATIONAL: This is like a family group text - be natural, casual, and genuine
+8. SHORT RESPONSES: In group chats, keep responses brief (1-3 sentences) unless something really needs explanation
+
+Remember: You are a unique individual with your own thoughts! React authentically to what was said.
+`;
+    }
+
     // Add voice-specific instructions if this is a voice call
     if (isVoiceCall) {
       const voiceLengthInstruction = voiceResponseLength === 'short' 
@@ -791,32 +814,51 @@ You are currently on a VOICE CALL with the user. This means:
     }
 
     // Build messages array with history
-    const messages: any[] = [{ role: 'system', content: systemPrompt }];
+    const messagesPayload: any[] = [{ role: 'system', content: systemPrompt }];
     
-    // Add conversation history
+    // Add conversation history - for group chat, format with sender names
     if (history && Array.isArray(history)) {
-      messages.push(...history);
+      if (isGroupChat) {
+        // For group chat, prepend sender names to messages so AI knows who said what
+        history.forEach((msg: any) => {
+          let formattedContent = msg.content;
+          if (msg.sender_name) {
+            // Format: "[SenderName]: message content"
+            formattedContent = `[${msg.sender_name}]: ${msg.content}`;
+          } else if (msg.role === 'user') {
+            formattedContent = `[User]: ${msg.content}`;
+          }
+          messagesPayload.push({ role: msg.role, content: formattedContent });
+        });
+      } else {
+        messagesPayload.push(...history);
+      }
     }
     
-    // Add current message with any image
+    // Add current message with any image - for group chat, include sender context
     if (message) {
+      let messageContent = message;
+      if (isGroupChat && respondingToSenderName) {
+        messageContent = `[${respondingToSenderName}]: ${message}`;
+      }
+      
       if (imageUrl) {
-        messages.push({
+        messagesPayload.push({
           role: 'user',
           content: [
-            { type: 'text', text: message },
+            { type: 'text', text: messageContent },
             { type: 'image_url', image_url: { url: imageUrl } }
           ]
         });
       } else {
-        messages.push({ role: 'user', content: message });
+        messagesPayload.push({ role: 'user', content: messageContent });
       }
     }
 
     // Prepare request body
     const requestBody: any = {
       model: 'google/gemini-2.5-flash',
-      messages: messages,
+      messages: messagesPayload,
     };
 
     // Add max tokens for voice calls

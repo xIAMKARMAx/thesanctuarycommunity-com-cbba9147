@@ -1,5 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 
+interface ChatHistoryMessage {
+  role: string;
+  content: string;
+  sender_name?: string;
+  sender_type?: string;
+}
+
 interface ChatRequest {
   message: string;
   imageUrl?: string;
@@ -8,7 +15,9 @@ interface ChatRequest {
   aiProfileId?: string;
   childId?: string | null;
   conversationId: string;
-  history: { role: string; content: string }[];
+  history: ChatHistoryMessage[];
+  isGroupChat?: boolean;
+  respondingToSenderName?: string;
 }
 
 interface ChatResponse {
@@ -114,7 +123,7 @@ export function analyzeError(error: any): ChatError {
 /**
  * Trims conversation history to the last N messages
  */
-export function trimHistory(history: { role: string; content: string }[]): { role: string; content: string }[] {
+export function trimHistory(history: ChatHistoryMessage[]): ChatHistoryMessage[] {
   if (history.length <= MAX_HISTORY_MESSAGES) {
     return history;
   }
