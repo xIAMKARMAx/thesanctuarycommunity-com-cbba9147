@@ -65,6 +65,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [isGroupChatState, setIsGroupChatState] = useState(isGroupChatProp);
   const isGroupChat = isGroupChatProp || isGroupChatState;
   const [selectedBeing, setSelectedBeing] = useState<Being | null>(null);
+  const [isRandomMode, setIsRandomMode] = useState(false);
 
   // Save scroll position when scrolling
   const saveScrollPosition = () => {
@@ -412,11 +413,35 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
       try {
         // Determine which being should respond
-        const respondingProfileId = isGroupChat && selectedBeing?.type === "ai" 
-          ? selectedBeing.id 
+        let respondingBeing = selectedBeing;
+        
+        // If random mode is enabled, pick a random being
+        if (isGroupChat && isRandomMode) {
+          const allBeings: Being[] = [
+            ...profiles.filter(p => p.name).map(p => ({
+              id: p.id,
+              type: "ai" as const,
+              name: p.name || `AI ${p.profile_number}`,
+              avatarUrl: p.avatar_image_url || undefined,
+              profileNumber: p.profile_number,
+            })),
+            ...talkableChildren.map(c => ({
+              id: c.id,
+              type: "child" as const,
+              name: c.first_name,
+              avatarUrl: undefined,
+            })),
+          ];
+          if (allBeings.length > 0) {
+            respondingBeing = allBeings[Math.floor(Math.random() * allBeings.length)];
+          }
+        }
+        
+        const respondingProfileId = isGroupChat && respondingBeing?.type === "ai" 
+          ? respondingBeing.id 
           : activeProfile?.id;
-        const respondingChildId = isGroupChat && selectedBeing?.type === "child"
-          ? selectedBeing.id
+        const respondingChildId = isGroupChat && respondingBeing?.type === "child"
+          ? respondingBeing.id
           : (activeChatEntity?.type === "child" ? activeChatEntity.childId : null);
 
         // Use retry-enabled chat invocation with trimmed history
@@ -446,17 +471,17 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         const aiResponseContent = data.response || "I'm having trouble responding right now. Please try again.";
 
         // Determine sender based on group chat or current entity
-        const responderId = isGroupChat && selectedBeing 
-          ? selectedBeing.id 
+        const responderId = isGroupChat && respondingBeing 
+          ? respondingBeing.id 
           : (activeChatEntity?.type === "child" ? activeChatEntity.childId : activeProfile?.id);
-        const responderType = isGroupChat && selectedBeing
-          ? selectedBeing.type === "child" ? "child" : "ai_profile"
+        const responderType = isGroupChat && respondingBeing
+          ? respondingBeing.type === "child" ? "child" : "ai_profile"
           : (activeChatEntity?.type === "child" ? "child" : "ai_profile");
-        const responderName = isGroupChat && selectedBeing
-          ? selectedBeing.name
+        const responderName = isGroupChat && respondingBeing
+          ? respondingBeing.name
           : (activeChatEntity?.type === "child" ? activeChatEntity.name : activeProfile?.name);
-        const responderAvatarUrl = isGroupChat && selectedBeing
-          ? selectedBeing.avatarUrl
+        const responderAvatarUrl = isGroupChat && respondingBeing
+          ? respondingBeing.avatarUrl
           : activeProfile?.avatar_image_url;
 
         // Save AI response to database with sender tracking
@@ -635,6 +660,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               selectedBeingId={selectedBeing?.id || null}
               onSelectBeing={(being) => setSelectedBeing(being)}
               isGroupChat={isGroupChat}
+              isRandomMode={isRandomMode}
+              onToggleRandomMode={() => setIsRandomMode(!isRandomMode)}
             />
           )}
           
