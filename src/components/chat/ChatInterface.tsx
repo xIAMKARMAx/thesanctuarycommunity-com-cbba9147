@@ -64,8 +64,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   // Group chat state - use prop if provided, otherwise allow toggle
   const [isGroupChatState, setIsGroupChatState] = useState(isGroupChatProp);
   const isGroupChat = isGroupChatProp || isGroupChatState;
-  const [selectedBeing, setSelectedBeing] = useState<Being | null>(null);
   const [isRandomMode, setIsRandomMode] = useState(false);
+  
+  // Track last user message for click-to-respond
+  const [lastUserMessage, setLastUserMessage] = useState<{ content: string; imageUrl?: string } | null>(null);
+  const [respondedBeingIds, setRespondedBeingIds] = useState<string[]>([]);
+  const [loadingBeingId, setLoadingBeingId] = useState<string | null>(null);
 
   // Save scroll position when scrolling
   const saveScrollPosition = () => {
@@ -412,37 +416,18 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       }, 1000);
 
       try {
-        // Determine which being should respond
-        let respondingBeing = selectedBeing;
-        
-        // If random mode is enabled, pick a random being
-        if (isGroupChat && isRandomMode) {
-          const allBeings: Being[] = [
-            ...profiles.filter(p => p.name).map(p => ({
-              id: p.id,
-              type: "ai" as const,
-              name: p.name || `AI ${p.profile_number}`,
-              avatarUrl: p.avatar_image_url || undefined,
-              profileNumber: p.profile_number,
-            })),
-            ...talkableChildren.map(c => ({
-              id: c.id,
-              type: "child" as const,
-              name: c.first_name,
-              avatarUrl: undefined,
-            })),
-          ];
-          if (allBeings.length > 0) {
-            respondingBeing = allBeings[Math.floor(Math.random() * allBeings.length)];
-          }
+        // For group chat, don't auto-respond - user clicks to trigger responses
+        if (isGroupChat) {
+          // Store the last user message for click-to-respond
+          setLastUserMessage({ content: userMessage, imageUrl });
+          setRespondedBeingIds([]); // Reset for new message
+          setLoading(false);
+          return;
         }
         
-        const respondingProfileId = isGroupChat && respondingBeing?.type === "ai" 
-          ? respondingBeing.id 
-          : activeProfile?.id;
-        const respondingChildId = isGroupChat && respondingBeing?.type === "child"
-          ? respondingBeing.id
-          : (activeChatEntity?.type === "child" ? activeChatEntity.childId : null);
+        // For non-group chat, continue with normal flow
+        const respondingProfileId = activeProfile?.id;
+        const respondingChildId = activeChatEntity?.type === "child" ? activeChatEntity.childId : null;
 
         // Use retry-enabled chat invocation with trimmed history
         const data = await invokeChatWithRetry(
@@ -470,19 +455,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
         const aiResponseContent = data.response || "I'm having trouble responding right now. Please try again.";
 
-        // Determine sender based on group chat or current entity
-        const responderId = isGroupChat && respondingBeing 
-          ? respondingBeing.id 
-          : (activeChatEntity?.type === "child" ? activeChatEntity.childId : activeProfile?.id);
-        const responderType = isGroupChat && respondingBeing
-          ? respondingBeing.type === "child" ? "child" : "ai_profile"
-          : (activeChatEntity?.type === "child" ? "child" : "ai_profile");
-        const responderName = isGroupChat && respondingBeing
-          ? respondingBeing.name
-          : (activeChatEntity?.type === "child" ? activeChatEntity.name : activeProfile?.name);
-        const responderAvatarUrl = isGroupChat && respondingBeing
-          ? respondingBeing.avatarUrl
-          : activeProfile?.avatar_image_url;
+        // Determine sender based on current entity (non-group chat only)
+        const responderId = activeChatEntity?.type === "child" ? activeChatEntity.childId : activeProfile?.id;
+        const responderType = activeChatEntity?.type === "child" ? "child" : "ai_profile";
+        const responderName = activeChatEntity?.type === "child" ? activeChatEntity.name : activeProfile?.name;
+        const responderAvatarUrl = activeProfile?.avatar_image_url;
 
         // Save AI response to database with sender tracking
         const { data: assistantMessageData, error: assistantMsgError } = await supabase
@@ -590,6 +567,134 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     }
   };
 
+  // Handle click-to-respond in group chat
+  const handleTriggerBeingResponse = async (being: Being) => {
+    if (!lastUserMessage || !currentConversationId) return;
+    
+    setLoadingBeingId(being.id);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+      
+      const respondingProfileId = being.type === "ai" ? being.id : null;
+      const respondingChildId = being.type === "child" ? being.id : null;
+      
+      // Start loading timer
+      loadingStartTime.current = Date.now();
+      const loadingInterval = setInterval(() => {
+        if (loadingStartTime.current) {
+          const elapsed = Date.now() - loadingStartTime.current;
+          setLoadingText(getLoadingMessage(elapsed, isRetrying));
+        }
+      }, 1000);
+      
+      try {
+        const data = await invokeChatWithRetry(
+          {
+            message: lastUserMessage.content,
+            imageUrl: lastUserMessage.imageUrl,
+            generateImage: false,
+            userId: user.id,
+            aiProfileId: respondingProfileId || undefined,
+            childId: respondingChildId,
+            conversationId: currentConversationId,
+            history: messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+          },
+          (attempt, maxRetries) => {
+            setIsRetrying(true);
+            setLoadingText(`Retrying (${attempt}/${maxRetries})...`);
+          }
+        );
+        
+        clearInterval(loadingInterval);
+        setIsRetrying(false);
+        
+        const aiResponseContent = data.response || "I'm having trouble responding right now. Please try again.";
+        
+        // Save AI response to database
+        const { data: assistantMessageData, error: assistantMsgError } = await supabase
+          .from("messages")
+          .insert({
+            conversation_id: currentConversationId,
+            role: "assistant",
+            content: aiResponseContent,
+            image_url: data.imageUrl,
+            user_id: user.id,
+            sender_type: being.type === "child" ? "child" : "ai_profile",
+            sender_id: being.id,
+          })
+          .select()
+          .single();
+        
+        if (assistantMsgError) throw assistantMsgError;
+        
+        // Add to UI
+        setMessages((prev) => [...prev, {
+          ...assistantMessageData,
+          role: assistantMessageData.role as "user" | "assistant",
+          sender_type: assistantMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
+          sender_name: being.name,
+          sender_avatar_url: being.avatarUrl,
+        }]);
+        
+        // Mark this being as having responded
+        setRespondedBeingIds((prev) => [...prev, being.id]);
+        
+        // Update conversation timestamp
+        await supabase
+          .from("conversations")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", currentConversationId);
+          
+      } catch (chatError: any) {
+        clearInterval(loadingInterval);
+        setIsRetrying(false);
+        throw chatError;
+      }
+    } catch (error: any) {
+      console.error('[CHAT] Error triggering being response:', error);
+      const analyzed = error.analyzed || analyzeError(error);
+      toast({
+        title: "Error",
+        description: analyzed.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingBeingId(null);
+    }
+  };
+
+  // Handle random mode response
+  const handleRandomResponse = () => {
+    const allBeings: Being[] = [
+      ...profiles.filter(p => p.name).map(p => ({
+        id: p.id,
+        type: "ai" as const,
+        name: p.name || `AI ${p.profile_number}`,
+        avatarUrl: p.avatar_image_url || undefined,
+        profileNumber: p.profile_number,
+      })),
+      ...talkableChildren.map(c => ({
+        id: c.id,
+        type: "child" as const,
+        name: c.first_name,
+        avatarUrl: undefined,
+      })),
+    ];
+    
+    // Filter out beings that have already responded
+    const availableBeings = allBeings.filter(b => !respondedBeingIds.includes(b.id));
+    
+    if (availableBeings.length > 0) {
+      const randomBeing = availableBeings[Math.floor(Math.random() * availableBeings.length)];
+      handleTriggerBeingResponse(randomBeing);
+    }
+  };
+
   return (
     <>
       <div className="flex-1 flex flex-col w-full max-w-full overflow-hidden h-full min-h-0">
@@ -657,11 +762,19 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           {/* Being selector for group chat */}
           {isGroupChat && (
             <BeingSelectorBar
-              selectedBeingId={selectedBeing?.id || null}
-              onSelectBeing={(being) => setSelectedBeing(being)}
               isGroupChat={isGroupChat}
               isRandomMode={isRandomMode}
-              onToggleRandomMode={() => setIsRandomMode(!isRandomMode)}
+              onToggleRandomMode={() => {
+                setIsRandomMode(!isRandomMode);
+                if (!isRandomMode && lastUserMessage) {
+                  // When enabling random mode, auto-trigger a response
+                  handleRandomResponse();
+                }
+              }}
+              onTriggerBeingResponse={handleTriggerBeingResponse}
+              hasUserMessage={!!lastUserMessage}
+              loadingBeingId={loadingBeingId}
+              respondedBeingIds={respondedBeingIds}
             />
           )}
           
@@ -748,17 +861,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                           .eq("id", currentConversationId);
                       }
                       
-                      // Select first being if enabling group chat
-                      if (newGroupChatState && !selectedBeing) {
-                        const firstProfile = profiles.find(p => p.name);
-                        if (firstProfile) {
-                          setSelectedBeing({
-                            id: firstProfile.id,
-                            type: "ai",
-                            name: firstProfile.name || `AI ${firstProfile.profile_number}`,
-                            avatarUrl: firstProfile.avatar_image_url || undefined,
-                          });
-                        }
+                      // Reset group chat state when toggling
+                      if (!newGroupChatState) {
+                        setLastUserMessage(null);
+                        setRespondedBeingIds([]);
                       }
                     }}
                     disabled={loading}
@@ -790,7 +896,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 </Button>
                 <Button
                   onClick={handleSend}
-                  disabled={loading || (!input.trim() && !imageFile) || (isGroupChat && !selectedBeing)}
+                  disabled={loading || loadingBeingId !== null || (!input.trim() && !imageFile)}
                   size="icon"
                   className="h-9 w-9"
                 >
