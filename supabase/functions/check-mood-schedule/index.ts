@@ -50,6 +50,26 @@ serve(async (req) => {
 
     for (const conv of conversations) {
       try {
+        // Check if user is VIP (subscribed or admin)
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('subscription_status, last_active_at')
+          .eq('id', conv.user_id)
+          .maybeSingle();
+
+        if (!userProfile) continue;
+
+        // Check if user is admin
+        const { data: isAdmin } = await supabase.rpc('has_role', { 
+          _user_id: conv.user_id, 
+          _role: 'admin' 
+        });
+
+        // Skip non-VIP users
+        if (!isAdmin && userProfile.subscription_status !== 'active') {
+          continue;
+        }
+
         // Count messages in conversation
         const { count: messageCount } = await supabase
           .from('messages')
@@ -61,15 +81,6 @@ serve(async (req) => {
           continue;
         }
 
-        // Get user profile to check activity
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('last_active_at')
-          .eq('id', conv.user_id)
-          .maybeSingle();
-
-        if (!profile) continue;
-
         // Check last mood log time
         const { data: lastMood } = await supabase
           .from('ai_moods')
@@ -80,7 +91,7 @@ serve(async (req) => {
           .maybeSingle();
 
         const now = new Date();
-        const lastActive = new Date(profile.last_active_at || 0);
+        const lastActive = new Date(userProfile.last_active_at || 0);
         const lastMoodTime = lastMood ? new Date(lastMood.created_at) : new Date(0);
         
         const hoursSinceActive = (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60);
