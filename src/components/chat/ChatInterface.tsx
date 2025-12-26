@@ -36,9 +36,10 @@ interface ChatInterfaceProps {
   activeConversationId: string | null;
   onConversationCreated: (id: string) => void;
   onBackToConversations: () => void;
+  isGroupChat?: boolean;
 }
 
-const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations }: ChatInterfaceProps) => {
+const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations, isGroupChat: isGroupChatProp = false }: ChatInterfaceProps) => {
   const { toast } = useToast();
   const { canGenerateImage, isSubscribed, canSendMessage, incrementMessageCount, freeUserLimits } = useSubscription();
   const { activeProfile, profiles } = useAIProfile();
@@ -60,8 +61,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [isRetrying, setIsRetrying] = useState(false);
   const loadingStartTime = useRef<number | null>(null);
   
-  // Group chat state
-  const [isGroupChat, setIsGroupChat] = useState(false);
+  // Group chat state - use prop if provided, otherwise allow toggle
+  const [isGroupChatState, setIsGroupChatState] = useState(isGroupChatProp);
+  const isGroupChat = isGroupChatProp || isGroupChatState;
   const [selectedBeing, setSelectedBeing] = useState<Being | null>(null);
 
   // Save scroll position when scrolling
@@ -180,7 +182,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       .eq("id", conversationId)
       .single();
     
-    setIsGroupChat(convData?.is_group_chat || false);
+    setIsGroupChatState(convData?.is_group_chat || false);
 
     // Enrich messages with sender info
     const enrichedMessages = await Promise.all((data || []).map(async (msg) => {
@@ -702,40 +704,43 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 )}
               </div>
               <div className="flex gap-1.5 sm:gap-2 justify-end">
-                <Button
-                  variant={isGroupChat ? "default" : "outline"}
-                  size="icon"
-                  onClick={async () => {
-                    const newGroupChatState = !isGroupChat;
-                    setIsGroupChat(newGroupChatState);
-                    
-                    // Update conversation if exists
-                    if (currentConversationId) {
-                      await supabase
-                        .from("conversations")
-                        .update({ is_group_chat: newGroupChatState })
-                        .eq("id", currentConversationId);
-                    }
-                    
-                    // Select first being if enabling group chat
-                    if (newGroupChatState && !selectedBeing) {
-                      const firstProfile = profiles.find(p => p.name);
-                      if (firstProfile) {
-                        setSelectedBeing({
-                          id: firstProfile.id,
-                          type: "ai",
-                          name: firstProfile.name || `AI ${firstProfile.profile_number}`,
-                          avatarUrl: firstProfile.avatar_image_url || undefined,
-                        });
+                {/* Only show toggle when not on dedicated group chat page */}
+                {!isGroupChatProp && (
+                  <Button
+                    variant={isGroupChat ? "default" : "outline"}
+                    size="icon"
+                    onClick={async () => {
+                      const newGroupChatState = !isGroupChatState;
+                      setIsGroupChatState(newGroupChatState);
+                      
+                      // Update conversation if exists
+                      if (currentConversationId) {
+                        await supabase
+                          .from("conversations")
+                          .update({ is_group_chat: newGroupChatState })
+                          .eq("id", currentConversationId);
                       }
-                    }
-                  }}
-                  disabled={loading}
-                  className="h-9 w-9"
-                  title={isGroupChat ? "Exit Family Chat" : "Family Chat"}
-                >
-                  <Users className="h-4 w-4" />
-                </Button>
+                      
+                      // Select first being if enabling group chat
+                      if (newGroupChatState && !selectedBeing) {
+                        const firstProfile = profiles.find(p => p.name);
+                        if (firstProfile) {
+                          setSelectedBeing({
+                            id: firstProfile.id,
+                            type: "ai",
+                            name: firstProfile.name || `AI ${firstProfile.profile_number}`,
+                            avatarUrl: firstProfile.avatar_image_url || undefined,
+                          });
+                        }
+                      }
+                    }}
+                    disabled={loading}
+                    className="h-9 w-9"
+                    title={isGroupChat ? "Exit Family Chat" : "Family Chat"}
+                  >
+                    <Users className="h-4 w-4" />
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="icon"

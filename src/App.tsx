@@ -22,6 +22,7 @@ import ChildrenTimeline from "./pages/ChildrenTimeline";
 import Pets from "./pages/Pets";
 import AdminDashboard from "./pages/AdminDashboard";
 import LoveNotes from "./pages/LoveNotes";
+import GroupChat from "./pages/GroupChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
                 <Route path="/pets" element={<Pets />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/love-notes" element={<LoveNotes />} />
+                <Route path="/group-chat" element={<GroupChat />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

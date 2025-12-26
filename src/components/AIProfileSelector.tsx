@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Baby, PawPrint } from "lucide-react";
+import { Baby, PawPrint, Users } from "lucide-react";
 
 export const AIProfileSelector = () => {
   const { activeProfile, profiles, switchProfile, isLoading } = useAIProfile();
@@ -25,6 +25,8 @@ export const AIProfileSelector = () => {
       navigate("/children");
     } else if (value === "pets") {
       navigate("/pets");
+    } else if (value === "group-chat") {
+      navigate("/group-chat");
     } else if (value.startsWith("child-")) {
       // Switching to a child conversation
       const childId = value.replace("child-", "");
@@ -50,7 +52,7 @@ export const AIProfileSelector = () => {
           name: profile.name || `AI Being ${profile.profile_number}`
         });
       }
-      if (location.pathname !== "/chat") {
+      if (location.pathname !== "/chat" && location.pathname !== "/group-chat") {
         navigate("/chat");
       }
     }
@@ -62,6 +64,8 @@ export const AIProfileSelector = () => {
     currentValue = "children";
   } else if (location.pathname === "/pets") {
     currentValue = "pets";
+  } else if (location.pathname === "/group-chat") {
+    currentValue = "group-chat";
   } else if (activeChatEntity?.type === "child") {
     currentValue = `child-${activeChatEntity.childId}`;
   }
@@ -80,6 +84,8 @@ export const AIProfileSelector = () => {
             ? "Children" 
             : location.pathname === "/pets"
             ? "Pets"
+            : location.pathname === "/group-chat"
+            ? "Family Chat"
             : activeChatEntity?.name || (activeProfile.name || `AI Being ${activeProfile.profile_number}`)}
         </SelectValue>
       </SelectTrigger>
@@ -100,6 +106,12 @@ export const AIProfileSelector = () => {
         </SelectItem>
         <SelectItem value="3" className="text-sm">
           {getProfileDisplayName(3)}
+        </SelectItem>
+        <SelectItem value="group-chat" className="text-sm">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-primary" />
+            Family Chat
+          </div>
         </SelectItem>
         
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
