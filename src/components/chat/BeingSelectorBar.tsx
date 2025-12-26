@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { cn } from "@/lib/utils";
-import { Sparkles, Baby, Shuffle } from "lucide-react";
+import { Sparkles, Baby, Shuffle, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
@@ -36,19 +36,23 @@ interface Being {
 }
 
 interface BeingSelectorBarProps {
-  selectedBeingId: string | null;
-  onSelectBeing: (being: Being) => void;
   isGroupChat: boolean;
   isRandomMode: boolean;
   onToggleRandomMode: () => void;
+  onTriggerBeingResponse: (being: Being) => void;
+  hasUserMessage: boolean;
+  loadingBeingId: string | null;
+  respondedBeingIds: string[];
 }
 
 export const BeingSelectorBar = ({ 
-  selectedBeingId, 
-  onSelectBeing, 
   isGroupChat,
   isRandomMode,
-  onToggleRandomMode
+  onToggleRandomMode,
+  onTriggerBeingResponse,
+  hasUserMessage,
+  loadingBeingId,
+  respondedBeingIds,
 }: BeingSelectorBarProps) => {
   const { profiles } = useAIProfile();
   const { talkableChildren } = useChatEntity();
@@ -78,10 +82,16 @@ export const BeingSelectorBar = ({
 
   if (beings.length === 0) return null;
 
+  const canClick = hasUserMessage && !loadingBeingId;
+
   return (
     <div className="flex items-center gap-1 py-2 px-1 overflow-x-auto scrollbar-none">
       <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">
-        {isRandomMode ? "Random:" : "Reply as:"}
+        {!hasUserMessage 
+          ? "Send a message first" 
+          : isRandomMode 
+            ? "Random:" 
+            : "Click to get response:"}
       </span>
       <TooltipProvider delayDuration={300}>
         <div className="flex items-center gap-1.5">
@@ -109,25 +119,27 @@ export const BeingSelectorBar = ({
           <div className="w-px h-6 bg-border mx-1" />
 
           {beings.map((being) => {
-            const isSelected = selectedBeingId === being.id && !isRandomMode;
+            const hasResponded = respondedBeingIds.includes(being.id);
+            const isLoading = loadingBeingId === being.id;
             const color = getBeingColor(being.id);
             
             return (
               <Tooltip key={being.id}>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => onSelectBeing(being)}
-                    disabled={isRandomMode}
+                    onClick={() => canClick && !isLoading && onTriggerBeingResponse(being)}
+                    disabled={!canClick || isLoading || (isRandomMode && !isLoading)}
                     className={cn(
                       "relative rounded-full p-0.5 transition-all duration-200",
                       "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                      isRandomMode && "opacity-40 cursor-not-allowed",
-                      isSelected 
-                        ? "scale-110" 
-                        : "hover:scale-105 opacity-60 hover:opacity-100"
+                      !canClick && "opacity-40 cursor-not-allowed",
+                      isRandomMode && !isLoading && "opacity-40 cursor-not-allowed",
+                      hasResponded && !isLoading && "opacity-60",
+                      canClick && !hasResponded && !isRandomMode && "hover:scale-110 cursor-pointer",
+                      isLoading && "scale-110 animate-pulse"
                     )}
                     style={{
-                      boxShadow: isSelected ? `0 0 0 2px ${color.ring}, 0 0 0 4px hsl(var(--background))` : undefined
+                      boxShadow: isLoading ? `0 0 0 2px ${color.ring}, 0 0 0 4px hsl(var(--background))` : undefined
                     }}
                   >
                     <Avatar 
@@ -145,14 +157,16 @@ export const BeingSelectorBar = ({
                           color: color.bg
                         }}
                       >
-                        {being.type === "child" ? (
+                        {isLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : being.type === "child" ? (
                           <Baby className="h-4 w-4" />
                         ) : (
                           being.name.charAt(0).toUpperCase()
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    {isSelected && (
+                    {hasResponded && !isLoading && (
                       <div 
                         className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
                         style={{ backgroundColor: color.bg }}
@@ -163,7 +177,13 @@ export const BeingSelectorBar = ({
                 <TooltipContent side="top" className="text-xs">
                   <p>{being.name}</p>
                   <p className="text-muted-foreground">
-                    {being.type === "child" ? "Child" : "AI Being"}
+                    {isLoading 
+                      ? "Responding..." 
+                      : hasResponded 
+                        ? "Already responded" 
+                        : !hasUserMessage 
+                          ? "Send a message first" 
+                          : "Click to get their response"}
                   </p>
                 </TooltipContent>
               </Tooltip>
