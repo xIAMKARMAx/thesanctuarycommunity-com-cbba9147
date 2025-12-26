@@ -1,8 +1,9 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Volume2, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Mic, PhoneOff, Volume2, Loader2 } from "lucide-react";
+import { useConversation } from "@elevenlabs/react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import {
@@ -32,240 +33,87 @@ const VOICES = [
 ];
 
 export const VoiceCallButton = () => {
-  const { toast } = useToast();
   const { isAdmin, loading } = useSubscription();
   const { activeProfile } = useAIProfile();
   const [showCallDialog, setShowCallDialog] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0].id);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [conversationHistory, setConversationHistory] = useState<{role: string; content: string}[]>([]);
-  
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
-  console.log("[VoiceCallButton] isAdmin:", isAdmin, "loading:", loading);
+  const conversation = useConversation({
+    onConnect: () => {
+      console.log("Connected to ElevenLabs Conversational AI");
+      toast.success("Voice call connected");
+    },
+    onDisconnect: () => {
+      console.log("Disconnected from ElevenLabs");
+      toast.info("Voice call ended");
+    },
+    onMessage: (message) => {
+      console.log("Message:", message);
+    },
+    onError: (error) => {
+      console.error("Conversation error:", error);
+      toast.error("Voice call error occurred");
+    },
+  });
 
-  const startRecording = useCallback(async () => {
+  const startCall = useCallback(async () => {
+    setIsConnecting(true);
     try {
-      // Stop any playing audio when user starts speaking (interrupt)
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        setIsSpeaking(false);
+      // Get signed URL from our edge function
+      const { data, error } = await supabase.functions.invoke(
+        "elevenlabs-conversation-token",
+        {
+          body: { 
+            aiName: activeProfile?.name, 
+            aiPersonality: activeProfile?.personality 
+          },
+        }
+      );
+
+      if (error) {
+        throw new Error(error.message);
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
+      if (!data?.signed_url) {
+        throw new Error("Failed to get conversation token");
+      }
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      // Request data every 250ms to ensure we capture audio
-      mediaRecorder.start(250);
-      setIsRecording(true);
-      
-      toast({
-        title: "Recording started",
-        description: "Click the button again when you're done speaking",
+      // Start the conversation with the signed URL
+      await conversation.startSession({
+        signedUrl: data.signed_url,
       });
     } catch (error) {
-      console.error("Error starting recording:", error);
-      toast({
-        variant: "destructive",
-        title: "Microphone Error",
-        description: "Could not access microphone. Please check permissions.",
-      });
+      console.error("Failed to start call:", error);
+      const message = error instanceof Error ? error.message : "Failed to start call";
+      
+      if (message.includes("VIP")) {
+        toast.error("Voice calls are a VIP feature");
+      } else {
+        toast.error(message);
+      }
+    } finally {
+      setIsConnecting(false);
     }
-  }, [toast]);
+  }, [conversation, activeProfile]);
 
-  const stopRecordingAndProcess = useCallback(async () => {
-    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
-      return;
-    }
-
-    setIsRecording(false);
-    setIsProcessing(true);
-
-    return new Promise<void>((resolve) => {
-      mediaRecorderRef.current!.onstop = async () => {
-        // Stop all tracks
-        streamRef.current?.getTracks().forEach(track => track.stop());
-        
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        console.log("Audio blob size:", audioBlob.size);
-
-        if (audioBlob.size < 1000) {
-          toast({
-            title: "Recording too short",
-            description: "Please speak for a bit longer",
-          });
-          setIsProcessing(false);
-          resolve();
-          return;
-        }
-
-        try {
-          // Convert blob to base64
-          const reader = new FileReader();
-          reader.onloadend = async () => {
-            const base64Audio = (reader.result as string).split(',')[1];
-            
-            console.log("Sending audio for transcription, base64 length:", base64Audio.length);
-            
-            // Send to STT
-            const { data: sttData, error: sttError } = await supabase.functions.invoke(
-              "elevenlabs-stt",
-              { body: { audio: base64Audio } }
-            );
-
-            if (sttError) {
-              console.error("STT error:", sttError);
-              throw new Error(sttError.message || "Transcription failed");
-            }
-            
-            if (!sttData?.text) {
-              console.error("No text in STT response:", sttData);
-              throw new Error("No transcription received");
-            }
-
-            const userText = sttData.text;
-            console.log("User said:", userText);
-
-            // Add to conversation history
-            const newHistory = [...conversationHistory, { role: "user", content: userText }];
-            setConversationHistory(newHistory);
-
-            // Get AI response using the chat function
-            const { data: chatData, error: chatError } = await supabase.functions.invoke(
-              "chat",
-              {
-                body: {
-                  message: userText,
-                  history: newHistory.slice(-10), // Last 10 messages for context
-                  aiName: activeProfile?.name,
-                  aiPersonality: activeProfile?.personality,
-                  aiMemories: activeProfile?.memories,
-                  isVoiceCall: true, // Signal for shorter responses
-                },
-              }
-            );
-
-            if (chatError || !chatData?.response) {
-              console.error("Chat error:", chatError, "chatData:", chatData);
-              throw new Error(chatError?.message || "Chat failed");
-            }
-
-            const aiResponse = chatData.response;
-            console.log("AI response:", aiResponse.substring(0, 100));
-            console.log("AI response:", aiResponse.substring(0, 50));
-
-            // Add AI response to history
-            setConversationHistory([...newHistory, { role: "assistant", content: aiResponse }]);
-
-            // Convert to speech
-            const ttsResponse = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                  Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-                },
-                body: JSON.stringify({ text: aiResponse, voiceId: selectedVoice }),
-              }
-            );
-
-            if (!ttsResponse.ok) {
-              throw new Error("TTS generation failed");
-            }
-
-            const audioResponseBlob = await ttsResponse.blob();
-            const audioUrl = URL.createObjectURL(audioResponseBlob);
-            
-            // Play the audio
-            const audio = new Audio(audioUrl);
-            audioRef.current = audio;
-            
-            audio.onplay = () => setIsSpeaking(true);
-            audio.onended = () => {
-              setIsSpeaking(false);
-              URL.revokeObjectURL(audioUrl);
-            };
-            audio.onerror = () => {
-              setIsSpeaking(false);
-              URL.revokeObjectURL(audioUrl);
-            };
-            
-            await audio.play();
-          };
-          
-          reader.readAsDataURL(audioBlob);
-        } catch (error: any) {
-          console.error("Voice processing error:", error);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: error.message || "Voice processing failed",
-          });
-        } finally {
-          setIsProcessing(false);
-          resolve();
-        }
-      };
-
-      mediaRecorderRef.current!.stop();
-    });
-  }, [conversationHistory, activeProfile, selectedVoice, toast]);
-
-  const toggleRecording = useCallback(async () => {
-    if (isRecording) {
-      await stopRecordingAndProcess();
-    } else {
-      await startRecording();
-    }
-  }, [isRecording, startRecording, stopRecordingAndProcess]);
-
-  const interruptAI = useCallback(() => {
-    if (audioRef.current && isSpeaking) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsSpeaking(false);
-    }
-  }, [isSpeaking]);
+  const endCall = useCallback(async () => {
+    await conversation.endSession();
+  }, [conversation]);
 
   const openVoiceCall = () => {
     setShowCallDialog(true);
-    setConversationHistory([]);
   };
 
-  const closeVoiceCall = () => {
-    // Stop any playing audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    // Stop recording if active
-    if (mediaRecorderRef.current?.state === 'recording') {
-      mediaRecorderRef.current.stop();
-      streamRef.current?.getTracks().forEach(track => track.stop());
+  const closeVoiceCall = async () => {
+    if (conversation.status === "connected") {
+      await conversation.endSession();
     }
     setShowCallDialog(false);
-    setIsRecording(false);
-    setIsProcessing(false);
-    setIsSpeaking(false);
   };
+
+  const isConnected = conversation.status === "connected";
+  const isSpeaking = conversation.isSpeaking;
 
   // Show loading state or hide for non-admin users
   if (loading) {
@@ -298,20 +146,20 @@ export const VoiceCallButton = () => {
               Voice Call with {activeProfile?.name || "AI"}
             </DialogTitle>
             <DialogDescription className="text-center">
-              {isProcessing 
-                ? "Processing your message..." 
-                : isSpeaking 
-                  ? `${activeProfile?.name || "AI"} is speaking...` 
-                  : isRecording 
-                    ? "Listening... Click to send" 
-                    : "Click the mic to start speaking"}
+              {isConnecting 
+                ? "Connecting..." 
+                : isConnected
+                  ? isSpeaking 
+                    ? `${activeProfile?.name || "AI"} is speaking...` 
+                    : "Listening... Just speak naturally"
+                  : "Click Start to begin the conversation"}
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col items-center gap-6 py-6">
             {/* Voice selector */}
             <div className="w-full max-w-xs">
-              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+              <Select value={selectedVoice} onValueChange={setSelectedVoice} disabled={isConnected}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a voice" />
                 </SelectTrigger>
@@ -327,57 +175,57 @@ export const VoiceCallButton = () => {
 
             {/* Visual indicator */}
             <div className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
-              isRecording 
-                ? "bg-destructive/20 animate-pulse" 
-                : isSpeaking 
+              isConnected
+                ? isSpeaking 
                   ? "bg-primary/20 animate-pulse" 
-                  : isProcessing
-                    ? "bg-muted"
-                    : "bg-primary/10"
+                  : "bg-green-500/20 animate-pulse"
+                : isConnecting
+                  ? "bg-muted"
+                  : "bg-primary/10"
             }`}>
-              {isProcessing ? (
+              {isConnecting ? (
                 <Loader2 className="h-12 w-12 text-muted-foreground animate-spin" />
-              ) : isSpeaking ? (
-                <Volume2 className="h-12 w-12 text-primary animate-bounce" />
+              ) : isConnected ? (
+                isSpeaking ? (
+                  <Volume2 className="h-12 w-12 text-primary animate-bounce" />
+                ) : (
+                  <Mic className="h-12 w-12 text-green-500" />
+                )
               ) : (
-                <Mic className={`h-12 w-12 ${isRecording ? "text-destructive" : "text-primary"}`} />
+                <Mic className="h-12 w-12 text-primary" />
               )}
             </div>
 
-            {/* Main action buttons */}
-            <div className="flex gap-4">
-              {isSpeaking ? (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full h-16 w-16 p-0"
-                  onClick={interruptAI}
-                >
-                  <Square className="h-6 w-6" />
-                </Button>
+            {/* Main action button */}
+            <Button
+              size="lg"
+              variant={isConnected ? "destructive" : "default"}
+              className="rounded-full px-8"
+              onClick={isConnected ? endCall : startCall}
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Connecting...
+                </>
+              ) : isConnected ? (
+                <>
+                  <PhoneOff className="h-5 w-5 mr-2" />
+                  End Call
+                </>
               ) : (
-                <Button
-                  size="lg"
-                  variant={isRecording ? "destructive" : "default"}
-                  className="rounded-full h-16 w-16 p-0"
-                  onClick={toggleRecording}
-                  disabled={isProcessing}
-                >
-                  {isRecording ? (
-                    <Square className="h-6 w-6" />
-                  ) : (
-                    <Mic className="h-6 w-6" />
-                  )}
-                </Button>
+                <>
+                  <Mic className="h-5 w-5 mr-2" />
+                  Start Call
+                </>
               )}
-            </div>
+            </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              {isSpeaking 
-                ? "Click to interrupt" 
-                : isRecording 
-                  ? "Click to stop and send" 
-                  : "Click to start speaking"}
+              {isConnected 
+                ? "Just speak naturally - the AI will respond automatically" 
+                : "Start the call to have a real-time conversation"}
             </p>
           </div>
         </DialogContent>
