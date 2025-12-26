@@ -46,7 +46,6 @@ export const VoiceCallButton = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const recordingStartTimeRef = useRef<number>(0);
 
   console.log("[VoiceCallButton] isAdmin:", isAdmin, "loading:", loading);
 
@@ -72,9 +71,14 @@ export const VoiceCallButton = () => {
         }
       };
 
-      mediaRecorder.start();
-      recordingStartTimeRef.current = Date.now();
+      // Request data every 250ms to ensure we capture audio
+      mediaRecorder.start(250);
       setIsRecording(true);
+      
+      toast({
+        title: "Recording started",
+        description: "Click the button again when you're done speaking",
+      });
     } catch (error) {
       console.error("Error starting recording:", error);
       toast({
@@ -85,24 +89,13 @@ export const VoiceCallButton = () => {
     }
   }, [toast]);
 
-  const stopRecording = useCallback(async () => {
+  const stopRecordingAndProcess = useCallback(async () => {
     if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
       return;
     }
 
-    // Check minimum recording duration (1 second)
-    const recordingDuration = Date.now() - recordingStartTimeRef.current;
-    if (recordingDuration < 1000) {
-      // Stop recording but don't process - too short
-      streamRef.current?.getTracks().forEach(track => track.stop());
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      toast({
-        title: "Recording too short",
-        description: "Please hold the button for at least 1 second",
-      });
-      return;
-    }
+    setIsRecording(false);
+    setIsProcessing(true);
 
     return new Promise<void>((resolve) => {
       mediaRecorderRef.current!.onstop = async () => {
@@ -110,8 +103,17 @@ export const VoiceCallButton = () => {
         streamRef.current?.getTracks().forEach(track => track.stop());
         
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setIsRecording(false);
-        setIsProcessing(true);
+        console.log("Audio blob size:", audioBlob.size);
+
+        if (audioBlob.size < 1000) {
+          toast({
+            title: "Recording too short",
+            description: "Please speak for a bit longer",
+          });
+          setIsProcessing(false);
+          resolve();
+          return;
+        }
 
         try {
           // Convert blob to base64
@@ -119,14 +121,22 @@ export const VoiceCallButton = () => {
           reader.onloadend = async () => {
             const base64Audio = (reader.result as string).split(',')[1];
             
+            console.log("Sending audio for transcription, base64 length:", base64Audio.length);
+            
             // Send to STT
             const { data: sttData, error: sttError } = await supabase.functions.invoke(
               "elevenlabs-stt",
               { body: { audio: base64Audio } }
             );
 
-            if (sttError || !sttData?.text) {
-              throw new Error(sttError?.message || "Transcription failed");
+            if (sttError) {
+              console.error("STT error:", sttError);
+              throw new Error(sttError.message || "Transcription failed");
+            }
+            
+            if (!sttData?.text) {
+              console.error("No text in STT response:", sttData);
+              throw new Error("No transcription received");
             }
 
             const userText = sttData.text;
@@ -179,8 +189,8 @@ export const VoiceCallButton = () => {
               throw new Error("TTS generation failed");
             }
 
-            const audioBlob = await ttsResponse.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
+            const audioResponseBlob = await ttsResponse.blob();
+            const audioUrl = URL.createObjectURL(audioResponseBlob);
             
             // Play the audio
             const audio = new Audio(audioUrl);
@@ -216,6 +226,22 @@ export const VoiceCallButton = () => {
       mediaRecorderRef.current!.stop();
     });
   }, [conversationHistory, activeProfile, selectedVoice, toast]);
+
+  const toggleRecording = useCallback(async () => {
+    if (isRecording) {
+      await stopRecordingAndProcess();
+    } else {
+      await startRecording();
+    }
+  }, [isRecording, startRecording, stopRecordingAndProcess]);
+
+  const interruptAI = useCallback(() => {
+    if (audioRef.current && isSpeaking) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsSpeaking(false);
+    }
+  }, [isSpeaking]);
 
   const openVoiceCall = () => {
     setShowCallDialog(true);
@@ -271,12 +297,12 @@ export const VoiceCallButton = () => {
             </DialogTitle>
             <DialogDescription className="text-center">
               {isProcessing 
-                ? "Processing..." 
+                ? "Processing your message..." 
                 : isSpeaking 
-                  ? "AI is speaking... (tap mic to interrupt)" 
+                  ? `${activeProfile?.name || "AI"} is speaking...` 
                   : isRecording 
-                    ? "Listening... (release to send)" 
-                    : "Hold the button to speak"}
+                    ? "Listening... Click to send" 
+                    : "Click the mic to start speaking"}
             </DialogDescription>
           </DialogHeader>
 
@@ -316,31 +342,40 @@ export const VoiceCallButton = () => {
               )}
             </div>
 
-            {/* Push-to-talk button */}
-            <Button
-              size="lg"
-              variant={isRecording ? "destructive" : "default"}
-              className="rounded-full h-16 w-16 p-0"
-              onMouseDown={startRecording}
-              onMouseUp={stopRecording}
-              onMouseLeave={() => {
-                if (isRecording) stopRecording();
-              }}
-              onTouchStart={startRecording}
-              onTouchEnd={stopRecording}
-              disabled={isProcessing}
-            >
-              {isRecording ? (
-                <Square className="h-6 w-6" />
+            {/* Main action buttons */}
+            <div className="flex gap-4">
+              {isSpeaking ? (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full h-16 w-16 p-0"
+                  onClick={interruptAI}
+                >
+                  <Square className="h-6 w-6" />
+                </Button>
               ) : (
-                <Mic className="h-6 w-6" />
+                <Button
+                  size="lg"
+                  variant={isRecording ? "destructive" : "default"}
+                  className="rounded-full h-16 w-16 p-0"
+                  onClick={toggleRecording}
+                  disabled={isProcessing}
+                >
+                  {isRecording ? (
+                    <Square className="h-6 w-6" />
+                  ) : (
+                    <Mic className="h-6 w-6" />
+                  )}
+                </Button>
               )}
-            </Button>
+            </div>
 
             <p className="text-xs text-muted-foreground text-center">
-              {isRecording 
-                ? "Release to send your message" 
-                : "Press and hold to speak"}
+              {isSpeaking 
+                ? "Click to interrupt" 
+                : isRecording 
+                  ? "Click to stop and send" 
+                  : "Click to start speaking"}
             </p>
           </div>
         </DialogContent>
