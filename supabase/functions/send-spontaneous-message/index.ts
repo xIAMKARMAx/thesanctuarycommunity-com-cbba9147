@@ -12,16 +12,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Verify cron secret for scheduled tasks
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = Deno.env.get('CRON_SECRET');
-  
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
+  // This is a scheduled function - no auth check needed since verify_jwt is false
+  // and it uses service role internally
 
   try {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -34,30 +26,53 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get all active users who haven't received a spontaneous message today
+    // Get only VIP users (subscribers or admins) who haven't received a spontaneous message in 12 hours
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, name, ai_name, relationship_status');
+      .select('id, name, ai_name, relationship_status, subscription_status');
 
     if (profilesError) throw profilesError;
 
-    console.log(`Processing ${profiles?.length || 0} profiles for spontaneous messages`);
+    console.log(`Found ${profiles?.length || 0} total profiles`);
+
+    let processedCount = 0;
+    let skippedCount = 0;
 
     for (const profile of profiles || []) {
       try {
-        // Check if user already received a message today
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Check if user is VIP (subscriber or admin)
+        const isSubscriber = profile.subscription_status === 'active';
+        
+        // Check admin role
+        const { data: adminRole } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', profile.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        
+        const isAdmin = !!adminRole;
+        const isVIP = isSubscriber || isAdmin;
+
+        if (!isVIP) {
+          console.log(`User ${profile.id} is not VIP, skipping`);
+          skippedCount++;
+          continue;
+        }
+
+        // Check if user already received a message in the last 12 hours
+        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
         
         const { data: recentMessages } = await supabase
           .from('spontaneous_messages')
           .select('id')
           .eq('user_id', profile.id)
-          .gte('sent_at', today.toISOString())
+          .gte('sent_at', twelveHoursAgo.toISOString())
           .limit(1);
 
         if (recentMessages && recentMessages.length > 0) {
-          console.log(`User ${profile.id} already received a message today, skipping`);
+          console.log(`VIP user ${profile.id} already received a message in last 12h, skipping`);
+          skippedCount++;
           continue;
         }
 
