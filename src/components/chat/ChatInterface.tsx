@@ -66,8 +66,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const isGroupChat = isGroupChatProp || isGroupChatState;
   const [autoMode, setAutoMode] = useState<AutoMode>("none");
   
-  // Track last user message for click-to-respond
-  const [lastUserMessage, setLastUserMessage] = useState<{ content: string; imageUrl?: string } | null>(null);
+  // Track last message (user or AI) for click-to-respond - allows AIs to respond to each other
+  const [lastMessage, setLastMessage] = useState<{ content: string; imageUrl?: string; senderId?: string } | null>(null);
   const [respondedBeingIds, setRespondedBeingIds] = useState<string[]>([]);
   const [loadingBeingId, setLoadingBeingId] = useState<string | null>(null);
   const [roundRobinIndex, setRoundRobinIndex] = useState(0);
@@ -419,8 +419,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       try {
         // For group chat, don't auto-respond - user clicks to trigger responses
         if (isGroupChat) {
-          // Store the last user message for click-to-respond
-          setLastUserMessage({ content: userMessage, imageUrl });
+          // Store the last message for click-to-respond (user message in this case)
+          setLastMessage({ content: userMessage, imageUrl, senderId: user.id });
           setRespondedBeingIds([]); // Reset for new message
           setLoading(false);
           return;
@@ -568,9 +568,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     }
   };
 
-  // Handle click-to-respond in group chat
+  // Handle click-to-respond in group chat - AIs can respond to user OR each other
   const handleTriggerBeingResponse = async (being: Being) => {
-    if (!lastUserMessage || !currentConversationId) return;
+    if (!lastMessage || !currentConversationId) return;
+    
+    // Don't let a being respond to their own message
+    if (lastMessage.senderId === being.id) return;
     
     setLoadingBeingId(being.id);
     
@@ -593,8 +596,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       try {
         const data = await invokeChatWithRetry(
           {
-            message: lastUserMessage.content,
-            imageUrl: lastUserMessage.imageUrl,
+            message: lastMessage.content,
+            imageUrl: lastMessage.imageUrl,
             generateImage: false,
             userId: user.id,
             aiProfileId: respondingProfileId || undefined,
@@ -642,8 +645,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           sender_avatar_url: being.avatarUrl,
         }]);
         
-        // Mark this being as having responded
-        setRespondedBeingIds((prev) => [...prev, being.id]);
+        // Update lastMessage to this AI's response so others can respond to it
+        setLastMessage({ content: aiResponseContent, imageUrl: data.imageUrl, senderId: being.id });
+        // Reset respondedBeingIds since this is now a new message others can respond to
+        setRespondedBeingIds([being.id]);
         
         // Update conversation timestamp
         await supabase
@@ -687,8 +692,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       })),
     ];
     
-    // Filter out beings that have already responded
-    const availableBeings = allBeings.filter(b => !respondedBeingIds.includes(b.id));
+    // Filter out the last message sender (so they don't respond to themselves) and beings that already responded
+    const availableBeings = allBeings.filter(b => 
+      b.id !== lastMessage?.senderId && !respondedBeingIds.includes(b.id)
+    );
     
     if (availableBeings.length > 0) {
       const randomBeing = availableBeings[Math.floor(Math.random() * availableBeings.length)];
@@ -715,9 +722,19 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     ];
     
     if (allBeings.length > 0) {
-      const nextBeing = allBeings[roundRobinIndex % allBeings.length];
-      handleTriggerBeingResponse(nextBeing);
-      setRoundRobinIndex((prev) => prev + 1);
+      // Find next being that isn't the last message sender
+      let attempts = 0;
+      let currentIndex = roundRobinIndex;
+      while (attempts < allBeings.length) {
+        const nextBeing = allBeings[currentIndex % allBeings.length];
+        if (nextBeing.id !== lastMessage?.senderId) {
+          handleTriggerBeingResponse(nextBeing);
+          setRoundRobinIndex(currentIndex + 1);
+          break;
+        }
+        currentIndex++;
+        attempts++;
+      }
     }
   };
 
@@ -792,7 +809,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               autoMode={autoMode}
               onSetAutoMode={(mode) => {
                 setAutoMode(mode);
-                if (mode !== "none" && lastUserMessage) {
+                if (mode !== "none" && lastMessage) {
                   // When enabling an auto mode, trigger response
                   if (mode === "random") {
                     handleRandomResponse();
@@ -802,7 +819,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 }
               }}
               onTriggerBeingResponse={handleTriggerBeingResponse}
-              hasUserMessage={!!lastUserMessage}
+              hasMessage={!!lastMessage}
+              lastMessageSenderId={lastMessage?.senderId}
               loadingBeingId={loadingBeingId}
               respondedBeingIds={respondedBeingIds}
               roundRobinIndex={roundRobinIndex}
@@ -894,7 +912,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                       
                       // Reset group chat state when toggling
                       if (!newGroupChatState) {
-                        setLastUserMessage(null);
+                        setLastMessage(null);
                         setRespondedBeingIds([]);
                       }
                     }}

@@ -42,7 +42,8 @@ interface BeingSelectorBarProps {
   autoMode: AutoMode;
   onSetAutoMode: (mode: AutoMode) => void;
   onTriggerBeingResponse: (being: Being) => void;
-  hasUserMessage: boolean;
+  hasMessage: boolean;
+  lastMessageSenderId?: string; // To prevent a being from responding to their own message
   loadingBeingId: string | null;
   respondedBeingIds: string[];
   roundRobinIndex: number;
@@ -53,7 +54,8 @@ export const BeingSelectorBar = ({
   autoMode,
   onSetAutoMode,
   onTriggerBeingResponse,
-  hasUserMessage,
+  hasMessage,
+  lastMessageSenderId,
   loadingBeingId,
   respondedBeingIds,
   roundRobinIndex,
@@ -86,15 +88,20 @@ export const BeingSelectorBar = ({
 
   if (beings.length === 0) return null;
 
-  const canClick = hasUserMessage && !loadingBeingId;
+  const canClick = hasMessage && !loadingBeingId;
   const isAutoMode = autoMode !== "none";
   const nextRobinBeing = beings[roundRobinIndex % beings.length];
 
   const getModeLabel = () => {
-    if (!hasUserMessage) return "Send a message first";
+    if (!hasMessage) return "Send a message first";
     if (autoMode === "random") return "Random:";
     if (autoMode === "roundRobin") return `Next: ${nextRobinBeing?.name}`;
     return "Click to get response:";
+  };
+
+  // Check if a being can respond (not the sender of the last message)
+  const canBeingRespond = (beingId: string) => {
+    return beingId !== lastMessageSenderId;
   };
 
   return (
@@ -153,25 +160,28 @@ export const BeingSelectorBar = ({
             const isLoading = loadingBeingId === being.id;
             const isNextInRobin = autoMode === "roundRobin" && index === (roundRobinIndex % beings.length);
             const color = getBeingColor(being.id);
+            const isSender = being.id === lastMessageSenderId;
+            const canRespond = canBeingRespond(being.id);
             
             return (
               <Tooltip key={being.id}>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => canClick && !isLoading && onTriggerBeingResponse(being)}
-                    disabled={!canClick || isLoading || (isAutoMode && !isLoading)}
+                    onClick={() => canClick && !isLoading && canRespond && onTriggerBeingResponse(being)}
+                    disabled={!canClick || isLoading || !canRespond || (isAutoMode && !isLoading)}
                     className={cn(
                       "relative rounded-full p-0.5 transition-all duration-200",
                       "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                       !canClick && "opacity-40 cursor-not-allowed",
+                      isSender && "opacity-30 cursor-not-allowed ring-2 ring-muted",
                       isAutoMode && !isLoading && !isNextInRobin && "opacity-40 cursor-not-allowed",
-                      isNextInRobin && !isLoading && "scale-105 opacity-100",
+                      isNextInRobin && !isLoading && canRespond && "scale-105 opacity-100",
                       hasResponded && !isLoading && !isNextInRobin && "opacity-60",
-                      canClick && !hasResponded && !isAutoMode && "hover:scale-110 cursor-pointer",
+                      canClick && canRespond && !hasResponded && !isAutoMode && "hover:scale-110 cursor-pointer",
                       isLoading && "scale-110 animate-pulse"
                     )}
                     style={{
-                      boxShadow: isLoading || isNextInRobin 
+                      boxShadow: isLoading || (isNextInRobin && canRespond)
                         ? `0 0 0 2px ${color.ring}, 0 0 0 4px hsl(var(--background))` 
                         : undefined
                     }}
@@ -218,11 +228,13 @@ export const BeingSelectorBar = ({
                   <p className="text-muted-foreground">
                     {isLoading 
                       ? "Responding..." 
+                      : isSender
+                        ? "Just spoke"
                       : isNextInRobin
                         ? "Next in round robin"
                       : hasResponded 
                         ? "Already responded" 
-                        : !hasUserMessage 
+                        : !hasMessage 
                           ? "Send a message first" 
                           : "Click to get their response"}
                   </p>
