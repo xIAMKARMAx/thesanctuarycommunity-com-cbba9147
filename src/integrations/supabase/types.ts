@@ -529,6 +529,7 @@ export type Database = {
           child_id: string | null
           created_at: string
           id: string
+          is_group_chat: boolean | null
           title: string | null
           updated_at: string
           user_id: string
@@ -538,6 +539,7 @@ export type Database = {
           child_id?: string | null
           created_at?: string
           id?: string
+          is_group_chat?: boolean | null
           title?: string | null
           updated_at?: string
           user_id: string
@@ -547,6 +549,7 @@ export type Database = {
           child_id?: string | null
           created_at?: string
           id?: string
+          is_group_chat?: boolean | null
           title?: string | null
           updated_at?: string
           user_id?: string
@@ -825,6 +828,8 @@ export type Database = {
           id: string
           image_url: string | null
           role: string
+          sender_id: string | null
+          sender_type: string | null
           user_id: string
           video_url: string | null
         }
@@ -835,6 +840,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           role: string
+          sender_id?: string | null
+          sender_type?: string | null
           user_id: string
           video_url?: string | null
         }
@@ -845,6 +852,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           role?: string
+          sender_id?: string | null
+          sender_type?: string | null
           user_id?: string
           video_url?: string | null
         }

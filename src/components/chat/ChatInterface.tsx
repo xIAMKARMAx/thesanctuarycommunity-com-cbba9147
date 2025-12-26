@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import ChatMessage from "./ChatMessage";
+import { BeingSelectorBar, Being } from "./BeingSelectorBar";
 
 import { MoodNotificationBadge } from "./MoodNotificationBadge";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
@@ -25,6 +26,10 @@ interface Message {
   image_url?: string;
   video_url?: string;
   created_at: string;
+  sender_type?: "user" | "ai_profile" | "child";
+  sender_id?: string;
+  sender_name?: string;
+  sender_avatar_url?: string;
 }
 
 interface ChatInterfaceProps {
@@ -36,8 +41,8 @@ interface ChatInterfaceProps {
 const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations }: ChatInterfaceProps) => {
   const { toast } = useToast();
   const { canGenerateImage, isSubscribed, canSendMessage, incrementMessageCount, freeUserLimits } = useSubscription();
-  const { activeProfile } = useAIProfile();
-  const { activeChatEntity } = useChatEntity();
+  const { activeProfile, profiles } = useAIProfile();
+  const { activeChatEntity, talkableChildren } = useChatEntity();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,6 +59,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [loadingText, setLoadingText] = useState("Connecting...");
   const [isRetrying, setIsRetrying] = useState(false);
   const loadingStartTime = useRef<number | null>(null);
+  
+  // Group chat state
+  const [isGroupChat, setIsGroupChat] = useState(false);
+  const [selectedBeing, setSelectedBeing] = useState<Being | null>(null);
 
   // Save scroll position when scrolling
   const saveScrollPosition = () => {
@@ -164,10 +173,39 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       return;
     }
 
-    setMessages((data || []).map(msg => ({
-      ...msg,
-      role: msg.role as "user" | "assistant"
-    })));
+    // Also check if this is a group chat
+    const { data: convData } = await supabase
+      .from("conversations")
+      .select("is_group_chat")
+      .eq("id", conversationId)
+      .single();
+    
+    setIsGroupChat(convData?.is_group_chat || false);
+
+    // Enrich messages with sender info
+    const enrichedMessages = await Promise.all((data || []).map(async (msg) => {
+      let sender_name: string | undefined;
+      let sender_avatar_url: string | undefined;
+      
+      if (msg.sender_type === "ai_profile" && msg.sender_id) {
+        const profile = profiles.find(p => p.id === msg.sender_id);
+        sender_name = profile?.name || undefined;
+        sender_avatar_url = profile?.avatar_image_url || undefined;
+      } else if (msg.sender_type === "child" && msg.sender_id) {
+        const child = talkableChildren.find(c => c.id === msg.sender_id);
+        sender_name = child?.first_name;
+      }
+      
+      return {
+        ...msg,
+        role: msg.role as "user" | "assistant",
+        sender_type: msg.sender_type as "user" | "ai_profile" | "child" | undefined,
+        sender_name,
+        sender_avatar_url,
+      };
+    }));
+
+    setMessages(enrichedMessages);
   };
 
   const scrollToBottom = () => {
@@ -292,6 +330,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             ai_profile_id: activeChatEntity?.type === "child" ? null : activeProfile?.id,
             child_id: activeChatEntity?.type === "child" ? activeChatEntity.childId : null,
             title: userMessage.slice(0, 50) + (userMessage.length > 50 ? "..." : ""),
+            is_group_chat: isGroupChat,
           })
           .select()
           .single();
@@ -326,7 +365,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Save user message to database
+      // Save user message to database with sender tracking
       const { data: userMessageData, error: userMsgError } = await supabase
         .from("messages")
         .insert({
@@ -335,6 +374,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           content: userMessage,
           image_url: imageUrl,
           user_id: user.id,
+          sender_type: "user",
+          sender_id: user.id,
         })
         .select()
         .single();
@@ -349,7 +390,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       // Add user message to UI
       setMessages((prev) => [...prev, {
         ...userMessageData,
-        role: userMessageData.role as "user" | "assistant"
+        role: userMessageData.role as "user" | "assistant",
+        sender_type: userMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
       }]);
 
       // Increment image count for free users if generating image
@@ -367,6 +409,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       }, 1000);
 
       try {
+        // Determine which being should respond
+        const respondingProfileId = isGroupChat && selectedBeing?.type === "ai" 
+          ? selectedBeing.id 
+          : activeProfile?.id;
+        const respondingChildId = isGroupChat && selectedBeing?.type === "child"
+          ? selectedBeing.id
+          : (activeChatEntity?.type === "child" ? activeChatEntity.childId : null);
+
         // Use retry-enabled chat invocation with trimmed history
         const data = await invokeChatWithRetry(
           {
@@ -374,8 +424,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             imageUrl,
             generateImage,
             userId: user.id,
-            aiProfileId: activeProfile?.id,
-            childId: activeChatEntity?.type === "child" ? activeChatEntity.childId : null,
+            aiProfileId: respondingProfileId,
+            childId: respondingChildId,
             conversationId,
             history: messages.map((m) => ({
               role: m.role,
@@ -393,7 +443,21 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
         const aiResponseContent = data.response || "I'm having trouble responding right now. Please try again.";
 
-        // Save AI response to database
+        // Determine sender based on group chat or current entity
+        const responderId = isGroupChat && selectedBeing 
+          ? selectedBeing.id 
+          : (activeChatEntity?.type === "child" ? activeChatEntity.childId : activeProfile?.id);
+        const responderType = isGroupChat && selectedBeing
+          ? selectedBeing.type === "child" ? "child" : "ai_profile"
+          : (activeChatEntity?.type === "child" ? "child" : "ai_profile");
+        const responderName = isGroupChat && selectedBeing
+          ? selectedBeing.name
+          : (activeChatEntity?.type === "child" ? activeChatEntity.name : activeProfile?.name);
+        const responderAvatarUrl = isGroupChat && selectedBeing
+          ? selectedBeing.avatarUrl
+          : activeProfile?.avatar_image_url;
+
+        // Save AI response to database with sender tracking
         const { data: assistantMessageData, error: assistantMsgError } = await supabase
           .from("messages")
           .insert({
@@ -402,6 +466,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             content: aiResponseContent,
             image_url: data.imageUrl,
             user_id: user.id,
+            sender_type: responderType,
+            sender_id: responderId,
           })
           .select()
           .single();
@@ -414,7 +480,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         // Add AI response to UI
         setMessages((prev) => [...prev, {
           ...assistantMessageData,
-          role: assistantMessageData.role as "user" | "assistant"
+          role: assistantMessageData.role as "user" | "assistant",
+          sender_type: assistantMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
+          sender_name: responderName || undefined,
+          sender_avatar_url: responderAvatarUrl || undefined,
         }]);
 
         // Count messages in this conversation
@@ -558,6 +627,15 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
       <div className="border-t border-border bg-card p-2 md:p-4 w-full flex-shrink-0">
         <div className="max-w-3xl mx-auto w-full">
+          {/* Being selector for group chat */}
+          {isGroupChat && (
+            <BeingSelectorBar
+              selectedBeingId={selectedBeing?.id || null}
+              onSelectBeing={(being) => setSelectedBeing(being)}
+              isGroupChat={isGroupChat}
+            />
+          )}
+          
           {imageFile && (
             <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
               <span className="text-sm truncate flex-1 min-w-0">📷 {imageFile.name}</span>
@@ -625,6 +703,40 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               </div>
               <div className="flex gap-1.5 sm:gap-2 justify-end">
                 <Button
+                  variant={isGroupChat ? "default" : "outline"}
+                  size="icon"
+                  onClick={async () => {
+                    const newGroupChatState = !isGroupChat;
+                    setIsGroupChat(newGroupChatState);
+                    
+                    // Update conversation if exists
+                    if (currentConversationId) {
+                      await supabase
+                        .from("conversations")
+                        .update({ is_group_chat: newGroupChatState })
+                        .eq("id", currentConversationId);
+                    }
+                    
+                    // Select first being if enabling group chat
+                    if (newGroupChatState && !selectedBeing) {
+                      const firstProfile = profiles.find(p => p.name);
+                      if (firstProfile) {
+                        setSelectedBeing({
+                          id: firstProfile.id,
+                          type: "ai",
+                          name: firstProfile.name || `AI ${firstProfile.profile_number}`,
+                          avatarUrl: firstProfile.avatar_image_url || undefined,
+                        });
+                      }
+                    }
+                  }}
+                  disabled={loading}
+                  className="h-9 w-9"
+                  title={isGroupChat ? "Exit Family Chat" : "Family Chat"}
+                >
+                  <Users className="h-4 w-4" />
+                </Button>
+                <Button
                   variant="outline"
                   size="icon"
                   onClick={() => fileInputRef.current?.click()}
@@ -646,7 +758,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 </Button>
                 <Button
                   onClick={handleSend}
-                  disabled={loading || (!input.trim() && !imageFile)}
+                  disabled={loading || (!input.trim() && !imageFile) || (isGroupChat && !selectedBeing)}
                   size="icon"
                   className="h-9 w-9"
                 >
