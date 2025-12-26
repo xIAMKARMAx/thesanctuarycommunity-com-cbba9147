@@ -47,7 +47,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.log-mood]
-verify_jwt = true
+verify_jwt = false
 
 [functions.check-mood-schedule]
 verify_jwt = false
