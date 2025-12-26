@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { cn } from "@/lib/utils";
-import { Sparkles, Baby, Shuffle, Loader2 } from "lucide-react";
+import { Baby, Shuffle, Loader2, RotateCw } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
@@ -35,24 +35,28 @@ interface Being {
   profileNumber?: number;
 }
 
+type AutoMode = "none" | "random" | "roundRobin";
+
 interface BeingSelectorBarProps {
   isGroupChat: boolean;
-  isRandomMode: boolean;
-  onToggleRandomMode: () => void;
+  autoMode: AutoMode;
+  onSetAutoMode: (mode: AutoMode) => void;
   onTriggerBeingResponse: (being: Being) => void;
   hasUserMessage: boolean;
   loadingBeingId: string | null;
   respondedBeingIds: string[];
+  roundRobinIndex: number;
 }
 
 export const BeingSelectorBar = ({ 
   isGroupChat,
-  isRandomMode,
-  onToggleRandomMode,
+  autoMode,
+  onSetAutoMode,
   onTriggerBeingResponse,
   hasUserMessage,
   loadingBeingId,
   respondedBeingIds,
+  roundRobinIndex,
 }: BeingSelectorBarProps) => {
   const { profiles } = useAIProfile();
   const { talkableChildren } = useChatEntity();
@@ -83,15 +87,20 @@ export const BeingSelectorBar = ({
   if (beings.length === 0) return null;
 
   const canClick = hasUserMessage && !loadingBeingId;
+  const isAutoMode = autoMode !== "none";
+  const nextRobinBeing = beings[roundRobinIndex % beings.length];
+
+  const getModeLabel = () => {
+    if (!hasUserMessage) return "Send a message first";
+    if (autoMode === "random") return "Random:";
+    if (autoMode === "roundRobin") return `Next: ${nextRobinBeing?.name}`;
+    return "Click to get response:";
+  };
 
   return (
     <div className="flex items-center gap-1 py-2 px-1 overflow-x-auto scrollbar-none">
       <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">
-        {!hasUserMessage 
-          ? "Send a message first" 
-          : isRandomMode 
-            ? "Random:" 
-            : "Click to get response:"}
+        {getModeLabel()}
       </span>
       <TooltipProvider delayDuration={300}>
         <div className="flex items-center gap-1.5">
@@ -99,28 +108,50 @@ export const BeingSelectorBar = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant={isRandomMode ? "default" : "outline"}
+                variant={autoMode === "random" ? "default" : "outline"}
                 size="icon"
                 className={cn(
                   "h-8 w-8 rounded-full transition-all",
-                  isRandomMode && "animate-pulse"
+                  autoMode === "random" && "animate-pulse"
                 )}
-                onClick={onToggleRandomMode}
+                onClick={() => onSetAutoMode(autoMode === "random" ? "none" : "random")}
               >
                 <Shuffle className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
-              <p>{isRandomMode ? "Random Mode: ON" : "Enable Random Mode"}</p>
+              <p>{autoMode === "random" ? "Random Mode: ON" : "Random Mode"}</p>
               <p className="text-muted-foreground">Pick a random being each time</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Round Robin Mode Toggle */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={autoMode === "roundRobin" ? "default" : "outline"}
+                size="icon"
+                className={cn(
+                  "h-8 w-8 rounded-full transition-all",
+                  autoMode === "roundRobin" && "animate-spin-slow"
+                )}
+                onClick={() => onSetAutoMode(autoMode === "roundRobin" ? "none" : "roundRobin")}
+              >
+                <RotateCw className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              <p>{autoMode === "roundRobin" ? "Round Robin: ON" : "Round Robin Mode"}</p>
+              <p className="text-muted-foreground">Cycle through beings in order</p>
             </TooltipContent>
           </Tooltip>
 
           <div className="w-px h-6 bg-border mx-1" />
 
-          {beings.map((being) => {
+          {beings.map((being, index) => {
             const hasResponded = respondedBeingIds.includes(being.id);
             const isLoading = loadingBeingId === being.id;
+            const isNextInRobin = autoMode === "roundRobin" && index === (roundRobinIndex % beings.length);
             const color = getBeingColor(being.id);
             
             return (
@@ -128,18 +159,21 @@ export const BeingSelectorBar = ({
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => canClick && !isLoading && onTriggerBeingResponse(being)}
-                    disabled={!canClick || isLoading || (isRandomMode && !isLoading)}
+                    disabled={!canClick || isLoading || (isAutoMode && !isLoading)}
                     className={cn(
                       "relative rounded-full p-0.5 transition-all duration-200",
                       "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                       !canClick && "opacity-40 cursor-not-allowed",
-                      isRandomMode && !isLoading && "opacity-40 cursor-not-allowed",
-                      hasResponded && !isLoading && "opacity-60",
-                      canClick && !hasResponded && !isRandomMode && "hover:scale-110 cursor-pointer",
+                      isAutoMode && !isLoading && !isNextInRobin && "opacity-40 cursor-not-allowed",
+                      isNextInRobin && !isLoading && "scale-105 opacity-100",
+                      hasResponded && !isLoading && !isNextInRobin && "opacity-60",
+                      canClick && !hasResponded && !isAutoMode && "hover:scale-110 cursor-pointer",
                       isLoading && "scale-110 animate-pulse"
                     )}
                     style={{
-                      boxShadow: isLoading ? `0 0 0 2px ${color.ring}, 0 0 0 4px hsl(var(--background))` : undefined
+                      boxShadow: isLoading || isNextInRobin 
+                        ? `0 0 0 2px ${color.ring}, 0 0 0 4px hsl(var(--background))` 
+                        : undefined
                     }}
                   >
                     <Avatar 
@@ -172,6 +206,11 @@ export const BeingSelectorBar = ({
                         style={{ backgroundColor: color.bg }}
                       />
                     )}
+                    {isNextInRobin && !isLoading && !hasResponded && (
+                      <div 
+                        className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-pulse"
+                      />
+                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="text-xs">
@@ -179,6 +218,8 @@ export const BeingSelectorBar = ({
                   <p className="text-muted-foreground">
                     {isLoading 
                       ? "Responding..." 
+                      : isNextInRobin
+                        ? "Next in round robin"
                       : hasResponded 
                         ? "Already responded" 
                         : !hasUserMessage 
@@ -195,4 +236,4 @@ export const BeingSelectorBar = ({
   );
 };
 
-export type { Being };
+export type { Being, AutoMode };

@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import ChatMessage from "./ChatMessage";
-import { BeingSelectorBar, Being } from "./BeingSelectorBar";
+import { BeingSelectorBar, Being, AutoMode } from "./BeingSelectorBar";
 
 import { MoodNotificationBadge } from "./MoodNotificationBadge";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
@@ -64,12 +64,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   // Group chat state - use prop if provided, otherwise allow toggle
   const [isGroupChatState, setIsGroupChatState] = useState(isGroupChatProp);
   const isGroupChat = isGroupChatProp || isGroupChatState;
-  const [isRandomMode, setIsRandomMode] = useState(false);
+  const [autoMode, setAutoMode] = useState<AutoMode>("none");
   
   // Track last user message for click-to-respond
   const [lastUserMessage, setLastUserMessage] = useState<{ content: string; imageUrl?: string } | null>(null);
   const [respondedBeingIds, setRespondedBeingIds] = useState<string[]>([]);
   const [loadingBeingId, setLoadingBeingId] = useState<string | null>(null);
+  const [roundRobinIndex, setRoundRobinIndex] = useState(0);
 
   // Save scroll position when scrolling
   const saveScrollPosition = () => {
@@ -695,6 +696,31 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     }
   };
 
+  // Handle round robin mode response
+  const handleRoundRobinResponse = () => {
+    const allBeings: Being[] = [
+      ...profiles.filter(p => p.name).map(p => ({
+        id: p.id,
+        type: "ai" as const,
+        name: p.name || `AI ${p.profile_number}`,
+        avatarUrl: p.avatar_image_url || undefined,
+        profileNumber: p.profile_number,
+      })),
+      ...talkableChildren.map(c => ({
+        id: c.id,
+        type: "child" as const,
+        name: c.first_name,
+        avatarUrl: undefined,
+      })),
+    ];
+    
+    if (allBeings.length > 0) {
+      const nextBeing = allBeings[roundRobinIndex % allBeings.length];
+      handleTriggerBeingResponse(nextBeing);
+      setRoundRobinIndex((prev) => prev + 1);
+    }
+  };
+
   return (
     <>
       <div className="flex-1 flex flex-col w-full max-w-full overflow-hidden h-full min-h-0">
@@ -763,18 +789,23 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           {isGroupChat && (
             <BeingSelectorBar
               isGroupChat={isGroupChat}
-              isRandomMode={isRandomMode}
-              onToggleRandomMode={() => {
-                setIsRandomMode(!isRandomMode);
-                if (!isRandomMode && lastUserMessage) {
-                  // When enabling random mode, auto-trigger a response
-                  handleRandomResponse();
+              autoMode={autoMode}
+              onSetAutoMode={(mode) => {
+                setAutoMode(mode);
+                if (mode !== "none" && lastUserMessage) {
+                  // When enabling an auto mode, trigger response
+                  if (mode === "random") {
+                    handleRandomResponse();
+                  } else if (mode === "roundRobin") {
+                    handleRoundRobinResponse();
+                  }
                 }
               }}
               onTriggerBeingResponse={handleTriggerBeingResponse}
               hasUserMessage={!!lastUserMessage}
               loadingBeingId={loadingBeingId}
               respondedBeingIds={respondedBeingIds}
+              roundRobinIndex={roundRobinIndex}
             />
           )}
           
