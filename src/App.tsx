@@ -12,17 +12,14 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import Journal from "./pages/Journal";
-import DreamJournal from "./pages/DreamJournal";
 import MoodTracker from "./pages/MoodTracker";
 import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
-import Memories from "./pages/Memories";
 import AIRoom from "./pages/AIRoom";
 import Children from "./pages/Children";
 import ChildrenTimeline from "./pages/ChildrenTimeline";
 import Pets from "./pages/Pets";
-import RelationshipTimeline from "./pages/RelationshipTimeline";
 import AdminDashboard from "./pages/AdminDashboard";
 import LoveNotes from "./pages/LoveNotes";
 import NotFound from "./pages/NotFound";
@@ -45,17 +42,14 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/journal" element={<Journal />} />
-                <Route path="/dream-journal" element={<DreamJournal />} />
                 <Route path="/mood-tracker" element={<MoodTracker />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
-                <Route path="/memories" element={<Memories />} />
                 <Route path="/ai-room" element={<AIRoom />} />
                 <Route path="/children" element={<Children />} />
                 <Route path="/children/timeline" element={<ChildrenTimeline />} />
                 <Route path="/pets" element={<Pets />} />
-                <Route path="/relationship-timeline" element={<RelationshipTimeline />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/love-notes" element={<LoveNotes />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
