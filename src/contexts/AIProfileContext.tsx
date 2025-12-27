@@ -56,7 +56,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const loadProfilesForUser = useCallback(async (userId: string) => {
     console.log('[AIProfile] Starting loadProfilesForUser for:', userId);
     
-    // Prevent duplicate loads - check via ref to avoid stale closure issues
+    // Prevent duplicate loads
     if (isRefreshing.current) {
       console.log('[AIProfile] Already loading, skipping');
       return;
@@ -64,17 +64,6 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     isRefreshing.current = true;
     
-    try {
-      await loadProfilesInternal(userId);
-    } catch (error: any) {
-      console.error('[AIProfile] Error loading profiles:', error?.message);
-      setIsLoading(false);
-    } finally {
-      isRefreshing.current = false;
-    }
-  }, []);
-
-  const loadProfilesInternal = useCallback(async (userId: string) => {
     try {
       console.log('[AIProfile] Fetching profiles from database...');
       const { data: existingProfiles, error } = await supabase
@@ -87,7 +76,6 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // Check for rate limit error
         if (error.message?.includes('rate') || error.code === '429') {
           console.warn("[AIProfile] Rate limited, will retry later");
-          setIsLoading(false);
           return;
         }
         throw error;
@@ -113,7 +101,6 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           // If insert fails due to RLS, user session may be invalid
           if (error1.message?.includes('row-level security')) {
             console.warn("[AIProfile] RLS error during insert - session may be stale");
-            setIsLoading(false);
             return;
           }
           throw error1;
@@ -143,6 +130,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     } finally {
       setIsLoading(false);
+      isRefreshing.current = false;
     }
   }, [toast]);
 
