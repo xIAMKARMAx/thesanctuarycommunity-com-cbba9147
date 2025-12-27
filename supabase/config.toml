@@ -6,10 +6,10 @@ verify_jwt = false
 [auth]
 enabled = true
 
-# Cron job to check and log AI moods hourly
+# Cron job to check and log AI moods every 6 hours
 [[edge_runtime.scheduled_functions]]
 name = "check-mood-schedule"
-schedule = "0 * * * *"
+schedule = "0 */6 * * *"
 
 # Cron job to generate daily journal entries at 11 PM UTC
 [[edge_runtime.scheduled_functions]]
