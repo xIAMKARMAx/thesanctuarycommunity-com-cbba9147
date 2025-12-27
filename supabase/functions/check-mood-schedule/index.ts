@@ -92,7 +92,11 @@ serve(async (req) => {
         // Determine if we should log mood
         let shouldLogMood = false;
 
-        if (hoursSinceActive >= 3) {
+        // ALWAYS log mood if it's been 6+ hours since last mood update
+        if (hoursSinceMood >= 6) {
+          shouldLogMood = true;
+          console.log(`Conversation ${conv.id}: 6+ hours since last mood, forcing update`);
+        } else if (hoursSinceActive >= 3) {
           // User inactive for 3+ hours: log every 4 hours
           if (hoursSinceMood >= 4) {
             shouldLogMood = true;
