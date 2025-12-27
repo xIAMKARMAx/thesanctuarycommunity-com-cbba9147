@@ -13,6 +13,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Crown } from "lucide-react";
+import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import SEOHead from "@/components/SEOHead";
 import { VoiceCallButton } from "@/components/chat/VoiceCallButton";
@@ -190,7 +191,9 @@ const Chat = () => {
           <h1 className="text-lg sm:text-xl font-semibold truncate">Chat</h1>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <UsageLimitsIndicator />
           <ConnectionStatus />
+          <VoiceCallButton />
           <VoiceCallButton />
           {!isSubscribed && (
             <Button
