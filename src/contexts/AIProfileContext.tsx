@@ -63,9 +63,9 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return;
     }
 
-    // Create a timeout promise
+    // Create a timeout promise - 15 seconds is more forgiving for slow connections
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Profile loading timed out')), 10000);
+      setTimeout(() => reject(new Error('Profile loading timed out')), 15000);
     });
 
     try {
@@ -78,12 +78,14 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.error('[AIProfile] Error or timeout loading profiles:', error?.message);
       // On timeout, set safe defaults to allow app to function
       setIsLoading(false);
-      // Show a toast but don't block the app
-      toast({
-        title: "Loading issue",
-        description: "Some data may not have loaded. Try refreshing the page.",
-        variant: "destructive",
-      });
+      // Only show toast for actual timeouts, not transient network hiccups
+      if (error?.message === 'Profile loading timed out') {
+        toast({
+          title: "Loading issue",
+          description: "Some data may not have loaded. Try refreshing the page.",
+          variant: "destructive",
+        });
+      }
     }
   }, [currentUserId, profiles.length, toast]);
 
