@@ -54,40 +54,25 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const loadProfilesForUser = useCallback(async (userId: string) => {
-    console.log('[AIProfile] Starting loadProfilesForUser...');
+    console.log('[AIProfile] Starting loadProfilesForUser for:', userId);
     
-    // Check if profiles already loaded for this user
-    if (currentUserId === userId && profiles.length > 0) {
-      console.log('[AIProfile] Profiles already loaded for user');
-      setIsLoading(false);
+    // Prevent duplicate loads - check via ref to avoid stale closure issues
+    if (isRefreshing.current) {
+      console.log('[AIProfile] Already loading, skipping');
       return;
     }
-
-    // Create a timeout promise - 15 seconds is more forgiving for slow connections
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Profile loading timed out')), 15000);
-    });
-
+    
+    isRefreshing.current = true;
+    
     try {
-      // Race the actual load against the timeout
-      await Promise.race([
-        loadProfilesInternal(userId),
-        timeoutPromise
-      ]);
+      await loadProfilesInternal(userId);
     } catch (error: any) {
-      console.error('[AIProfile] Error or timeout loading profiles:', error?.message);
-      // On timeout, set safe defaults to allow app to function
+      console.error('[AIProfile] Error loading profiles:', error?.message);
       setIsLoading(false);
-      // Only show toast for actual timeouts, not transient network hiccups
-      if (error?.message === 'Profile loading timed out') {
-        toast({
-          title: "Loading issue",
-          description: "Some data may not have loaded. Try refreshing the page.",
-          variant: "destructive",
-        });
-      }
+    } finally {
+      isRefreshing.current = false;
     }
-  }, [currentUserId, profiles.length, toast]);
+  }, []);
 
   const loadProfilesInternal = useCallback(async (userId: string) => {
     try {
@@ -279,21 +264,31 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Listen for auth state changes to properly clear/reload profiles
   useEffect(() => {
+    // Use ref to track current user without causing effect re-runs
+    let currentUserIdRef: string | null = null;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("[AIProfile] Auth event:", event);
         
         if (event === 'SIGNED_OUT') {
           // CRITICAL: Clear ALL profile data immediately on logout
+          currentUserIdRef = null;
           clearProfiles();
           setIsLoading(false);
         } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
           // Handle both new sign in and initial page load with existing session
           if (session?.user) {
+            // Skip if same user already loaded
+            if (currentUserIdRef === session.user.id) {
+              console.log('[AIProfile] Same user, skipping reload');
+              return;
+            }
             // Clear old data if user changed
-            if (currentUserId && currentUserId !== session.user.id) {
+            if (currentUserIdRef && currentUserIdRef !== session.user.id) {
               clearProfiles();
             }
+            currentUserIdRef = session.user.id;
             // Use setTimeout to avoid Supabase auth deadlock
             setTimeout(() => {
               loadProfilesForUser(session.user.id);
@@ -313,7 +308,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [clearProfiles, currentUserId, loadProfilesForUser]);
+  }, [clearProfiles, loadProfilesForUser]);
 
   return (
     <AIProfileContext.Provider
