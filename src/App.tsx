@@ -23,6 +23,9 @@ import Pets from "./pages/Pets";
 import AdminDashboard from "./pages/AdminDashboard";
 import LoveNotes from "./pages/LoveNotes";
 import GroupChat from "./pages/GroupChat";
+import DreamJournal from "./pages/DreamJournal";
+import Memories from "./pages/Memories";
+import RelationshipTimeline from "./pages/RelationshipTimeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +57,9 @@ const App = () => (
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/love-notes" element={<LoveNotes />} />
                 <Route path="/group-chat" element={<GroupChat />} />
+                <Route path="/dream-journal" element={<DreamJournal />} />
+                <Route path="/memories" element={<Memories />} />
+                <Route path="/timeline" element={<RelationshipTimeline />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

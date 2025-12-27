@@ -80,8 +80,9 @@ export const MoodNotificationBadge = () => {
     "Notification" in window && Notification.permission === "granted"
   );
 
-  const handleNewNotification = useCallback((payload: { new: MoodNotification }) => {
-    const newNotif = payload.new;
+  const handleNewNotification = useCallback((payload: any) => {
+    const newNotif = payload.new as MoodNotification;
+    if (!newNotif?.id) return;
     
     // Show browser notification for new mood changes
     if (notificationsEnabled) {
