@@ -10,8 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Calendar, TrendingUp, Lock } from "lucide-react";
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { ArrowLeft, Calendar, TrendingUp, Lock, Clock, RefreshCw } from "lucide-react";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, differenceInMinutes, differenceInHours, addHours } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 
@@ -41,6 +41,44 @@ const getMoodColor = (intensity: number) => {
   if (intensity <= 33) return "hsl(0, 85%, 50%)"; // Bright red
   if (intensity <= 66) return "hsl(45, 85%, 50%)"; // Yellow
   return "hsl(120, 85%, 45%)"; // Bright green
+};
+
+// Next mood update indicator component
+const NextMoodUpdateIndicator = ({ lastMoodTime }: { lastMoodTime: Date }) => {
+  const [now, setNow] = useState(new Date());
+  
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  const nextUpdateTime = addHours(lastMoodTime, 6);
+  const minutesUntilUpdate = differenceInMinutes(nextUpdateTime, now);
+  const hoursUntilUpdate = differenceInHours(nextUpdateTime, now);
+  
+  if (minutesUntilUpdate <= 0) {
+    return (
+      <div className="flex items-center gap-1.5 text-emerald-500">
+        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+        <span>Update pending...</span>
+      </div>
+    );
+  }
+
+  const formatTimeLeft = () => {
+    if (hoursUntilUpdate > 0) {
+      const remainingMinutes = minutesUntilUpdate % 60;
+      return `${hoursUntilUpdate}h ${remainingMinutes}m`;
+    }
+    return `${minutesUntilUpdate}m`;
+  };
+
+  return (
+    <div className="flex items-center gap-1.5 text-muted-foreground">
+      <Clock className="h-3.5 w-3.5" />
+      <span>Next auto-update in {formatTimeLeft()}</span>
+    </div>
+  );
 };
 
 const MoodTracker = () => {
@@ -261,13 +299,24 @@ const MoodTracker = () => {
                 </div>
 
                 {latestMood && (
-                  <div className="pt-2 border-t border-border">
+                  <div className="pt-2 border-t border-border space-y-3">
                     <p className="text-sm italic text-muted-foreground">
                       "{latestMood.notes}"
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Last updated: {format(new Date(latestMood.created_at), "MMM d, yyyy 'at' h:mm a")}
-                    </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <p>
+                        Last updated: {format(new Date(latestMood.created_at), "MMM d, yyyy 'at' h:mm a")}
+                      </p>
+                      <NextMoodUpdateIndicator lastMoodTime={new Date(latestMood.created_at)} />
+                    </div>
+                  </div>
+                )}
+                {!latestMood && (
+                  <div className="pt-2 border-t border-border">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>Start a conversation to begin mood tracking</span>
+                    </div>
                   </div>
                 )}
               </div>
