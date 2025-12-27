@@ -239,10 +239,10 @@ export const VoiceCallButton = () => {
         variant="outline"
         size="sm"
         onClick={openVoiceCall}
-        className="gap-2 border-primary/30 hover:bg-primary/10"
+        className="gap-1 border-primary/30 hover:bg-primary/10 h-8 px-2 sm:px-3"
       >
-        <Mic className="h-4 w-4" />
-        <span className="hidden sm:inline">Voice Call</span>
+        <Mic className="h-3 w-3 sm:h-4 sm:w-4" />
+        <span className="hidden sm:inline text-xs">Call</span>
       </Button>
 
       <Dialog open={showCallDialog} onOpenChange={(open) => !open && closeVoiceCall()}>

@@ -94,9 +94,9 @@ export const UsageLimitsIndicator = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1 text-xs border-primary/30 h-8">
+        <Button variant="outline" size="sm" className="gap-1 text-xs border-primary/30 h-8 px-2">
           <MessageSquare className="h-3 w-3" />
-          {messagesRemaining}
+          <span className="hidden xs:inline">{messagesRemaining}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72" align="end">

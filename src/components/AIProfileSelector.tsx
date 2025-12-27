@@ -78,15 +78,15 @@ export const AIProfileSelector = () => {
 
   return (
     <Select value={currentValue} onValueChange={handleValueChange}>
-      <SelectTrigger className="w-[120px] sm:w-[160px] md:w-[200px] bg-background text-xs sm:text-sm h-8 sm:h-9">
+      <SelectTrigger className="w-[100px] sm:w-[140px] md:w-[180px] bg-background text-xs h-8">
         <SelectValue className="truncate">
           {location.pathname === "/children" 
             ? "Children" 
             : location.pathname === "/pets"
             ? "Pets"
             : location.pathname === "/group-chat"
-            ? "Family Chat"
-            : activeChatEntity?.name || (activeProfile.name || `AI Being ${activeProfile.profile_number}`)}
+            ? "Family"
+            : activeChatEntity?.name || (activeProfile.name || `AI ${activeProfile.profile_number}`)}
         </SelectValue>
       </SelectTrigger>
       <SelectContent 
