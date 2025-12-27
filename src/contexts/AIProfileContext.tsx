@@ -287,34 +287,33 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           // CRITICAL: Clear ALL profile data immediately on logout
           clearProfiles();
           setIsLoading(false);
-        } else if (event === 'SIGNED_IN') {
-          // New user signed in - clear old data first, then load new
-          clearProfiles();
-          // Use setTimeout to avoid Supabase auth deadlock
-          setTimeout(() => {
-            if (session?.user) {
-              loadProfilesForUser(session.user.id);
+        } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          // Handle both new sign in and initial page load with existing session
+          if (session?.user) {
+            // Clear old data if user changed
+            if (currentUserId && currentUserId !== session.user.id) {
+              clearProfiles();
             }
-          }, 100);
+            // Use setTimeout to avoid Supabase auth deadlock
+            setTimeout(() => {
+              loadProfilesForUser(session.user.id);
+            }, 100);
+          } else {
+            setIsLoading(false);
+          }
         }
         // NOTE: We deliberately DON'T refresh on TOKEN_REFRESHED
         // The session is still valid, no need to reload profiles
       }
     );
 
-    // Initial load - with small delay to let auth settle
-    const initTimeout = setTimeout(() => {
-      refreshProfiles();
-    }, 100);
-
     return () => {
       subscription.unsubscribe();
-      clearTimeout(initTimeout);
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [clearProfiles, loadProfilesForUser, refreshProfiles]);
+  }, [clearProfiles, currentUserId, loadProfilesForUser]);
 
   return (
     <AIProfileContext.Provider
