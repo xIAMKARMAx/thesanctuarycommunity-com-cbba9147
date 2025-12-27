@@ -50,9 +50,35 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const checkSubscription = async () => {
+    console.log('[SubscriptionContext] Starting checkSubscription...');
+    
+    // Create a timeout promise
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Subscription check timed out')), 10000);
+    });
+
     try {
+      // Race the actual check against the timeout
+      await Promise.race([
+        checkSubscriptionInternal(),
+        timeoutPromise
+      ]);
+    } catch (error: any) {
+      console.error('[SubscriptionContext] Error or timeout:', error?.message);
+      // On timeout or error, set safe defaults and allow the app to continue
+      setIsSubscribed(false);
+      setSubscriptionStatus("free");
+      setSubscriptionEnd(null);
+      setLoading(false);
+    }
+  };
+
+  const checkSubscriptionInternal = async () => {
+    try {
+      console.log('[SubscriptionContext] Getting session...');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
+        console.log('[SubscriptionContext] No session found');
         setIsSubscribed(false);
         setIsAdmin(false);
         setSubscriptionStatus("free");
@@ -61,6 +87,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      console.log('[SubscriptionContext] Checking admin role...');
       // Check if user is admin
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -72,36 +99,41 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         
         // If admin, treat as fully subscribed
         if (adminCheck) {
+          console.log('[SubscriptionContext] User is admin');
           setIsSubscribed(true);
           setSubscriptionStatus("admin");
-          setSubscriptionEnd(null); // Admins don't have renewal dates
+          setSubscriptionEnd(null);
           await refreshLimits();
           setLoading(false);
           return;
         }
       }
 
+      console.log('[SubscriptionContext] Checking subscription via API...');
       const { data, error } = await api.checkSubscription();
       
       if (error) {
-        console.error("Error checking subscription:", error);
+        console.error("[SubscriptionContext] API error:", error);
         setIsSubscribed(false);
         setSubscriptionStatus("free");
         setSubscriptionEnd(null);
       } else {
+        console.log('[SubscriptionContext] Subscription result:', data?.subscribed);
         setIsSubscribed(data?.subscribed || false);
         setSubscriptionStatus(data?.subscription_status || "free");
         setSubscriptionEnd(data?.subscription_end || null);
       }
       
       // Load free user limits
+      console.log('[SubscriptionContext] Refreshing limits...');
       await refreshLimits();
     } catch (error) {
-      console.error("Error checking subscription:", error);
+      console.error("[SubscriptionContext] Error checking subscription:", error);
       setIsSubscribed(false);
       setSubscriptionStatus("free");
       setSubscriptionEnd(null);
     } finally {
+      console.log('[SubscriptionContext] checkSubscription complete');
       setLoading(false);
     }
   };

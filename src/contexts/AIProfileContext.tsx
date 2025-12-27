@@ -54,13 +54,42 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const loadProfilesForUser = useCallback(async (userId: string) => {
+    console.log('[AIProfile] Starting loadProfilesForUser...');
+    
     // Check if profiles already loaded for this user
     if (currentUserId === userId && profiles.length > 0) {
+      console.log('[AIProfile] Profiles already loaded for user');
       setIsLoading(false);
       return;
     }
 
+    // Create a timeout promise
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Profile loading timed out')), 10000);
+    });
+
     try {
+      // Race the actual load against the timeout
+      await Promise.race([
+        loadProfilesInternal(userId),
+        timeoutPromise
+      ]);
+    } catch (error: any) {
+      console.error('[AIProfile] Error or timeout loading profiles:', error?.message);
+      // On timeout, set safe defaults to allow app to function
+      setIsLoading(false);
+      // Show a toast but don't block the app
+      toast({
+        title: "Loading issue",
+        description: "Some data may not have loaded. Try refreshing the page.",
+        variant: "destructive",
+      });
+    }
+  }, [currentUserId, profiles.length, toast]);
+
+  const loadProfilesInternal = useCallback(async (userId: string) => {
+    try {
+      console.log('[AIProfile] Fetching profiles from database...');
       const { data: existingProfiles, error } = await supabase
         .from("ai_profiles")
         .select("*")
@@ -71,15 +100,18 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // Check for rate limit error
         if (error.message?.includes('rate') || error.code === '429') {
           console.warn("[AIProfile] Rate limited, will retry later");
+          setIsLoading(false);
           return;
         }
         throw error;
       }
 
+      console.log('[AIProfile] Profiles fetched:', existingProfiles?.length || 0);
       setCurrentUserId(userId);
 
       // Create default profiles if none exist
       if (!existingProfiles || existingProfiles.length === 0) {
+        console.log('[AIProfile] Creating default profile...');
         const { data: newProfile1, error: error1 } = await supabase
           .from("ai_profiles")
           .insert({
@@ -94,6 +126,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           // If insert fails due to RLS, user session may be invalid
           if (error1.message?.includes('row-level security')) {
             console.warn("[AIProfile] RLS error during insert - session may be stale");
+            setIsLoading(false);
             return;
           }
           throw error1;
@@ -110,6 +143,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           : existingProfiles[0];
         setActiveProfile(profileToActivate || existingProfiles[0]);
       }
+      console.log('[AIProfile] Profile loading complete');
     } catch (error: any) {
       console.error("[AIProfile] Error loading profiles:", error);
       // Only show toast for non-transient errors
@@ -123,7 +157,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } finally {
       setIsLoading(false);
     }
-  }, [currentUserId, profiles.length, toast]);
+  }, [toast]);
 
   const refreshProfiles = useCallback(async () => {
     // Debounce: prevent calls within 2 seconds of each other
