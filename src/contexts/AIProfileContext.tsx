@@ -254,6 +254,15 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     // Use ref to track current user without causing effect re-runs
     let currentUserIdRef: string | null = null;
+    let mounted = true;
+    
+    // Fallback timeout - if nothing loads after 10 seconds, stop loading state
+    const fallbackTimeout = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.warn('[AIProfile] Fallback timeout - stopping loading state');
+        setIsLoading(false);
+      }
+    }, 10000);
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -270,6 +279,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             // Skip if same user already loaded
             if (currentUserIdRef === session.user.id) {
               console.log('[AIProfile] Same user, skipping reload');
+              setIsLoading(false); // Ensure loading stops
               return;
             }
             // Clear old data if user changed
@@ -277,10 +287,8 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               clearProfiles();
             }
             currentUserIdRef = session.user.id;
-            // Use setTimeout to avoid Supabase auth deadlock
-            setTimeout(() => {
-              loadProfilesForUser(session.user.id);
-            }, 100);
+            // Load immediately - no delay needed
+            loadProfilesForUser(session.user.id);
           } else {
             setIsLoading(false);
           }
@@ -291,12 +299,14 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
 
     return () => {
+      mounted = false;
+      clearTimeout(fallbackTimeout);
       subscription.unsubscribe();
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [clearProfiles, loadProfilesForUser]);
+  }, [clearProfiles, loadProfilesForUser, isLoading]);
 
   return (
     <AIProfileContext.Provider
