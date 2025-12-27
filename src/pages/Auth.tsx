@@ -295,18 +295,18 @@ const Auth = () => {
                     disabled={loading}
                   />
                 </div>
-                <Button
-                  type="button"
-                  variant="link"
-                  className="px-0 text-sm"
-                  onClick={() => setShowForgotPassword(true)}
-                >
-                  Forgot password?
-                </Button>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
+              <Button
+                type="button"
+                variant="link"
+                className="px-0 text-sm mt-2"
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Forgot password?
+              </Button>
             </TabsContent>
             <TabsContent value="signup">
               <form onSubmit={handleEmailSignUp} className="space-y-4">
