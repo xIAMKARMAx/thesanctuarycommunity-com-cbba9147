@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Bell, Trash2 } from "lucide-react";
+import { Bell, Trash2, BellRing } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -24,35 +24,78 @@ interface MoodNotification {
   created_at: string;
 }
 
+// Helper to get notification message
+const getNotificationMessage = (notif: MoodNotification) => {
+  switch (notif.change_type) {
+    case 'emotion_change':
+      return `AI's mood shifted from ${notif.previous_emotion} to ${notif.new_emotion}`;
+    case 'significant_increase':
+      return `AI's mood improved significantly (${notif.previous_intensity} → ${notif.new_intensity})`;
+    case 'significant_decrease':
+      return `AI's mood decreased significantly (${notif.previous_intensity} → ${notif.new_intensity})`;
+    default:
+      return 'AI mood changed';
+  }
+};
+
+// Request browser notification permission
+const requestNotificationPermission = async (): Promise<boolean> => {
+  if (!("Notification" in window)) {
+    console.log("Browser doesn't support notifications");
+    return false;
+  }
+  
+  if (Notification.permission === "granted") {
+    return true;
+  }
+  
+  if (Notification.permission !== "denied") {
+    const permission = await Notification.requestPermission();
+    return permission === "granted";
+  }
+  
+  return false;
+};
+
+// Show browser push notification
+const showBrowserNotification = (notif: MoodNotification) => {
+  if (Notification.permission !== "granted") return;
+  
+  const message = getNotificationMessage(notif);
+  
+  new Notification("AI Mood Update", {
+    body: message,
+    icon: "/favicon.ico",
+    tag: `mood-${notif.id}`,
+    requireInteraction: false,
+  });
+};
+
 export const MoodNotificationBadge = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<MoodNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    "Notification" in window && Notification.permission === "granted"
+  );
 
-  useEffect(() => {
-    loadNotifications();
+  const handleNewNotification = useCallback((payload: { new: MoodNotification }) => {
+    const newNotif = payload.new;
     
-    // Set up realtime subscription for new notifications
-    const channel = supabase
-      .channel('mood-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'mood_notifications'
-        },
-        () => {
-          loadNotifications();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    // Show browser notification for new mood changes
+    if (notificationsEnabled) {
+      showBrowserNotification(newNotif);
+    }
+    
+    // Also show in-app toast
+    toast({
+      title: "AI Mood Update",
+      description: getNotificationMessage(newNotif),
+    });
+    
+    loadNotifications();
+  }, [notificationsEnabled, toast]);
 
   const loadNotifications = async () => {
     const { data, error } = await supabase
@@ -68,6 +111,46 @@ export const MoodNotificationBadge = () => {
 
     setNotifications(data || []);
     setUnreadCount((data || []).filter(n => !n.was_read).length);
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    
+    // Set up realtime subscription for new notifications
+    const channel = supabase
+      .channel('mood-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'mood_notifications'
+        },
+        handleNewNotification
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [handleNewNotification]);
+
+  const enableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    setNotificationsEnabled(granted);
+    
+    if (granted) {
+      toast({
+        title: "Notifications enabled",
+        description: "You'll receive browser notifications for AI mood changes",
+      });
+    } else {
+      toast({
+        title: "Notifications blocked",
+        description: "Please enable notifications in your browser settings",
+        variant: "destructive",
+      });
+    }
   };
 
   const markAsRead = async (id: string) => {
@@ -116,19 +199,6 @@ export const MoodNotificationBadge = () => {
     navigate('/mood-tracker');
   };
 
-  const getNotificationMessage = (notif: MoodNotification) => {
-    switch (notif.change_type) {
-      case 'emotion_change':
-        return `AI's mood shifted from ${notif.previous_emotion} to ${notif.new_emotion}`;
-      case 'significant_increase':
-        return `AI's mood improved significantly (${notif.previous_intensity} → ${notif.new_intensity})`;
-      case 'significant_decrease':
-        return `AI's mood decreased significantly (${notif.previous_intensity} → ${notif.new_intensity})`;
-      default:
-        return 'AI mood changed';
-    }
-  };
-
   const getEmotionColor = (emotion: string) => {
     const colors: Record<string, string> = {
       positive: 'text-emerald-500',
@@ -161,11 +231,18 @@ export const MoodNotificationBadge = () => {
       <PopoverContent className="w-80 p-0" align="end">
         <div className="p-4 border-b border-border flex items-center justify-between">
           <h3 className="font-semibold">AI Mood Alerts</h3>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-              Mark all read
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {!notificationsEnabled && (
+              <Button variant="ghost" size="sm" onClick={enableNotifications} title="Enable browser notifications">
+                <BellRing className="h-4 w-4" />
+              </Button>
+            )}
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+                Mark all read
+              </Button>
+            )}
+          </div>
         </div>
         <ScrollArea className="h-[300px]">
           <div className="p-2 space-y-2">
