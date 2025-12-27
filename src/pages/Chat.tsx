@@ -16,15 +16,17 @@ import { Menu, Crown } from "lucide-react";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import SEOHead from "@/components/SEOHead";
 import { VoiceCallButton } from "@/components/chat/VoiceCallButton";
+import { LoadingRecovery } from "@/components/LoadingRecovery";
 
 const Chat = () => {
-  const { activeProfile } = useAIProfile();
+  const { activeProfile, isLoading: profileLoading } = useAIProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { checkSubscription, isSubscribed } = useSubscription();
+  const { checkSubscription, isSubscribed, loading: subscriptionLoading } = useSubscription();
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [loadingStep, setLoadingStep] = useState("Checking authentication...");
   const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
     // Load persisted conversation ID on mount
     const saved = localStorage.getItem(`chat_conversation_${activeProfile?.id || 'default'}`);
@@ -45,12 +47,13 @@ const Chat = () => {
 
   useEffect(() => {
     // Check authentication
+    setLoadingStep("Checking authentication...");
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (!session) {
         navigate("/auth");
       }
-      setLoading(false);
+      setAuthLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -118,14 +121,31 @@ const Chat = () => {
     setActiveConversationId("");
   };
 
-  if (loading) {
+  // Update loading step based on what's loading
+  useEffect(() => {
+    if (authLoading) {
+      setLoadingStep("Checking authentication...");
+    } else if (subscriptionLoading) {
+      setLoadingStep("Loading subscription...");
+    } else if (profileLoading) {
+      setLoadingStep("Loading profile data...");
+    }
+  }, [authLoading, subscriptionLoading, profileLoading]);
+
+  const handleRecovery = () => {
+    // Force page reload after clearing cache
+    window.location.href = "/auth";
+  };
+
+  const isLoading = authLoading || subscriptionLoading || profileLoading;
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <LoadingRecovery 
+        loadingStep={loadingStep} 
+        onRecovery={handleRecovery}
+        showAfterMs={5000}
+      />
     );
   }
 
