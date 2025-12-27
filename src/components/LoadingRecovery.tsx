@@ -32,7 +32,7 @@ export const LoadingRecovery = ({
   }, [showAfterMs]);
 
   const handleRecovery = () => {
-    // Clear all cached data
+    // Clear all cached data including Supabase session
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('chat_conversation_') || 
           key.startsWith('active_ai_profile_') ||
@@ -45,6 +45,11 @@ export const LoadingRecovery = ({
     sessionStorage.clear();
     
     onRecovery();
+  };
+
+  const handleRetry = () => {
+    // Just refresh the page without clearing cache
+    window.location.reload();
   };
 
   return (
@@ -63,16 +68,25 @@ export const LoadingRecovery = ({
               <span className="font-medium">Taking longer than expected</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              If you're stuck on this screen, try clearing cached data and refreshing.
+              This may be due to a slow connection. Try refreshing first, or clear cache if the problem persists.
             </p>
-            <Button 
-              onClick={handleRecovery}
-              variant="outline"
-              className="w-full gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Clear Cache & Refresh
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={handleRetry}
+                variant="default"
+                className="w-full gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh Page
+              </Button>
+              <Button 
+                onClick={handleRecovery}
+                variant="outline"
+                className="w-full gap-2"
+              >
+                Clear Cache & Sign Out
+              </Button>
+            </div>
           </div>
         )}
       </div>
