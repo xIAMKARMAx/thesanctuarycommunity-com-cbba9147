@@ -10,7 +10,7 @@ import SpontaneousMessage from "@/components/chat/SpontaneousMessage";
 import { Session } from "@supabase/supabase-js";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { useAIProfile } from "@/contexts/AIProfileContext";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Menu, Crown } from "lucide-react";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
@@ -167,8 +167,8 @@ const Chat = () => {
       <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 gap-2">
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           {/* Mobile menu button (hidden on md and up) */}
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
+          <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} direction="left">
+            <DrawerTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
@@ -177,8 +177,8 @@ const Chat = () => {
                 <Menu className="h-4 w-4" />
                 <span className="sr-only">Menu</span>
               </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
+            </DrawerTrigger>
+            <DrawerContent className="h-full w-64 p-0 rounded-none" style={{ maxWidth: '16rem' }}>
               <ChatSidebar
                 key={conversationListKey}
                 activeConversationId={activeConversationId}
@@ -187,8 +187,8 @@ const Chat = () => {
                   setMobileMenuOpen(false);
                 }}
               />
-            </SheetContent>
-          </Sheet>
+            </DrawerContent>
+          </Drawer>
           <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate">Chat</h1>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
