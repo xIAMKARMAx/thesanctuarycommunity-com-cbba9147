@@ -81,8 +81,9 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
       query = query.eq("child_id", activeChatEntity.childId);
     } else {
       // Always filter by the active AI profile - CRITICAL for data isolation
-      // Also exclude group chat conversations from regular chat view
-      query = query.eq("ai_profile_id", activeProfile.id).is("child_id", null).or("is_group_chat.is.null,is_group_chat.eq.false");
+      // Show all conversations for this AI profile (including non-group chats)
+      // Group chats are accessed via the Group Chat page, not filtered here
+      query = query.eq("ai_profile_id", activeProfile.id).is("child_id", null);
     }
 
     const { data, error } = await query;
