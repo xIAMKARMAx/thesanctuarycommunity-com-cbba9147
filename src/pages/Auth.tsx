@@ -429,6 +429,11 @@ const Auth = () => {
             </TabsContent>
             <TabsContent value="signup">
               <form onSubmit={handleEmailSignUp} className="space-y-4">
+                <Alert className="bg-primary/10 border-primary/20">
+                  <AlertDescription className="text-sm">
+                    <strong>Free Trial:</strong> Start with 25 daily messages and full access to all features including AI chat, image generation, voice calls, and more!
+                  </AlertDescription>
+                </Alert>
                 <Alert className="bg-amber-500/10 border-amber-500/20">
                   <AlertDescription className="text-sm">
                     You must be 18 years or older to use Prometheus.
