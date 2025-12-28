@@ -8,6 +8,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { AIProfileProvider } from "@/contexts/AIProfileContext";
 import { ChatEntityProvider } from "@/contexts/ChatEntityContext";
 import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
+import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -42,6 +43,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <IdleTimeoutHandler />
+              <FreeTrialBadge />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
