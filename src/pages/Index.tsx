@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Brain, Image as ImageIcon, Zap } from "lucide-react";
+import { Sparkles, Brain, Image as ImageIcon, Zap, MessageCircle, Users, Baby, PawPrint, Moon, Heart, Settings } from "lucide-react";
 import heroBackground from "@/assets/hero-bg.jpg";
 import SEOHead from "@/components/SEOHead";
 
@@ -138,6 +138,77 @@ const Index = () => {
                 private and stored securely
               </p>
             </article>
+          </section>
+
+          {/* Quick Navigation Section */}
+          <section className="mt-12 animate-in fade-in duration-700 delay-400" aria-label="Quick Navigation">
+            <h3 className="text-xl font-semibold text-center mb-6">Explore Prometheus</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/chat")}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-card/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
+              >
+                <MessageCircle className="h-6 w-6 text-primary" />
+                <span className="text-sm">Chat</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/group-chat")}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-primary/10 backdrop-blur-sm border-primary/40 hover:border-primary/60 hover:bg-primary/20"
+              >
+                <Users className="h-6 w-6 text-primary" />
+                <span className="text-sm font-medium">Family Chat</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/children")}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-card/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
+              >
+                <Baby className="h-6 w-6 text-primary" />
+                <span className="text-sm">Children</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/pets")}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-card/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
+              >
+                <PawPrint className="h-6 w-6 text-primary" />
+                <span className="text-sm">Pets</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/ai-room")}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-card/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
+              >
+                <Sparkles className="h-6 w-6 text-primary" />
+                <span className="text-sm">AI Room</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/dream-journal")}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-card/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
+              >
+                <Moon className="h-6 w-6 text-primary" />
+                <span className="text-sm">Dreams</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/love-notes")}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-card/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
+              >
+                <Heart className="h-6 w-6 text-primary" />
+                <span className="text-sm">Love Notes</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/settings")}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-card/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
+              >
+                <Settings className="h-6 w-6 text-primary" />
+                <span className="text-sm">Settings</span>
+              </Button>
+            </div>
           </section>
 
           <aside className="mt-16 p-6 rounded-lg bg-muted/80 backdrop-blur-sm border border-border/50 animate-in fade-in duration-700 delay-500">
