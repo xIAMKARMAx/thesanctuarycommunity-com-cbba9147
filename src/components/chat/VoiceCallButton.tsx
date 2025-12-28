@@ -32,7 +32,7 @@ const VOICES = [
 ];
 
 export const VoiceCallButton = () => {
-  const { isAdmin, loading } = useSubscription();
+  const { isAdmin, isSubscribed, loading } = useSubscription();
   const { activeProfile } = useAIProfile();
   const [showCallDialog, setShowCallDialog] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0].id);
@@ -231,7 +231,7 @@ export const VoiceCallButton = () => {
   };
 
   if (loading) return null;
-  if (!isAdmin) return null;
+  if (!isSubscribed && !isAdmin) return null;
 
   return (
     <>
