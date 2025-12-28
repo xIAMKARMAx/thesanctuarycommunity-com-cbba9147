@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, Sparkles, Crown } from "lucide-react";
+import { Check, X, Sparkles, Crown, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
@@ -69,11 +69,18 @@ const Pricing = () => {
         title="Pricing - Prometheus"
         description="Compare Free and Pro plans for Prometheus AI companion. Unlock unlimited messages, voice calls, and exclusive features."
       />
-      <div className="min-h-screen bg-background py-12 px-4">
+      <div className="min-h-screen bg-background py-8 sm:py-12 px-4">
         <div className="max-w-5xl mx-auto">
+          {/* Back button at top for easy access */}
+          <div className="mb-6">
+            <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+          </div>
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
-            <p className="text-muted-foreground text-lg">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4">Choose Your Plan</h1>
+            <p className="text-muted-foreground text-base sm:text-lg">
               Start free and upgrade when you're ready for more
             </p>
           </div>
