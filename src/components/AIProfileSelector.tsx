@@ -90,11 +90,18 @@ export const AIProfileSelector = () => {
         </SelectValue>
       </SelectTrigger>
       <SelectContent 
-        className="bg-background border border-border shadow-lg z-[100] max-h-[300px] min-w-[160px]"
+        className="bg-background border border-border shadow-lg z-[100] max-h-[400px] min-w-[180px]"
         position="popper"
         sideOffset={4}
         align="end"
       >
+        <SelectItem value="group-chat" className="text-sm bg-primary/5 border-b border-border mb-1">
+          <div className="flex items-center gap-2 font-medium">
+            <Users className="h-4 w-4 text-primary" />
+            Family Chat
+          </div>
+        </SelectItem>
+        
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
           AI Beings
         </div>
@@ -106,12 +113,6 @@ export const AIProfileSelector = () => {
         </SelectItem>
         <SelectItem value="3" className="text-sm">
           {getProfileDisplayName(3)}
-        </SelectItem>
-        <SelectItem value="group-chat" className="text-sm">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" />
-            Family Chat
-          </div>
         </SelectItem>
         
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
