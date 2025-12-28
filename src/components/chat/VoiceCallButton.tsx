@@ -374,12 +374,32 @@ export const VoiceCallButton = () => {
           </DialogHeader>
 
           <div className="flex flex-col items-center gap-6 py-6">
+            {/* Call limit info banner */}
+            {!isAdmin && callsRemaining !== null && (
+              <div className="w-full bg-muted/50 rounded-lg p-3 text-center border border-border/50">
+                <div className="flex items-center justify-center gap-2 text-sm font-medium">
+                  <span className="text-primary">{callsRemaining}</span>
+                  <span className="text-muted-foreground">
+                    {callsRemaining === 1 ? 'call' : 'calls'} remaining today
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Each call has a 1-hour time limit
+                </p>
+              </div>
+            )}
+
             {/* Call duration timer */}
             <div className="text-center">
-              <div className="text-2xl font-mono text-primary">{formatDuration(callDuration)}</div>
-              <div className="text-xs text-muted-foreground">
-                Max: {formatDuration(MAX_CALL_DURATION_SECONDS)}
+              <div className="text-3xl font-mono text-primary font-bold">{formatDuration(callDuration)}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {formatDuration(MAX_CALL_DURATION_SECONDS - callDuration)} remaining
               </div>
+              {callDuration >= 3000 && ( // Show warning at 50 minutes
+                <div className="text-xs text-amber-500 mt-1 font-medium">
+                  ⚠️ Approaching 1-hour limit
+                </div>
+              )}
             </div>
 
             <div className="w-full max-w-xs">
