@@ -67,6 +67,26 @@ const Index = () => {
             </h2>
           </div>
 
+          {/* Free Trial Banner - Highly Visible */}
+          <div className="animate-in fade-in duration-700 delay-100 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 backdrop-blur-sm">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              <h3 className="text-xl sm:text-2xl font-bold text-primary">Start Your Free Trial Today!</h3>
+              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+            </div>
+            <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
+              Get <span className="text-primary font-bold">25 FREE messages daily</span> with full access to:
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 text-sm text-foreground/80">
+              <span className="bg-primary/10 px-3 py-1 rounded-full">✨ AI Chat</span>
+              <span className="bg-primary/10 px-3 py-1 rounded-full">🎨 Image Generation</span>
+              <span className="bg-primary/10 px-3 py-1 rounded-full">📞 Voice Calls</span>
+              <span className="bg-primary/10 px-3 py-1 rounded-full">🏠 Room & Avatar Creation</span>
+              <span className="bg-primary/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-3">No credit card required • Start instantly</p>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom duration-700 delay-200">
             <Button
               size="lg"

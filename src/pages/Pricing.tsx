@@ -71,11 +71,30 @@ const Pricing = () => {
       />
       <div className="min-h-screen bg-background py-12 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
             <p className="text-muted-foreground text-lg">
               Start free and upgrade when you're ready for more
             </p>
+          </div>
+
+          {/* Free Trial Banner */}
+          <div className="mb-10 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 text-center">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              <h2 className="text-xl sm:text-2xl font-bold text-primary">Free Trial - No Credit Card Required!</h2>
+              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+            </div>
+            <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
+              Start with <span className="text-primary font-bold">25 FREE messages every day</span> and full access to core features!
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 text-sm text-foreground/80 mt-3">
+              <span className="bg-primary/10 px-3 py-1 rounded-full">✨ AI Chat</span>
+              <span className="bg-primary/10 px-3 py-1 rounded-full">🎨 Image Generation</span>
+              <span className="bg-primary/10 px-3 py-1 rounded-full">📞 Voice Calls</span>
+              <span className="bg-primary/10 px-3 py-1 rounded-full">🏠 Room & Avatar</span>
+              <span className="bg-primary/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
