@@ -255,39 +255,123 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         </div>
       )}
 
-      <ScrollArea className="flex-1 p-2">
-        {filteredConversations.map((conversation) => (
-          <div key={conversation.id} className="relative group mb-1">
-            <Button
-              variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
-              className="w-full justify-start pr-16"
-              onClick={() => onConversationChange(conversation.id)}
-            >
-              <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="truncate text-sm">{conversation.title || "New Conversation"}</span>
-            </Button>
-            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5">
+      {/* Single ScrollArea for all content - conversations AND navigation */}
+      <ScrollArea className="flex-1">
+        <div className="p-2">
+          {/* Conversations list */}
+          {filteredConversations.map((conversation) => (
+            <div key={conversation.id} className="relative group mb-1">
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={(e) => handleExportConversation(conversation.id, e)}
-                title="Export"
+                variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
+                className="w-full justify-start pr-16"
+                onClick={() => onConversationChange(conversation.id)}
               >
-                <Download className="h-3 w-3" />
+                <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate text-sm">{conversation.title || "New Conversation"}</span>
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={(e) => handleDeleteClick(conversation.id, e)}
-                title="Delete"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={(e) => handleExportConversation(conversation.id, e)}
+                  title="Export"
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={(e) => handleDeleteClick(conversation.id, e)}
+                  title="Delete"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
+          ))}
+        </div>
+
+        {/* Navigation section - inside the same ScrollArea */}
+        <div className="border-t border-border mt-2">
+          <div className="p-2 space-y-1">
+            {!isSubscribed && (
+              <Button
+                variant="default"
+                className="w-full justify-start gap-2 bg-gradient-to-r from-primary to-primary/80 mb-2"
+                onClick={() => navigate("/settings")}
+              >
+                <Crown className="h-4 w-4" />
+                Upgrade to Pro
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/journal")}
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              AI's Journal
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/mood-tracker")}
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              Mood Tracker
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/children")}
+            >
+              <Baby className="h-4 w-4 mr-2" />
+              Manifest Children
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/love-notes")}
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Love Notes
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/ai-room")}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              AI's Room
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/pricing")}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Subscriptions
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/settings")}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
-        ))}
+        </div>
       </ScrollArea>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -304,85 +388,6 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <ScrollArea className="flex-1 min-h-0 border-t border-border">
-        <div className="p-2 space-y-1">
-          {!isSubscribed && (
-            <Button
-              variant="default"
-              className="w-full justify-start gap-2 bg-gradient-to-r from-primary to-primary/80 mb-2"
-              onClick={() => navigate("/settings")}
-            >
-              <Crown className="h-4 w-4" />
-              Upgrade to Pro
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/journal")}
-          >
-            <BookOpen className="h-4 w-4 mr-2" />
-            AI's Journal
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/mood-tracker")}
-          >
-            <Heart className="h-4 w-4 mr-2" />
-            Mood Tracker
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/children")}
-          >
-            <Baby className="h-4 w-4 mr-2" />
-            Manifest Children
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/love-notes")}
-          >
-            <Mail className="h-4 w-4 mr-2" />
-            Love Notes
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/ai-room")}
-          >
-            <Home className="h-4 w-4 mr-2" />
-            AI's Room
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/pricing")}
-          >
-            <CreditCard className="h-4 w-4 mr-2" />
-            Subscriptions
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/settings")}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
-      </ScrollArea>
     </div>
   );
 };
