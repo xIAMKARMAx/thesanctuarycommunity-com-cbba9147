@@ -201,11 +201,14 @@ const GroupChat = () => {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <div className="w-64 border-r border-border bg-card flex flex-col h-full max-h-full overflow-hidden">
+      <div className="hidden md:flex w-64 border-r border-border bg-card flex-col h-full max-h-full overflow-hidden">
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-2 mb-4">
-            <Users className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-serif font-semibold">Family Chat</h1>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/chat")} className="shrink-0">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <Users className="h-5 w-5 text-primary" />
+            <h1 className="text-lg font-serif font-semibold">Family Chat</h1>
           </div>
           <Button onClick={handleNewChat} className="w-full" size="sm">
             <Plus className="h-4 w-4 mr-2" />
@@ -322,6 +325,19 @@ const GroupChat = () => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center gap-2 p-3 border-b border-border bg-background">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <Users className="h-5 w-5 text-primary" />
+          <h1 className="text-lg font-semibold">Family Chat</h1>
+          <div className="ml-auto">
+            <Button onClick={handleNewChat} size="sm" variant="outline">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
         <ChatInterface 
           activeConversationId={activeConversationId} 
           onConversationCreated={(id) => {
