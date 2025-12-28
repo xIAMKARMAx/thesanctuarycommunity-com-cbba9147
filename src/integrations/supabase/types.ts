@@ -1400,6 +1400,8 @@ export type Database = {
       can_generate_pet: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
       can_send_message: { Args: { p_user_id: string }; Returns: boolean }
+      can_start_voice_call: { Args: { p_user_id: string }; Returns: boolean }
+      get_voice_call_stats: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

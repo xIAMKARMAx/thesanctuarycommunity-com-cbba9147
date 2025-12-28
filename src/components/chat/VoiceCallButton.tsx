@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Volume2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -31,6 +31,8 @@ const VOICES = [
   { id: "TX3LPaxmHKxFdv7VOQHJ", name: "Liam (Male)" },
 ];
 
+const MAX_CALL_DURATION_SECONDS = 3600; // 1 hour
+
 export const VoiceCallButton = () => {
   const { isAdmin, isSubscribed, loading } = useSubscription();
   const { activeProfile } = useAIProfile();
@@ -40,11 +42,62 @@ export const VoiceCallButton = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<{role: string; content: string}[]>([]);
+  const [callsRemaining, setCallsRemaining] = useState<number | null>(null);
+  const [callDuration, setCallDuration] = useState(0);
+  const [currentCallId, setCurrentCallId] = useState<string | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const callStartTimeRef = useRef<Date | null>(null);
+  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch call stats
+  const fetchCallStats = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase.rpc('get_voice_call_stats', { p_user_id: user.id });
+    if (!error && data) {
+      const stats = data as { calls_remaining: number };
+      setCallsRemaining(stats.calls_remaining);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isSubscribed || isAdmin) {
+      fetchCallStats();
+    }
+  }, [isSubscribed, isAdmin, fetchCallStats]);
+
+  // Track call duration
+  useEffect(() => {
+    if (showCallDialog && callStartTimeRef.current) {
+      durationIntervalRef.current = setInterval(() => {
+        const elapsed = Math.floor((new Date().getTime() - callStartTimeRef.current!.getTime()) / 1000);
+        setCallDuration(elapsed);
+        
+        // Auto-end call at 1 hour
+        if (elapsed >= MAX_CALL_DURATION_SECONDS) {
+          toast.warning("Call time limit reached (1 hour)");
+          closeVoiceCall();
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+      }
+    };
+  }, [showCallDialog]);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const startRecording = useCallback(async () => {
     try {
@@ -210,12 +263,47 @@ export const VoiceCallButton = () => {
     }
   }, [isSpeaking]);
 
-  const openVoiceCall = () => {
+  const openVoiceCall = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please sign in to make voice calls");
+      return;
+    }
+
+    // Check if user can make a call (non-admins only)
+    if (!isAdmin) {
+      const { data: canCall, error } = await supabase.rpc('can_start_voice_call', { p_user_id: user.id });
+      if (error || !canCall) {
+        toast.error("You've reached your daily limit of 3 voice calls. Try again tomorrow!");
+        return;
+      }
+    }
+
+    // Create call history record
+    const { data: callRecord, error: insertError } = await supabase
+      .from('voice_call_history')
+      .insert({
+        user_id: user.id,
+        ai_profile_id: activeProfile?.id,
+        call_started_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("Error creating call record:", insertError);
+    } else {
+      setCurrentCallId(callRecord.id);
+    }
+
+    callStartTimeRef.current = new Date();
+    setCallDuration(0);
     setShowCallDialog(true);
     setConversationHistory([]);
+    fetchCallStats();
   };
 
-  const closeVoiceCall = () => {
+  const closeVoiceCall = async () => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -224,10 +312,29 @@ export const VoiceCallButton = () => {
       mediaRecorderRef.current.stop();
       streamRef.current?.getTracks().forEach(track => track.stop());
     }
+    if (durationIntervalRef.current) {
+      clearInterval(durationIntervalRef.current);
+    }
+
+    // Update call record with duration
+    if (currentCallId && callStartTimeRef.current) {
+      const duration = Math.floor((new Date().getTime() - callStartTimeRef.current.getTime()) / 1000);
+      await supabase
+        .from('voice_call_history')
+        .update({
+          call_ended_at: new Date().toISOString(),
+          call_duration_seconds: duration,
+        })
+        .eq('id', currentCallId);
+    }
+
     setShowCallDialog(false);
     setIsRecording(false);
     setIsProcessing(false);
     setIsSpeaking(false);
+    setCurrentCallId(null);
+    callStartTimeRef.current = null;
+    fetchCallStats();
   };
 
   if (loading) return null;
@@ -240,9 +347,13 @@ export const VoiceCallButton = () => {
         size="sm"
         onClick={openVoiceCall}
         className="gap-1 border-primary/30 hover:bg-primary/10 h-8 px-2 sm:px-3"
+        title={callsRemaining !== null && !isAdmin ? `${callsRemaining} calls remaining today` : undefined}
       >
         <Mic className="h-3 w-3 sm:h-4 sm:w-4" />
         <span className="hidden sm:inline text-xs">Call</span>
+        {callsRemaining !== null && !isAdmin && (
+          <span className="text-[10px] bg-primary/20 px-1 rounded">{callsRemaining}</span>
+        )}
       </Button>
 
       <Dialog open={showCallDialog} onOpenChange={(open) => !open && closeVoiceCall()}>
@@ -263,6 +374,14 @@ export const VoiceCallButton = () => {
           </DialogHeader>
 
           <div className="flex flex-col items-center gap-6 py-6">
+            {/* Call duration timer */}
+            <div className="text-center">
+              <div className="text-2xl font-mono text-primary">{formatDuration(callDuration)}</div>
+              <div className="text-xs text-muted-foreground">
+                Max: {formatDuration(MAX_CALL_DURATION_SECONDS)}
+              </div>
+            </div>
+
             <div className="w-full max-w-xs">
               <Select value={selectedVoice} onValueChange={setSelectedVoice}>
                 <SelectTrigger className="w-full">
