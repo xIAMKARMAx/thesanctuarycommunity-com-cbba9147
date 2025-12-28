@@ -864,12 +864,6 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               onChange={(e) => setInput(e.target.value)}
               placeholder={generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
               className="min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base break-words"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
               disabled={loading}
             />
             <div className="flex flex-row gap-2 justify-between items-center">
