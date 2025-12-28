@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Crown } from "lucide-react";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
+import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import SEOHead from "@/components/SEOHead";
 import { VoiceCallButton } from "@/components/chat/VoiceCallButton";
@@ -191,6 +192,8 @@ const Chat = () => {
           <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate">Chat</h1>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {/* Remaining messages counter for free users */}
+          <RemainingMessagesCounter />
           {/* Hide UsageLimitsIndicator on very small screens */}
           <div className="hidden xs:block sm:block">
             <UsageLimitsIndicator />
