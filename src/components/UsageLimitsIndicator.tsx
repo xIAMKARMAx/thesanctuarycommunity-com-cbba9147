@@ -131,7 +131,7 @@ export const UsageLimitsIndicator = () => {
               <span>Chat Images</span>
             </div>
             <span className="text-muted-foreground">
-              {isSubscribed ? "10/24h" : "Pro only"}
+              {isSubscribed ? "10/day" : "Pro only"}
             </span>
           </div>
 
