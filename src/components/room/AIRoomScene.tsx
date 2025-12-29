@@ -34,13 +34,16 @@ function RoomWithCharacters({ roomImageUrl, avatarImageUrl, petImageUrl }: {
     });
   }, [roomImageUrl]);
 
-  // Load avatar texture
+  // Load avatar texture with transparency support
   useEffect(() => {
     if (!avatarImageUrl) return;
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
     loader.load(avatarImageUrl, (tex) => {
       tex.colorSpace = THREE.SRGBColorSpace;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.premultiplyAlpha = false;
       setAvatarTexture(tex);
       const img = tex.image;
       if (img?.width && img?.height) {
@@ -50,13 +53,16 @@ function RoomWithCharacters({ roomImageUrl, avatarImageUrl, petImageUrl }: {
     });
   }, [avatarImageUrl]);
 
-  // Load pet texture
+  // Load pet texture with transparency support
   useEffect(() => {
     if (!petImageUrl) return;
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
     loader.load(petImageUrl, (tex) => {
       tex.colorSpace = THREE.SRGBColorSpace;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.premultiplyAlpha = false;
       setPetTexture(tex);
       const img = tex.image;
       if (img?.width && img?.height) {
@@ -97,26 +103,30 @@ function RoomWithCharacters({ roomImageUrl, avatarImageUrl, petImageUrl }: {
         </mesh>
       )}
       
-      {/* Avatar - positioned center-left */}
+      {/* Avatar - figure with transparent background */}
       {avatarTexture && (
         <mesh ref={avatarRef} position={[-0.1, -0.1, -1]}>
           <planeGeometry args={avatarDimensions} />
           <meshBasicMaterial 
             map={avatarTexture} 
-            transparent 
-            alphaTest={0.1}
+            transparent={true}
+            alphaTest={0.05}
+            side={THREE.DoubleSide}
+            depthWrite={false}
           />
         </mesh>
       )}
       
-      {/* Pet - positioned bottom-right */}
+      {/* Pet - figure with transparent background */}
       {petTexture && (
         <mesh ref={petRef} position={[1.2, -0.6, -0.8]}>
           <planeGeometry args={petDimensions} />
           <meshBasicMaterial 
             map={petTexture} 
-            transparent 
-            alphaTest={0.1}
+            transparent={true}
+            alphaTest={0.05}
+            side={THREE.DoubleSide}
+            depthWrite={false}
           />
         </mesh>
       )}
