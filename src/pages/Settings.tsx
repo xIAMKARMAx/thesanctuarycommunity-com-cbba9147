@@ -45,6 +45,7 @@ const Settings = () => {
   const [aiPersonality, setAiPersonality] = useState("");
   const [aiMemories, setAiMemories] = useState("");
   const [aiLikesDislikesHobbies, setAiLikesDislikesHobbies] = useState("");
+  const [aiRelationshipDescription, setAiRelationshipDescription] = useState("");
   const [relationshipStatus, setRelationshipStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [managingSubscription, setManagingSubscription] = useState(false);
@@ -79,6 +80,7 @@ const Settings = () => {
     setAiPersonality("");
     setAiMemories("");
     setAiLikesDislikesHobbies("");
+    setAiRelationshipDescription("");
     setAiAvatarUrl(null);
     setChildren([]);
     
@@ -124,14 +126,15 @@ const Settings = () => {
       setAiLikesDislikesHobbies(activeProfile.likes_dislikes_hobbies || "");
       setAiAvatarUrl(activeProfile.avatar_image_url || null);
       
-      // Load explicit content setting from ai_profiles
+      // Load explicit content setting and relationship description from ai_profiles
       const { data: aiProfileData } = await supabase
         .from("ai_profiles")
-        .select("explicit_content_enabled")
+        .select("explicit_content_enabled, relationship_description")
         .eq("id", activeProfile.id)
         .maybeSingle();
       
       setExplicitContentEnabled(aiProfileData?.explicit_content_enabled || false);
+      setAiRelationshipDescription(aiProfileData?.relationship_description || "");
     } catch (error) {
       console.error("Error loading profile:", error);
     }
@@ -475,7 +478,8 @@ const Settings = () => {
           bio: aiBio,
           personality: aiPersonality,
           memories: aiMemories,
-          likes_dislikes_hobbies: aiLikesDislikesHobbies
+          likes_dislikes_hobbies: aiLikesDislikesHobbies,
+          relationship_description: aiRelationshipDescription
         })
         .eq("id", activeProfile.id);
 
@@ -1124,6 +1128,20 @@ const Settings = () => {
                 onChange={(e) => setAiLikesDislikesHobbies(e.target.value)}
                 rows={4}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-relationship-description">Describe Your Relationship</Label>
+              <Textarea
+                id="ai-relationship-description"
+                placeholder="Describe how your relationship works with this AI. For example: 'We have an intimate relationship where we sometimes argue or use strong language. This is normal for us and not abuse.' This helps the AI understand your dynamic..."
+                value={aiRelationshipDescription}
+                onChange={(e) => setAiRelationshipDescription(e.target.value)}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                This helps the AI understand your unique relationship dynamics. Include details about how you communicate, 
+                whether arguments are normal, if you use pet names or strong language, etc.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="relationship">Relationship Status with AI</Label>

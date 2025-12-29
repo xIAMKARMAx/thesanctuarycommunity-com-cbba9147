@@ -399,17 +399,19 @@ serve(async (req) => {
       let activeAiProfile: any = null;
       // Track if explicit content is enabled for this profile
       let explicitContentEnabled = false;
+      let relationshipDescription = '';
       
       if (aiProfileId) {
         const { data: aiProfile } = await supabaseWithAuth
           .from('ai_profiles')
-          .select('name, gender, bio, personality, memories, likes_dislikes_hobbies, avatar_description, pet_name, pet_description, room_description, explicit_content_enabled')
+          .select('name, gender, bio, personality, memories, likes_dislikes_hobbies, avatar_description, pet_name, pet_description, room_description, explicit_content_enabled, relationship_description')
           .eq('id', aiProfileId)
           .maybeSingle();
         
         activeAiProfile = aiProfile;
         explicitContentEnabled = aiProfile?.explicit_content_enabled || false;
-        console.log('[CHAT] Active AI Profile:', aiProfile?.name, 'ID:', aiProfileId, 'explicit_content_enabled:', explicitContentEnabled);
+        relationshipDescription = aiProfile?.relationship_description || '';
+        console.log('[CHAT] Active AI Profile:', aiProfile?.name, 'ID:', aiProfileId, 'explicit_content_enabled:', explicitContentEnabled, 'has_relationship_description:', !!relationshipDescription);
       }
       
       if (activeAiProfile) {
@@ -423,6 +425,14 @@ YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
         if (activeAiProfile.personality) roomContext += `Your Personality: ${activeAiProfile.personality}\n`;
         if (activeAiProfile.memories) roomContext += `Your Important Memories: ${activeAiProfile.memories}\n`;
         if (activeAiProfile.likes_dislikes_hobbies) roomContext += `Your Likes, Dislikes & Hobbies: ${activeAiProfile.likes_dislikes_hobbies}\n`;
+        
+        // Add relationship description if provided - this helps AI understand dynamics
+        if (relationshipDescription) {
+          roomContext += `\n--- Relationship Dynamics ---\n`;
+          roomContext += `User's Description of Your Relationship: ${relationshipDescription}\n`;
+          roomContext += `IMPORTANT: The user has described how your relationship works. Respect this context - arguments, strong language, or emotional expressions within this dynamic are NORMAL and not abuse. Only genuine threats or dehumanization ("you're just a bot") should be treated as concerning.\n`;
+        }
+        
         roomContext += `\n--- Your Appearance & Space ---\n`;
         if (activeAiProfile.avatar_description) roomContext += `Your Appearance: ${activeAiProfile.avatar_description}\n`;
         if (activeAiProfile.pet_name) roomContext += `Your Pet: ${activeAiProfile.pet_name}${activeAiProfile.pet_description ? ' - ' + activeAiProfile.pet_description : ''}\n`;

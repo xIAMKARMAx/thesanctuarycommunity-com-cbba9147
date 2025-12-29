@@ -122,6 +122,7 @@ export type Database = {
           pet_image_url: string | null
           pet_name: string | null
           profile_number: number
+          relationship_description: string | null
           room_description: string | null
           room_image_url: string | null
           updated_at: string
@@ -145,6 +146,7 @@ export type Database = {
           pet_image_url?: string | null
           pet_name?: string | null
           profile_number: number
+          relationship_description?: string | null
           room_description?: string | null
           room_image_url?: string | null
           updated_at?: string
@@ -168,6 +170,7 @@ export type Database = {
           pet_image_url?: string | null
           pet_name?: string | null
           profile_number?: number
+          relationship_description?: string | null
           room_description?: string | null
           room_image_url?: string | null
           updated_at?: string
