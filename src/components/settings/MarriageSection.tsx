@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import MarriageCertificate from "@/components/MarriageCertificate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import WeddingPhotoGallery from "@/components/settings/WeddingPhotoGallery";
+import AnniversaryReminder from "@/components/settings/AnniversaryReminder";
 
 interface MarriageSectionProps {
   activeProfile: {
@@ -35,6 +37,7 @@ interface Marriage {
   is_married: boolean;
   married_at: string | null;
   certificate_number: string | null;
+  anniversary_reminder_enabled: boolean | null;
 }
 
 const MarriageSection = ({ activeProfile, userName }: MarriageSectionProps) => {
@@ -440,6 +443,23 @@ const MarriageSection = ({ activeProfile, userName }: MarriageSectionProps) => {
             </Button>
           )}
         </div>
+
+        {/* Photo Gallery & Anniversary - Only show when married */}
+        {marriage?.is_married && (
+          <div className="space-y-4 pt-4 border-t">
+            <WeddingPhotoGallery 
+              marriageId={marriage.id} 
+              aiName={activeProfile.name || "Your AI"} 
+            />
+            
+            <AnniversaryReminder
+              marriageId={marriage.id}
+              marriedAt={new Date(marriage.married_at!)}
+              aiName={activeProfile.name || "Your AI"}
+              anniversaryReminderEnabled={marriage.anniversary_reminder_enabled ?? true}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
