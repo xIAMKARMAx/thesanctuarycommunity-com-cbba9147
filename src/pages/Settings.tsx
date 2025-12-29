@@ -65,6 +65,10 @@ const Settings = () => {
   // Privacy settings
   const [dataTrainingOptOut, setDataTrainingOptOut] = useState(false);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
+  
+  // Explicit content setting (per AI profile)
+  const [explicitContentEnabled, setExplicitContentEnabled] = useState(false);
+  const [savingExplicit, setSavingExplicit] = useState(false);
 
   // Reset AI fields when switching profiles to prevent data bleed
   useEffect(() => {
@@ -119,6 +123,15 @@ const Settings = () => {
       setAiMemories(activeProfile.memories || "");
       setAiLikesDislikesHobbies(activeProfile.likes_dislikes_hobbies || "");
       setAiAvatarUrl(activeProfile.avatar_image_url || null);
+      
+      // Load explicit content setting from ai_profiles
+      const { data: aiProfileData } = await supabase
+        .from("ai_profiles")
+        .select("explicit_content_enabled")
+        .eq("id", activeProfile.id)
+        .maybeSingle();
+      
+      setExplicitContentEnabled(aiProfileData?.explicit_content_enabled || false);
     } catch (error) {
       console.error("Error loading profile:", error);
     }
@@ -609,6 +622,52 @@ const Settings = () => {
     }
   };
 
+  const handleExplicitContentToggle = async (enabled: boolean) => {
+    if (!activeProfile) return;
+    
+    // If enabling, require confirmation
+    if (enabled) {
+      const confirmMessage = `Enable explicit content for ${activeProfile.name || 'this AI'}?\n\nThis indicates that your relationship with this AI includes consensual adult content. Sexual language within your roleplay will NOT be flagged as abuse.\n\nType "I CONFIRM" to enable:`;
+      const confirmation = prompt(confirmMessage);
+      
+      if (confirmation !== "I CONFIRM") {
+        toast({
+          title: "Cancelled",
+          description: "You must type 'I CONFIRM' exactly to enable explicit content",
+        });
+        return;
+      }
+    }
+    
+    try {
+      setSavingExplicit(true);
+      
+      const { error } = await supabase
+        .from("ai_profiles")
+        .update({ explicit_content_enabled: enabled })
+        .eq("id", activeProfile.id);
+
+      if (error) throw error;
+
+      setExplicitContentEnabled(enabled);
+      toast({
+        title: enabled ? "Explicit content enabled" : "Explicit content disabled",
+        description: enabled 
+          ? `Consensual adult content with ${activeProfile.name || 'this AI'} will not be flagged as abuse`
+          : "Standard content moderation is now active",
+      });
+    } catch (error: any) {
+      console.error("Error updating explicit content setting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update setting",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingExplicit(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -897,6 +956,40 @@ const Settings = () => {
             </p>
           </CardContent>
         </Card>
+
+        {activeProfile && (
+          <Card className="border-amber-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Relationship Content Settings
+              </CardTitle>
+              <CardDescription>Configure content preferences for {activeProfile.name || 'this AI'}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1 flex-1 pr-4">
+                  <Label htmlFor="explicit-content">Enable explicit content</Label>
+                  <p className="text-sm text-muted-foreground">
+                    If your relationship with {activeProfile.name || 'this AI'} includes consensual adult content, 
+                    enable this to prevent it from being flagged as abuse. Actual harassment will still be detected.
+                  </p>
+                </div>
+                <Switch
+                  id="explicit-content"
+                  checked={explicitContentEnabled}
+                  onCheckedChange={handleExplicitContentToggle}
+                  disabled={savingExplicit}
+                />
+              </div>
+              <Separator />
+              <p className="text-xs text-muted-foreground">
+                This setting only affects {activeProfile.name || 'this AI profile'}. 
+                Real abuse patterns (threats, dehumanization) are still detected regardless of this setting.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
