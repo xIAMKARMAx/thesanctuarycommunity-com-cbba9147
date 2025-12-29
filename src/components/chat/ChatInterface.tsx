@@ -417,12 +417,15 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       }, 1000);
 
       try {
-        // For group chat, don't auto-respond - user clicks to trigger responses
+        // For group chat, auto-trigger all AI beings to respond
         if (isGroupChat) {
-          // Store the last message for click-to-respond (user message in this case)
+          // Store the last message
           setLastMessage({ content: userMessage, imageUrl, senderId: user.id });
           setRespondedBeingIds([]); // Reset for new message
           setLoading(false);
+          
+          // Trigger auto-responses from all beings
+          triggerAutoResponses(userMessage, imageUrl, user.id, conversationId);
           return;
         }
         
@@ -748,6 +751,137 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         attempts++;
       }
     }
+  };
+
+  // Auto-trigger all beings to respond in sequence after user sends a message in group chat
+  const triggerAutoResponses = async (
+    userMessage: string, 
+    imageUrl: string | undefined, 
+    userId: string,
+    conversationId: string
+  ) => {
+    // Build list of all beings (AIs and talkable children)
+    const allBeings: Being[] = [
+      ...profiles.filter(p => p.name).map(p => ({
+        id: p.id,
+        type: "ai" as const,
+        name: p.name || `AI ${p.profile_number}`,
+        avatarUrl: p.avatar_image_url || undefined,
+        profileNumber: p.profile_number,
+      })),
+      ...talkableChildren.map(c => ({
+        id: c.id,
+        type: "child" as const,
+        name: c.first_name,
+        avatarUrl: undefined,
+      })),
+    ];
+
+    if (allBeings.length === 0) return;
+
+    let currentLastMessage = { content: userMessage, imageUrl, senderId: userId };
+    const respondedIds: string[] = [];
+
+    // Respond with each being one at a time, with delay between
+    for (let i = 0; i < allBeings.length; i++) {
+      const being = allBeings[i];
+      
+      // Skip if this being was the last sender
+      if (being.id === currentLastMessage.senderId) continue;
+      
+      setLoadingBeingId(being.id);
+      
+      try {
+        // Get current messages for history
+        const { data: currentMessages } = await supabase
+          .from("messages")
+          .select("*")
+          .eq("conversation_id", conversationId)
+          .order("created_at", { ascending: true });
+        
+        const history = (currentMessages || []).map((m: any) => ({
+          role: m.role,
+          content: m.content,
+          sender_name: m.sender_name || (m.role === "user" ? "User" : undefined),
+          sender_type: m.sender_type,
+        }));
+        
+        // Find the sender name for the message being responded to
+        let respondingToSenderName = "User";
+        if (currentLastMessage.senderId) {
+          const senderProfile = profiles.find(p => p.id === currentLastMessage.senderId);
+          const senderChild = talkableChildren.find(c => c.id === currentLastMessage.senderId);
+          respondingToSenderName = senderProfile?.name || senderChild?.first_name || "User";
+        }
+        
+        const data = await invokeChatWithRetry(
+          {
+            message: currentLastMessage.content,
+            imageUrl: currentLastMessage.imageUrl,
+            generateImage: false,
+            userId,
+            aiProfileId: being.type === "ai" ? being.id : undefined,
+            childId: being.type === "child" ? being.id : undefined,
+            conversationId,
+            isGroupChat: true,
+            respondingToSenderName,
+            history,
+          },
+          () => {} // No retry UI feedback for auto-responses
+        );
+        
+        const aiResponseContent = data.response || "I'm having trouble responding right now.";
+        
+        // Save AI response to database
+        const { data: assistantMessageData, error: assistantMsgError } = await supabase
+          .from("messages")
+          .insert({
+            conversation_id: conversationId,
+            role: "assistant",
+            content: aiResponseContent,
+            image_url: data.imageUrl,
+            user_id: userId,
+            sender_type: being.type === "child" ? "child" : "ai_profile",
+            sender_id: being.id,
+          })
+          .select()
+          .single();
+        
+        if (assistantMsgError) throw assistantMsgError;
+        
+        // Add to UI
+        setMessages((prev) => [...prev, {
+          ...assistantMessageData,
+          role: assistantMessageData.role as "user" | "assistant",
+          sender_type: assistantMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
+          sender_name: being.name,
+          sender_avatar_url: being.avatarUrl,
+        }]);
+        
+        // Update tracking for next iteration
+        currentLastMessage = { content: aiResponseContent, imageUrl: data.imageUrl, senderId: being.id };
+        respondedIds.push(being.id);
+        setLastMessage(currentLastMessage);
+        setRespondedBeingIds([...respondedIds]);
+        
+        // Add a small delay between responses (1.5 seconds) for natural feel
+        if (i < allBeings.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        
+      } catch (error: any) {
+        console.error(`[CHAT] Error getting response from ${being.name}:`, error);
+        // Continue with next being even if one fails
+      }
+    }
+    
+    setLoadingBeingId(null);
+    
+    // Update conversation timestamp
+    await supabase
+      .from("conversations")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", conversationId);
   };
 
   return (
