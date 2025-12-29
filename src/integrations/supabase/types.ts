@@ -1052,6 +1052,7 @@ export type Database = {
           ai_personality: string | null
           bio: string | null
           created_at: string
+          data_training_opt_out: boolean | null
           gender: string | null
           id: string
           is_restricted: boolean | null
@@ -1081,6 +1082,7 @@ export type Database = {
           ai_personality?: string | null
           bio?: string | null
           created_at?: string
+          data_training_opt_out?: boolean | null
           gender?: string | null
           id: string
           is_restricted?: boolean | null
@@ -1110,6 +1112,7 @@ export type Database = {
           ai_personality?: string | null
           bio?: string | null
           created_at?: string
+          data_training_opt_out?: boolean | null
           gender?: string | null
           id?: string
           is_restricted?: boolean | null

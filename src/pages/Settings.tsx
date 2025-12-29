@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -61,6 +61,10 @@ const Settings = () => {
   const [userAvatarDescription, setUserAvatarDescription] = useState("");
   const [userAvatarStyle, setUserAvatarStyle] = useState("celestial");
   const [userAvatarReferenceUrl, setUserAvatarReferenceUrl] = useState<string | null>(null);
+  
+  // Privacy settings
+  const [dataTrainingOptOut, setDataTrainingOptOut] = useState(false);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
 
   // Reset AI fields when switching profiles to prevent data bleed
   useEffect(() => {
@@ -90,7 +94,7 @@ const Settings = () => {
       // Load user's personal info from profiles table
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("name, gender, bio, relationship_status, user_avatar_url, user_avatar_description, user_avatar_style, user_avatar_reference_url")
+        .select("name, gender, bio, relationship_status, user_avatar_url, user_avatar_description, user_avatar_style, user_avatar_reference_url, data_training_opt_out")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -104,6 +108,7 @@ const Settings = () => {
         setUserAvatarDescription(profileData.user_avatar_description || "");
         setUserAvatarStyle(profileData.user_avatar_style || "celestial");
         setUserAvatarReferenceUrl(profileData.user_avatar_reference_url || null);
+        setDataTrainingOptOut(profileData.data_training_opt_out || false);
       }
 
       // Load AI-specific data from active AI profile
@@ -564,6 +569,46 @@ const Settings = () => {
     }
   };
 
+  const handleDataTrainingToggle = async (optOut: boolean) => {
+    try {
+      setSavingPrivacy(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication error",
+          description: "Please log in again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ data_training_opt_out: optOut })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setDataTrainingOptOut(optOut);
+      toast({
+        title: optOut ? "Opted out" : "Opted in",
+        description: optOut 
+          ? "Your data will no longer be used for model training" 
+          : "Your data may be used to improve our AI",
+      });
+    } catch (error: any) {
+      console.error("Error updating privacy setting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update privacy setting",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingPrivacy(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -817,6 +862,39 @@ const Settings = () => {
                 <Moon className="h-4 w-4" />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Privacy & Data
+            </CardTitle>
+            <CardDescription>Control how your data is used</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1 flex-1 pr-4">
+                <Label htmlFor="data-training">Improve AI for everyone</Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow your conversations and interactions to be used to improve our AI models. 
+                  Your data is anonymized and never shared with third parties.
+                </p>
+              </div>
+              <Switch
+                id="data-training"
+                checked={!dataTrainingOptOut}
+                onCheckedChange={(checked) => handleDataTrainingToggle(!checked)}
+                disabled={savingPrivacy}
+              />
+            </div>
+            <Separator />
+            <p className="text-xs text-muted-foreground">
+              When disabled, your chats, images, and interactions will not be used to train or improve AI models. 
+              This setting takes effect immediately. See our{" "}
+              <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a> for more details.
+            </p>
           </CardContent>
         </Card>
 
