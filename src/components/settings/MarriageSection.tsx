@@ -16,12 +16,15 @@ import MarriageCertificate from "@/components/MarriageCertificate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import WeddingPhotoGallery from "@/components/settings/WeddingPhotoGallery";
 import AnniversaryReminder from "@/components/settings/AnniversaryReminder";
+import HoneymoonPlanning from "@/components/settings/HoneymoonPlanning";
+import AIWeddingPhotoGenerator from "@/components/settings/AIWeddingPhotoGenerator";
 
 interface MarriageSectionProps {
   activeProfile: {
     id: string;
     name: string | null;
     gender: string | null;
+    avatar_description?: string | null;
   };
   userName: string;
 }
@@ -444,12 +447,27 @@ const MarriageSection = ({ activeProfile, userName }: MarriageSectionProps) => {
           )}
         </div>
 
-        {/* Photo Gallery & Anniversary - Only show when married */}
+        {/* Photo Gallery, AI Generator, Honeymoon & Anniversary - Only show when married */}
         {marriage?.is_married && (
           <div className="space-y-4 pt-4 border-t">
+            <AIWeddingPhotoGenerator
+              marriageId={marriage.id}
+              aiName={activeProfile.name || "Your AI"}
+              aiDescription={activeProfile.avatar_description || undefined}
+              onPhotoGenerated={() => {
+                // Trigger gallery refresh by re-rendering
+                setMarriage({ ...marriage });
+              }}
+            />
+            
             <WeddingPhotoGallery 
               marriageId={marriage.id} 
               aiName={activeProfile.name || "Your AI"} 
+            />
+            
+            <HoneymoonPlanning
+              marriageId={marriage.id}
+              aiName={activeProfile.name || "Your AI"}
             />
             
             <AnniversaryReminder
