@@ -1,176 +1,153 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment } from '@react-three/drei';
-import { Suspense, useEffect, useRef, useState } from 'react';
-import { LiveAvatar3D } from './LiveAvatar3D';
-import { LivePet3D } from './LivePet3D';
+import { Suspense, useEffect, useState, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { AvatarCustomization } from '@/types/avatar';
 
 interface AIRoomSceneProps {
   roomImageUrl: string;
   avatarImageUrl?: string;
   petImageUrl?: string;
   petName?: string;
-  avatarCustomization?: AvatarCustomization;
 }
 
-function RoomBackground({ imageUrl }: { imageUrl: string }) {
-  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+function RoomWithCharacters({ roomImageUrl, avatarImageUrl, petImageUrl }: { 
+  roomImageUrl: string; 
+  avatarImageUrl?: string; 
+  petImageUrl?: string;
+}) {
+  const [roomTexture, setRoomTexture] = useState<THREE.Texture | null>(null);
+  const [avatarTexture, setAvatarTexture] = useState<THREE.Texture | null>(null);
+  const [petTexture, setPetTexture] = useState<THREE.Texture | null>(null);
+  const [avatarDimensions, setAvatarDimensions] = useState<[number, number]>([1, 1.8]);
+  const [petDimensions, setPetDimensions] = useState<[number, number]>([0.8, 0.8]);
+  
+  const avatarRef = useRef<THREE.Mesh>(null);
+  const petRef = useRef<THREE.Mesh>(null);
 
+  // Load room texture
   useEffect(() => {
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
-    
-    loader.load(
-      imageUrl,
-      (loadedTexture) => {
-        loadedTexture.colorSpace = THREE.SRGBColorSpace;
-        loadedTexture.wrapS = THREE.RepeatWrapping;
-        loadedTexture.repeat.x = -1;
-        loadedTexture.needsUpdate = true;
-        setTexture(loadedTexture);
-      },
-      undefined,
-      (error) => {
-        console.error('Error loading room texture:', error);
-      }
-    );
-    
-    return () => {
-      if (texture) {
-        texture.dispose();
-      }
-    };
-  }, [imageUrl]);
+    loader.load(roomImageUrl, (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      setRoomTexture(tex);
+    });
+  }, [roomImageUrl]);
 
-  if (!texture) {
-    return (
-      <mesh scale={[-1, 1, 1]}>
-        <sphereGeometry args={[15, 60, 40]} />
-        <meshBasicMaterial color="#1a1a2e" side={THREE.BackSide} />
-      </mesh>
-    );
-  }
-  
+  // Load avatar texture
+  useEffect(() => {
+    if (!avatarImageUrl) return;
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = 'anonymous';
+    loader.load(avatarImageUrl, (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      setAvatarTexture(tex);
+      const img = tex.image;
+      if (img?.width && img?.height) {
+        const aspect = img.width / img.height;
+        setAvatarDimensions([1.8 * aspect, 1.8]);
+      }
+    });
+  }, [avatarImageUrl]);
+
+  // Load pet texture
+  useEffect(() => {
+    if (!petImageUrl) return;
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = 'anonymous';
+    loader.load(petImageUrl, (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      setPetTexture(tex);
+      const img = tex.image;
+      if (img?.width && img?.height) {
+        const aspect = img.width / img.height;
+        setPetDimensions([0.7 * aspect, 0.7]);
+      }
+    });
+  }, [petImageUrl]);
+
+  // Animate avatar and pet
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime();
+    
+    if (avatarRef.current) {
+      // Subtle breathing
+      const breath = 1 + Math.sin(time * 0.8) * 0.01;
+      avatarRef.current.scale.y = breath;
+      // Tiny sway
+      avatarRef.current.position.x = -0.1 + Math.sin(time * 0.5) * 0.02;
+    }
+    
+    if (petRef.current) {
+      // Faster breathing for pet
+      const petBreath = 1 + Math.sin(time * 1.2) * 0.02;
+      petRef.current.scale.y = petBreath;
+      // Small movement
+      petRef.current.position.y = -0.6 + Math.sin(time * 0.8) * 0.02;
+    }
+  });
+
   return (
-    <mesh scale={[-1, 1, 1]}>
-      <sphereGeometry args={[15, 60, 40]} />
-      <meshBasicMaterial 
-        map={texture}
-        side={THREE.BackSide}
-      />
-    </mesh>
+    <>
+      {/* Room background - full screen plane */}
+      {roomTexture && (
+        <mesh position={[0, 0, -2]}>
+          <planeGeometry args={[8, 4.5]} />
+          <meshBasicMaterial map={roomTexture} />
+        </mesh>
+      )}
+      
+      {/* Avatar - positioned center-left */}
+      {avatarTexture && (
+        <mesh ref={avatarRef} position={[-0.1, -0.1, -1]}>
+          <planeGeometry args={avatarDimensions} />
+          <meshBasicMaterial 
+            map={avatarTexture} 
+            transparent 
+            alphaTest={0.1}
+          />
+        </mesh>
+      )}
+      
+      {/* Pet - positioned bottom-right */}
+      {petTexture && (
+        <mesh ref={petRef} position={[1.2, -0.6, -0.8]}>
+          <planeGeometry args={petDimensions} />
+          <meshBasicMaterial 
+            map={petTexture} 
+            transparent 
+            alphaTest={0.1}
+          />
+        </mesh>
+      )}
+    </>
   );
 }
 
-function LoadingFallback() {
+function LoadingView() {
   return (
     <mesh>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="gray" transparent opacity={0.3} />
+      <planeGeometry args={[2, 1]} />
+      <meshBasicMaterial color="#1a1a2e" />
     </mesh>
   );
 }
 
-function CameraController({ avatarCustomization }: { avatarCustomization?: AvatarCustomization }) {
-  const controlsRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (!controlsRef.current || !avatarCustomization) return;
-
-    // Get avatar position
-    const avatarPos = avatarCustomization.position;
-    const targetPosition = new THREE.Vector3(avatarPos.x, avatarPos.y + 0.5, avatarPos.z);
-    
-    // Calculate ideal camera position to frame avatar
-    const cameraDistance = 4;
-    const cameraHeight = 0.5;
-    const idealCameraPos = new THREE.Vector3(
-      avatarPos.x - 1,
-      avatarPos.y + cameraHeight,
-      avatarPos.z + cameraDistance
-    );
-
-    // Smooth transition
-    const controls = controlsRef.current;
-    const startTarget = controls.target.clone();
-    const startPosition = controls.object.position.clone();
-    
-    let progress = 0;
-    const duration = 1500;
-    const startTime = Date.now();
-
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      progress = Math.min(elapsed / duration, 1);
-      
-      const eased = progress < 0.5
-        ? 2 * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-
-      controls.object.position.lerpVectors(startPosition, idealCameraPos, eased);
-      controls.target.lerpVectors(startTarget, targetPosition, eased);
-      controls.update();
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    setTimeout(() => animate(), 100);
-  }, [avatarCustomization]);
-
+export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl }: AIRoomSceneProps) {
   return (
-    <OrbitControls 
-      ref={controlsRef}
-      enableZoom={true}
-      enablePan={true}
-      minDistance={2}
-      maxDistance={10}
-      minPolarAngle={Math.PI / 4}
-      maxPolarAngle={Math.PI * 0.75}
-    />
-  );
-}
-
-export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName, avatarCustomization }: AIRoomSceneProps) {
-  return (
-    <div className="w-full aspect-video rounded-lg overflow-hidden bg-background border border-border">
+    <div className="w-full aspect-video rounded-lg overflow-hidden bg-slate-900">
       <Canvas
-        camera={{ position: [0, 0.5, 5], fov: 50 }}
-        gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
+        camera={{ position: [0, 0, 2], fov: 50 }}
+        gl={{ antialias: true }}
+        style={{ background: '#0f0f1a' }}
       >
-        <Suspense fallback={<LoadingFallback />}>
-          {/* Ambient lighting */}
-          <ambientLight intensity={1} />
-          <directionalLight position={[5, 5, 5]} intensity={0.6} />
-          <pointLight position={[-5, 3, -5]} intensity={0.3} />
-          
-          {/* Room background as 360 sphere */}
-          <RoomBackground imageUrl={roomImageUrl} />
-          
-          {/* Live Avatar with animation */}
-          {avatarImageUrl && avatarCustomization && (
-            <LiveAvatar3D 
-              imageUrl={avatarImageUrl} 
-              customization={avatarCustomization}
-            />
-          )}
-          
-          {/* Live Pet with animation */}
-          {petImageUrl && (
-            <LivePet3D 
-              imageUrl={petImageUrl} 
-              position={[1.5, -1.2, 0.5]} 
-              scale={1}
-            />
-          )}
-          
-          {/* Environment lighting for nice reflections */}
-          <Environment preset="apartment" />
-          
-          {/* Camera controller with smooth transitions */}
-          <CameraController avatarCustomization={avatarCustomization} />
+        <Suspense fallback={<LoadingView />}>
+          <ambientLight intensity={1.2} />
+          <RoomWithCharacters 
+            roomImageUrl={roomImageUrl}
+            avatarImageUrl={avatarImageUrl}
+            petImageUrl={petImageUrl}
+          />
         </Suspense>
       </Canvas>
     </div>
