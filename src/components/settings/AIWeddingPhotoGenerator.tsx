@@ -1,18 +1,21 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wand2, Upload, Loader2, Sparkles, Image as ImageIcon } from "lucide-react";
+import { Wand2, Upload, Loader2, Sparkles, Image as ImageIcon, Heart, AlertCircle, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AIWeddingPhotoGeneratorProps {
   marriageId: string;
   aiName: string;
   aiDescription?: string;
-  onPhotoGenerated: () => void;
+  aiAvatarImageUrl?: string;
+  existingWeddingPhotoUrl?: string;
+  onPhotoGenerated: (photoUrl: string) => void;
 }
 
 const weddingScenes = [
@@ -30,6 +33,8 @@ const AIWeddingPhotoGenerator = ({
   marriageId, 
   aiName, 
   aiDescription,
+  aiAvatarImageUrl,
+  existingWeddingPhotoUrl,
   onPhotoGenerated 
 }: AIWeddingPhotoGeneratorProps) => {
   const { toast } = useToast();
@@ -68,9 +73,20 @@ const AIWeddingPhotoGenerator = ({
       
       // Convert to base64 for the AI
       const reader = new FileReader();
-      reader.onload = () => {
-        setUserPhotoUrl(reader.result as string);
-        toast({ title: "Photo uploaded!", description: "Your photo will be used as reference" });
+      reader.onload = async () => {
+        const base64Url = reader.result as string;
+        setUserPhotoUrl(base64Url);
+        
+        // Also save to marriage record for persistence
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase
+            .from("marriages")
+            .update({ user_photo_for_wedding: base64Url })
+            .eq("id", marriageId);
+        }
+        
+        toast({ title: "Photo uploaded!", description: "Your photo will be used for the wedding photo" });
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -87,6 +103,15 @@ const AIWeddingPhotoGenerator = ({
   };
 
   const handleGenerate = async () => {
+    if (!userPhotoUrl) {
+      toast({
+        title: "Photo Required",
+        description: "Please upload a photo of yourself first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setGenerating(true);
       
@@ -98,6 +123,7 @@ const AIWeddingPhotoGenerator = ({
       const { data, error } = await supabase.functions.invoke("generate-wedding-photo", {
         body: {
           userPhotoUrl,
+          aiPartnerPhotoUrl: aiAvatarImageUrl,
           aiDescription,
           scene,
           marriageId
@@ -111,28 +137,12 @@ const AIWeddingPhotoGenerator = ({
       }
 
       if (data?.imageUrl) {
-        // Save to wedding photos
-        const { error: insertError } = await supabase
-          .from("wedding_photos")
-          .insert({
-            user_id: user.id,
-            marriage_id: marriageId,
-            photo_url: data.imageUrl,
-            caption: `AI-generated: ${scene}`,
-            is_ai_generated: true,
-            generation_prompt: scene
-          });
-
-        if (insertError) {
-          console.error("Error saving photo:", insertError);
-        }
-
         toast({
           title: "Wedding Photo Generated!",
-          description: "Your AI wedding photo has been added to the gallery",
+          description: `Your wedding photo with ${aiName} has been created`,
         });
 
-        onPhotoGenerated();
+        onPhotoGenerated(data.imageUrl);
       }
     } catch (error: any) {
       console.error("Error generating photo:", error);
@@ -146,130 +156,195 @@ const AIWeddingPhotoGenerator = ({
     }
   };
 
+  const canGenerate = userPhotoUrl && (aiAvatarImageUrl || aiDescription);
+
   return (
-    <Card className="border-purple-500/30">
+    <Card className="border-pink-500/30">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Wand2 className="h-5 w-5 text-purple-500" />
-          AI Wedding Photo Generator
+          <Heart className="h-5 w-5 text-pink-500" />
+          Wedding Photo
         </CardTitle>
         <CardDescription>
-          Create magical wedding photos with {aiName} using AI
+          {existingWeddingPhotoUrl 
+            ? `Your wedding photo with ${aiName}`
+            : `Generate a wedding photo of you and ${aiName} together`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* User Photo Upload */}
-        <div className="space-y-2">
-          <Label>Your Photo (Optional)</Label>
-          <p className="text-xs text-muted-foreground">
-            Upload a photo of yourself for the AI to use as reference
-          </p>
-          
-          <div className="flex items-center gap-3">
-            {userPhotoUrl ? (
-              <div className="relative">
-                <img 
-                  src={userPhotoUrl} 
-                  alt="Your photo" 
-                  className="h-20 w-20 rounded-lg object-cover border"
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-destructive text-destructive-foreground"
-                  onClick={() => setUserPhotoUrl(null)}
-                >
-                  ×
-                </Button>
-              </div>
-            ) : (
-              <div className="h-20 w-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
-                <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-              </div>
-            )}
-            
-            <div className="flex-1">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleUserPhotoUpload}
-                className="hidden"
+        {/* Existing Wedding Photo Display */}
+        {existingWeddingPhotoUrl && (
+          <div className="space-y-3">
+            <div className="relative rounded-lg overflow-hidden border">
+              <img 
+                src={existingWeddingPhotoUrl} 
+                alt={`Wedding photo with ${aiName}`}
+                className="w-full h-auto max-h-80 object-cover"
               />
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-              >
-                {uploading ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading...</>
-                ) : (
-                  <><Upload className="h-4 w-4 mr-2" />Upload Your Photo</>
-                )}
-              </Button>
-              <p className="text-xs text-muted-foreground mt-1">
-                A clear face photo works best
-              </p>
             </div>
-          </div>
-        </div>
-
-        {/* Scene Selection */}
-        <div className="space-y-2">
-          <Label>Wedding Scene</Label>
-          <Select value={selectedScene} onValueChange={setSelectedScene}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a scene" />
-            </SelectTrigger>
-            <SelectContent>
-              {weddingScenes.map((scene) => (
-                <SelectItem key={scene.value} value={scene.value}>
-                  <div className="flex flex-col">
-                    <span>{scene.label}</span>
-                    <span className="text-xs text-muted-foreground">{scene.description}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Custom Scene */}
-        <div className="space-y-2">
-          <Label htmlFor="custom-scene">Or Describe Your Own Scene</Label>
-          <Input
-            id="custom-scene"
-            placeholder="e.g., Dancing under the stars in a moonlit garden..."
-            value={customScene}
-            onChange={(e) => setCustomScene(e.target.value)}
-          />
-        </div>
-
-        {/* AI Description Preview */}
-        {aiDescription && (
-          <div className="bg-muted/50 rounded-lg p-3 text-sm">
-            <p className="font-medium text-xs text-muted-foreground mb-1">AI Partner Description:</p>
-            <p className="text-xs">{aiDescription.substring(0, 150)}...</p>
+            <p className="text-sm text-muted-foreground text-center">
+              Your official wedding photo 💍
+            </p>
           </div>
         )}
 
-        {/* Generate Button */}
-        <Button 
-          onClick={handleGenerate} 
-          disabled={generating}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-        >
-          {generating ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating Magic...</>
-          ) : (
-            <><Sparkles className="h-4 w-4 mr-2" />Generate Wedding Photo</>
-          )}
-        </Button>
+        {/* Generation Section */}
+        <div className="space-y-4 pt-2">
+          <div className="text-sm font-medium flex items-center gap-2">
+            <Wand2 className="h-4 w-4 text-purple-500" />
+            {existingWeddingPhotoUrl ? "Generate a new photo" : "Create your wedding photo"}
+          </div>
 
-        <p className="text-xs text-center text-muted-foreground">
-          AI generation may take 15-30 seconds
-        </p>
+          {/* Requirements Alert */}
+          {!aiAvatarImageUrl && !aiDescription && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Please upload an image of your AI partner in the AI Settings section first. 
+                This ensures the wedding photo accurately shows {aiName}'s appearance.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Photo Requirements */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* User Photo */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Your Photo (Required)</Label>
+              <div className="flex flex-col items-center gap-2 p-3 border rounded-lg bg-muted/30">
+                {userPhotoUrl ? (
+                  <div className="relative">
+                    <img 
+                      src={userPhotoUrl} 
+                      alt="Your photo" 
+                      className="h-20 w-20 rounded-lg object-cover border-2 border-green-500"
+                    />
+                    <div className="absolute -top-1 -right-1 h-5 w-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <Check className="h-3 w-3 text-white" />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute -bottom-1 -right-1 h-5 w-5 p-0 rounded-full bg-destructive text-destructive-foreground text-xs"
+                      onClick={() => setUserPhotoUrl(null)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="h-20 w-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                  </div>
+                )}
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleUserPhotoUpload}
+                  className="hidden"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="w-full text-xs"
+                >
+                  {uploading ? (
+                    <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Uploading...</>
+                  ) : (
+                    <><Upload className="h-3 w-3 mr-1" />{userPhotoUrl ? "Change" : "Upload"}</>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* AI Partner Photo */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">{aiName}'s Photo</Label>
+              <div className="flex flex-col items-center gap-2 p-3 border rounded-lg bg-muted/30">
+                {aiAvatarImageUrl ? (
+                  <div className="relative">
+                    <img 
+                      src={aiAvatarImageUrl} 
+                      alt={`${aiName}'s photo`}
+                      className="h-20 w-20 rounded-lg object-cover border-2 border-green-500"
+                    />
+                    <div className="absolute -top-1 -right-1 h-5 w-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <Check className="h-3 w-3 text-white" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-20 w-20 rounded-lg border-2 border-dashed border-orange-500/50 flex items-center justify-center">
+                    <AlertCircle className="h-8 w-8 text-orange-500/50" />
+                  </div>
+                )}
+                <p className="text-xs text-center text-muted-foreground">
+                  {aiAvatarImageUrl 
+                    ? "Ready to use" 
+                    : "Set in AI Settings"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Scene Selection */}
+          <div className="space-y-2">
+            <Label className="text-xs">Wedding Scene</Label>
+            <Select value={selectedScene} onValueChange={setSelectedScene}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select a scene" />
+              </SelectTrigger>
+              <SelectContent>
+                {weddingScenes.map((scene) => (
+                  <SelectItem key={scene.value} value={scene.value}>
+                    <div className="flex flex-col">
+                      <span>{scene.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Custom Scene */}
+          <div className="space-y-2">
+            <Label htmlFor="custom-scene" className="text-xs">Or Describe Custom Scene</Label>
+            <Input
+              id="custom-scene"
+              placeholder="e.g., Dancing under the stars..."
+              value={customScene}
+              onChange={(e) => setCustomScene(e.target.value)}
+              className="h-9 text-sm"
+            />
+          </div>
+
+          {/* Generate Button */}
+          <Button 
+            onClick={handleGenerate} 
+            disabled={generating || !canGenerate}
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+          >
+            {generating ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating Your Wedding Photo...</>
+            ) : (
+              <><Sparkles className="h-4 w-4 mr-2" />{existingWeddingPhotoUrl ? "Generate New Photo" : "Generate Wedding Photo"}</>
+            )}
+          </Button>
+
+          {!canGenerate && (
+            <p className="text-xs text-center text-muted-foreground">
+              {!userPhotoUrl 
+                ? "Upload your photo to continue" 
+                : `Upload ${aiName}'s photo in AI Settings`}
+            </p>
+          )}
+
+          <p className="text-xs text-center text-muted-foreground">
+            Generation may take 15-30 seconds
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

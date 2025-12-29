@@ -12,57 +12,74 @@ serve(async (req) => {
   }
 
   try {
-    const { userPhotoUrl, aiDescription, scene, marriageId } = await req.json();
+    const { userPhotoUrl, aiPartnerPhotoUrl, aiDescription, scene, marriageId } = await req.json();
     
     console.log("Generating wedding photo with scene:", scene);
     console.log("User photo URL:", userPhotoUrl ? "provided" : "not provided");
+    console.log("AI partner photo URL:", aiPartnerPhotoUrl ? "provided" : "not provided");
     console.log("AI description:", aiDescription);
+
+    // Validate required inputs
+    if (!userPhotoUrl) {
+      return new Response(
+        JSON.stringify({ error: "Please upload a photo of yourself to generate the wedding photo" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Build the prompt for wedding photo generation
-    const basePrompt = `Generate a beautiful, romantic wedding photograph. The image should show a loving couple in a ${scene || "romantic wedding setting"}. 
-    
-Style: Professional wedding photography, soft lighting, romantic atmosphere, high quality.
-${aiDescription ? `The AI partner appearance: ${aiDescription}` : ""}
+    // Build content array for the message
+    const contentParts: any[] = [];
 
-Make the image look like a real professional wedding photo with beautiful composition and lighting.`;
+    // Create a detailed prompt that emphasizes using the exact appearances from both photos
+    let promptText = `Create a beautiful, romantic wedding photograph of these two people together as a married couple.
 
-    let messages: any[] = [];
+CRITICAL INSTRUCTIONS:
+1. The first image is the USER - capture their EXACT appearance (face, skin tone, hair color, facial features) precisely
+2. ${aiPartnerPhotoUrl ? "The second image is their AI PARTNER - capture their EXACT appearance precisely" : aiDescription ? `Their partner should match this description: ${aiDescription}` : "Include a loving partner"}
+3. Place them together in a ${scene || "romantic wedding ceremony setting"}
+4. Make them look genuinely happy, in love, and connected
+5. Professional wedding photography style with soft, romantic lighting
+6. Both people should be clearly visible, facing slightly toward each other or the camera
+7. Maintain the EXACT facial features, skin tones, and appearances from the reference photos
 
-    if (userPhotoUrl) {
-      // If user provided a photo, use image editing to incorporate their appearance
-      messages = [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Create a romantic wedding photo based on this person's appearance. Place them in a ${scene || "beautiful wedding ceremony setting"} with their partner. ${aiDescription ? `Their partner should look like: ${aiDescription}` : "Include a loving partner."} Make it look like a professional wedding photograph with soft, romantic lighting. The couple should look happy and in love.`
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: userPhotoUrl
-              }
-            }
-          ]
+This should look like a real professional wedding photo of this specific couple.`;
+
+    contentParts.push({
+      type: "text",
+      text: promptText
+    });
+
+    // Add user's photo
+    contentParts.push({
+      type: "image_url",
+      image_url: {
+        url: userPhotoUrl
+      }
+    });
+
+    // Add AI partner's photo if provided
+    if (aiPartnerPhotoUrl) {
+      contentParts.push({
+        type: "image_url",
+        image_url: {
+          url: aiPartnerPhotoUrl
         }
-      ];
-    } else {
-      // Generate without user photo reference
-      messages = [
-        {
-          role: "user",
-          content: basePrompt
-        }
-      ];
+      });
     }
 
-    console.log("Calling Lovable AI for image generation...");
+    const messages = [
+      {
+        role: "user",
+        content: contentParts
+      }
+    ];
+
+    console.log("Calling Lovable AI for image generation with", aiPartnerPhotoUrl ? "both photos" : "user photo only");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -122,7 +139,7 @@ Make the image look like a real professional wedding photo with beautiful compos
     const base64Data = imageData.replace(/^data:image\/\w+;base64,/, "");
     const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
     
-    const fileName = `wedding-ai-${marriageId}-${Date.now()}.png`;
+    const fileName = `wedding-photo-${marriageId}-${Date.now()}.png`;
     
     const { error: uploadError } = await supabase.storage
       .from("chat-images")
@@ -141,6 +158,16 @@ Make the image look like a real professional wedding photo with beautiful compos
       .getPublicUrl(fileName);
 
     console.log("Image saved successfully:", publicUrl);
+
+    // Update the marriage record with the wedding photo URL
+    const { error: updateError } = await supabase
+      .from("marriages")
+      .update({ wedding_photo_url: publicUrl })
+      .eq("id", marriageId);
+
+    if (updateError) {
+      console.error("Error updating marriage with photo:", updateError);
+    }
 
     return new Response(
       JSON.stringify({ 

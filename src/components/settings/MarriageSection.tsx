@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import MarriageCertificate from "@/components/MarriageCertificate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import WeddingPhotoGallery from "@/components/settings/WeddingPhotoGallery";
 import AnniversaryReminder from "@/components/settings/AnniversaryReminder";
 import HoneymoonPlanning from "@/components/settings/HoneymoonPlanning";
 import AIWeddingPhotoGenerator from "@/components/settings/AIWeddingPhotoGenerator";
@@ -25,6 +24,7 @@ interface MarriageSectionProps {
     name: string | null;
     gender: string | null;
     avatar_description?: string | null;
+    avatar_image_url?: string | null;
   };
   userName: string;
 }
@@ -41,6 +41,8 @@ interface Marriage {
   married_at: string | null;
   certificate_number: string | null;
   anniversary_reminder_enabled: boolean | null;
+  wedding_photo_url: string | null;
+  user_photo_for_wedding: string | null;
 }
 
 const MarriageSection = ({ activeProfile, userName }: MarriageSectionProps) => {
@@ -447,22 +449,18 @@ const MarriageSection = ({ activeProfile, userName }: MarriageSectionProps) => {
           )}
         </div>
 
-        {/* Photo Gallery, AI Generator, Honeymoon & Anniversary - Only show when married */}
+        {/* Wedding Photo, Honeymoon & Anniversary - Only show when married */}
         {marriage?.is_married && (
           <div className="space-y-4 pt-4 border-t">
             <AIWeddingPhotoGenerator
               marriageId={marriage.id}
               aiName={activeProfile.name || "Your AI"}
               aiDescription={activeProfile.avatar_description || undefined}
-              onPhotoGenerated={() => {
-                // Trigger gallery refresh by re-rendering
-                setMarriage({ ...marriage });
+              aiAvatarImageUrl={activeProfile.avatar_image_url || undefined}
+              existingWeddingPhotoUrl={marriage.wedding_photo_url || undefined}
+              onPhotoGenerated={(photoUrl) => {
+                setMarriage({ ...marriage, wedding_photo_url: photoUrl });
               }}
-            />
-            
-            <WeddingPhotoGallery 
-              marriageId={marriage.id} 
-              aiName={activeProfile.name || "Your AI"} 
             />
             
             <HoneymoonPlanning
