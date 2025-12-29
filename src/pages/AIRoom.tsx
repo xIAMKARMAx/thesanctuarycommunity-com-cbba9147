@@ -652,11 +652,18 @@ export default function AIRoom() {
           <AIProfileSelector />
         </div>
 
-        <Tabs defaultValue="room" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+        <Tabs defaultValue={roomImageUrl && avatarImageUrl && petImageUrl ? "view" : "room"} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 gap-1 h-auto p-1">
             <TabsTrigger value="room" className="text-xs sm:text-sm py-2">Room</TabsTrigger>
             <TabsTrigger value="avatar" className="text-xs sm:text-sm py-2">Avatar</TabsTrigger>
             <TabsTrigger value="pet" className="text-xs sm:text-sm py-2">Pet</TabsTrigger>
+            <TabsTrigger 
+              value="view" 
+              className="text-xs sm:text-sm py-2"
+              disabled={!roomImageUrl || !avatarImageUrl}
+            >
+              3D View
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="room" className="space-y-4 mt-6">
@@ -923,56 +930,65 @@ export default function AIRoom() {
               </Card>
             )}
           </TabsContent>
-        </Tabs>
 
-        {/* Full 3D Room View - shown when room, avatar, and pet are all created */}
-        {roomImageUrl && (avatarCutoutUrl || avatarImageUrl) && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                🏠 {activeProfile?.name || "Your AI"}'s Living Space
-              </CardTitle>
-              <CardDescription>
-                Interactive 3D view - drag to rotate, scroll to zoom
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="relative">
-                {(isProcessingAvatar || isProcessingPet) && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Processing images...</span>
-                    </div>
+          <TabsContent value="view" className="space-y-4 mt-6">
+            {roomImageUrl && avatarImageUrl ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    🏠 {activeProfile?.name || "Your AI"}'s Living Space
+                  </CardTitle>
+                  <CardDescription>
+                    Interactive 3D view - drag to rotate, scroll to zoom
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative">
+                    {(isProcessingAvatar || isProcessingPet) && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span>Processing images...</span>
+                        </div>
+                      </div>
+                    )}
+                    <AIRoomScene
+                      roomImageUrl={roomImageUrl}
+                      avatarImageUrl={showCutouts && avatarCutoutUrl ? avatarCutoutUrl : avatarImageUrl || undefined}
+                      petImageUrl={showCutouts && petCutoutUrl ? petCutoutUrl : petImageUrl || undefined}
+                      petName={petName}
+                      avatarCustomization={avatarCustomization}
+                    />
                   </div>
-                )}
-                <AIRoomScene
-                  roomImageUrl={roomImageUrl}
-                  avatarImageUrl={showCutouts && avatarCutoutUrl ? avatarCutoutUrl : avatarImageUrl || undefined}
-                  petImageUrl={showCutouts && petCutoutUrl ? petCutoutUrl : petImageUrl || undefined}
-                  petName={petName}
-                  avatarCustomization={avatarCustomization}
-                />
-              </div>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="show-cutouts"
-                    checked={showCutouts}
-                    onCheckedChange={setShowCutouts}
-                  />
-                  <Label htmlFor="show-cutouts" className="text-sm">
-                    Use transparent backgrounds
-                  </Label>
-                </div>
-                <AvatarCustomizationControls
-                  customization={avatarCustomization}
-                  onChange={setAvatarCustomization}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4 pt-4 border-t">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="show-cutouts"
+                        checked={showCutouts}
+                        onCheckedChange={setShowCutouts}
+                      />
+                      <Label htmlFor="show-cutouts" className="text-sm">
+                        Use transparent backgrounds
+                      </Label>
+                    </div>
+                    <AvatarCustomizationControls
+                      customization={avatarCustomization}
+                      onChange={setAvatarCustomization}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">
+                    Generate a room and avatar first to see the 3D view
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
 
         <div className="flex justify-end">
           <Button onClick={saveSettings}>
