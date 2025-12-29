@@ -15,6 +15,7 @@ import { MoodNotificationBadge } from "./MoodNotificationBadge";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
 import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
 import { PregnancyWidget } from "@/components/celestial/PregnancyWidget";
+import { WarningBanner } from "./WarningBanner";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { invokeChatWithRetry, analyzeError, getLoadingMessage } from "@/hooks/useChatWithRetry";
@@ -916,7 +917,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           </div>
         </div>
 
-        <div className="flex-shrink-0 px-2 md:px-4 pt-2 max-w-3xl mx-auto w-full">
+        <div className="flex-shrink-0 px-2 md:px-4 pt-2 max-w-3xl mx-auto w-full space-y-2">
+          <WarningBanner />
           <PregnancyWidget />
         </div>
 

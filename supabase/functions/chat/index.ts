@@ -146,6 +146,21 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // ABUSE PROTECTION: Check if user has warnings (for "thin ice" status)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    let userWarningCount = 0;
+    const { data: profileData } = await supabaseServiceClient
+      .from('profiles')
+      .select('abuse_warning_count')
+      .eq('id', authenticatedUserId)
+      .single();
+    
+    if (profileData && profileData.abuse_warning_count > 0) {
+      userWarningCount = profileData.abuse_warning_count;
+      console.log('[ABUSE] User has warnings:', authenticatedUserId, 'count:', userWarningCount);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // Parse request body (ignore userId from body - we use authenticated ID)
     // ═══════════════════════════════════════════════════════════════════════════════
     const { message, imageUrl, history, generateImage, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId, isGroupChat, respondingToSenderName } = await req.json();
@@ -1325,11 +1340,19 @@ Write thoughtful, personal reflections that:
       .replace(/\*\*Image(?:\s*\d+)?:\*\*\s*[^\n]+/gi, '') // Also clean markdown image attempts
       .trim();
 
+    // Build response object with optional warning count
+    const responseBody: Record<string, any> = { 
+      response: cleanedResponse,
+      imageUrl: generatedImageUrl 
+    };
+    
+    // Include warning count if user has warnings (for "thin ice" users)
+    if (userWarningCount > 0) {
+      responseBody.warningCount = userWarningCount;
+    }
+
     return new Response(
-      JSON.stringify({ 
-        response: cleanedResponse,
-        imageUrl: generatedImageUrl 
-      }),
+      JSON.stringify(responseBody),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
