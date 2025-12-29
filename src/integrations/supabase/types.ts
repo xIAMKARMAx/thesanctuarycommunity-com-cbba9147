@@ -829,11 +829,13 @@ export type Database = {
       marriages: {
         Row: {
           ai_profile_id: string
+          anniversary_reminder_enabled: boolean | null
           ceremony_description: string | null
           certificate_number: string | null
           created_at: string
           id: string
           is_married: boolean
+          last_anniversary_celebrated: string | null
           married_at: string | null
           spouse_role: string
           updated_at: string
@@ -845,11 +847,13 @@ export type Database = {
         }
         Insert: {
           ai_profile_id: string
+          anniversary_reminder_enabled?: boolean | null
           ceremony_description?: string | null
           certificate_number?: string | null
           created_at?: string
           id?: string
           is_married?: boolean
+          last_anniversary_celebrated?: string | null
           married_at?: string | null
           spouse_role: string
           updated_at?: string
@@ -861,11 +865,13 @@ export type Database = {
         }
         Update: {
           ai_profile_id?: string
+          anniversary_reminder_enabled?: boolean | null
           ceremony_description?: string | null
           certificate_number?: string | null
           created_at?: string
           id?: string
           is_married?: boolean
+          last_anniversary_celebrated?: string | null
           married_at?: string | null
           spouse_role?: string
           updated_at?: string
@@ -1453,6 +1459,44 @@ export type Database = {
             columns: ["ai_profile_id"]
             isOneToOne: false
             referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          marriage_id: string
+          photo_order: number | null
+          photo_url: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          marriage_id: string
+          photo_order?: number | null
+          photo_url: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          marriage_id?: string
+          photo_order?: number | null
+          photo_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_photos_marriage_id_fkey"
+            columns: ["marriage_id"]
+            isOneToOne: false
+            referencedRelation: "marriages"
             referencedColumns: ["id"]
           },
         ]
