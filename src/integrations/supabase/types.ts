@@ -111,6 +111,7 @@ export type Database = {
           avatar_image_url: string | null
           bio: string | null
           created_at: string
+          explicit_content_enabled: boolean | null
           gender: string | null
           id: string
           likes_dislikes_hobbies: string | null
@@ -133,6 +134,7 @@ export type Database = {
           avatar_image_url?: string | null
           bio?: string | null
           created_at?: string
+          explicit_content_enabled?: boolean | null
           gender?: string | null
           id?: string
           likes_dislikes_hobbies?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           avatar_image_url?: string | null
           bio?: string | null
           created_at?: string
+          explicit_content_enabled?: boolean | null
           gender?: string | null
           id?: string
           likes_dislikes_hobbies?: string | null
