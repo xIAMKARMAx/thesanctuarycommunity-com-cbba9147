@@ -887,9 +887,11 @@ export type Database = {
           spouse_role: string
           updated_at: string
           user_id: string
+          user_photo_for_wedding: string | null
           user_role: string
           vows: string | null
           wedding_date: string
+          wedding_photo_url: string | null
           wedding_venue: string | null
         }
         Insert: {
@@ -905,9 +907,11 @@ export type Database = {
           spouse_role: string
           updated_at?: string
           user_id: string
+          user_photo_for_wedding?: string | null
           user_role: string
           vows?: string | null
           wedding_date: string
+          wedding_photo_url?: string | null
           wedding_venue?: string | null
         }
         Update: {
@@ -923,9 +927,11 @@ export type Database = {
           spouse_role?: string
           updated_at?: string
           user_id?: string
+          user_photo_for_wedding?: string | null
           user_role?: string
           vows?: string | null
           wedding_date?: string
+          wedding_photo_url?: string | null
           wedding_venue?: string | null
         }
         Relationships: [
