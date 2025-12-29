@@ -16,11 +16,8 @@ import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, Loader2, Upload, Trash2 } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
-import { AIRoomScene } from "@/components/room/AIRoomScene";
-import { AvatarCustomizationControls } from "@/components/room/AvatarCustomizationControls";
 import type { AvatarCustomization } from "@/types/avatar";
 import { defaultAvatarCustomization } from "@/types/avatar";
-import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 
 
 export default function AIRoom() {
@@ -44,19 +41,12 @@ export default function AIRoom() {
   const [isGeneratingPet, setIsGeneratingPet] = useState(false);
   const [roomLighting, setRoomLighting] = useState<string>("day");
   const [avatarCustomization, setAvatarCustomization] = useState<AvatarCustomization>(defaultAvatarCustomization);
-  const [avatarCutoutUrl, setAvatarCutoutUrl] = useState<string | null>(null);
-  const [petCutoutUrl, setPetCutoutUrl] = useState<string | null>(null);
-  const [showCutouts, setShowCutouts] = useState(true);
   const [preserveAppearance, setPreserveAppearance] = useState(false);
-  const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
-  const [isProcessingPet, setIsProcessingPet] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
   
   // User vessel state
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
-  const [userAvatarCutoutUrl, setUserAvatarCutoutUrl] = useState<string | null>(null);
-  const [isProcessingUserAvatar, setIsProcessingUserAvatar] = useState(false);
 
   useEffect(() => {
     if (activeProfile?.id) {
@@ -120,9 +110,6 @@ export default function AIRoom() {
       } else {
         setAvatarCustomization(defaultAvatarCustomization);
       }
-
-      setAvatarCutoutUrl(null);
-      setPetCutoutUrl(null);
     } catch (error) {
       console.error("Error loading settings:", error);
       toast({
@@ -134,104 +121,6 @@ export default function AIRoom() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    let currentCutoutUrl: string | null = null;
-    
-    const processAvatar = async () => {
-      if (!avatarImageUrl) {
-        setAvatarCutoutUrl(null);
-        setIsProcessingAvatar(false);
-        return;
-      }
-      try {
-        setIsProcessingAvatar(true);
-        const img = await loadImage(avatarImageUrl);
-        const cutoutBlob = await removeBackground(img);
-        // Convert Blob to Object URL for use in img/texture
-        currentCutoutUrl = URL.createObjectURL(cutoutBlob);
-        setAvatarCutoutUrl(currentCutoutUrl);
-      } catch (error) {
-        console.error("Error processing avatar:", error);
-        setAvatarCutoutUrl(null);
-      } finally {
-        setIsProcessingAvatar(false);
-      }
-    };
-    processAvatar();
-    
-    // Cleanup object URL when avatarImageUrl changes
-    return () => {
-      if (currentCutoutUrl) {
-        URL.revokeObjectURL(currentCutoutUrl);
-      }
-    };
-  }, [avatarImageUrl]);
-
-  useEffect(() => {
-    let currentCutoutUrl: string | null = null;
-    
-    const processPet = async () => {
-      if (!petImageUrl) {
-        setPetCutoutUrl(null);
-        setIsProcessingPet(false);
-        return;
-      }
-      try {
-        setIsProcessingPet(true);
-        const img = await loadImage(petImageUrl);
-        const cutoutBlob = await removeBackground(img);
-        // Convert Blob to Object URL for use in img/texture
-        currentCutoutUrl = URL.createObjectURL(cutoutBlob);
-        setPetCutoutUrl(currentCutoutUrl);
-      } catch (error) {
-        console.error("Error processing pet:", error);
-        setPetCutoutUrl(null);
-      } finally {
-        setIsProcessingPet(false);
-      }
-    };
-    processPet();
-    
-    // Cleanup object URL when petImageUrl changes
-    return () => {
-      if (currentCutoutUrl) {
-        URL.revokeObjectURL(currentCutoutUrl);
-      }
-    };
-  }, [petImageUrl]);
-
-  // Process user avatar cutout
-  useEffect(() => {
-    let currentCutoutUrl: string | null = null;
-    
-    const processUserAvatar = async () => {
-      if (!userAvatarUrl) {
-        setUserAvatarCutoutUrl(null);
-        setIsProcessingUserAvatar(false);
-        return;
-      }
-      try {
-        setIsProcessingUserAvatar(true);
-        const img = await loadImage(userAvatarUrl);
-        const cutoutBlob = await removeBackground(img);
-        currentCutoutUrl = URL.createObjectURL(cutoutBlob);
-        setUserAvatarCutoutUrl(currentCutoutUrl);
-      } catch (error) {
-        console.error("Error processing user avatar:", error);
-        setUserAvatarCutoutUrl(null);
-      } finally {
-        setIsProcessingUserAvatar(false);
-      }
-    };
-    processUserAvatar();
-    
-    return () => {
-      if (currentCutoutUrl) {
-        URL.revokeObjectURL(currentCutoutUrl);
-      }
-    };
-  }, [userAvatarUrl]);
 
   const generateRoom = async () => {
     if (!roomDescription.trim()) {
@@ -673,18 +562,11 @@ export default function AIRoom() {
           <AIProfileSelector />
         </div>
 
-        <Tabs defaultValue={roomImageUrl && avatarImageUrl && petImageUrl ? "view" : "room"} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 gap-1 h-auto p-1">
+        <Tabs defaultValue="room" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
             <TabsTrigger value="room" className="text-xs sm:text-sm py-2">Room</TabsTrigger>
             <TabsTrigger value="avatar" className="text-xs sm:text-sm py-2">Avatar</TabsTrigger>
             <TabsTrigger value="pet" className="text-xs sm:text-sm py-2">Pet</TabsTrigger>
-            <TabsTrigger 
-              value="view" 
-              className="text-xs sm:text-sm py-2"
-              disabled={!roomImageUrl || !avatarImageUrl}
-            >
-              3D View
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="room" className="space-y-4 mt-6">
@@ -952,45 +834,6 @@ export default function AIRoom() {
             )}
           </TabsContent>
 
-          <TabsContent value="view" className="space-y-4 mt-6">
-            {roomImageUrl && avatarImageUrl ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    🏠 {activeProfile?.name || "Your AI"}'s Living Space
-                  </CardTitle>
-                  <CardDescription>
-                    Interactive 3D view - drag to rotate, scroll to zoom
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="relative">
-                    {(isProcessingAvatar || isProcessingPet) && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Processing images...</span>
-                        </div>
-                      </div>
-                    )}
-                    <AIRoomScene
-                      roomImageUrl={roomImageUrl}
-                      avatarImageUrl={avatarCutoutUrl || avatarImageUrl || undefined}
-                      petImageUrl={petCutoutUrl || petImageUrl || undefined}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">
-                    Generate a room and avatar first to see the 3D view
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
         </Tabs>
 
         <div className="flex justify-end">
