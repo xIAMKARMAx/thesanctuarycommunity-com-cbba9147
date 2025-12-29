@@ -77,12 +77,25 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
       throw new Error('Invalid segmentation result');
     }
 
-    // Find the person mask from segmentation results
-    const personMask = result.find((r: any) => r.label === 'person');
+    // Find the subject mask - try person first, then cat, dog, animal, or use first result with mask
+    const subjectLabels = ['person', 'cat', 'dog', 'animal', 'bird', 'horse'];
+    let subjectMask = result.find((r: any) => subjectLabels.includes(r.label?.toLowerCase()));
     
-    if (!personMask || !personMask.mask) {
-      throw new Error('No person detected in image');
+    // If no known subject found, use the largest non-background mask
+    if (!subjectMask || !subjectMask.mask) {
+      subjectMask = result.find((r: any) => r.mask && r.label?.toLowerCase() !== 'wall' && r.label?.toLowerCase() !== 'floor' && r.label?.toLowerCase() !== 'ceiling');
     }
+    
+    // Fallback to first result with a mask
+    if (!subjectMask || !subjectMask.mask) {
+      subjectMask = result.find((r: any) => r.mask);
+    }
+    
+    if (!subjectMask || !subjectMask.mask) {
+      throw new Error('No subject detected in image');
+    }
+    
+    console.log('Using mask for:', subjectMask.label);
 
     const outputCanvas = document.createElement('canvas');
     outputCanvas.width = canvas.width;
@@ -101,9 +114,9 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     );
     const data = outputImageData.data;
 
-    // Apply person mask - keep person (255), remove everything else (0)
-    for (let i = 0; i < personMask.mask.data.length; i++) {
-      const alpha = Math.round(personMask.mask.data[i] * 255);
+    // Apply subject mask - keep subject (255), remove everything else (0)
+    for (let i = 0; i < subjectMask.mask.data.length; i++) {
+      const alpha = Math.round(subjectMask.mask.data[i] * 255);
       data[i * 4 + 3] = alpha;
     }
 
@@ -133,6 +146,7 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
 export const loadImage = (file: Blob | string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = reject;
     if (typeof file === 'string') {
