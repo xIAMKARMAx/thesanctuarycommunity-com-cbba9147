@@ -64,6 +64,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   // Group chat state - use prop if provided, otherwise allow toggle
   const [isGroupChatState, setIsGroupChatState] = useState(isGroupChatProp);
   const isGroupChat = isGroupChatProp || isGroupChatState;
+  
+  // CRITICAL: Reset group chat state when prop changes (navigation between pages)
+  useEffect(() => {
+    setIsGroupChatState(isGroupChatProp);
+  }, [isGroupChatProp]);
+  
   const [autoMode, setAutoMode] = useState<AutoMode>("none");
   
   // Track last message (user or AI) for click-to-respond - allows AIs to respond to each other
