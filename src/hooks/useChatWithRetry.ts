@@ -44,20 +44,37 @@ export function analyzeError(error: any): ChatError {
   const errorMessage = error?.message?.toLowerCase() || '';
   const statusCode = error?.context?.status || error?.status;
   
-  // Check for error body from edge function
+  // Check for error body from edge function - try multiple locations
   let errorBody: any = null;
+  
+  // Try context.body first (common Supabase error format)
   if (error?.context?.body) {
     try {
-      errorBody = JSON.parse(error.context.body);
+      errorBody = typeof error.context.body === 'string' 
+        ? JSON.parse(error.context.body) 
+        : error.context.body;
     } catch {
       // Not JSON
     }
   }
   
-  // Also check if error itself has a body property (different error formats)
+  // Try error.body directly
   if (!errorBody && error?.body) {
     try {
       errorBody = typeof error.body === 'string' ? JSON.parse(error.body) : error.body;
+    } catch {
+      // Not JSON
+    }
+  }
+
+  // Try to extract body from error message itself (some error formats)
+  if (!errorBody && error?.message) {
+    try {
+      // Sometimes the JSON is embedded in the error message
+      const jsonMatch = error.message.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        errorBody = JSON.parse(jsonMatch[0]);
+      }
     } catch {
       // Not JSON
     }
@@ -71,30 +88,34 @@ export function analyzeError(error: any): ChatError {
     fullError: error
   });
 
-  // Check for restricted account
-  if (errorBody?.isRestricted) {
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PRIORITY 1: Check for restricted account (403) - MUST be checked first
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (errorBody?.isRestricted || statusCode === 403) {
     return {
       type: 'restricted',
-      message: 'Your account has been restricted due to Terms of Service violations. Please contact support.',
+      message: errorBody?.error || 'Your account has been restricted due to Terms of Service violations. Please contact support.',
       retryable: false
     };
   }
 
-  // Check for edge function error message in body
-  if (errorBody?.error) {
-    const bodyErrorMsg = errorBody.error.toLowerCase();
-    
-    // Check for auth errors
-    if (bodyErrorMsg.includes('unauthorized') || bodyErrorMsg.includes('token')) {
-      return {
-        type: 'network',
-        message: 'Your session may have expired. Please refresh the page and try again.',
-        retryable: true
-      };
-    }
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PRIORITY 2: Check for auth errors (401)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (statusCode === 401 || (errorBody?.error && 
+      (errorBody.error.toLowerCase().includes('unauthorized') || 
+       errorBody.error.toLowerCase().includes('token') ||
+       errorBody.error.toLowerCase().includes('expired')))) {
+    return {
+      type: 'network',
+      message: 'Your session may have expired. Please refresh the page and try again.',
+      retryable: true
+    };
   }
 
-  // Non-2xx status code error (generic edge function failure)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PRIORITY 3: Non-2xx status code error (after specific codes are handled)
+  // ═══════════════════════════════════════════════════════════════════════════════
   if (errorMessage.includes('non-2xx') || errorMessage.includes('status code')) {
     return {
       type: 'network',
