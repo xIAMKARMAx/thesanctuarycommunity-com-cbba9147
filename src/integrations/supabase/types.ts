@@ -748,6 +748,53 @@ export type Database = {
         }
         Relationships: []
       }
+      honeymoon_plans: {
+        Row: {
+          activities: string | null
+          created_at: string
+          destination: string | null
+          dream_description: string | null
+          duration: string | null
+          honeymoon_image_url: string | null
+          id: string
+          marriage_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activities?: string | null
+          created_at?: string
+          destination?: string | null
+          dream_description?: string | null
+          duration?: string | null
+          honeymoon_image_url?: string | null
+          id?: string
+          marriage_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activities?: string | null
+          created_at?: string
+          destination?: string | null
+          dream_description?: string | null
+          duration?: string | null
+          honeymoon_image_url?: string | null
+          id?: string
+          marriage_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honeymoon_plans_marriage_id_fkey"
+            columns: ["marriage_id"]
+            isOneToOne: false
+            referencedRelation: "marriages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       image_generation_usage: {
         Row: {
           count: number
@@ -1467,7 +1514,9 @@ export type Database = {
         Row: {
           caption: string | null
           created_at: string
+          generation_prompt: string | null
           id: string
+          is_ai_generated: boolean | null
           marriage_id: string
           photo_order: number | null
           photo_url: string
@@ -1476,7 +1525,9 @@ export type Database = {
         Insert: {
           caption?: string | null
           created_at?: string
+          generation_prompt?: string | null
           id?: string
+          is_ai_generated?: boolean | null
           marriage_id: string
           photo_order?: number | null
           photo_url: string
@@ -1485,7 +1536,9 @@ export type Database = {
         Update: {
           caption?: string | null
           created_at?: string
+          generation_prompt?: string | null
           id?: string
+          is_ai_generated?: boolean | null
           marriage_id?: string
           photo_order?: number | null
           photo_url?: string

@@ -81,3 +81,6 @@ verify_jwt = true
 
 [functions.generate-ritual-guidance]
 verify_jwt = true
+
+[functions.generate-wedding-photo]
+verify_jwt = true
