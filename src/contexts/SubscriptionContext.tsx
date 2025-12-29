@@ -7,6 +7,7 @@ import { clearAuthCache } from "@/hooks/useAuthHeaders";
 interface FreeUserLimits {
   roomGenerated: boolean;
   avatarGenerated: boolean;
+  petGenerated: boolean;
   totalMessages: number;
   dailyMessages: number;
   trialDaysLeft: number;
@@ -25,9 +26,11 @@ interface SubscriptionContextType {
   canSendMessage: () => Promise<boolean>;
   canGenerateRoom: () => Promise<boolean>;
   canGenerateAvatar: () => Promise<boolean>;
+  canGeneratePet: () => Promise<boolean>;
   incrementMessageCount: () => Promise<number>;
   markRoomGenerated: () => Promise<void>;
   markAvatarGenerated: () => Promise<void>;
+  markPetGenerated: () => Promise<void>;
   refreshLimits: () => Promise<void>;
 }
 
@@ -42,6 +45,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [freeUserLimits, setFreeUserLimits] = useState<FreeUserLimits>({
     roomGenerated: false,
     avatarGenerated: false,
+    petGenerated: false,
     totalMessages: 0,
     dailyMessages: 0,
     trialDaysLeft: 5,
@@ -164,6 +168,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setFreeUserLimits({
           roomGenerated: data.room_generated || false,
           avatarGenerated: data.avatar_generated || false,
+          petGenerated: data.pet_generated || false,
           totalMessages: data.total_messages || 0,
           dailyMessages: isNewDay ? 0 : (data.daily_messages || 0),
           trialDaysLeft,
@@ -174,6 +179,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setFreeUserLimits({
           roomGenerated: false,
           avatarGenerated: false,
+          petGenerated: false,
           totalMessages: 0,
           dailyMessages: 0,
           trialDaysLeft: 5,
@@ -262,6 +268,25 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const canGeneratePet = async (): Promise<boolean> => {
+    if (isSubscribed) return true;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data, error } = await supabase.rpc("can_generate_pet", {
+        p_user_id: user.id,
+      });
+
+      if (error) throw error;
+      return data || false;
+    } catch (error) {
+      console.error("Error checking pet generation limit:", error);
+      return false;
+    }
+  };
+
   const incrementMessageCount = async (): Promise<number> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -323,6 +348,24 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const markPetGenerated = async (): Promise<void> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.rpc("mark_pet_generated", {
+        p_user_id: user.id,
+      });
+      
+      setFreeUserLimits(prev => ({
+        ...prev,
+        petGenerated: true,
+      }));
+    } catch (error) {
+      console.error("Error marking pet as generated:", error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -339,6 +382,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setFreeUserLimits({
           roomGenerated: false,
           avatarGenerated: false,
+          petGenerated: false,
           totalMessages: 0,
           dailyMessages: 0,
           trialDaysLeft: 5,
@@ -395,9 +439,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       canSendMessage,
       canGenerateRoom,
       canGenerateAvatar,
+      canGeneratePet,
       incrementMessageCount,
       markRoomGenerated,
       markAvatarGenerated,
+      markPetGenerated,
       refreshLimits,
     }}>
       {children}

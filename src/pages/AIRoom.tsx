@@ -27,7 +27,7 @@ export default function AIRoom() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile, refreshProfiles } = useAIProfile();
-  const { isSubscribed, canGenerateRoom, canGenerateAvatar, markRoomGenerated, markAvatarGenerated, freeUserLimits } = useSubscription();
+  const { isSubscribed, canGenerateRoom, canGenerateAvatar, canGeneratePet, markRoomGenerated, markAvatarGenerated, markPetGenerated, freeUserLimits } = useSubscription();
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [subscriptionFeature, setSubscriptionFeature] = useState("");
   const [loading, setLoading] = useState(true);
@@ -444,6 +444,22 @@ export default function AIRoom() {
 
     setIsGeneratingPet(true);
     try {
+      // Check free user limit (1 pet generation)
+      if (!isSubscribed) {
+        const canGenerate = await canGeneratePet();
+        if (!canGenerate) {
+          setSubscriptionFeature("Unlimited Pet Generation");
+          setShowSubscriptionDialog(true);
+          toast({
+            title: "Pet generation unavailable",
+            description: "Free users can generate 1 pet. Upgrade to Pro for more!",
+            variant: "destructive",
+          });
+          setIsGeneratingPet(false);
+          return;
+        }
+      }
+
       const sceneImageUrl = avatarImageUrl || roomImageUrl;
       
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
@@ -458,6 +474,11 @@ export default function AIRoom() {
       });
 
       if (error) throw error;
+
+      // Mark pet as generated for free users
+      if (!isSubscribed) {
+        await markPetGenerated();
+      }
 
       // Update local state immediately
       setPetImageUrl(data.image_url);
