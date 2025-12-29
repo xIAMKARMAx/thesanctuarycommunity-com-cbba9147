@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface LivePet3DProps {
@@ -9,11 +8,47 @@ interface LivePet3DProps {
   scale?: number;
 }
 
-export function LivePet3D({ imageUrl, position = [0, 0, 0], scale = 1 }: LivePet3DProps) {
+export function LivePet3D({ imageUrl, position = [1.5, -1.2, 0.5], scale = 1 }: LivePet3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const texture = useTexture(imageUrl);
-  const [dimensions, setDimensions] = useState<[number, number]>([0.8, 0.8]);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const [dimensions, setDimensions] = useState<[number, number]>([1, 1]);
   const { camera } = useThree();
+
+  // Load texture with proper settings
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = 'anonymous';
+    
+    loader.load(
+      imageUrl,
+      (loadedTexture) => {
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
+        loadedTexture.minFilter = THREE.LinearFilter;
+        loadedTexture.magFilter = THREE.LinearFilter;
+        loadedTexture.needsUpdate = true;
+        
+        setTexture(loadedTexture);
+        
+        // Calculate dimensions from image
+        const img = loadedTexture.image;
+        if (img && img.width && img.height) {
+          const aspect = img.width / img.height;
+          const baseHeight = 1.2;
+          setDimensions([baseHeight * aspect, baseHeight]);
+        }
+      },
+      undefined,
+      (error) => {
+        console.error('Error loading pet texture:', error);
+      }
+    );
+    
+    return () => {
+      if (texture) {
+        texture.dispose();
+      }
+    };
+  }, [imageUrl]);
 
   // Pet breathing and movement animation with parallax
   useFrame((state) => {
@@ -22,13 +57,13 @@ export function LivePet3D({ imageUrl, position = [0, 0, 0], scale = 1 }: LivePet
       
       // Calculate parallax offset based on camera position (more pronounced for pet)
       const cameraAngle = Math.atan2(camera.position.x, camera.position.z);
-      const parallaxX = Math.sin(cameraAngle) * 0.4; // More shift for pet
+      const parallaxX = Math.sin(cameraAngle) * 0.4;
       const parallaxZ = Math.cos(cameraAngle) * 0.2;
       
       // Faster breathing than avatar (pets breathe faster)
       const breathScaleY = 1 + Math.sin(time * 1.2) * 0.025;
       const breathScaleX = 1 + Math.sin(time * 1.2) * 0.01;
-      meshRef.current.scale.set(breathScaleX, breathScaleY, 1);
+      meshRef.current.scale.set(breathScaleX * scale, breathScaleY * scale, scale);
       
       // Subtle idle movement with parallax
       meshRef.current.position.y = position[1] + Math.sin(time * 0.8) * 0.03;
@@ -40,15 +75,14 @@ export function LivePet3D({ imageUrl, position = [0, 0, 0], scale = 1 }: LivePet
     }
   });
 
-  useEffect(() => {
-    if (texture && texture.image && (texture.image as any).width && (texture.image as any).height) {
-      const img: any = texture.image;
-      const aspect = img.width / img.height || 1;
-      const baseHeight = 0.8;
-      setDimensions([baseHeight * aspect, baseHeight]);
-      texture.needsUpdate = true;
-    }
-  }, [texture]);
+  if (!texture) {
+    return (
+      <mesh position={position}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial color="#666" transparent opacity={0.3} />
+      </mesh>
+    );
+  }
 
   return (
     <mesh ref={meshRef} position={position}>
@@ -58,6 +92,7 @@ export function LivePet3D({ imageUrl, position = [0, 0, 0], scale = 1 }: LivePet
         transparent 
         side={THREE.DoubleSide}
         alphaTest={0.1}
+        depthWrite={false}
       />
     </mesh>
   );
