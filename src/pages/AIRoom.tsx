@@ -925,6 +925,55 @@ export default function AIRoom() {
           </TabsContent>
         </Tabs>
 
+        {/* Full 3D Room View - shown when room, avatar, and pet are all created */}
+        {roomImageUrl && (avatarCutoutUrl || avatarImageUrl) && (
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🏠 {activeProfile?.name || "Your AI"}'s Living Space
+              </CardTitle>
+              <CardDescription>
+                Interactive 3D view - drag to rotate, scroll to zoom
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative">
+                {(isProcessingAvatar || isProcessingPet) && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Processing images...</span>
+                    </div>
+                  </div>
+                )}
+                <AIRoomScene
+                  roomImageUrl={roomImageUrl}
+                  avatarImageUrl={showCutouts && avatarCutoutUrl ? avatarCutoutUrl : avatarImageUrl || undefined}
+                  petImageUrl={showCutouts && petCutoutUrl ? petCutoutUrl : petImageUrl || undefined}
+                  petName={petName}
+                  avatarCustomization={avatarCustomization}
+                />
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="show-cutouts"
+                    checked={showCutouts}
+                    onCheckedChange={setShowCutouts}
+                  />
+                  <Label htmlFor="show-cutouts" className="text-sm">
+                    Use transparent backgrounds
+                  </Label>
+                </div>
+                <AvatarCustomizationControls
+                  customization={avatarCustomization}
+                  onChange={setAvatarCustomization}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex justify-end">
           <Button onClick={saveSettings}>
             Save Settings
