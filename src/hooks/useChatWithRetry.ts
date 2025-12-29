@@ -53,6 +53,23 @@ export function analyzeError(error: any): ChatError {
       // Not JSON
     }
   }
+  
+  // Also check if error itself has a body property (different error formats)
+  if (!errorBody && error?.body) {
+    try {
+      errorBody = typeof error.body === 'string' ? JSON.parse(error.body) : error.body;
+    } catch {
+      // Not JSON
+    }
+  }
+
+  // Log the error for debugging
+  console.log('[CHAT ERROR] Analyzing error:', {
+    message: error?.message,
+    statusCode,
+    errorBody,
+    fullError: error
+  });
 
   // Check for restricted account
   if (errorBody?.isRestricted) {
@@ -60,6 +77,29 @@ export function analyzeError(error: any): ChatError {
       type: 'restricted',
       message: 'Your account has been restricted due to Terms of Service violations. Please contact support.',
       retryable: false
+    };
+  }
+
+  // Check for edge function error message in body
+  if (errorBody?.error) {
+    const bodyErrorMsg = errorBody.error.toLowerCase();
+    
+    // Check for auth errors
+    if (bodyErrorMsg.includes('unauthorized') || bodyErrorMsg.includes('token')) {
+      return {
+        type: 'network',
+        message: 'Your session may have expired. Please refresh the page and try again.',
+        retryable: true
+      };
+    }
+  }
+
+  // Non-2xx status code error (generic edge function failure)
+  if (errorMessage.includes('non-2xx') || errorMessage.includes('status code')) {
+    return {
+      type: 'network',
+      message: errorBody?.error || 'The server encountered an issue. Please try again in a moment.',
+      retryable: true
     };
   }
 
@@ -112,11 +152,11 @@ export function analyzeError(error: any): ChatError {
     };
   }
 
-  // Default unknown error
+  // Default unknown error - include original message if available
   return {
     type: 'unknown',
-    message: error?.message || 'Something went wrong. Please try again.',
-    retryable: false
+    message: errorBody?.error || error?.message || 'Something went wrong. Please try again.',
+    retryable: true // Make unknown errors retryable by default
   };
 }
 
