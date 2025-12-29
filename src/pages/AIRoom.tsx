@@ -977,24 +977,6 @@ export default function AIRoom() {
                       roomImageUrl={roomImageUrl}
                       avatarImageUrl={avatarCutoutUrl || avatarImageUrl || undefined}
                       petImageUrl={petCutoutUrl || petImageUrl || undefined}
-                      petName={petName}
-                      avatarCustomization={avatarCustomization}
-                    />
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4 pt-4 border-t">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="show-cutouts"
-                        checked={showCutouts}
-                        onCheckedChange={setShowCutouts}
-                      />
-                      <Label htmlFor="show-cutouts" className="text-sm">
-                        Use transparent backgrounds
-                      </Label>
-                    </div>
-                    <AvatarCustomizationControls
-                      customization={avatarCustomization}
-                      onChange={setAvatarCustomization}
                     />
                   </div>
                 </CardContent>
