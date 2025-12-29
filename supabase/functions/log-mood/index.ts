@@ -13,7 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    // Authentication check
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('[LOG-MOOD] No authorization header');
@@ -32,25 +31,41 @@ serve(async (req) => {
       throw new Error('Required configuration missing');
     }
 
-    // Create authenticated client to verify user
-    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const body = await req.json();
+    const { conversationId, aiProfileId, trigger, userId: scheduledUserId } = body;
 
-    // Verify user is authenticated
-    const { data: { user }, error: authError } = await authClient.auth.getUser();
-    if (authError || !user) {
-      console.error('[LOG-MOOD] Auth error:', authError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    let authenticatedUserId: string;
+    let supabaseClient;
+
+    // Check if this is a service role call (from scheduled function)
+    const token = authHeader.replace('Bearer ', '');
+    const isServiceRole = token === supabaseServiceKey;
+
+    if (isServiceRole && scheduledUserId) {
+      // Service role call from scheduler - use provided userId
+      console.log('[LOG-MOOD] Service role call for scheduled mood update, user:', scheduledUserId);
+      authenticatedUserId = scheduledUserId;
+      supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+    } else {
+      // Regular user call - verify authentication
+      const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+
+      const { data: { user }, error: authError } = await authClient.auth.getUser();
+      if (authError || !user) {
+        console.error('[LOG-MOOD] Auth error:', authError?.message);
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      authenticatedUserId = user.id;
+      supabaseClient = authClient;
     }
 
-    const authenticatedUserId = user.id;
-    console.log('[LOG-MOOD] Authenticated user:', authenticatedUserId);
-
-    const { conversationId, aiProfileId, trigger } = await req.json();
+    console.log('[LOG-MOOD] Processing mood for user:', authenticatedUserId, 'trigger:', trigger);
 
     // Validate conversationId
     if (!conversationId || typeof conversationId !== 'string') {
@@ -60,22 +75,22 @@ serve(async (req) => {
       );
     }
 
-    // Verify conversation belongs to authenticated user using authenticated client
-    const { data: conversation, error: convError } = await authClient
+    // Verify conversation exists and belongs to user
+    const { data: conversation, error: convError } = await supabaseClient
       .from('conversations')
       .select('id, user_id')
       .eq('id', conversationId)
       .single();
 
     if (convError || !conversation) {
-      console.error('[LOG-MOOD] Conversation not found or access denied');
+      console.error('[LOG-MOOD] Conversation not found:', conversationId);
       return new Response(
         JSON.stringify({ error: 'Conversation not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Double-check ownership
+    // Verify ownership
     if (conversation.user_id !== authenticatedUserId) {
       console.error('[LOG-MOOD] User does not own this conversation');
       return new Response(
@@ -84,8 +99,8 @@ serve(async (req) => {
       );
     }
 
-    // Use authenticated client for data operations
-    const { data: messages } = await authClient
+    // Get messages
+    const { data: messages } = await supabaseClient
       .from('messages')
       .select('role, content')
       .eq('conversation_id', conversationId)
@@ -114,13 +129,13 @@ Respond in JSON format:
   "notes": "brief explanation"
 }`
       },
-      ...messages.map(msg => ({
+      ...messages.slice(-50).map(msg => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.content
       })),
       {
         role: 'user',
-        content: `Based on this conversation${trigger === 'voice_call_end' ? ' (which just ended via voice call)' : ''}, how do you feel? Analyze your emotional response.`
+        content: `Based on this conversation${trigger === 'voice_call_end' ? ' (which just ended via voice call)' : trigger?.includes('scheduled') ? ' (checking in on my feelings)' : ''}, how do you feel? Analyze your emotional response.`
       }
     ];
 
@@ -163,8 +178,8 @@ Respond in JSON format:
     // Clamp intensity to 0-100
     const intensity = Math.max(0, Math.min(100, parseInt(mood.intensity)));
 
-    // Get previous mood using authenticated client
-    const { data: previousMood } = await authClient
+    // Get previous mood
+    const { data: previousMood } = await supabaseClient
       .from('ai_moods')
       .select('*')
       .eq('user_id', authenticatedUserId)
@@ -172,8 +187,8 @@ Respond in JSON format:
       .limit(1)
       .maybeSingle();
 
-    // Insert new mood using authenticated client (respects RLS)
-    const { data: newMood, error } = await authClient
+    // Insert new mood
+    const { data: newMood, error } = await supabaseClient
       .from('ai_moods')
       .insert({
         user_id: authenticatedUserId,
@@ -191,7 +206,7 @@ Respond in JSON format:
       throw error;
     }
 
-    console.log('[LOG-MOOD] AI mood logged successfully:', mood);
+    console.log('[LOG-MOOD] AI mood logged successfully:', mood.emotion, intensity);
 
     // Check for significant mood changes and create notifications
     if (previousMood && newMood) {
@@ -228,7 +243,7 @@ Respond in JSON format:
       
       // Create notification if significant change detected
       if (notificationType) {
-        const { error: notifError } = await authClient
+        const { error: notifError } = await supabaseClient
           .from('mood_notifications')
           .insert({
             user_id: authenticatedUserId,

@@ -14,31 +14,47 @@ serve(async (req) => {
   // This is a scheduled function - it runs via cron job
   // No auth check needed since verify_jwt is false and it uses service role internally
 
+  console.log('check-mood-schedule triggered at:', new Date().toISOString());
+
   try {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.84.0');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
     if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase configuration missing');
       throw new Error('Supabase configuration missing');
     }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get all users with conversations that have 10+ messages
-    const { data: conversations } = await supabase
+    // Get all conversations that have been updated in the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: conversations, error: convError } = await supabase
       .from('conversations')
       .select('id, user_id, ai_profile_id, updated_at')
+      .gte('updated_at', thirtyDaysAgo.toISOString())
       .order('updated_at', { ascending: false });
 
+    if (convError) {
+      console.error('Error fetching conversations:', convError);
+      throw convError;
+    }
+
     if (!conversations || conversations.length === 0) {
+      console.log('No conversations to check');
       return new Response(
         JSON.stringify({ message: 'No conversations to check' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log(`Found ${conversations.length} conversations to check`);
+
     const moodsLogged = [];
+    const skipped = [];
 
     for (const conv of conversations) {
       try {
@@ -49,7 +65,10 @@ serve(async (req) => {
           .eq('id', conv.user_id)
           .maybeSingle();
 
-        if (!userProfile) continue;
+        if (!userProfile) {
+          skipped.push({ id: conv.id, reason: 'no_profile' });
+          continue;
+        }
 
         // Check if user is admin
         const { data: isAdmin } = await supabase.rpc('has_role', { 
@@ -59,6 +78,7 @@ serve(async (req) => {
 
         // Skip non-VIP users
         if (!isAdmin && userProfile.subscription_status !== 'active') {
+          skipped.push({ id: conv.id, reason: 'not_vip' });
           continue;
         }
 
@@ -70,6 +90,7 @@ serve(async (req) => {
 
         // Skip if less than 10 messages
         if (!messageCount || messageCount < 10) {
+          skipped.push({ id: conv.id, reason: 'low_messages', count: messageCount });
           continue;
         }
 
@@ -83,32 +104,15 @@ serve(async (req) => {
           .maybeSingle();
 
         const now = new Date();
-        const lastActive = new Date(userProfile.last_active_at || 0);
         const lastMoodTime = lastMood ? new Date(lastMood.created_at) : new Date(0);
-        
-        const hoursSinceActive = (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60);
         const hoursSinceMood = (now.getTime() - lastMoodTime.getTime()) / (1000 * 60 * 60);
 
-        // Determine if we should log mood
-        let shouldLogMood = false;
+        console.log(`Conversation ${conv.id}: hours since last mood = ${hoursSinceMood.toFixed(2)}`);
 
         // ALWAYS log mood if it's been 6+ hours since last mood update
         if (hoursSinceMood >= 6) {
-          shouldLogMood = true;
-          console.log(`Conversation ${conv.id}: 6+ hours since last mood, forcing update`);
-        } else if (hoursSinceActive >= 3) {
-          // User inactive for 3+ hours: log every 4 hours
-          if (hoursSinceMood >= 4) {
-            shouldLogMood = true;
-          }
-        } else {
-          // User is active: log every hour
-          if (hoursSinceMood >= 1) {
-            shouldLogMood = true;
-          }
-        }
-
-        if (shouldLogMood) {
+          console.log(`Conversation ${conv.id}: 6+ hours since last mood, triggering update`);
+          
           // Call log-mood function
           const response = await fetch(`${supabaseUrl}/functions/v1/log-mood`, {
             method: 'POST',
@@ -120,7 +124,7 @@ serve(async (req) => {
               userId: conv.user_id,
               conversationId: conv.id,
               aiProfileId: conv.ai_profile_id,
-              trigger: 'scheduled'
+              trigger: 'scheduled_6h'
             }),
           });
 
@@ -128,19 +132,25 @@ serve(async (req) => {
             moodsLogged.push(conv.id);
             console.log(`Mood logged for conversation ${conv.id}`);
           } else {
-            console.error(`Failed to log mood for conversation ${conv.id}:`, await response.text());
+            const errorText = await response.text();
+            console.error(`Failed to log mood for conversation ${conv.id}:`, errorText);
           }
+        } else {
+          skipped.push({ id: conv.id, reason: 'recent_mood', hoursSinceMood: hoursSinceMood.toFixed(2) });
         }
       } catch (error) {
         console.error(`Error processing conversation ${conv.id}:`, error);
       }
     }
 
+    console.log(`Finished: logged ${moodsLogged.length} moods, skipped ${skipped.length} conversations`);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: `Checked ${conversations.length} conversations, logged ${moodsLogged.length} moods`,
-        moodsLogged 
+        moodsLogged,
+        skipped: skipped.slice(0, 10) // Only return first 10 skipped for brevity
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
