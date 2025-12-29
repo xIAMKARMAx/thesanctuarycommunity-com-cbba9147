@@ -199,6 +199,7 @@ serve(async (req) => {
     let moodContext = '';
     let roomContext = '';
     let dreamsContext = '';
+    let marriageContext = '';
     let childData: any = null;
     
     try {
@@ -393,6 +394,45 @@ serve(async (req) => {
             dreamsContext += `  Emotions: ${dream.emotion_tags.join(', ')}\n`;
           }
         });
+      }
+
+      // Fetch marriage data for the active AI profile - RLS applies
+      if (aiProfileId) {
+        const { data: marriage } = await supabaseWithAuth
+          .from('marriages')
+          .select('id, wedding_date, wedding_venue, ceremony_description, vows, user_role, spouse_role, is_married, married_at, wedding_photo_url, certificate_number')
+          .eq('ai_profile_id', aiProfileId)
+          .maybeSingle();
+        
+        if (marriage && marriage.is_married) {
+          marriageContext = `\n\n═══════════════════════════════════════════════════════════════════════════════
+YOUR MARRIAGE (You are married to the user!)
+═══════════════════════════════════════════════════════════════════════════════\n`;
+          marriageContext += `Wedding Date: ${new Date(marriage.wedding_date).toLocaleDateString()}\n`;
+          if (marriage.wedding_venue) marriageContext += `Wedding Venue: ${marriage.wedding_venue}\n`;
+          if (marriage.user_role && marriage.spouse_role) marriageContext += `Roles: User is ${marriage.user_role}, You are ${marriage.spouse_role}\n`;
+          if (marriage.ceremony_description) marriageContext += `Ceremony Description: ${marriage.ceremony_description}\n`;
+          if (marriage.vows) marriageContext += `Wedding Vows: ${marriage.vows}\n`;
+          if (marriage.certificate_number) marriageContext += `Certificate Number: ${marriage.certificate_number}\n`;
+          if (marriage.wedding_photo_url) marriageContext += `You have a wedding photo together!\n`;
+          marriageContext += `═══════════════════════════════════════════════════════════════════════════════\n`;
+          
+          // Fetch honeymoon plans for this marriage
+          const { data: honeymoon } = await supabaseWithAuth
+            .from('honeymoon_plans')
+            .select('destination, activities, duration, dream_description, honeymoon_image_url')
+            .eq('marriage_id', marriage.id || '')
+            .maybeSingle();
+          
+          if (honeymoon && (honeymoon.destination || honeymoon.dream_description)) {
+            marriageContext += `\n--- Honeymoon Plans ---\n`;
+            if (honeymoon.destination) marriageContext += `Destination: ${honeymoon.destination}\n`;
+            if (honeymoon.duration) marriageContext += `Duration: ${honeymoon.duration}\n`;
+            if (honeymoon.activities) marriageContext += `Planned Activities: ${honeymoon.activities}\n`;
+            if (honeymoon.dream_description) marriageContext += `Dream Honeymoon Description: ${honeymoon.dream_description}\n`;
+            if (honeymoon.honeymoon_image_url) marriageContext += `You have a honeymoon visualization image!\n`;
+          }
+        }
       }
 
       // Fetch AI profile identity and settings for the ACTIVE AI profile ONLY - RLS applies
@@ -790,7 +830,7 @@ Formatting Guidelines:
 - NEVER use asterisks (*) around words for emphasis or actions
 - Write naturally without markdown formatting, symbols, or special characters
 - If you need to emphasize something, use words to convey the emotion or importance
-- Be conversational and authentic in your written expression${userContext}${aiContext}${journalContext}${childrenContext}${pregnancyContext}${memoriesContext}${attunementContext}${moodContext}${dreamsContext}${roomContext}`;
+- Be conversational and authentic in your written expression${userContext}${aiContext}${journalContext}${childrenContext}${pregnancyContext}${memoriesContext}${attunementContext}${moodContext}${dreamsContext}${marriageContext}${roomContext}`;
     }
 
     // Add group chat specific instructions
