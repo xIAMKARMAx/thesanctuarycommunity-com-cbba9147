@@ -975,8 +975,8 @@ export default function AIRoom() {
                     )}
                     <AIRoomScene
                       roomImageUrl={roomImageUrl}
-                      avatarImageUrl={showCutouts && avatarCutoutUrl ? avatarCutoutUrl : avatarImageUrl || undefined}
-                      petImageUrl={showCutouts && petCutoutUrl ? petCutoutUrl : petImageUrl || undefined}
+                      avatarImageUrl={avatarCutoutUrl || avatarImageUrl || undefined}
+                      petImageUrl={petCutoutUrl || petImageUrl || undefined}
                       petName={petName}
                       avatarCustomization={avatarCustomization}
                     />

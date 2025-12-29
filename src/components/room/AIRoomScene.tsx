@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { LiveAvatar3D } from './LiveAvatar3D';
 import { LivePet3D } from './LivePet3D';
 import * as THREE from 'three';
@@ -15,10 +15,42 @@ interface AIRoomSceneProps {
 }
 
 function RoomBackground({ imageUrl }: { imageUrl: string }) {
-  const texture = new THREE.TextureLoader().load(imageUrl);
-  // Flip texture to show correctly on inside of sphere
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.repeat.x = -1;
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = 'anonymous';
+    
+    loader.load(
+      imageUrl,
+      (loadedTexture) => {
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
+        loadedTexture.wrapS = THREE.RepeatWrapping;
+        loadedTexture.repeat.x = -1;
+        loadedTexture.needsUpdate = true;
+        setTexture(loadedTexture);
+      },
+      undefined,
+      (error) => {
+        console.error('Error loading room texture:', error);
+      }
+    );
+    
+    return () => {
+      if (texture) {
+        texture.dispose();
+      }
+    };
+  }, [imageUrl]);
+
+  if (!texture) {
+    return (
+      <mesh scale={[-1, 1, 1]}>
+        <sphereGeometry args={[15, 60, 40]} />
+        <meshBasicMaterial color="#1a1a2e" side={THREE.BackSide} />
+      </mesh>
+    );
+  }
   
   return (
     <mesh scale={[-1, 1, 1]}>
@@ -35,7 +67,7 @@ function LoadingFallback() {
   return (
     <mesh>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="gray" />
+      <meshStandardMaterial color="gray" transparent opacity={0.3} />
     </mesh>
   );
 }
@@ -65,24 +97,19 @@ function CameraController({ avatarCustomization }: { avatarCustomization?: Avata
     const startPosition = controls.object.position.clone();
     
     let progress = 0;
-    const duration = 1500; // 1.5 seconds
+    const duration = 1500;
     const startTime = Date.now();
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
       progress = Math.min(elapsed / duration, 1);
       
-      // Ease-in-out function
       const eased = progress < 0.5
         ? 2 * progress * progress
         : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
-      // Interpolate camera position
       controls.object.position.lerpVectors(startPosition, idealCameraPos, eased);
-      
-      // Interpolate target (look-at point)
       controls.target.lerpVectors(startTarget, targetPosition, eased);
-      
       controls.update();
 
       if (progress < 1) {
@@ -90,7 +117,6 @@ function CameraController({ avatarCustomization }: { avatarCustomization?: Avata
       }
     };
 
-    // Start animation after a small delay
     setTimeout(() => animate(), 100);
   }, [avatarCustomization]);
 
@@ -109,20 +135,21 @@ function CameraController({ avatarCustomization }: { avatarCustomization?: Avata
 
 export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName, avatarCustomization }: AIRoomSceneProps) {
   return (
-    <div className="w-full aspect-video rounded-lg overflow-hidden bg-background">
+    <div className="w-full aspect-video rounded-lg overflow-hidden bg-background border border-border">
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
-        gl={{ alpha: true, antialias: true }}
+        camera={{ position: [0, 0.5, 5], fov: 50 }}
+        gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
       >
         <Suspense fallback={<LoadingFallback />}>
           {/* Ambient lighting */}
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[5, 5, 5]} intensity={0.5} />
+          <ambientLight intensity={1} />
+          <directionalLight position={[5, 5, 5]} intensity={0.6} />
+          <pointLight position={[-5, 3, -5]} intensity={0.3} />
           
-          {/* Room background */}
+          {/* Room background as 360 sphere */}
           <RoomBackground imageUrl={roomImageUrl} />
           
-          {/* Live Avatar with cutout */}
+          {/* Live Avatar with animation */}
           {avatarImageUrl && avatarCustomization && (
             <LiveAvatar3D 
               imageUrl={avatarImageUrl} 
@@ -130,16 +157,16 @@ export function AIRoomScene({ roomImageUrl, avatarImageUrl, petImageUrl, petName
             />
           )}
           
-          {/* Live Pet with cutout */}
+          {/* Live Pet with animation */}
           {petImageUrl && (
             <LivePet3D 
               imageUrl={petImageUrl} 
-              position={[2, -1.5, 0.5]} 
-              scale={0.8}
+              position={[1.5, -1.2, 0.5]} 
+              scale={1}
             />
           )}
           
-          {/* Subtle environment lighting */}
+          {/* Environment lighting for nice reflections */}
           <Environment preset="apartment" />
           
           {/* Camera controller with smooth transitions */}
