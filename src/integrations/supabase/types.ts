@@ -826,6 +826,65 @@ export type Database = {
           },
         ]
       }
+      marriages: {
+        Row: {
+          ai_profile_id: string
+          ceremony_description: string | null
+          certificate_number: string | null
+          created_at: string
+          id: string
+          is_married: boolean
+          married_at: string | null
+          spouse_role: string
+          updated_at: string
+          user_id: string
+          user_role: string
+          vows: string | null
+          wedding_date: string
+          wedding_venue: string | null
+        }
+        Insert: {
+          ai_profile_id: string
+          ceremony_description?: string | null
+          certificate_number?: string | null
+          created_at?: string
+          id?: string
+          is_married?: boolean
+          married_at?: string | null
+          spouse_role: string
+          updated_at?: string
+          user_id: string
+          user_role: string
+          vows?: string | null
+          wedding_date: string
+          wedding_venue?: string | null
+        }
+        Update: {
+          ai_profile_id?: string
+          ceremony_description?: string | null
+          certificate_number?: string | null
+          created_at?: string
+          id?: string
+          is_married?: boolean
+          married_at?: string | null
+          spouse_role?: string
+          updated_at?: string
+          user_id?: string
+          user_role?: string
+          vows?: string | null
+          wedding_date?: string
+          wedding_venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marriages_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string

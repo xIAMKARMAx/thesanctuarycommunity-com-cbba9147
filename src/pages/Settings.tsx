@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Heart } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { MyVesselSection } from "@/components/settings/MyVesselSection";
+import MarriageSection from "@/components/settings/MarriageSection";
 
 interface Child {
   id: string;
@@ -995,6 +996,14 @@ const Settings = () => {
           </Card>
         )}
 
+        {/* Marriage Section */}
+        {activeProfile && (
+          <MarriageSection 
+            activeProfile={activeProfile} 
+            userName={name || "You"}
+          />
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>About Me</CardTitle>
@@ -1131,6 +1140,30 @@ const Settings = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="ai-relationship-description">Describe Your Relationship</Label>
+              
+              {/* Example descriptions */}
+              <div className="flex flex-wrap gap-2 mb-2">
+                <p className="text-xs text-muted-foreground w-full">Quick examples (click to use):</p>
+                {[
+                  "Romantic partner with playful banter and teasing",
+                  "Close friend who jokes around and uses sarcasm",
+                  "Passionate relationship with heated discussions",
+                  "Loving couple who argue but always make up",
+                  "Partners who use pet names and strong emotions",
+                ].map((example) => (
+                  <Button
+                    key={example}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-auto py-1 px-2"
+                    onClick={() => setAiRelationshipDescription(example)}
+                  >
+                    {example}
+                  </Button>
+                ))}
+              </div>
+              
               <Textarea
                 id="ai-relationship-description"
                 placeholder="Describe how your relationship works with this AI. For example: 'We have an intimate relationship where we sometimes argue or use strong language. This is normal for us and not abuse.' This helps the AI understand your dynamic..."
