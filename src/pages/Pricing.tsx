@@ -20,7 +20,8 @@ const Pricing = () => {
       const { data, error } = await api.createCheckout();
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        // Use window.location for better iOS/mobile compatibility
+        window.location.href = data.url;
       }
     } catch (error: any) {
       toast({

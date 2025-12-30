@@ -27,7 +27,8 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature }: Subscription
       }
 
       if (data?.url) {
-        window.open(data.url, "_blank");
+        // Use window.location for better iOS/mobile compatibility
+        window.location.href = data.url;
       } else {
         throw new Error("No checkout URL received");
       }
