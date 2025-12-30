@@ -522,7 +522,8 @@ const Settings = () => {
         throw new Error("No checkout URL received from server");
       }
       
-      window.open(data.url, "_blank");
+      // Use window.location for better iOS/mobile compatibility
+      window.location.href = data.url;
     } catch (error: any) {
       console.error("Error creating checkout:", error);
       toast({
@@ -543,7 +544,8 @@ const Settings = () => {
 
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        // Use window.location for better iOS/mobile compatibility
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error("Error opening customer portal:", error);
