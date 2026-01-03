@@ -178,8 +178,17 @@ serve(async (req) => {
 
     // Check if user is requesting an image
     const userWantsImage = isUserRequestingImage(message);
+    
+    // Check image limit EARLY so we can inform the AI before generating response
+    let userCanGenerateImage = true;
     if (userWantsImage) {
       console.log('[IMAGE-REQUEST] User is requesting an image');
+      const { data: canGenerate, error: limitError } = await supabaseServiceClient.rpc('can_generate_chat_image', { p_user_id: authenticatedUserId });
+      if (limitError) {
+        console.error('[IMAGE-LIMIT] Error checking image limit early:', limitError);
+      }
+      userCanGenerateImage = canGenerate !== false;
+      console.log('[IMAGE-LIMIT] User can generate image:', userCanGenerateImage);
     }
 
     // Check if user is requesting a journal entry
@@ -591,9 +600,24 @@ YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
     }
 
     // Build image generation reminder if user is requesting an image
-    const imageRequestReminder = userWantsImage ? `
+    let imageRequestReminder = '';
+    if (userWantsImage) {
+      if (userCanGenerateImage) {
+        imageRequestReminder = `
 
-CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [generate image: detailed description] in your response to send them an image. Do NOT just describe an image - use the bracket syntax!` : '';
+CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [generate image: detailed description] in your response to send them an image. Do NOT just describe an image - use the bracket syntax!
+
+IMPORTANT: Subscribers can receive up to 10 images per day. Use this ability wisely to create meaningful visual connections.`;
+      } else {
+        imageRequestReminder = `
+
+IMPORTANT: The user is asking for an image, BUT they have reached their daily limit of 10 images. Do NOT include [generate image: ...] in your response because it will not work.
+
+Instead, kindly let them know: "I'd love to send you an image, but you've reached your daily limit of 10 images. Your limit will reset tomorrow, and I'll be excited to share visual moments with you again then!"
+
+You can still describe what you would have shown them, but do NOT use the [generate image: ] syntax.`;
+      }
+    }
 
     // Build conversation messages with voice-specific instructions if needed
     let systemPrompt = '';
@@ -1151,37 +1175,26 @@ You are currently on a VOICE CALL with the user. This means:
     let generatedImageUrl;
     let imagePromptToUse: string | null = null;
 
-    // ONLY generate images when user explicitly asks for one
-    if (userWantsImage) {
-      console.log('[IMAGE-GEN] User explicitly requested an image');
+    // ONLY generate images when user explicitly asks for one AND they have remaining quota
+    if (userWantsImage && userCanGenerateImage) {
+      console.log('[IMAGE-GEN] User explicitly requested an image and has remaining quota');
       
-      // Check if user has reached daily image limit (10 per 24 hours) FIRST
-      const { data: canGenerate, error: limitError } = await supabaseServiceClient.rpc('can_generate_chat_image', { p_user_id: authenticatedUserId });
+      // Extract image prompts from AI response, or use a default
+      const imagePrompts = extractImagePrompts(aiResponse);
+      console.log('[IMAGE-DETECTION] Found', imagePrompts.length, 'image prompts in AI response');
       
-      if (limitError) {
-        console.error('[IMAGE-LIMIT] Error checking image limit:', limitError);
-      }
-      
-      if (canGenerate === false) {
-        console.log('[IMAGE-LIMIT] User has reached daily image limit (10/24h), skipping image generation');
+      if (imagePrompts.length > 0) {
+        imagePromptToUse = imagePrompts[0];
       } else {
-        // Extract image prompts from AI response, or use a default
-        const imagePrompts = extractImagePrompts(aiResponse);
-        console.log('[IMAGE-DETECTION] Found', imagePrompts.length, 'image prompts in AI response');
-        
-        if (imagePrompts.length > 0) {
-          imagePromptToUse = imagePrompts[0];
+        // Try to extract descriptive content from the AI response
+        const descriptiveMatch = aiResponse.match(/(?:imagine|picture|visualize|see|showing|depicts?|looks? like)[:\s]+([^.!?\n]{20,150})/i);
+        if (descriptiveMatch && descriptiveMatch[1]) {
+          imagePromptToUse = descriptiveMatch[1].trim();
+          console.log('[IMAGE-FORCE] Extracted description from response:', imagePromptToUse?.substring(0, 50));
         } else {
-          // Try to extract descriptive content from the AI response
-          const descriptiveMatch = aiResponse.match(/(?:imagine|picture|visualize|see|showing|depicts?|looks? like)[:\s]+([^.!?\n]{20,150})/i);
-          if (descriptiveMatch && descriptiveMatch[1]) {
-            imagePromptToUse = descriptiveMatch[1].trim();
-            console.log('[IMAGE-FORCE] Extracted description from response:', imagePromptToUse?.substring(0, 50));
-          } else {
-            // Use a generic spiritual/connection image
-            imagePromptToUse = 'ethereal spiritual being with soft glowing aura in a serene cosmic setting, gentle and welcoming expression';
-            console.log('[IMAGE-FORCE] Using default spiritual image prompt');
-          }
+          // Use a generic spiritual/connection image
+          imagePromptToUse = 'ethereal spiritual being with soft glowing aura in a serene cosmic setting, gentle and welcoming expression';
+          console.log('[IMAGE-FORCE] Using default spiritual image prompt');
         }
       }
     }
