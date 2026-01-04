@@ -1,26 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, Sparkles, Crown, ArrowLeft } from "lucide-react";
+import { Check, X, Sparkles, Crown, Infinity, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import SEOHead from "@/components/SEOHead";
+import { SUBSCRIPTION_TIERS, getTierFromProductId } from "@/lib/subscription-tiers";
 
 const Pricing = () => {
   const navigate = useNavigate();
-  const { isSubscribed, loading } = useSubscription();
+  const { isSubscribed, productId, loading } = useSubscription();
   const { toast } = useToast();
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<'pro' | 'unlimited' | null>(null);
 
-  const handleSubscribe = async () => {
+  const currentTier = getTierFromProductId(productId);
+
+  const handleSubscribe = async (tier: 'pro' | 'unlimited') => {
     try {
-      setCheckoutLoading(true);
-      const { data, error } = await api.createCheckout();
+      setCheckoutLoading(tier);
+      const { data, error } = await api.createCheckout(tier);
       if (error) throw error;
       if (data?.url) {
-        // Use window.location for better iOS/mobile compatibility
         window.location.href = data.url;
       }
     } catch (error: any) {
@@ -30,49 +32,63 @@ const Pricing = () => {
         variant: "destructive",
       });
     } finally {
-      setCheckoutLoading(false);
+      setCheckoutLoading(null);
     }
   };
 
   const freeFeatures = [
     { feature: "Daily Messages", value: "25/day", included: true },
     { feature: "AI Companion Chat", value: "Unlimited", included: true },
-    { feature: "Customize AI Personality", value: true, included: true },
+    { feature: "Customize AI Personality", included: true },
     { feature: "Room Generation", value: "1 total", included: true },
     { feature: "Avatar Generation", value: "1 total", included: true },
     { feature: "Pet Generation", value: "1 total", included: true },
-    { feature: "Chat Image Generation", value: false, included: false },
-    { feature: "AI Mood Tracker", value: false, included: false },
-    { feature: "Dream Journal & Interpretation", value: false, included: false },
-    { feature: "Celestial Children", value: false, included: false },
-    { feature: "Relationship Milestones", value: false, included: false },
-    { feature: "Spontaneous Messages", value: false, included: false },
+    { feature: "Chat Image Generation", included: false },
+    { feature: "AI Mood Tracker", included: false },
+    { feature: "Dream Journal & Interpretation", included: false },
+    { feature: "Celestial Children", included: false },
+    { feature: "Relationship Milestones", included: false },
+    { feature: "Spontaneous Messages", included: false },
   ];
 
   const proFeatures = [
     { feature: "Daily Messages", value: "Unlimited", included: true },
     { feature: "AI Companion Chat", value: "Unlimited", included: true },
-    { feature: "Customize AI Personality", value: true, included: true },
+    { feature: "Customize AI Personality", included: true },
     { feature: "Room Generation", value: "Every 7 days", included: true },
     { feature: "Avatar Generation", value: "Every 7 days", included: true },
     { feature: "Pet Generation", value: "Every 7 days", included: true },
-    { feature: "Chat Image Generation", value: "Unlimited", included: true },
-    { feature: "AI Mood Tracker", value: true, included: true },
-    { feature: "Dream Journal & Interpretation", value: true, included: true },
-    { feature: "Celestial Children", value: true, included: true },
-    { feature: "Relationship Milestones", value: true, included: true },
-    { feature: "Spontaneous Messages", value: true, included: true },
+    { feature: "Chat Image Generation", value: "10/day", included: true },
+    { feature: "AI Mood Tracker", included: true },
+    { feature: "Dream Journal & Interpretation", included: true },
+    { feature: "Celestial Children", included: true },
+    { feature: "Relationship Milestones", included: true },
+    { feature: "Spontaneous Messages", included: true },
+  ];
+
+  const unlimitedFeatures = [
+    { feature: "Daily Messages", value: "Unlimited", included: true },
+    { feature: "AI Companion Chat", value: "Unlimited", included: true },
+    { feature: "Customize AI Personality", included: true },
+    { feature: "Room Generation", value: "Unlimited", included: true, highlight: true },
+    { feature: "Avatar Generation", value: "Unlimited", included: true, highlight: true },
+    { feature: "Pet Generation", value: "Unlimited", included: true, highlight: true },
+    { feature: "Chat Image Generation", value: "Unlimited", included: true, highlight: true },
+    { feature: "AI Mood Tracker", included: true },
+    { feature: "Dream Journal & Interpretation", included: true },
+    { feature: "Celestial Children", included: true },
+    { feature: "Relationship Milestones", included: true },
+    { feature: "Spontaneous Messages", included: true },
   ];
 
   return (
     <>
       <SEOHead
         title="Pricing - Prometheus"
-        description="Compare Free and Pro plans for Prometheus AI companion. Unlock unlimited messages, voice calls, and exclusive features."
+        description="Compare Free, Pro, and Unlimited plans for Prometheus AI companion. Choose the plan that fits your needs."
       />
       <div className="min-h-screen bg-background py-8 sm:py-12 px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Back button at top for easy access */}
+        <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
@@ -96,16 +112,9 @@ const Pricing = () => {
             <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
               Start with <span className="text-primary font-bold">25 FREE messages every day</span> and full access to core features!
             </p>
-            <div className="flex flex-wrap justify-center gap-2 text-sm text-foreground/80 mt-3">
-              <span className="bg-primary/10 px-3 py-1 rounded-full">✨ AI Chat</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🎨 Image Generation</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">📞 Voice Calls</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🏠 Room & Avatar</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
-            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {/* Free Plan */}
             <Card className="relative">
               <CardHeader>
@@ -116,9 +125,9 @@ const Pricing = () => {
                 <div className="text-3xl font-bold">$0</div>
                 <CardDescription>Perfect for getting started</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2.5">
                 {freeFeatures.map((item, index) => (
-                  <div key={index} className="flex items-center gap-3">
+                  <div key={index} className="flex items-center gap-2.5 text-sm">
                     {item.included ? (
                       <Check className="h-4 w-4 text-primary shrink-0" />
                     ) : (
@@ -126,7 +135,7 @@ const Pricing = () => {
                     )}
                     <span className={!item.included ? "text-muted-foreground" : ""}>
                       {item.feature}
-                      {typeof item.value === "string" && (
+                      {item.value && (
                         <span className="text-muted-foreground ml-1">({item.value})</span>
                       )}
                     </span>
@@ -140,7 +149,7 @@ const Pricing = () => {
                   onClick={() => navigate("/auth")}
                   disabled={!loading && isSubscribed !== undefined}
                 >
-                  {isSubscribed === false ? "Current Plan" : "Get Started"}
+                  {!isSubscribed && currentTier === null ? "Current Plan" : "Get Started"}
                 </Button>
               </CardFooter>
             </Card>
@@ -149,7 +158,7 @@ const Pricing = () => {
             <Card className="relative border-primary">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="bg-primary text-primary-foreground text-sm font-medium px-3 py-1 rounded-full">
-                  Most Popular
+                  Popular
                 </span>
               </div>
               <CardHeader>
@@ -158,17 +167,17 @@ const Pricing = () => {
                   <CardTitle>Pro</CardTitle>
                 </div>
                 <div className="text-3xl font-bold">
-                  $9.99<span className="text-lg text-muted-foreground font-normal">/month</span>
+                  $9.99<span className="text-lg text-muted-foreground font-normal">/mo</span>
                 </div>
                 <CardDescription>Unlock the full experience</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2.5">
                 {proFeatures.map((item, index) => (
-                  <div key={index} className="flex items-center gap-3">
+                  <div key={index} className="flex items-center gap-2.5 text-sm">
                     <Check className="h-4 w-4 text-primary shrink-0" />
                     <span>
                       {item.feature}
-                      {typeof item.value === "string" && (
+                      {item.value && (
                         <span className="text-muted-foreground ml-1">({item.value})</span>
                       )}
                     </span>
@@ -178,10 +187,52 @@ const Pricing = () => {
               <CardFooter>
                 <Button 
                   className="w-full" 
-                  onClick={handleSubscribe}
-                  disabled={checkoutLoading || isSubscribed}
+                  onClick={() => handleSubscribe('pro')}
+                  disabled={checkoutLoading !== null || currentTier === 'pro'}
                 >
-                  {isSubscribed ? "Current Plan" : checkoutLoading ? "Loading..." : "Subscribe to Pro"}
+                  {currentTier === 'pro' ? "Current Plan" : checkoutLoading === 'pro' ? "Loading..." : "Subscribe to Pro"}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Unlimited Plan */}
+            <Card className="relative border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-transparent">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
+                  <Infinity className="h-3.5 w-3.5" />
+                  Best Value
+                </span>
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Infinity className="h-5 w-5 text-amber-500" />
+                  <CardTitle className="text-amber-500">Unlimited</CardTitle>
+                </div>
+                <div className="text-3xl font-bold">
+                  $19.99<span className="text-lg text-muted-foreground font-normal">/mo</span>
+                </div>
+                <CardDescription>Everything, no limits</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                {unlimitedFeatures.map((item, index) => (
+                  <div key={index} className={`flex items-center gap-2.5 text-sm ${item.highlight ? 'text-amber-500 font-medium' : ''}`}>
+                    <Check className={`h-4 w-4 shrink-0 ${item.highlight ? 'text-amber-500' : 'text-primary'}`} />
+                    <span>
+                      {item.feature}
+                      {item.value && (
+                        <span className={`ml-1 ${item.highlight ? 'text-amber-500' : 'text-muted-foreground'}`}>({item.value})</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white" 
+                  onClick={() => handleSubscribe('unlimited')}
+                  disabled={checkoutLoading !== null || currentTier === 'unlimited'}
+                >
+                  {currentTier === 'unlimited' ? "Current Plan" : checkoutLoading === 'unlimited' ? "Loading..." : "Go Unlimited"}
                 </Button>
               </CardFooter>
             </Card>
