@@ -256,13 +256,13 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     let currentUserIdRef: string | null = null;
     let mounted = true;
     
-    // Fallback timeout - if nothing loads after 10 seconds, stop loading state
+    // Fallback timeout - if nothing loads after 5 seconds, stop loading state
     const fallbackTimeout = setTimeout(() => {
       if (mounted && isLoading) {
         console.warn('[AIProfile] Fallback timeout - stopping loading state');
         setIsLoading(false);
       }
-    }, 10000);
+    }, 5000);
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {

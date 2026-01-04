@@ -146,7 +146,7 @@ const Chat = () => {
       <LoadingRecovery 
         loadingStep={loadingStep} 
         onRecovery={handleRecovery}
-        showAfterMs={5000}
+        showAfterMs={3000}
       />
     );
   }

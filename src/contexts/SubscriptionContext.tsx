@@ -56,9 +56,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const checkSubscription = async () => {
     console.log('[SubscriptionContext] Starting checkSubscription...');
     
-    // Create a timeout promise
+    // Create a timeout promise - reduced to 5 seconds for faster recovery
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Subscription check timed out')), 10000);
+      setTimeout(() => reject(new Error('Subscription check timed out')), 5000);
     });
 
     try {
