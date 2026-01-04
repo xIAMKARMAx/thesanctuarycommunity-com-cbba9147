@@ -19,6 +19,7 @@ interface SubscriptionContextType {
   isAdmin: boolean;
   subscriptionStatus: string;
   subscriptionEnd: string | null;
+  productId: string | null;
   loading: boolean;
   freeUserLimits: FreeUserLimits;
   checkSubscription: () => Promise<void>;
@@ -41,6 +42,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState("free");
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [productId, setProductId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [freeUserLimits, setFreeUserLimits] = useState<FreeUserLimits>({
     roomGenerated: false,
@@ -73,6 +75,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setIsSubscribed(false);
       setSubscriptionStatus("free");
       setSubscriptionEnd(null);
+      setProductId(null);
       setLoading(false);
     }
   };
@@ -121,11 +124,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setIsSubscribed(false);
         setSubscriptionStatus("free");
         setSubscriptionEnd(null);
+        setProductId(null);
       } else {
-        console.log('[SubscriptionContext] Subscription result:', data?.subscribed);
+        console.log('[SubscriptionContext] Subscription result:', data?.subscribed, 'product:', data?.product_id);
         setIsSubscribed(data?.subscribed || false);
         setSubscriptionStatus(data?.subscription_status || "free");
         setSubscriptionEnd(data?.subscription_end || null);
+        setProductId(data?.product_id || null);
       }
       
       // Load free user limits
@@ -136,6 +141,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setIsSubscribed(false);
       setSubscriptionStatus("free");
       setSubscriptionEnd(null);
+      setProductId(null);
     } finally {
       console.log('[SubscriptionContext] checkSubscription complete');
       setLoading(false);
@@ -432,6 +438,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       isAdmin,
       subscriptionStatus,
       subscriptionEnd,
+      productId,
       loading,
       freeUserLimits,
       checkSubscription,

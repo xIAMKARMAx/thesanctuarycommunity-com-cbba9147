@@ -80,9 +80,15 @@ export const api = {
     style?: string;
   }) => invokeEdgeFunction<{ image_url: string }>('generate-room-avatar', body),
 
-  checkSubscription: () => invokeEdgeFunction<{ subscribed: boolean; subscription_status?: string; subscription_end?: string }>('check-subscription', {}),
+  checkSubscription: () => invokeEdgeFunction<{ 
+    subscribed: boolean; 
+    subscription_status?: string; 
+    subscription_end?: string;
+    product_id?: string;
+  }>('check-subscription', {}),
 
-  createCheckout: () => invokeEdgeFunction<{ url: string }>('create-checkout', {}),
+  createCheckout: (tier: 'pro' | 'unlimited' = 'pro') => 
+    invokeEdgeFunction<{ url: string }>('create-checkout', { tier }),
 
   customerPortal: () => invokeEdgeFunction<{ url: string }>('customer-portal', {}),
 

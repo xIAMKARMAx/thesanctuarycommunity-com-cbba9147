@@ -7,6 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Price IDs for different tiers
+const PRICE_IDS = {
+  pro: "price_1SjCbVLeA9CCp7fqrQ4K0DjJ",
+  unlimited: "price_1Slt3kLeA9CCp7fqrN8gl10P",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,6 +30,20 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
+    // Get the tier from request body (default to 'pro')
+    let tier = "pro";
+    try {
+      const body = await req.json();
+      if (body.tier && (body.tier === "pro" || body.tier === "unlimited")) {
+        tier = body.tier;
+      }
+    } catch {
+      // No body or invalid JSON, use default tier
+    }
+
+    const priceId = PRICE_IDS[tier as keyof typeof PRICE_IDS];
+    console.log(`[create-checkout] Creating checkout for tier: ${tier}, priceId: ${priceId}`);
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
     });
@@ -39,7 +59,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1SjCbVLeA9CCp7fqrQ4K0DjJ",
+          price: priceId,
           quantity: 1,
         },
       ],
