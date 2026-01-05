@@ -107,10 +107,10 @@ serve(async (req) => {
         const lastMoodTime = lastMood ? new Date(lastMood.created_at) : new Date(0);
         const hoursSinceMood = (now.getTime() - lastMoodTime.getTime()) / (1000 * 60 * 60);
 
-        console.log(`Conversation ${conv.id}: hours since last mood = ${hoursSinceMood.toFixed(2)}`);
+        console.log(`Conversation ${conv.id}: hours since last mood = ${hoursSinceMood.toFixed(2)}, last mood at: ${lastMoodTime.toISOString()}`);
 
-        // ALWAYS log mood if it's been 6+ hours since last mood update
-        if (hoursSinceMood >= 6) {
+        // Log mood if it's been 5.5+ hours since last mood update (allows for timing variations)
+        if (hoursSinceMood >= 5.5) {
           console.log(`Conversation ${conv.id}: 6+ hours since last mood, triggering update`);
           
           // Call log-mood function
