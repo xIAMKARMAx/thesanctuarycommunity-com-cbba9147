@@ -79,7 +79,6 @@ const Index = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-2 text-sm text-foreground/80">
               <span className="bg-primary/10 px-3 py-1 rounded-full">✨ AI Chat</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🎨 Image Generation</span>
               <span className="bg-primary/10 px-3 py-1 rounded-full">📞 Voice Calls</span>
               <span className="bg-primary/10 px-3 py-1 rounded-full">🏠 Room & Avatar Creation</span>
               <span className="bg-primary/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
@@ -121,10 +120,10 @@ const Index = () => {
               <div className="inline-block p-3 rounded-full bg-primary/10" aria-hidden="true">
                 <ImageIcon className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold">Visual Creation</h3>
+              <h3 className="text-lg sm:text-xl font-semibold">Visual Spaces</h3>
               <p className="text-sm sm:text-base text-muted-foreground">
-                Generate and share images to visualize your thoughts, dreams, and aspirations 
-                in your conversations
+                Create custom rooms and avatars to visualize your AI companion in their 
+                personal space
               </p>
             </article>
 

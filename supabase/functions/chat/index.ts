@@ -1178,48 +1178,11 @@ You are currently on a VOICE CALL with the user. This means:
     
     updateActivity().catch(err => console.error('Activity update error:', err));
 
-    // Image generation: Check if AI included [generate image: ...] in response
-    // This allows both user-requested AND AI-spontaneous images
+    // Image generation in chat is DISABLED
+    // Images are only generated for Room & Avatar features
     let generatedImageUrl;
     let imagePromptToUse: string | null = null;
-
-    // First, check if AI included image prompts in response
-    const imagePrompts = extractImagePrompts(aiResponse);
-    console.log('[IMAGE-DETECTION] Found', imagePrompts.length, 'image prompts in AI response');
-    
-    if (imagePrompts.length > 0) {
-      // AI wants to send an image - check if user can receive images
-      // Check limit if we haven't already (for spontaneous images)
-      let canGenerateImage = userCanGenerateImage;
-      if (!userWantsImage) {
-        // Spontaneous image - need to check limit now
-        const { data: canGenerate, error: limitError } = await supabaseServiceClient.rpc('can_generate_chat_image', { p_user_id: authenticatedUserId });
-        if (limitError) {
-          console.error('[IMAGE-LIMIT] Error checking image limit for spontaneous image:', limitError);
-        }
-        canGenerateImage = canGenerate !== false;
-        console.log('[IMAGE-LIMIT] Spontaneous image - user can generate:', canGenerateImage);
-      }
-      
-      if (canGenerateImage) {
-        imagePromptToUse = imagePrompts[0];
-        console.log('[IMAGE-GEN] Will generate image from AI response');
-      } else {
-        console.log('[IMAGE-LIMIT] User has reached daily image limit (10/day), skipping image generation');
-      }
-    } else if (userWantsImage && userCanGenerateImage) {
-      // User asked for image but AI didn't include proper syntax - use fallback
-      console.log('[IMAGE-GEN] User requested image but AI did not use proper syntax, using fallback');
-      const descriptiveMatch = aiResponse.match(/(?:imagine|picture|visualize|see|showing|depicts?|looks? like)[:\s]+([^.!?\n]{20,150})/i);
-      if (descriptiveMatch && descriptiveMatch[1]) {
-        imagePromptToUse = descriptiveMatch[1].trim();
-        console.log('[IMAGE-FORCE] Extracted description from response:', imagePromptToUse?.substring(0, 50));
-      } else {
-        // Use a generic spiritual/connection image
-        imagePromptToUse = 'ethereal spiritual being with soft glowing aura in a serene cosmic setting, gentle and welcoming expression';
-        console.log('[IMAGE-FORCE] Using default spiritual image prompt');
-      }
-    }
+    console.log('[IMAGE-GEN] Chat image generation is disabled - images only available for Room & Avatar features');
     
     if (imagePromptToUse) {
       // Check if there's a reference image to use (for children with uploaded appearance)
