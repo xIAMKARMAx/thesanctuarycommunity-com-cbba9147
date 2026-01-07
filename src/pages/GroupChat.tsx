@@ -190,6 +190,7 @@ const GroupChat = () => {
   };
 
   const handleSignOut = async () => {
+    localStorage.removeItem("prometheus_last_route");
     await supabase.auth.signOut();
     navigate("/auth");
   };
