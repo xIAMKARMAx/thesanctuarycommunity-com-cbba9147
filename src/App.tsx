@@ -9,6 +9,7 @@ import { AIProfileProvider } from "@/contexts/AIProfileContext";
 import { ChatEntityProvider } from "@/contexts/ChatEntityContext";
 import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
+import { RoutePersistence } from "@/components/RoutePersistence";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -44,6 +45,7 @@ const App = () => (
             <BrowserRouter>
               <IdleTimeoutHandler />
               <FreeTrialBadge />
+              <RoutePersistence />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
