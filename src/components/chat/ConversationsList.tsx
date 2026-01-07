@@ -35,9 +35,20 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
   const { activeChatEntity } = useChatEntity();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Initialize from sessionStorage to prevent loading flash on tab switch
+  const [conversations, setConversations] = useState<Conversation[]>(() => {
+    const cached = sessionStorage.getItem(`conversations_${activeProfile?.id || 'default'}`);
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>(() => {
+    const cached = sessionStorage.getItem(`conversations_${activeProfile?.id || 'default'}`);
+    return cached ? JSON.parse(cached) : [];
+  });
+  // Only show loading if we don't have cached data
+  const [loading, setLoading] = useState(() => {
+    const cached = sessionStorage.getItem(`conversations_${activeProfile?.id || 'default'}`);
+    return !cached;
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
@@ -92,8 +103,11 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
       const { data, error } = await query;
 
       if (error) throw error;
-      setConversations(data || []);
-      setFilteredConversations(data || []);
+      const conversationsData = data || [];
+      setConversations(conversationsData);
+      setFilteredConversations(conversationsData);
+      // Cache in sessionStorage to prevent loading flash on tab switch
+      sessionStorage.setItem(`conversations_${activeProfile.id}`, JSON.stringify(conversationsData));
     } catch (error: any) {
       toast({
         title: "Error loading conversations",
