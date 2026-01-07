@@ -21,6 +21,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { MyVesselSection } from "@/components/settings/MyVesselSection";
 import MarriageSection from "@/components/settings/MarriageSection";
+import { VIPImageGenerator } from "@/components/VIPImageGenerator";
 
 interface Child {
   id: string;
@@ -810,6 +811,9 @@ const Settings = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* VIP Image Generator - Only visible to admins */}
+        {isAdmin && <VIPImageGenerator />}
 
         {children.length > 0 && (
           <Card>
