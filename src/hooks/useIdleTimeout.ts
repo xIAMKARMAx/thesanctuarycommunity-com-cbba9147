@@ -47,6 +47,18 @@ export const useIdleTimeout = () => {
       "click",
     ];
 
+    // Pause timers when tab is hidden, resume when visible
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab is hidden - pause timers
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (warningRef.current) clearTimeout(warningRef.current);
+      } else {
+        // Tab is visible again - reset timers (user is "active" by returning)
+        resetTimers();
+      }
+    };
+
     // Check if user is authenticated before setting up timers
     const checkAuthAndSetup = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -57,6 +69,9 @@ export const useIdleTimeout = () => {
         activityEvents.forEach((event) => {
           document.addEventListener(event, resetTimers, { passive: true });
         });
+        
+        // Listen for visibility changes
+        document.addEventListener("visibilitychange", handleVisibilityChange);
       }
     };
 
@@ -78,6 +93,7 @@ export const useIdleTimeout = () => {
       activityEvents.forEach((event) => {
         document.removeEventListener(event, resetTimers);
       });
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (warningRef.current) clearTimeout(warningRef.current);
       subscription.unsubscribe();
