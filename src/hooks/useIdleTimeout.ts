@@ -13,6 +13,7 @@ export const useIdleTimeout = () => {
 
   const handleLogout = useCallback(async () => {
     toast.info("You've been logged out due to inactivity");
+    localStorage.removeItem("prometheus_last_route");
     await supabase.auth.signOut();
     navigate("/auth");
   }, [navigate]);
