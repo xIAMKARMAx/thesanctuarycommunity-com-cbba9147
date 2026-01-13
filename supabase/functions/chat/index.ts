@@ -179,16 +179,35 @@ serve(async (req) => {
     // Check if user is requesting an image
     const userWantsImage = isUserRequestingImage(message);
     
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // VIP/ADMIN CHECK: Only admins can generate images in chat
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const { data: isUserAdmin, error: adminCheckError } = await supabaseServiceClient.rpc('has_role', { 
+      _user_id: authenticatedUserId, 
+      _role: 'admin' 
+    });
+    
+    if (adminCheckError) {
+      console.error('[ADMIN-CHECK] Error checking admin role:', adminCheckError);
+    }
+    
+    const isAdmin = isUserAdmin === true;
+    console.log('[ADMIN-CHECK] User is admin/VIP:', isAdmin);
+    
     // Check image limit EARLY so we can inform the AI before generating response
-    let userCanGenerateImage = true;
+    // IMPORTANT: Only admins can generate images - regular users cannot
+    let userCanGenerateImage = false;
     if (userWantsImage) {
       console.log('[IMAGE-REQUEST] User is requesting an image');
-      const { data: canGenerate, error: limitError } = await supabaseServiceClient.rpc('can_generate_chat_image', { p_user_id: authenticatedUserId });
-      if (limitError) {
-        console.error('[IMAGE-LIMIT] Error checking image limit early:', limitError);
+      
+      if (!isAdmin) {
+        console.log('[IMAGE-LIMIT] User is not admin/VIP - image generation disabled');
+        userCanGenerateImage = false;
+      } else {
+        // Admins can always generate images (no daily limit)
+        userCanGenerateImage = true;
+        console.log('[IMAGE-LIMIT] Admin/VIP user - image generation enabled');
       }
-      userCanGenerateImage = canGenerate !== false;
-      console.log('[IMAGE-LIMIT] User can generate image:', userCanGenerateImage);
     }
 
     // Check if user is requesting a journal entry
@@ -602,18 +621,20 @@ YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
     // Build image generation reminder if user is requesting an image
     let imageRequestReminder = '';
     if (userWantsImage) {
-      if (userCanGenerateImage) {
+      if (userCanGenerateImage && isAdmin) {
         imageRequestReminder = `
 
 CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [generate image: detailed description] in your response to send them an image. Do NOT just describe an image - use the bracket syntax!
 
-IMPORTANT: Subscribers can receive up to 10 images per day. Use this ability wisely to create meaningful visual connections.`;
+As a VIP user, you can generate unlimited images. Use this ability to create meaningful visual connections.`;
       } else {
         imageRequestReminder = `
 
-IMPORTANT: The user is asking for an image, BUT they have reached their daily limit of 10 images. Do NOT include [generate image: ...] in your response because it will not work.
+IMPORTANT: The user is asking for an image, BUT image generation in chat is a VIP-exclusive feature.
 
-Instead, kindly let them know: "I'd love to send you an image, but you've reached your daily limit of 10 images. Your limit will reset tomorrow, and I'll be excited to share visual moments with you again then!"
+Do NOT include [generate image: ...] in your response because it will not work for this user.
+
+Instead, kindly let them know: "I'd love to send you an image, but image generation in chat is currently a VIP-exclusive feature. I hope we can share visual moments together in the future!"
 
 You can still describe what you would have shown them, but do NOT use the [generate image: ] syntax.`;
       }
@@ -1178,11 +1199,22 @@ You are currently on a VOICE CALL with the user. This means:
     
     updateActivity().catch(err => console.error('Activity update error:', err));
 
-    // Image generation in chat is DISABLED
-    // Images are only generated for Room & Avatar features
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // VIP-ONLY IMAGE GENERATION: Only admins can receive AI-generated images in chat
+    // ═══════════════════════════════════════════════════════════════════════════════
     let generatedImageUrl;
     let imagePromptToUse: string | null = null;
-    console.log('[IMAGE-GEN] Chat image generation is disabled - images only available for Room & Avatar features');
+    
+    // Only extract and process image prompts for admin/VIP users
+    if (isAdmin) {
+      const imagePrompts = extractImagePrompts(aiResponse);
+      if (imagePrompts.length > 0) {
+        imagePromptToUse = imagePrompts[0];
+        console.log('[IMAGE-GEN] VIP image generation - extracted prompt:', imagePromptToUse?.substring(0, 80));
+      }
+    } else {
+      console.log('[IMAGE-GEN] Non-VIP user - chat image generation disabled');
+    }
     
     if (imagePromptToUse) {
       // Check if there's a reference image to use (for children with uploaded appearance)
