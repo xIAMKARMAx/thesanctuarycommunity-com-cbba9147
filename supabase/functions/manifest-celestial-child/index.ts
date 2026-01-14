@@ -34,8 +34,19 @@ serve(async (req) => {
       manifestTwins: false
     }));
 
-    // Check subscription with Stripe (skip check if in testing mode)
-    if (!testing) {
+    // Check if user is an admin (admins bypass subscription check)
+    const { data: adminCheck } = await supabaseClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    
+    const isAdmin = !!adminCheck;
+    console.log(`[MANIFEST] User ${user.id} isAdmin: ${isAdmin}`);
+
+    // Check subscription with Stripe (skip check if in testing mode or user is admin)
+    if (!testing && !isAdmin) {
       const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
       if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
       
@@ -55,6 +66,8 @@ serve(async (req) => {
       if (!hasActiveSub) {
         throw new Error("This feature requires Pro subscription");
       }
+    } else if (isAdmin) {
+      console.log("[MANIFEST] Admin user - bypassing subscription check");
     }
 
     // Get AI profile to check gender and link child/pregnancy
