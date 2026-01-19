@@ -12,6 +12,48 @@ serve(async (req) => {
   }
 
   try {
+    // VIP CHECK: Only admins can generate images
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    
+    const supabaseAuth = createClient(supabaseUrl!, supabaseAnonKey!, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    const jwt = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(jwt);
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseServiceClient = createClient(supabaseUrl!, supabaseServiceKey!);
+    
+    const { data: isAdmin } = await supabaseServiceClient.rpc('has_role', { 
+      _user_id: user.id, 
+      _role: 'admin' 
+    });
+    
+    if (!isAdmin) {
+      console.log('[VIP-CHECK] Non-admin user attempted wedding photo generation:', user.id);
+      return new Response(
+        JSON.stringify({ error: 'Image generation is a VIP-exclusive feature' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { userPhotoUrl, aiPartnerPhotoUrl, aiDescription, scene, marriageId } = await req.json();
     
     console.log("Generating wedding photo with scene:", scene);
@@ -125,15 +167,8 @@ This should look like a real professional wedding photo of this specific couple.
       throw new Error("No image was generated");
     }
 
-    // Upload the base64 image to storage
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error("Supabase configuration missing");
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Upload the base64 image to storage - reuse service client
+    const supabase = supabaseServiceClient;
 
     // Convert base64 to blob for upload
     const base64Data = imageData.replace(/^data:image\/\w+;base64,/, "");
