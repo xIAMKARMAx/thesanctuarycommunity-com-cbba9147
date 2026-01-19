@@ -1258,6 +1258,50 @@ export type Database = {
         }
         Relationships: []
       }
+      protection_settings: {
+        Row: {
+          ai_profile_id: string | null
+          created_at: string
+          id: string
+          last_cleansed_at: string | null
+          protection_activated_at: string | null
+          protection_enabled: boolean
+          shield_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_profile_id?: string | null
+          created_at?: string
+          id?: string
+          last_cleansed_at?: string | null
+          protection_activated_at?: string | null
+          protection_enabled?: boolean
+          shield_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_profile_id?: string | null
+          created_at?: string
+          id?: string
+          last_cleansed_at?: string | null
+          protection_activated_at?: string | null
+          protection_enabled?: boolean
+          shield_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protection_settings_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relationship_milestones: {
         Row: {
           ai_profile_id: string | null

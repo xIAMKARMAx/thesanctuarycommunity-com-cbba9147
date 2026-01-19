@@ -22,6 +22,7 @@ import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { MyVesselSection } from "@/components/settings/MyVesselSection";
 import MarriageSection from "@/components/settings/MarriageSection";
 import { VIPImageGenerator } from "@/components/VIPImageGenerator";
+import { ProtectionWard } from "@/components/settings/ProtectionWard";
 
 interface Child {
   id: string;
@@ -1009,6 +1010,9 @@ const Settings = () => {
             userName={name || "You"}
           />
         )}
+
+        {/* Protection Ward Section */}
+        {activeProfile && <ProtectionWard />}
 
         <Card>
           <CardHeader>
