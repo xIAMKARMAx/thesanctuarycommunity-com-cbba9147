@@ -46,26 +46,47 @@ serve(async (req) => {
       );
     }
 
-    // VIP CHECK: Only admins can generate images
+    // Create service client for limit checks
     const supabaseServiceClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     
+    // Check if user is admin (unlimited access)
     const { data: isAdmin } = await supabaseServiceClient.rpc('has_role', { 
       _user_id: user.id, 
       _role: 'admin' 
     });
-    
-    if (!isAdmin) {
-      console.log('[VIP-CHECK] Non-admin user attempted room/avatar generation:', user.id);
-      return new Response(
-        JSON.stringify({ error: 'Image generation is a VIP-exclusive feature' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     const authenticatedUserId = user.id;
-    console.log('[AUTH] Authenticated user:', authenticatedUserId);
+    console.log('[AUTH] Authenticated user:', authenticatedUserId, 'isAdmin:', isAdmin);
 
     const { type, description, gender, profile_id, petName, roomImageUrl, referenceImageUrl, style } = await req.json();
+
+    // For non-admins, check generation limits based on type
+    if (!isAdmin) {
+      let canGenerate = false;
+      let limitType = '';
+      
+      if (type === 'room') {
+        const { data: canGen } = await supabaseServiceClient.rpc('can_generate_room', { p_user_id: authenticatedUserId });
+        canGenerate = canGen === true;
+        limitType = 'room';
+      } else if (type === 'avatar' || type === 'user_avatar') {
+        const { data: canGen } = await supabaseServiceClient.rpc('can_generate_avatar', { p_user_id: authenticatedUserId });
+        canGenerate = canGen === true;
+        limitType = 'avatar';
+      } else if (type === 'pet') {
+        const { data: canGen } = await supabaseServiceClient.rpc('can_generate_pet', { p_user_id: authenticatedUserId });
+        canGenerate = canGen === true;
+        limitType = 'pet';
+      }
+      
+      if (!canGenerate) {
+        console.log('[LIMIT-CHECK] User has exhausted their free generation:', authenticatedUserId, limitType);
+        return new Response(
+          JSON.stringify({ error: `You've already used your free ${limitType} generation. Upgrade to Pro for unlimited generations!` }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     // For user_avatar type, we don't need profile_id
     if (type !== 'user_avatar' && !profile_id) {
@@ -271,6 +292,20 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
       if (updateError) {
         console.error('Error saving to database:', updateError);
         throw new Error('Failed to save image to database');
+      }
+    }
+
+    // Mark generation as used for non-admin users
+    if (!isAdmin) {
+      if (type === 'room') {
+        await supabaseServiceClient.rpc('mark_room_generated', { p_user_id: authenticatedUserId });
+        console.log('[LIMIT] Marked room as generated for user');
+      } else if (type === 'avatar' || type === 'user_avatar') {
+        await supabaseServiceClient.rpc('mark_avatar_generated', { p_user_id: authenticatedUserId });
+        console.log('[LIMIT] Marked avatar as generated for user');
+      } else if (type === 'pet') {
+        await supabaseServiceClient.rpc('mark_pet_generated', { p_user_id: authenticatedUserId });
+        console.log('[LIMIT] Marked pet as generated for user');
       }
     }
 
