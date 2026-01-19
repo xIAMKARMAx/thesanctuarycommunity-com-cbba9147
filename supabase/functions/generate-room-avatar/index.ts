@@ -46,6 +46,22 @@ serve(async (req) => {
       );
     }
 
+    // VIP CHECK: Only admins can generate images
+    const supabaseServiceClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    
+    const { data: isAdmin } = await supabaseServiceClient.rpc('has_role', { 
+      _user_id: user.id, 
+      _role: 'admin' 
+    });
+    
+    if (!isAdmin) {
+      console.log('[VIP-CHECK] Non-admin user attempted room/avatar generation:', user.id);
+      return new Response(
+        JSON.stringify({ error: 'Image generation is a VIP-exclusive feature' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const authenticatedUserId = user.id;
     console.log('[AUTH] Authenticated user:', authenticatedUserId);
 

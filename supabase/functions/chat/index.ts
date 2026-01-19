@@ -511,9 +511,21 @@ YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
       console.error('Error fetching user data:', error);
     }
 
-    // Handle image generation request
+    // Handle image generation request - VIP ONLY
     if (generateImage) {
       console.log('[IMAGE-GEN] Direct image generation request:', message?.substring(0, 50));
+      
+      // BLOCK non-admin users from generating images
+      if (!isAdmin) {
+        console.log('[IMAGE-GEN] Non-VIP user attempted direct image generation - blocked');
+        return new Response(
+          JSON.stringify({ 
+            response: "Image generation is currently a VIP-exclusive feature. I'd love to create visuals for you in the future!",
+            imageUrl: null 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       
       // First, ask AI to convert the user's request into a proper visual description
       let imagePrompt = "A serene, spiritual visualization of ethereal light and cosmic energy";
