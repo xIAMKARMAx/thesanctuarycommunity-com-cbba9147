@@ -218,8 +218,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const canSendMessage = async (): Promise<boolean> => {
-    // SUBSCRIPTION REQUIRED: Only subscribers and admins can send messages
-    return isSubscribed || isAdmin;
+    // Admins and subscribers can always send
+    if (isSubscribed || isAdmin) return true;
+    
+    // Free users get 5 messages total before subscription required
+    return freeUserLimits.totalMessages < 5;
   };
 
   const canGenerateRoom = async (): Promise<boolean> => {

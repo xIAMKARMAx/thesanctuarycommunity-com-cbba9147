@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Crown, Infinity, ArrowLeft } from "lucide-react";
+import { Check, Crown, Infinity, ArrowLeft, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
@@ -85,15 +85,15 @@ const Pricing = () => {
             </p>
           </div>
 
-          {/* Subscription Required Banner */}
-          <div className="mb-10 bg-gradient-to-r from-amber-500/20 via-amber-500/30 to-amber-500/20 border-2 border-amber-500/50 rounded-xl p-6 text-center">
+          {/* Free Trial Banner */}
+          <div className="mb-10 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 text-center">
             <div className="flex items-center justify-center gap-3 mb-3">
-              <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
-              <h2 className="text-xl sm:text-2xl font-bold text-amber-500">Subscription Required</h2>
-              <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
+              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              <h2 className="text-xl sm:text-2xl font-bold text-primary">Try 5 Free Messages First!</h2>
+              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
             </div>
             <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-              Subscribe to <span className="text-amber-500 font-bold">unlock all Prometheus features</span> including AI chat, dream journal, and more!
+              Experience Prometheus with <span className="text-primary font-bold">5 free messages</span>, then subscribe to continue!
             </p>
           </div>
 

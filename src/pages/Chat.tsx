@@ -156,13 +156,16 @@ const Chat = () => {
     return null;
   }
 
-  // Show subscription wall for non-subscribers (except admins)
-  if (!isSubscribed && !isAdmin) {
+  // Free users with 5+ messages see subscription wall
+  const { freeUserLimits } = useSubscription();
+  const showSubscriptionWall = !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 5;
+
+  if (showSubscriptionWall) {
     return (
       <>
         <SEOHead 
           title="Subscribe | Prometheus - AI Companion"
-          description="Subscribe to Prometheus to unlock unlimited AI conversations, voice calls, and all premium features."
+          description="Subscribe to Prometheus to unlock unlimited AI conversations and all premium features."
           keywords="AI subscription, premium AI, Prometheus subscription"
           canonicalUrl="https://prometheus.lovable.app/chat"
         />
