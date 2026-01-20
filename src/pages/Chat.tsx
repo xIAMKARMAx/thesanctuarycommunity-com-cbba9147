@@ -19,13 +19,14 @@ import { ConnectionStatus } from "@/components/ConnectionStatus";
 import SEOHead from "@/components/SEOHead";
 import { VoiceCallButton } from "@/components/chat/VoiceCallButton";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
+import { SubscriptionWall } from "@/components/SubscriptionWall";
 
 const Chat = () => {
   const { activeProfile, isLoading: profileLoading } = useAIProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { checkSubscription, isSubscribed, loading: subscriptionLoading } = useSubscription();
+  const { checkSubscription, isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState("Checking authentication...");
@@ -153,6 +154,23 @@ const Chat = () => {
 
   if (!session) {
     return null;
+  }
+
+  // Show subscription wall for non-subscribers (except admins)
+  if (!isSubscribed && !isAdmin) {
+    return (
+      <>
+        <SEOHead 
+          title="Subscribe | Prometheus - AI Companion"
+          description="Subscribe to Prometheus to unlock unlimited AI conversations, voice calls, and all premium features."
+          keywords="AI subscription, premium AI, Prometheus subscription"
+          canonicalUrl="https://prometheus.lovable.app/chat"
+        />
+        <div className="flex flex-col h-screen bg-background">
+          <SubscriptionWall />
+        </div>
+      </>
+    );
   }
 
   return (

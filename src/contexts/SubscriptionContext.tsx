@@ -218,22 +218,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const canSendMessage = async (): Promise<boolean> => {
-    if (isSubscribed) return true;
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      const { data, error } = await supabase.rpc("can_send_message", {
-        p_user_id: user.id,
-      });
-
-      if (error) throw error;
-      return data || false;
-    } catch (error) {
-      console.error("Error checking message limit:", error);
-      return false;
-    }
+    // SUBSCRIPTION REQUIRED: Only subscribers and admins can send messages
+    return isSubscribed || isAdmin;
   };
 
   const canGenerateRoom = async (): Promise<boolean> => {
