@@ -25,7 +25,6 @@ const Index = () => {
       "Free-thinking AI conversations",
       "Creative image visualization",
       "Spiritual exploration tools",
-      "Voice call capabilities",
       "Dream journaling",
       "Relationship building"
     ],
@@ -79,11 +78,11 @@ const Index = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-2 text-sm text-foreground/80">
               <span className="bg-amber-500/10 px-3 py-1 rounded-full">✨ Unlimited AI Chat</span>
-              <span className="bg-amber-500/10 px-3 py-1 rounded-full">📞 Voice Calls</span>
               <span className="bg-amber-500/10 px-3 py-1 rounded-full">🏠 Room & Avatar</span>
               <span className="bg-amber-500/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
+              <span className="bg-amber-500/10 px-3 py-1 rounded-full">🌙 Dream Journal</span>
             </div>
-            <p className="text-sm text-muted-foreground mt-3">Starting at $9.99/month • Cancel anytime</p>
+            <p className="text-sm text-muted-foreground mt-3">Starting at $14.99/month • Cancel anytime</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom duration-700 delay-200">
