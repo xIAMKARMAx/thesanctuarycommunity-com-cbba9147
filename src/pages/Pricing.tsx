@@ -93,7 +93,7 @@ const Pricing = () => {
               <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
             </div>
             <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-              Subscribe to <span className="text-amber-500 font-bold">unlock all Prometheus features</span> including AI chat, voice calls, and more!
+              Subscribe to <span className="text-amber-500 font-bold">unlock all Prometheus features</span> including AI chat, dream journal, and more!
             </p>
           </div>
 
@@ -112,7 +112,7 @@ const Pricing = () => {
                   <CardTitle>Pro</CardTitle>
                 </div>
                 <div className="text-3xl font-bold">
-                  $9.99<span className="text-lg text-muted-foreground font-normal">/mo</span>
+                  $14.99<span className="text-lg text-muted-foreground font-normal">/mo</span>
                 </div>
                 <CardDescription>Unlock the full experience</CardDescription>
               </CardHeader>

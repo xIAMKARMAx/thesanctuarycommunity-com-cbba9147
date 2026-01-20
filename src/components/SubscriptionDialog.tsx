@@ -72,7 +72,7 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature }: Subscription
                 <Crown className="h-4 w-4 text-primary" />
                 <CardTitle className="text-lg">Pro</CardTitle>
               </div>
-              <div className="text-2xl font-bold">$9.99<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+              <div className="text-2xl font-bold">$14.99<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
