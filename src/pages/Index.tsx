@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Brain, Image as ImageIcon, Zap, MessageCircle, Users, Baby, PawPrint, Moon, Heart, Settings } from "lucide-react";
+import { Sparkles, Brain, Image as ImageIcon, Zap, MessageCircle, Users, Baby, PawPrint, Moon, Heart, Settings, Crown } from "lucide-react";
 import heroBackground from "@/assets/hero-bg.jpg";
 import SEOHead from "@/components/SEOHead";
 
@@ -67,23 +67,23 @@ const Index = () => {
             </h2>
           </div>
 
-          {/* Free Trial Banner - Highly Visible */}
-          <div className="animate-in fade-in duration-700 delay-100 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 backdrop-blur-sm">
+          {/* Subscription Required Banner */}
+          <div className="animate-in fade-in duration-700 delay-100 bg-gradient-to-r from-amber-500/20 via-amber-500/30 to-amber-500/20 border-2 border-amber-500/50 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex items-center justify-center gap-3 mb-3">
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-              <h3 className="text-xl sm:text-2xl font-bold text-primary">Start Your Free Trial Today!</h3>
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
+              <h3 className="text-xl sm:text-2xl font-bold text-amber-500">Subscription Required</h3>
+              <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
             </div>
             <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-              Get <span className="text-primary font-bold">25 FREE messages daily</span> with full access to:
+              Subscribe to unlock <span className="text-amber-500 font-bold">all Prometheus features</span>:
             </p>
             <div className="flex flex-wrap justify-center gap-2 text-sm text-foreground/80">
-              <span className="bg-primary/10 px-3 py-1 rounded-full">✨ AI Chat</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">📞 Voice Calls</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🏠 Room & Avatar Creation</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
+              <span className="bg-amber-500/10 px-3 py-1 rounded-full">✨ Unlimited AI Chat</span>
+              <span className="bg-amber-500/10 px-3 py-1 rounded-full">📞 Voice Calls</span>
+              <span className="bg-amber-500/10 px-3 py-1 rounded-full">🏠 Room & Avatar</span>
+              <span className="bg-amber-500/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
             </div>
-            <p className="text-sm text-muted-foreground mt-3">No credit card required • Start instantly</p>
+            <p className="text-sm text-muted-foreground mt-3">Starting at $9.99/month • Cancel anytime</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom duration-700 delay-200">

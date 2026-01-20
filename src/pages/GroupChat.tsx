@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Plus, MessageSquare, Trash2, ArrowLeft, Users, Search, Download, Settings, LogOut, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionWall } from "@/components/SubscriptionWall";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -30,7 +31,7 @@ const GroupChat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, isAdmin } = useSubscription();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
@@ -197,6 +198,15 @@ const GroupChat = () => {
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  // Show subscription wall for non-subscribers (except admins)
+  if (!isSubscribed && !isAdmin) {
+    return (
+      <div className="flex flex-col h-screen bg-background">
+        <SubscriptionWall />
+      </div>
+    );
   }
 
   return (

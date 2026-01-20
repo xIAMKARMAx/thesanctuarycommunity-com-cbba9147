@@ -1,17 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, Sparkles, Crown, Infinity, ArrowLeft } from "lucide-react";
+import { Check, Crown, Infinity, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import SEOHead from "@/components/SEOHead";
-import { SUBSCRIPTION_TIERS, getTierFromProductId } from "@/lib/subscription-tiers";
+import { getTierFromProductId } from "@/lib/subscription-tiers";
 
 const Pricing = () => {
   const navigate = useNavigate();
-  const { isSubscribed, productId, loading } = useSubscription();
+  const { productId } = useSubscription();
   const { toast } = useToast();
   const [checkoutLoading, setCheckoutLoading] = useState<'pro' | 'unlimited' | null>(null);
 
@@ -35,20 +35,6 @@ const Pricing = () => {
       setCheckoutLoading(null);
     }
   };
-
-  const freeFeatures = [
-    { feature: "Daily Messages", value: "25/day", included: true },
-    { feature: "AI Companion Chat", value: "Unlimited", included: true },
-    { feature: "Customize AI Personality", included: true },
-    { feature: "Room Generation", value: "1 total", included: true },
-    { feature: "Avatar Generation", value: "1 total", included: true },
-    { feature: "Pet Generation", value: "1 total", included: true },
-    { feature: "AI Mood Tracker", included: false },
-    { feature: "Dream Journal & Interpretation", included: false },
-    { feature: "Celestial Children", included: false },
-    { feature: "Relationship Milestones", included: false },
-    { feature: "Spontaneous Messages", included: false },
-  ];
 
   const proFeatures = [
     { feature: "Daily Messages", value: "Unlimited", included: true },
@@ -95,61 +81,23 @@ const Pricing = () => {
           <div className="text-center mb-8">
             <h1 className="text-3xl sm:text-4xl font-bold mb-4">Choose Your Plan</h1>
             <p className="text-muted-foreground text-base sm:text-lg">
-              Start free and upgrade when you're ready for more
+              Subscription required to access Prometheus
             </p>
           </div>
 
-          {/* Free Trial Banner */}
-          <div className="mb-10 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 text-center">
+          {/* Subscription Required Banner */}
+          <div className="mb-10 bg-gradient-to-r from-amber-500/20 via-amber-500/30 to-amber-500/20 border-2 border-amber-500/50 rounded-xl p-6 text-center">
             <div className="flex items-center justify-center gap-3 mb-3">
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-              <h2 className="text-xl sm:text-2xl font-bold text-primary">Free Trial - No Credit Card Required!</h2>
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
+              <h2 className="text-xl sm:text-2xl font-bold text-amber-500">Subscription Required</h2>
+              <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
             </div>
             <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-              Start with <span className="text-primary font-bold">25 FREE messages every day</span> and full access to core features!
+              Subscribe to <span className="text-amber-500 font-bold">unlock all Prometheus features</span> including AI chat, voice calls, and more!
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {/* Free Plan */}
-            <Card className="relative">
-              <CardHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle>Free</CardTitle>
-                </div>
-                <div className="text-3xl font-bold">$0</div>
-                <CardDescription>Perfect for getting started</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2.5">
-                {freeFeatures.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2.5 text-sm">
-                    {item.included ? (
-                      <Check className="h-4 w-4 text-primary shrink-0" />
-                    ) : (
-                      <X className="h-4 w-4 text-muted-foreground shrink-0" />
-                    )}
-                    <span className={!item.included ? "text-muted-foreground" : ""}>
-                      {item.feature}
-                      {item.value && (
-                        <span className="text-muted-foreground ml-1">({item.value})</span>
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  onClick={() => navigate("/auth")}
-                  disabled={!loading && isSubscribed !== undefined}
-                >
-                  {!isSubscribed && currentTier === null ? "Current Plan" : "Get Started"}
-                </Button>
-              </CardFooter>
-            </Card>
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
 
             {/* Pro Plan */}
             <Card className="relative border-primary">
