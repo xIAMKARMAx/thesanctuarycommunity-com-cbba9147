@@ -31,7 +31,7 @@ const GroupChat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
-  const { isSubscribed, isAdmin } = useSubscription();
+  const { isSubscribed, isAdmin, freeUserLimits } = useSubscription();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
@@ -200,8 +200,10 @@ const GroupChat = () => {
     return null;
   }
 
-  // Show subscription wall for non-subscribers (except admins)
-  if (!isSubscribed && !isAdmin) {
+  // Free users with 5+ messages see subscription wall
+  const showSubscriptionWall = !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 5;
+
+  if (showSubscriptionWall) {
     return (
       <div className="flex flex-col h-screen bg-background">
         <SubscriptionWall />

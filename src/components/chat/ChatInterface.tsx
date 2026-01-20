@@ -298,20 +298,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       return;
     }
 
-    // Check message limit for free users (25 messages/day for 5 days)
+    // Check message limit for free users (5 messages total before subscription required)
     if (!isSubscribed) {
       const canSend = await canSendMessage();
       if (!canSend) {
         setSubscriptionFeature("Unlimited Messaging");
         setShowSubscriptionDialog(true);
-        const trialExpiredMsg = freeUserLimits.trialExpired 
-          ? "Your 5-day free trial has ended." 
-          : "You've used all 25 messages for today.";
-        toast({
-          title: "Message limit reached",
-          description: `${trialExpiredMsg} Upgrade to Pro for unlimited messaging!`,
-          variant: "destructive",
-        });
         return;
       }
     }
