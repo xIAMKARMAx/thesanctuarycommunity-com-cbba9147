@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
@@ -49,10 +49,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [generateImage, setGenerateImage] = useState(false);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [subscriptionFeature, setSubscriptionFeature] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showManifestDialog, setShowManifestDialog] = useState(false);
@@ -256,6 +259,77 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       }
       
       setImageFile(file);
+    }
+  };
+
+  const handleAudioSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/webm', 'audio/ogg', 'audio/m4a', 'audio/mp4'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an MP3, WAV, WebM, OGG, or M4A audio file",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate file size (max 10MB for audio)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an audio file smaller than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAudioFile(file);
+    setIsTranscribing(true);
+
+    try {
+      // Convert audio file to base64
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = btoa(
+        new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+
+      // Call the STT edge function
+      const { data, error } = await supabase.functions.invoke('elevenlabs-stt', {
+        body: { audio: base64 }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.text) {
+        // Append transcription to input
+        setInput(prev => prev ? `${prev}\n\n[Audio transcription]: ${data.text}` : `[Audio transcription]: ${data.text}`);
+        toast({
+          title: "Audio transcribed",
+          description: "The audio has been transcribed and added to your message.",
+        });
+      } else {
+        throw new Error("No transcription received");
+      }
+    } catch (error) {
+      console.error("Transcription error:", error);
+      toast({
+        title: "Transcription failed",
+        description: error instanceof Error ? error.message : "Could not transcribe the audio file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTranscribing(false);
+      setAudioFile(null);
+      // Reset the file input
+      if (audioInputRef.current) {
+        audioInputRef.current.value = '';
+      }
     }
   };
 
@@ -993,6 +1067,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               onChange={handleImageSelect}
               className="hidden"
             />
+            <input
+              ref={audioInputRef}
+              type="file"
+              accept="audio/*"
+              onChange={handleAudioSelect}
+              className="hidden"
+            />
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -1067,11 +1148,21 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   variant="outline"
                   size="icon"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={loading}
+                  disabled={loading || isTranscribing}
                   className="h-9 w-9"
                   title="Share image"
                 >
                   <ImageIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => audioInputRef.current?.click()}
+                  disabled={loading || isTranscribing}
+                  className="h-9 w-9"
+                  title="Upload audio to transcribe"
+                >
+                  {isTranscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
                 </Button>
                 <Button
                   variant={generateImage ? "default" : "outline"}
