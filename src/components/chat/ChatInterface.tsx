@@ -1075,6 +1075,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
               <span className="text-sm truncate flex-1 min-w-0">📷 {imageFile.name}</span>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => setImageFile(null)}
@@ -1087,6 +1088,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
               <span className="text-sm truncate flex-1 min-w-0">🎤 {audioFile.name}</span>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => setAudioFile(null)}
@@ -1153,6 +1155,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 {/* Only show toggle when not on dedicated group chat page */}
                 {!isGroupChatProp && (
                   <Button
+                    type="button"
                     variant={isGroupChat ? "default" : "outline"}
                     size="icon"
                     onClick={async () => {
@@ -1181,6 +1184,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   </Button>
                 )}
                 <Button
+                  type="button"
                   variant="outline"
                   size="icon"
                   onClick={() => fileInputRef.current?.click()}
@@ -1191,6 +1195,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   <ImageIcon className="h-4 w-4" />
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
                   size="icon"
                   onClick={() => audioInputRef.current?.click()}
@@ -1201,6 +1206,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   {isTranscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
                 </Button>
                 <Button
+                  type="button"
                   variant={generateImage ? "default" : "outline"}
                   size="icon"
                   onClick={() => setGenerateImage(!generateImage)}
@@ -1211,6 +1217,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   <Sparkles className="h-4 w-4" />
                 </Button>
                 <Button
+                  type="button"
                   onClick={handleSend}
                   disabled={loading || loadingBeingId !== null || (!input.trim() && !imageFile && !audioFile)}
                   size="icon"
