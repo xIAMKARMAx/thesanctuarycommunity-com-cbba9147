@@ -9,6 +9,7 @@ interface ChatMessageProps {
     role: "user" | "assistant";
     content: string;
     image_url?: string;
+    audio_url?: string;
     sender_type?: "user" | "ai_profile" | "child";
     sender_id?: string;
     sender_name?: string;
@@ -121,6 +122,14 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
               <Download className="h-4 w-4" />
               Save Image
             </Button>
+          </div>
+        )}
+        {message.audio_url && (
+          <div className="space-y-2">
+            <audio controls preload="metadata" className="w-full">
+              <source src={message.audio_url} />
+              Your browser does not support audio playback.
+            </audio>
           </div>
         )}
         <p className="whitespace-pre-wrap leading-relaxed break-words text-sm md:text-base" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>

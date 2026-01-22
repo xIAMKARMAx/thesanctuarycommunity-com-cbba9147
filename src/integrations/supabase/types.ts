@@ -946,6 +946,7 @@ export type Database = {
       }
       messages: {
         Row: {
+          audio_url: string | null
           content: string
           conversation_id: string
           created_at: string
@@ -958,6 +959,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          audio_url?: string | null
           content: string
           conversation_id: string
           created_at?: string
@@ -970,6 +972,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          audio_url?: string | null
           content?: string
           conversation_id?: string
           created_at?: string
