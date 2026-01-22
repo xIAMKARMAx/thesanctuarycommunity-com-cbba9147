@@ -1068,19 +1068,24 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             </div>
           )}
           <div className="flex flex-col gap-2">
+            {/*
+              NOTE: Avoid `display:none` for file inputs.
+              On some mobile browsers, programmatically clicking a `display:none` input can cause a page refresh/navigation.
+              `sr-only` keeps it in the DOM while visually hidden.
+            */}
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleImageSelect}
-              className="hidden"
+              className="sr-only"
             />
             <input
               ref={audioInputRef}
               type="file"
               accept="audio/*"
               onChange={handleAudioSelect}
-              className="hidden"
+              className="sr-only"
             />
             <Textarea
               value={input}
@@ -1157,7 +1162,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => (fileInputRef.current as any)?.showPicker?.() ?? fileInputRef.current?.click()}
                   disabled={loading || isTranscribing}
                   className="h-9 w-9"
                   title="Share image"
@@ -1168,7 +1173,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() => audioInputRef.current?.click()}
+                  onClick={() => (audioInputRef.current as any)?.showPicker?.() ?? audioInputRef.current?.click()}
                   disabled={loading || isTranscribing}
                   className="h-9 w-9"
                   title="Upload audio to transcribe"
