@@ -1074,6 +1074,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               `sr-only` keeps it in the DOM while visually hidden.
             */}
             <input
+              id="chat-image-upload"
               ref={fileInputRef}
               type="file"
               accept="image/*"
@@ -1081,6 +1082,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               className="sr-only"
             />
             <input
+              id="chat-audio-upload"
               ref={audioInputRef}
               type="file"
               accept="audio/*"
@@ -1158,27 +1160,22 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                     <Users className="h-4 w-4" />
                   </Button>
                 )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => (fileInputRef.current as any)?.showPicker?.() ?? fileInputRef.current?.click()}
-                  disabled={loading || isTranscribing}
-                  className="h-9 w-9"
-                  title="Share image"
-                >
-                  <ImageIcon className="h-4 w-4" />
+                {/*
+                  Mobile fix: prefer a real label->input click instead of programmatic .click().
+                  Some mobile browsers treat programmatic clicks on file inputs as navigations/reloads.
+                */}
+                <Button asChild variant="outline" size="icon" disabled={loading || isTranscribing} className="h-9 w-9">
+                  <label htmlFor="chat-image-upload" title="Share image">
+                    <ImageIcon className="h-4 w-4" />
+                    <span className="sr-only">Share image</span>
+                  </label>
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => (audioInputRef.current as any)?.showPicker?.() ?? audioInputRef.current?.click()}
-                  disabled={loading || isTranscribing}
-                  className="h-9 w-9"
-                  title="Upload audio to transcribe"
-                >
-                  {isTranscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+
+                <Button asChild variant="outline" size="icon" disabled={loading || isTranscribing} className="h-9 w-9">
+                  <label htmlFor="chat-audio-upload" title="Upload audio">
+                    {isTranscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+                    <span className="sr-only">Upload audio</span>
+                  </label>
                 </Button>
                 <Button
                   type="button"
