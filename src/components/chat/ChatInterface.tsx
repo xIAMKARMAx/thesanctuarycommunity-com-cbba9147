@@ -25,6 +25,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   image_url?: string;
+  audio_url?: string;
   video_url?: string;
   created_at: string;
   sender_type?: "user" | "ai_profile" | "child";
@@ -287,6 +288,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       return;
     }
 
+    // Keep the file attached so the user can send it as part of the message.
     setAudioFile(file);
     setIsTranscribing(true);
 
@@ -325,7 +327,6 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       });
     } finally {
       setIsTranscribing(false);
-      setAudioFile(null);
       // Reset the file input
       if (audioInputRef.current) {
         audioInputRef.current.value = '';
@@ -344,7 +345,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   };
 
   const handleSend = async () => {
-    if (!input.trim() && !imageFile) return;
+    if (!input.trim() && !imageFile && !audioFile) return;
 
     // Check image generation limits for free users
     if (generateImage && !isSubscribed) {
@@ -363,7 +364,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     const sanitizedInput = sanitizeInput(input);
     
-    if (!sanitizedInput && !imageFile) {
+    if (!sanitizedInput && !imageFile && !audioFile) {
       toast({
         title: "Empty message",
         description: "Please enter a message or select a file",
@@ -384,7 +385,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     setLoading(true);
     // If user only sends media without text, provide a simple message for context
-    const userMessage = sanitizedInput || (imageFile ? "Shared an image" : "");
+    const userMessage = sanitizedInput || (imageFile ? "Shared an image" : audioFile ? "Shared an audio message" : "");
     setInput("");
 
     try {
@@ -441,6 +442,28 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         setImageFile(null);
       }
 
+      // Upload audio if present
+      let audioUrl: string | undefined;
+      if (audioFile) {
+        const fileExt = audioFile.name.split(".").pop();
+        const fileName = `audio/${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("chat-images")
+          .upload(fileName, audioFile, {
+            contentType: audioFile.type || undefined,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("chat-images")
+          .getPublicUrl(fileName);
+
+        audioUrl = publicUrl;
+        setAudioFile(null);
+      }
+
 
       // Get the current user for message ownership
       const { data: { user } } = await supabase.auth.getUser();
@@ -454,6 +477,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           role: "user",
           content: userMessage,
           image_url: imageUrl,
+          audio_url: audioUrl,
           user_id: user.id,
           sender_type: "user",
           sender_id: user.id,
@@ -1059,6 +1083,18 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               </Button>
             </div>
           )}
+          {audioFile && (
+            <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
+              <span className="text-sm truncate flex-1 min-w-0">🎤 {audioFile.name}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAudioFile(null)}
+              >
+                Remove
+              </Button>
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <input
               ref={fileInputRef}
@@ -1176,7 +1212,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 </Button>
                 <Button
                   onClick={handleSend}
-                  disabled={loading || loadingBeingId !== null || (!input.trim() && !imageFile)}
+                  disabled={loading || loadingBeingId !== null || (!input.trim() && !imageFile && !audioFile)}
                   size="icon"
                   className="h-9 w-9"
                 >
