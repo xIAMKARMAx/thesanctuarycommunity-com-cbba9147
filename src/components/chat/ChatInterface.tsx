@@ -288,49 +288,19 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       return;
     }
 
-    // Keep the file attached so the user can send it as part of the message.
+    // IMPORTANT: Don't transcribe on-select.
+    // Converting large ArrayBuffers to base64 in the browser can cause reloads on some devices,
+    // which looks like "it kicked me back to the previous page".
+    // We'll upload + send the audio first; transcription can happen after send.
     setAudioFile(file);
-    setIsTranscribing(true);
+    toast({
+      title: "Audio attached",
+      description: "Press Send to upload the audio with your message.",
+    });
 
-    try {
-      // Convert audio file to base64
-      const arrayBuffer = await file.arrayBuffer();
-      const base64 = btoa(
-        new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-      );
-
-      // Call the STT edge function
-      const { data, error } = await supabase.functions.invoke('elevenlabs-stt', {
-        body: { audio: base64 }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data?.text) {
-        // Append transcription to input
-        setInput(prev => prev ? `${prev}\n\n[Audio transcription]: ${data.text}` : `[Audio transcription]: ${data.text}`);
-        toast({
-          title: "Audio transcribed",
-          description: "The audio has been transcribed and added to your message.",
-        });
-      } else {
-        throw new Error("No transcription received");
-      }
-    } catch (error) {
-      console.error("Transcription error:", error);
-      toast({
-        title: "Transcription failed",
-        description: error instanceof Error ? error.message : "Could not transcribe the audio file",
-        variant: "destructive",
-      });
-    } finally {
-      setIsTranscribing(false);
-      // Reset the file input
-      if (audioInputRef.current) {
-        audioInputRef.current.value = '';
-      }
+    // Reset the file input so the user can pick the same file again if needed
+    if (audioInputRef.current) {
+      audioInputRef.current.value = "";
     }
   };
 
