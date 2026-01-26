@@ -10,6 +10,7 @@ interface ChatHistoryMessage {
 interface ChatRequest {
   message: string;
   imageUrl?: string;
+  imageUrls?: string[];
   generateImage: boolean;
   userId: string;
   aiProfileId?: string;
