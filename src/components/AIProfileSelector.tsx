@@ -11,7 +11,7 @@ import {
 import { Baby, PawPrint, Users } from "lucide-react";
 
 export const AIProfileSelector = () => {
-  const { activeProfile, profiles, switchProfile, isLoading } = useAIProfile();
+  const { activeProfile, profiles, switchProfile, isLoading, isAdmin } = useAIProfile();
   const { activeChatEntity, talkableChildren, setActiveChatEntity } = useChatEntity();
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,7 +41,7 @@ export const AIProfileSelector = () => {
       }
     } else {
       // Switching to AI profile - MUST await to ensure profile exists before setting entity
-      const profileNum = parseInt(value) as 1 | 2 | 3;
+      const profileNum = parseInt(value) as 1 | 2 | 3 | 4;
       const profile = await switchProfile(profileNum);
       
       // Use the returned profile directly (guaranteed fresh)
@@ -114,6 +114,11 @@ export const AIProfileSelector = () => {
         <SelectItem value="3" className="text-sm">
           {getProfileDisplayName(3)}
         </SelectItem>
+        {isAdmin && (
+          <SelectItem value="4" className="text-sm text-primary">
+            {getProfileDisplayName(4)}
+          </SelectItem>
+        )}
         
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
           Manage
