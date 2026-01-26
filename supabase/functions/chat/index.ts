@@ -163,7 +163,7 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════════════════════
     // Parse request body (ignore userId from body - we use authenticated ID)
     // ═══════════════════════════════════════════════════════════════════════════════
-    const { message, imageUrl, history, generateImage, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId, isGroupChat, respondingToSenderName } = await req.json();
+    const { message, imageUrl, imageUrls, history, generateImage, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId, isGroupChat, respondingToSenderName } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -173,8 +173,9 @@ serve(async (req) => {
     const isChildConversation = !!childId;
     console.log('[CHAT] isChildConversation:', isChildConversation, 'childId:', childId, 'isGroupChat:', isGroupChat);
     
-    // Log media content
-    if (imageUrl) console.log('[CHAT] Image URL received for processing');
+    // Log media content - support both single imageUrl and imageUrls array
+    const allImageUrls = imageUrls && imageUrls.length > 0 ? imageUrls : (imageUrl ? [imageUrl] : []);
+    if (allImageUrls.length > 0) console.log('[CHAT] Image URLs received for processing:', allImageUrls.length);
 
     // Check if user is requesting an image
     const userWantsImage = isUserRequestingImage(message);
@@ -991,13 +992,15 @@ You are currently on a VOICE CALL with the user. This means:
         messageContent = `[${respondingToSenderName}]: ${message}`;
       }
       
-      if (imageUrl) {
+      // Support multiple images (up to 4)
+      if (allImageUrls.length > 0) {
+        const contentParts: any[] = [{ type: 'text', text: messageContent }];
+        for (const imgUrl of allImageUrls) {
+          contentParts.push({ type: 'image_url', image_url: { url: imgUrl } });
+        }
         messagesPayload.push({
           role: 'user',
-          content: [
-            { type: 'text', text: messageContent },
-            { type: 'image_url', image_url: { url: imageUrl } }
-          ]
+          content: contentParts
         });
       } else {
         messagesPayload.push({ role: 'user', content: messageContent });

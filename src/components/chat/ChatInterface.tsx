@@ -49,7 +49,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [generateImage, setGenerateImage] = useState(false);
@@ -78,7 +78,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [autoMode, setAutoMode] = useState<AutoMode>("none");
   
   // Track last message (user or AI) for click-to-respond - allows AIs to respond to each other
-  const [lastMessage, setLastMessage] = useState<{ content: string; imageUrl?: string; senderId?: string } | null>(null);
+  const [lastMessage, setLastMessage] = useState<{ content: string; imageUrl?: string; imageUrls?: string[]; senderId?: string } | null>(null);
   const [respondedBeingIds, setRespondedBeingIds] = useState<string[]>([]);
   const [loadingBeingId, setLoadingBeingId] = useState<string | null>(null);
   const [roundRobinIndex, setRoundRobinIndex] = useState(0);
@@ -148,7 +148,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         setMessages([]);
         setCurrentConversationId(null);
         setInput("");
-        setImageFile(null);
+        setImageFiles([]);
       }
       setSession(session);
     });
@@ -236,30 +236,56 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const maxFiles = 4;
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    // Check how many more we can add
+    const remainingSlots = maxFiles - imageFiles.length;
+    if (remainingSlots <= 0) {
+      toast({
+        title: "Maximum images reached",
+        description: "You can only attach up to 4 images at a time",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validFiles: File[] = [];
+    for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
+      const file = files[i];
+      
       if (!allowedTypes.includes(file.type)) {
         toast({
           title: "Invalid file type",
-          description: "Please upload a JPEG, PNG, GIF, or WebP image",
+          description: `${file.name}: Please upload JPEG, PNG, GIF, or WebP images`,
           variant: "destructive",
         });
-        return;
+        continue;
       }
       
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
+      if (file.size > maxSize) {
         toast({
           title: "File too large",
-          description: "Please upload an image smaller than 5MB",
+          description: `${file.name}: Please upload images smaller than 5MB`,
           variant: "destructive",
         });
-        return;
+        continue;
       }
       
-      setImageFile(file);
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setImageFiles(prev => [...prev, ...validFiles].slice(0, maxFiles));
+    }
+
+    // Reset the file input so the user can pick more files
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -315,7 +341,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   };
 
   const handleSend = async () => {
-    if (!input.trim() && !imageFile && !audioFile) return;
+    if (!input.trim() && imageFiles.length === 0 && !audioFile) return;
 
     // Check image generation limits for free users
     if (generateImage && !isSubscribed) {
@@ -334,7 +360,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     const sanitizedInput = sanitizeInput(input);
     
-    if (!sanitizedInput && !imageFile && !audioFile) {
+    if (!sanitizedInput && imageFiles.length === 0 && !audioFile) {
       toast({
         title: "Empty message",
         description: "Please enter a message or select a file",
@@ -355,7 +381,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     setLoading(true);
     // If user only sends media without text, provide a simple message for context
-    const userMessage = sanitizedInput || (imageFile ? "Shared an image" : audioFile ? "Shared an audio message" : "");
+    const userMessage = sanitizedInput || (imageFiles.length > 0 ? `Shared ${imageFiles.length} image${imageFiles.length > 1 ? 's' : ''}` : audioFile ? "Shared an audio message" : "");
     setInput("");
 
     try {
@@ -393,24 +419,29 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         setCurrentConversationId(conversationId);
         onConversationCreated(conversationId);
       }
-      // Upload image if present
-      let imageUrl: string | undefined;
-      if (imageFile) {
-        const fileExt = imageFile.name.split(".").pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("chat-images")
-          .upload(fileName, imageFile);
+      // Upload images if present (up to 4)
+      const imageUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        for (const file of imageFiles) {
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Math.random()}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage
+            .from("chat-images")
+            .upload(fileName, file);
 
-        if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from("chat-images")
-          .getPublicUrl(fileName);
+          const { data: { publicUrl } } = supabase.storage
+            .from("chat-images")
+            .getPublicUrl(fileName);
 
-        imageUrl = publicUrl;
-        setImageFile(null);
+          imageUrls.push(publicUrl);
+        }
+        setImageFiles([]);
       }
+      
+      // Use first image for backward compatibility, store all in content if multiple
+      const imageUrl = imageUrls.length > 0 ? imageUrls[0] : undefined;
 
       // Upload audio if present
       let audioUrl: string | undefined;
@@ -487,12 +518,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         // For group chat, auto-trigger all AI beings to respond
         if (isGroupChat) {
           // Store the last message
-          setLastMessage({ content: userMessage, imageUrl, senderId: user.id });
+          setLastMessage({ content: userMessage, imageUrl, imageUrls, senderId: user.id });
           setRespondedBeingIds([]); // Reset for new message
           setLoading(false);
           
           // Trigger auto-responses from all beings
-          triggerAutoResponses(userMessage, imageUrl, user.id, conversationId);
+          triggerAutoResponses(userMessage, imageUrl, imageUrls, user.id, conversationId);
           return;
         }
         
@@ -505,6 +536,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           {
             message: userMessage,
             imageUrl,
+            imageUrls,
             generateImage,
             userId: user.id,
             aiProfileId: respondingProfileId,
@@ -676,6 +708,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           {
             message: lastMessage.content,
             imageUrl: lastMessage.imageUrl,
+            imageUrls: lastMessage.imageUrls,
             generateImage: false,
             userId: user.id,
             aiProfileId: respondingProfileId || undefined,
@@ -728,7 +761,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         }]);
         
         // Update lastMessage to this AI's response so others can respond to it
-        setLastMessage({ content: aiResponseContent, imageUrl: data.imageUrl, senderId: being.id });
+        setLastMessage({ content: aiResponseContent, imageUrl: data.imageUrl, imageUrls: undefined, senderId: being.id });
         // Reset respondedBeingIds since this is now a new message others can respond to
         setRespondedBeingIds([being.id]);
         
@@ -824,6 +857,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const triggerAutoResponses = async (
     userMessage: string, 
     imageUrl: string | undefined, 
+    imageUrls: string[] | undefined,
     userId: string,
     conversationId: string
   ) => {
@@ -846,7 +880,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     if (allBeings.length === 0) return;
 
-    let currentLastMessage = { content: userMessage, imageUrl, senderId: userId };
+    let currentLastMessage = { content: userMessage, imageUrl, imageUrls, senderId: userId };
     const respondedIds: string[] = [];
 
     // Respond with each being one at a time, with delay between
@@ -885,6 +919,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           {
             message: currentLastMessage.content,
             imageUrl: currentLastMessage.imageUrl,
+            imageUrls: currentLastMessage.imageUrls,
             generateImage: false,
             userId,
             aiProfileId: being.type === "ai" ? being.id : undefined,
@@ -926,7 +961,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         }]);
         
         // Update tracking for next iteration
-        currentLastMessage = { content: aiResponseContent, imageUrl: data.imageUrl, senderId: being.id };
+        currentLastMessage = { content: aiResponseContent, imageUrl: data.imageUrl, imageUrls: undefined, senderId: being.id };
         respondedIds.push(being.id);
         setLastMessage(currentLastMessage);
         setRespondedBeingIds([...respondedIds]);
@@ -1041,17 +1076,33 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             />
           )}
           
-          {imageFile && (
-            <div className="mb-2 p-2 bg-accent rounded-lg flex items-center justify-between gap-2">
-              <span className="text-sm truncate flex-1 min-w-0">📷 {imageFile.name}</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setImageFile(null)}
-              >
-                Remove
-              </Button>
+          {imageFiles.length > 0 && (
+            <div className="mb-2 p-2 bg-accent rounded-lg space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">📷 {imageFiles.length} image{imageFiles.length > 1 ? 's' : ''} attached {imageFiles.length < 4 && `(${4 - imageFiles.length} more allowed)`}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setImageFiles([])}
+                >
+                  Remove all
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {imageFiles.map((file, index) => (
+                  <div key={index} className="flex items-center gap-1 bg-background/50 px-2 py-1 rounded text-xs">
+                    <span className="truncate max-w-[100px]">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setImageFiles(prev => prev.filter((_, i) => i !== index))}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           {audioFile && (
@@ -1078,6 +1129,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               onChange={handleImageSelect}
               className="sr-only"
             />
@@ -1191,7 +1243,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 <Button
                   type="button"
                   onClick={handleSend}
-                  disabled={loading || loadingBeingId !== null || (!input.trim() && !imageFile && !audioFile)}
+                  disabled={loading || loadingBeingId !== null || (!input.trim() && imageFiles.length === 0 && !audioFile)}
                   size="icon"
                   className="h-9 w-9"
                 >
