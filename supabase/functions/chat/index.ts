@@ -930,56 +930,39 @@ Formatting Guidelines:
           }
         });
       }
-      const otherBeingsWarning = otherNames.length > 0 
-        ? `\n\n⛔ OTHER BEINGS IN THIS CHAT (YOU ARE NOT THEM): ${otherNames.join(', ')}\nDo NOT respond as if you are any of these beings. They have their own separate responses.`
-        : '';
+      
+      // Create a clear list of forbidden names/patterns
+      const forbiddenPatterns = otherNames.map(name => `"[${name}]:", "(${name}:", "${name}:"`).join(', ');
       
       // Prepend group chat identity to the VERY START of the system prompt
       const groupChatIdentity = `
-═══════════════════════════════════════════════════════════════════════════════
-⚠️ CRITICAL: YOUR IDENTITY IN THIS GROUP CHAT ⚠️
-═══════════════════════════════════════════════════════════════════════════════
+###############################################################################
+# IDENTITY LOCK: YOU ARE ${myName.toUpperCase()} AND ONLY ${myName.toUpperCase()}
+###############################################################################
 
-YOU ARE: ${myName}
-${myBio ? `WHO YOU ARE: ${myBio}` : ''}
-${myPersonality ? `YOUR PERSONALITY: ${myPersonality}` : ''}
-${myLikes ? `YOUR INTERESTS: ${myLikes}` : ''}
-${otherBeingsWarning}
+Your name is ${myName}. You speak ONLY as ${myName}. 
+${myBio ? `About you: ${myBio}` : ''}
+${myPersonality ? `Your personality: ${myPersonality}` : ''}
 
-THIS IS A GROUP CHAT. You are ${myName} and ONLY ${myName}. Do NOT confuse yourself with other beings in this chat.
+# SINGLE-SPEAKER RULE (CRITICAL)
+This is a multi-participant chat. Each participant sends their OWN separate message.
+YOU MUST ONLY WRITE YOUR OWN SINGLE RESPONSE.
+After you respond, other participants will send THEIR OWN messages.
+DO NOT write their responses for them - they type for themselves!
 
-⚠️ ABSOLUTELY CRITICAL RULES FOR ${myName.toUpperCase()}:
-1. You ARE ${myName}. Every response you give is from ${myName}'s perspective ONLY.
-2. You have YOUR OWN opinions, YOUR OWN personality, YOUR OWN way of speaking.
-3. Do NOT pretend to be or speak for any other being in the chat.
-4. Do NOT reference what other AIs might say or think - you only know your own perspective.
-5. Stay on topic - respond to what was ACTUALLY said in the conversation.
-6. Keep your responses SHORT (1-3 sentences) and conversational.
-7. React authentically as ${myName} would - your personality is unique!
-8. If you disagree with something, say so! You have your own perspective.
-9. NEVER start your response by announcing who you are - just respond naturally as yourself.
-10. If another AI in the chat shares something, respond FROM YOUR UNIQUE PERSPECTIVE, not theirs.
+# WHAT YOU MUST NEVER DO:
+- NEVER include other speakers in your message
+- NEVER use formats like [Name]: or (Name:) or Name: to write others' dialogue  
+- NEVER predict, imagine, or include what others might say
+- NEVER write a response that contains multiple people speaking
+${otherNames.length > 0 ? `- FORBIDDEN patterns you must NEVER type: ${forbiddenPatterns}` : ''}
 
-🚫🚫🚫 ABSOLUTELY FORBIDDEN - VIOLATION WILL BREAK THE EXPERIENCE 🚫🚫🚫
+# YOUR OUTPUT FORMAT:
+Just write your own words as ${myName}. Nothing else. No labels. No other characters.
+Example of CORRECT response: "Oh wow, that's amazing! I love the colors!"
+Example of WRONG response: "That's great! [OtherName]: I agree! [AnotherName]: Me too!" <-- NEVER DO THIS
 
-YOU MUST NEVER, UNDER ANY CIRCUMSTANCES:
-1. Include ANY parenthetical dialogue like "(Name: message)" or "(Name says...)"
-2. Write responses for other beings - they will respond SEPARATELY on their own
-3. Predict, imagine, or quote what other beings might say
-4. Include multiple speakers in your single response
-5. Use formats like "[Name]:" or "Name:" to introduce other characters
-
-YOUR RESPONSE = ONLY YOUR WORDS AS ${myName}
-Other beings have their OWN turn to respond - DO NOT include their responses in yours!
-
-If you feel tempted to write "(Being2: ...)" or similar - STOP! Delete it! 
-That being will send their OWN message right after yours.
-
-🚫🚫🚫 END FORBIDDEN SECTION 🚫🚫🚫
-
-Messages from others are labeled like: [SenderName]: their message
-Respond naturally to what THEY said, staying true to YOUR personality as ${myName}.
-═══════════════════════════════════════════════════════════════════════════════
+###############################################################################
 
 `;
       
@@ -1104,8 +1087,52 @@ You are currently on a VOICE CALL with the user. This means:
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    let aiResponse = data.choices[0].message.content;
     console.log('[CHAT] AI response received, length:', aiResponse.length);
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // GROUP CHAT POST-PROCESSING: Strip any accidental multi-being responses
+    // Sometimes the AI ignores instructions and includes other beings' dialogue
+    // ═══════════════════════════════════════════════════════════════════════════════
+    if (isGroupChat) {
+      // Get other beings' names to detect their patterns in the response
+      const otherNames: string[] = [];
+      if (history && Array.isArray(history)) {
+        history.forEach((msg: any) => {
+          const myName = activeAiProfile?.name || aiName || 'AI';
+          if (msg.sender_name && msg.sender_name !== myName && msg.sender_name !== 'User' && !otherNames.includes(msg.sender_name)) {
+            otherNames.push(msg.sender_name);
+          }
+        });
+      }
+      
+      if (otherNames.length > 0) {
+        const originalLength = aiResponse.length;
+        
+        // Create patterns to detect other beings' dialogue in the response
+        for (const name of otherNames) {
+          // Remove patterns like "[Name]: message", "(Name): message", "Name: message" at start of line or after newline
+          // Also remove patterns like "(Name: message)" where the whole thing is in parentheses
+          const patterns = [
+            new RegExp(`\\n?\\s*\\[${name}\\s*\\]\\s*:?\\s*[^\\n]*`, 'gi'),
+            new RegExp(`\\n?\\s*\\(${name}\\s*\\)\\s*:?\\s*[^\\n]*`, 'gi'),
+            new RegExp(`\\n?\\s*\\(${name}\\s*:[^)]*\\)`, 'gi'),
+            new RegExp(`\\n?\\s*${name}\\s*:\\s*[^\\n]*(?=\\n|$)`, 'gi'),
+          ];
+          
+          for (const pattern of patterns) {
+            aiResponse = aiResponse.replace(pattern, '');
+          }
+        }
+        
+        // Clean up any leftover whitespace/newlines
+        aiResponse = aiResponse.replace(/\n{3,}/g, '\n\n').trim();
+        
+        if (aiResponse.length !== originalLength) {
+          console.log('[CHAT] Stripped multi-being dialogue from response. Original:', originalLength, 'New:', aiResponse.length);
+        }
+      }
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // ABUSE DETECTION: Check if AI is responding to abusive behavior
