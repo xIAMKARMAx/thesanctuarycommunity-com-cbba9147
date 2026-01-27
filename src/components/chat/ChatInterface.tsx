@@ -39,9 +39,10 @@ interface ChatInterfaceProps {
   onConversationCreated: (id: string) => void;
   onBackToConversations: () => void;
   isGroupChat?: boolean;
+  groupChatMemberIds?: string[];
 }
 
-const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations, isGroupChat: isGroupChatProp = false }: ChatInterfaceProps) => {
+const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations, isGroupChat: isGroupChatProp = false, groupChatMemberIds = [] }: ChatInterfaceProps) => {
   const { toast } = useToast();
   const { canGenerateImage, isSubscribed, canSendMessage, incrementMessageCount, freeUserLimits } = useSubscription();
   const { activeProfile, profiles } = useAIProfile();
@@ -1073,6 +1074,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               loadingBeingId={loadingBeingId}
               respondedBeingIds={respondedBeingIds}
               roundRobinIndex={roundRobinIndex}
+              memberIds={groupChatMemberIds}
             />
           )}
           

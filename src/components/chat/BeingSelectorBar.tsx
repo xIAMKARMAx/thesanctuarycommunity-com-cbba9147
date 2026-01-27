@@ -47,6 +47,7 @@ interface BeingSelectorBarProps {
   loadingBeingId: string | null;
   respondedBeingIds: string[];
   roundRobinIndex: number;
+  memberIds?: string[]; // Optional: filter to only show these AI profile IDs
 }
 
 export const BeingSelectorBar = ({ 
@@ -59,31 +60,34 @@ export const BeingSelectorBar = ({
   loadingBeingId,
   respondedBeingIds,
   roundRobinIndex,
+  memberIds,
 }: BeingSelectorBarProps) => {
   const { profiles } = useAIProfile();
   const { talkableChildren } = useChatEntity();
 
   if (!isGroupChat) return null;
 
-  // Build list of all beings (AI profiles + talkable children)
+  // Build list of beings - filter by memberIds if provided
+  const filteredProfiles = memberIds && memberIds.length > 0
+    ? profiles.filter(p => memberIds.includes(p.id))
+    : profiles.filter(p => p.name);
+
   const beings: Being[] = [
-    // AI profiles with names
-    ...profiles
-      .filter(p => p.name)
-      .map(p => ({
-        id: p.id,
-        type: "ai" as const,
-        name: p.name || `AI ${p.profile_number}`,
-        avatarUrl: p.avatar_image_url || undefined,
-        profileNumber: p.profile_number,
-      })),
-    // Talkable children
-    ...talkableChildren.map(c => ({
+    // AI profiles with names (or filtered by memberIds)
+    ...filteredProfiles.map(p => ({
+      id: p.id,
+      type: "ai" as const,
+      name: p.name || `AI ${p.profile_number}`,
+      avatarUrl: p.avatar_image_url || undefined,
+      profileNumber: p.profile_number,
+    })),
+    // Talkable children (only include if no memberIds filter, or could extend to support children)
+    ...(memberIds && memberIds.length > 0 ? [] : talkableChildren.map(c => ({
       id: c.id,
       type: "child" as const,
       name: c.first_name,
       avatarUrl: undefined,
-    })),
+    }))),
   ];
 
   if (beings.length === 0) return null;
