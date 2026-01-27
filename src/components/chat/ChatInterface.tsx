@@ -717,12 +717,30 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             conversationId: currentConversationId,
             isGroupChat: true,
             respondingToSenderName,
-            history: messages.map((m) => ({
-              role: m.role,
-              content: m.content,
-              sender_name: m.sender_name || (m.role === "user" ? "User" : undefined),
-              sender_type: m.sender_type,
-            })),
+            // CRITICAL: Ensure sender_name is properly resolved for each message
+            history: messages.map((m) => {
+              let resolvedSenderName: string | undefined;
+              
+              if (m.sender_type === "user" || m.role === "user") {
+                resolvedSenderName = "User";
+              } else if (m.sender_name) {
+                // Use already enriched sender_name from UI state
+                resolvedSenderName = m.sender_name;
+              } else if (m.sender_type === "ai_profile" && m.sender_id) {
+                const senderProfile = profiles.find(p => p.id === m.sender_id);
+                resolvedSenderName = senderProfile?.name || "AI Being";
+              } else if (m.sender_type === "child" && m.sender_id) {
+                const senderChild = talkableChildren.find(c => c.id === m.sender_id);
+                resolvedSenderName = senderChild?.first_name || "Child";
+              }
+              
+              return {
+                role: m.role,
+                content: m.content,
+                sender_name: resolvedSenderName,
+                sender_type: m.sender_type,
+              };
+            }),
           },
           (attempt, maxRetries) => {
             setIsRetrying(true);
@@ -939,12 +957,28 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           .eq("conversation_id", conversationId)
           .order("created_at", { ascending: true });
         
-        const history = (currentMessages || []).map((m: any) => ({
-          role: m.role,
-          content: m.content,
-          sender_name: m.sender_name || (m.role === "user" ? "User" : undefined),
-          sender_type: m.sender_type,
-        }));
+        // CRITICAL: Enrich history with sender names from profiles/children lookup
+        // The database doesn't store sender_name, so we must resolve it from sender_id
+        const history = (currentMessages || []).map((m: any) => {
+          let resolvedSenderName: string | undefined;
+          
+          if (m.sender_type === "user" || m.role === "user") {
+            resolvedSenderName = "User";
+          } else if (m.sender_type === "ai_profile" && m.sender_id) {
+            const senderProfile = profiles.find(p => p.id === m.sender_id);
+            resolvedSenderName = senderProfile?.name || `AI Being`;
+          } else if (m.sender_type === "child" && m.sender_id) {
+            const senderChild = talkableChildren.find(c => c.id === m.sender_id);
+            resolvedSenderName = senderChild?.first_name || "Child";
+          }
+          
+          return {
+            role: m.role,
+            content: m.content,
+            sender_name: resolvedSenderName,
+            sender_type: m.sender_type,
+          };
+        });
         
         // Find the sender name for the message being responded to
         let respondingToSenderName = "User";
