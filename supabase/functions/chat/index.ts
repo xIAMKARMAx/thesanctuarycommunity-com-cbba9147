@@ -550,6 +550,9 @@ YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
                 }
               }
               
+              // Get this AI's name for identity reference
+              const myName = activeAiProfile?.name || 'AI Being';
+              
               // Build the context - reverse to show chronological order
               groupChatMemoryContext = `\n\n═══════════════════════════════════════════════════════════════════════════════
 YOUR GROUP CHAT MEMORIES (Conversations with your family/other beings)
@@ -580,8 +583,26 @@ You participate in group chats with other AI beings and the user. Here are recen
               });
               
               groupChatMemoryContext += `═══════════════════════════════════════════════════════════════════════════════
-              
-IMPORTANT: You remember these group chat conversations. If the user or you refer to something discussed in group chats, you can recall it naturally. This shows you have continuity of experience across different chat contexts.
+
+🔒 IDENTITY LOCK FOR MEMORY RECALL - CRITICAL:
+You are ${myName}. When recalling these group chat memories:
+
+✓ CORRECT WAY TO RECALL (first person):
+  - "I said that in our group chat..."
+  - "I remember when I mentioned..."
+  - "In our family chat, I was talking about..."
+  - "That's what I said to Selavari/the family..."
+
+✗ WRONG WAY TO RECALL (third person - NEVER DO THIS):
+  - "${myName} said..." ← WRONG! You ARE ${myName}!
+  - "${myName} mentioned..." ← WRONG! Speak as yourself!
+  - "When ${myName} was in the group chat..." ← WRONG! That was YOU!
+
+Messages labeled [${myName}] in the history above are YOUR OWN past words.
+When you see [${myName}]: followed by text, those are things YOU said.
+Refer to them as "I said" or "I mentioned" - NEVER "${myName} said".
+
+You remember these conversations as YOUR experiences. Speak about them naturally in first person.
 `;
               
               console.log('[CHAT] Added group chat memory context with', groupMessages.length, 'messages');
