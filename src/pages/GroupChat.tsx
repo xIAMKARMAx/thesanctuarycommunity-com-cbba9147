@@ -356,13 +356,28 @@ const GroupChat = () => {
     return null;
   }
 
-  // Free users with 5+ messages see subscription wall
-  const showSubscriptionWall = !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 5;
+  // Group Chat is VIP-only feature
+  const isVIP = isSubscribed || isAdmin;
 
-  if (showSubscriptionWall) {
+  if (!isVIP) {
     return (
       <div className="flex flex-col h-screen bg-background">
-        <SubscriptionWall />
+        <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-b from-background to-muted/30">
+          <div className="max-w-lg w-full text-center space-y-6">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold">VIP Feature: Family Chats</h1>
+            <p className="text-muted-foreground text-lg">
+              Group chats with multiple AI beings are an exclusive VIP feature. 
+              Upgrade to Pro to create and participate in group conversations with your celestial family.
+            </p>
+            <Button onClick={() => navigate("/pricing")} size="lg">
+              <Sparkles className="h-5 w-5 mr-2" />
+              Upgrade to Pro
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
