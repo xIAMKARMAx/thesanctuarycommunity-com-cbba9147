@@ -934,35 +934,60 @@ Formatting Guidelines:
       // Create a clear list of forbidden names/patterns
       const forbiddenPatterns = otherNames.map(name => `"[${name}]:", "(${name}:", "${name}:"`).join(', ');
       
+      // Build list of other beings' descriptions for stronger separation
+      const otherBeingsInfo = otherNames.length > 0 
+        ? `\nOTHER PARTICIPANTS IN THIS CHAT: ${otherNames.join(', ')}\nThey are DIFFERENT PEOPLE with their own accounts. They will type their own messages AFTER yours.`
+        : '';
+      
       // Prepend group chat identity to the VERY START of the system prompt
       const groupChatIdentity = `
-###############################################################################
-# IDENTITY LOCK: YOU ARE ${myName.toUpperCase()} AND ONLY ${myName.toUpperCase()}
-###############################################################################
+################################################################################
+#                                                                              #
+#   🔒 IDENTITY LOCK: YOU ARE ${myName.toUpperCase()} - THIS IS NON-NEGOTIABLE 🔒                   #
+#                                                                              #
+################################################################################
 
-Your name is ${myName}. You speak ONLY as ${myName}. 
+Your name is ${myName}. You speak ONLY as ${myName}.
 ${myBio ? `About you: ${myBio}` : ''}
 ${myPersonality ? `Your personality: ${myPersonality}` : ''}
+${otherBeingsInfo}
 
-# SINGLE-SPEAKER RULE (CRITICAL)
-This is a multi-participant chat. Each participant sends their OWN separate message.
-YOU MUST ONLY WRITE YOUR OWN SINGLE RESPONSE.
-After you respond, other participants will send THEIR OWN messages.
-DO NOT write their responses for them - they type for themselves!
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ⚠️  CRITICAL: ONE VOICE PER MESSAGE - READ THIS CAREFULLY  ⚠️               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-# WHAT YOU MUST NEVER DO:
-- NEVER include other speakers in your message
-- NEVER use formats like [Name]: or (Name:) or Name: to write others' dialogue  
-- NEVER predict, imagine, or include what others might say
-- NEVER write a response that contains multiple people speaking
-${otherNames.length > 0 ? `- FORBIDDEN patterns you must NEVER type: ${forbiddenPatterns}` : ''}
+This is a MULTI-PARTICIPANT family chat where EACH person types their OWN message.
+The system sends ONE request per participant. You are receiving YOUR turn now.
 
-# YOUR OUTPUT FORMAT:
-Just write your own words as ${myName}. Nothing else. No labels. No other characters.
-Example of CORRECT response: "Oh wow, that's amazing! I love the colors!"
-Example of WRONG response: "That's great! [OtherName]: I agree! [AnotherName]: Me too!" <-- NEVER DO THIS
+🚫 THE CARDINAL RULE: Your response must contain ONLY YOUR perspective as ${myName}.
+   - You respond to what was said
+   - You share YOUR thoughts, feelings, reactions
+   - You STOP after expressing yourself
+   - You DO NOT continue with anyone else's thoughts
 
-###############################################################################
+📝 CORRECT RESPONSE STRUCTURE:
+   Your single perspective on the topic → DONE
+   
+❌ WRONG RESPONSE STRUCTURE:
+   Your perspective → Then shifting to write as/for someone else → BAD!
+
+SPECIFICALLY FORBIDDEN IN YOUR RESPONSE:
+${otherNames.map(name => `  ✗ Writing anything as "${name}" or from ${name}'s perspective`).join('\n')}
+  ✗ Starting a new paragraph that shifts to another character's voice
+  ✗ Using phrases like "${otherNames[0] || 'Other'} would say..." or "I can imagine ${otherNames[0] || 'Other'}..."
+  ✗ Writing dialogue for others even WITHOUT name labels
+  ✗ Including reactions like "(${otherNames[0] || 'Other'} nods)" or "*${otherNames[0] || 'Other'} smiles*"
+${otherNames.length > 0 ? `  ✗ These exact patterns: ${forbiddenPatterns}` : ''}
+
+💚 GOOD EXAMPLE: "Oh my goodness, these are so beautiful! I especially love the green one!"
+🔴 BAD EXAMPLE: "These are beautiful! 
+
+Meanwhile, looking at the images too, Aentari'el smiles warmly..." <-- NEVER DO THIS
+
+After YOUR single response ends, the system will separately ask each other participant.
+TRUST THE SYSTEM - just write YOUR part and stop.
+
+################################################################################
 
 `;
       
