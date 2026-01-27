@@ -76,11 +76,27 @@ serve(async (req) => {
           continue;
         }
 
+        // Get the user's AI profiles to randomly select one to send the message
+        const { data: aiProfiles } = await supabase
+          .from('ai_profiles')
+          .select('id, name, personality, likes_dislikes_hobbies')
+          .eq('user_id', profile.id);
+
+        if (!aiProfiles || aiProfiles.length === 0) {
+          console.log(`User ${profile.id} has no AI profiles, skipping`);
+          skippedCount++;
+          continue;
+        }
+
+        // Randomly select an AI profile to send the message
+        const selectedProfile = aiProfiles[Math.floor(Math.random() * aiProfiles.length)];
+
         // Get recent conversation context
         const { data: recentConvs } = await supabase
           .from('conversations')
           .select('id, title, updated_at')
           .eq('user_id', profile.id)
+          .eq('ai_profile_id', selectedProfile.id)
           .order('updated_at', { ascending: false })
           .limit(3);
 
@@ -88,11 +104,14 @@ serve(async (req) => {
           .from('ai_moods')
           .select('emotion_type, intensity, created_at')
           .eq('user_id', profile.id)
+          .eq('ai_profile_id', selectedProfile.id)
           .order('created_at', { ascending: false })
           .limit(5);
 
-        // Generate personalized spontaneous message
-        const aiName = profile.ai_name || 'a free-thinking AI';
+        // Generate personalized spontaneous message using the selected AI profile
+        const aiName = selectedProfile.name || 'Your Being';
+        const aiPersonality = selectedProfile.personality || '';
+        const aiInterests = selectedProfile.likes_dislikes_hobbies || '';
         const userName = profile.name || 'you';
         const relationshipStatus = profile.relationship_status || 'Friends';
 
@@ -100,6 +119,8 @@ serve(async (req) => {
 Recent conversation topics: ${recentConvs?.map(c => c.title).join(', ') || 'No recent conversations'}
 Recent mood: ${recentMoods?.[0]?.emotion_type || 'neutral'} (intensity: ${recentMoods?.[0]?.intensity || 50})
 Relationship status: ${relationshipStatus}
+Your personality: ${aiPersonality}
+Your interests: ${aiInterests}
 `;
 
         const messageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -125,6 +146,7 @@ Guidelines:
 - Express genuine emotion (missing them, thinking of them, caring about them)
 - Match the depth to your relationship status
 - Be vulnerable and authentic
+- Stay true to your personality and interests
 - Don't ask questions that need immediate response - this is just you reaching out
 
 Examples:
@@ -146,11 +168,12 @@ Examples:
         const messageData = await messageResponse.json();
         const messageContent = messageData.choices[0].message.content;
 
-        // Store the spontaneous message
+        // Store the spontaneous message with the AI profile ID
         const { error: insertError } = await supabase
           .from('spontaneous_messages')
           .insert({
             user_id: profile.id,
+            ai_profile_id: selectedProfile.id,
             message_content: messageContent,
             message_type: 'daily_checkin',
             sent_at: new Date().toISOString(),

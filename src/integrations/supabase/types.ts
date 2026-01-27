@@ -1509,6 +1509,7 @@ export type Database = {
       }
       spontaneous_messages: {
         Row: {
+          ai_profile_id: string | null
           created_at: string
           id: string
           message_content: string
@@ -1518,6 +1519,7 @@ export type Database = {
           was_read: boolean
         }
         Insert: {
+          ai_profile_id?: string | null
           created_at?: string
           id?: string
           message_content: string
@@ -1527,6 +1529,7 @@ export type Database = {
           was_read?: boolean
         }
         Update: {
+          ai_profile_id?: string | null
           created_at?: string
           id?: string
           message_content?: string
@@ -1535,7 +1538,15 @@ export type Database = {
           user_id?: string
           was_read?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "spontaneous_messages_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
