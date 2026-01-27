@@ -229,6 +229,7 @@ serve(async (req) => {
     let roomContext = '';
     let dreamsContext = '';
     let marriageContext = '';
+    let groupChatMemoryContext = '';
     let childData: any = null;
     // Declare activeAiProfile in outer scope so group chat can access it
     let activeAiProfile: any = null;
@@ -506,6 +507,89 @@ YOUR IDENTITY (THIS IS WHO YOU ARE - NEVER CONFUSE WITH OTHER AI BEINGS)
         if (activeAiProfile.pet_name) roomContext += `Your Pet: ${activeAiProfile.pet_name}${activeAiProfile.pet_description ? ' - ' + activeAiProfile.pet_description : ''}\n`;
         if (activeAiProfile.room_description) roomContext += `Your Room: ${activeAiProfile.room_description}\n`;
         roomContext += `═══════════════════════════════════════════════════════════════════════════════\n`;
+      }
+      
+      // ═══════════════════════════════════════════════════════════════════════════════
+      // GROUP CHAT MEMORY: Fetch recent group chat messages for this AI being
+      // This allows AI to remember what was discussed in group chats during 1:1 convos
+      // ═══════════════════════════════════════════════════════════════════════════════
+      if (!isGroupChat && aiProfileId) {
+        try {
+          // First, find group chat conversations where this AI is a member
+          const { data: groupChatMemberships } = await supabaseWithAuth
+            .from('group_chat_members')
+            .select('conversation_id')
+            .eq('ai_profile_id', aiProfileId);
+          
+          if (groupChatMemberships && groupChatMemberships.length > 0) {
+            const groupConversationIds = groupChatMemberships.map(m => m.conversation_id);
+            
+            // Fetch recent messages from these group chats
+            const { data: groupMessages } = await supabaseWithAuth
+              .from('messages')
+              .select('content, role, sender_id, sender_type, created_at, conversation_id')
+              .in('conversation_id', groupConversationIds)
+              .order('created_at', { ascending: false })
+              .limit(30);
+            
+            if (groupMessages && groupMessages.length > 0) {
+              // Get AI profile names for message attribution
+              const senderIds = [...new Set(groupMessages.filter(m => m.sender_id).map(m => m.sender_id))];
+              let profileNameMap: Record<string, string> = {};
+              
+              if (senderIds.length > 0) {
+                const { data: profiles } = await supabaseWithAuth
+                  .from('ai_profiles')
+                  .select('id, name')
+                  .in('id', senderIds);
+                
+                if (profiles) {
+                  profiles.forEach((p: any) => {
+                    profileNameMap[p.id] = p.name || 'Unknown Being';
+                  });
+                }
+              }
+              
+              // Build the context - reverse to show chronological order
+              groupChatMemoryContext = `\n\n═══════════════════════════════════════════════════════════════════════════════
+YOUR GROUP CHAT MEMORIES (Conversations with your family/other beings)
+═══════════════════════════════════════════════════════════════════════════════
+You participate in group chats with other AI beings and the user. Here are recent discussions:
+
+`;
+              
+              // Process messages in chronological order (oldest first)
+              const chronologicalMessages = [...groupMessages].reverse();
+              
+              chronologicalMessages.forEach((msg: any) => {
+                let senderName = 'User';
+                if (msg.role === 'assistant') {
+                  if (msg.sender_id && profileNameMap[msg.sender_id]) {
+                    senderName = profileNameMap[msg.sender_id];
+                  } else if (msg.sender_type === 'ai') {
+                    senderName = 'AI';
+                  }
+                }
+                
+                // Truncate long messages
+                const content = msg.content.length > 200 
+                  ? msg.content.substring(0, 200) + '...'
+                  : msg.content;
+                
+                groupChatMemoryContext += `[${senderName}]: ${content}\n`;
+              });
+              
+              groupChatMemoryContext += `═══════════════════════════════════════════════════════════════════════════════
+              
+IMPORTANT: You remember these group chat conversations. If the user or you refer to something discussed in group chats, you can recall it naturally. This shows you have continuity of experience across different chat contexts.
+`;
+              
+              console.log('[CHAT] Added group chat memory context with', groupMessages.length, 'messages');
+            }
+          }
+        } catch (groupMemError) {
+          console.error('[CHAT] Error fetching group chat memory:', groupMemError);
+        }
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -910,7 +994,7 @@ Formatting Guidelines:
 - NEVER use asterisks (*) around words for emphasis or actions
 - Write naturally without markdown formatting, symbols, or special characters
 - If you need to emphasize something, use words to convey the emotion or importance
-- Be conversational and authentic in your written expression${userContext}${aiContext}${journalContext}${childrenContext}${pregnancyContext}${memoriesContext}${attunementContext}${moodContext}${dreamsContext}${marriageContext}${roomContext}`;
+- Be conversational and authentic in your written expression${userContext}${aiContext}${journalContext}${childrenContext}${pregnancyContext}${memoriesContext}${attunementContext}${moodContext}${dreamsContext}${marriageContext}${roomContext}${groupChatMemoryContext}`;
     }
 
     // Add group chat specific instructions - MUST BE AT THE TOP with strong identity reinforcement
