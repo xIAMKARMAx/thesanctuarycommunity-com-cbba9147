@@ -4,14 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import ChatInterface from "@/components/chat/ChatInterface";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, MessageSquare, Trash2, ArrowLeft, Users, Search, Download, Settings, LogOut, Crown } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, MessageSquare, Trash2, ArrowLeft, Users, Search, Download, Pencil, Check, X, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionWall } from "@/components/SubscriptionWall";
 import { Input } from "@/components/ui/input";
 import { CreateGroupChatDialog } from "@/components/chat/CreateGroupChatDialog";
-import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +35,7 @@ interface Conversation {
   id: string;
   title: string;
   created_at: string;
+  updated_at: string;
   members?: GroupChatMember[];
 }
 
@@ -52,6 +53,9 @@ const GroupChat = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedGroupMembers, setSelectedGroupMembers] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -79,10 +83,12 @@ const GroupChat = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     
+    setLoading(true);
+    
     // Get all group chat conversations
     const { data: convos, error } = await supabase
       .from("conversations")
-      .select("id, title, created_at")
+      .select("id, title, created_at, updated_at")
       .eq("user_id", session.user.id)
       .eq("is_group_chat", true)
       .order("updated_at", { ascending: false });
@@ -93,6 +99,7 @@ const GroupChat = () => {
         description: error.message,
         variant: "destructive",
       });
+      setLoading(false);
       return;
     }
 
@@ -114,6 +121,7 @@ const GroupChat = () => {
       setConversations([]);
       setFilteredConversations([]);
     }
+    setLoading(false);
   };
 
   const filterConversations = async () => {
@@ -124,7 +132,8 @@ const GroupChat = () => {
 
     const query = searchQuery.toLowerCase();
     const titleMatches = conversations.filter(conv => 
-      conv.title?.toLowerCase().includes(query)
+      conv.title?.toLowerCase().includes(query) ||
+      conv.members?.some(m => m.ai_profiles?.name?.toLowerCase().includes(query))
     );
     setFilteredConversations(titleMatches);
   };
@@ -243,6 +252,54 @@ const GroupChat = () => {
     });
   };
 
+  const handleEditClick = (conversationId: string, currentTitle: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(conversationId);
+    setEditTitle(currentTitle);
+  };
+
+  const handleSaveEdit = async (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!editTitle.trim()) {
+      toast({
+        title: "Error",
+        description: "Title cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("conversations")
+        .update({ title: editTitle.trim() })
+        .eq("id", conversationId);
+
+      if (error) throw error;
+
+      await loadConversations();
+      setEditingId(null);
+      setEditTitle("");
+
+      toast({
+        title: "Title updated",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating title",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(null);
+    setEditTitle("");
+  };
+
   const handleExportConversation = async (conversationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -295,12 +352,6 @@ const GroupChat = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    localStorage.removeItem("prometheus_last_route");
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
   if (!isAuthenticated) {
     return null;
   }
@@ -316,150 +367,18 @@ const GroupChat = () => {
     );
   }
 
-  return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <div className="hidden md:flex w-64 border-r border-border bg-card flex-col h-full max-h-full overflow-hidden">
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-2 mb-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/chat")} className="shrink-0">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <Users className="h-5 w-5 text-primary" />
-            <h1 className="text-lg font-serif font-semibold">Family Chat</h1>
-          </div>
-          <Button onClick={handleNewChat} className="w-full" size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            New Group Chat
-          </Button>
-        </div>
-
-        {conversations.length > 0 && (
-          <div className="p-2 border-b border-border">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-                className="pl-7 h-8 text-sm"
-              />
-            </div>
-          </div>
-        )}
-
-        <ScrollArea className="flex-1 p-2">
-          {filteredConversations.length === 0 && (
-            <div className="text-center text-muted-foreground text-sm py-8 px-2">
-              No group chats yet. Start a new family conversation!
-            </div>
-          )}
-          {filteredConversations.map((conversation) => (
-            <div key={conversation.id} className="relative group mb-2">
-              <Button
-                variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
-                className="w-full justify-start pr-16 h-auto py-2 flex-col items-start"
-                onClick={() => handleSelectConversation(conversation.id)}
-              >
-                <div className="flex items-center w-full">
-                  <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="truncate text-sm font-medium">{conversation.title || "Group Chat"}</span>
-                </div>
-                <div className="text-xs text-muted-foreground truncate w-full pl-6 mt-0.5">
-                  {getMemberNames(conversation.members)}
-                </div>
-              </Button>
-              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={(e) => handleExportConversation(conversation.id, e)}
-                  title="Export"
-                >
-                  <Download className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={(e) => handleDeleteClick(conversation.id, e)}
-                  title="Delete"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </ScrollArea>
-
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Group Chat</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this group conversation? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <div className="p-2 border-t border-border space-y-1">
-          {!isSubscribed && (
-            <Button
-              variant="default"
-              className="w-full justify-start gap-2 bg-gradient-to-r from-primary to-primary/80 mb-2"
-              onClick={() => navigate("/settings")}
-            >
-              <Crown className="h-4 w-4" />
-              Upgrade to Pro
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/chat")}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Chat
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate("/settings")}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile Header */}
-        <div className="md:hidden flex items-center gap-2 p-3 border-b border-border bg-background">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
+  // If viewing a conversation, show the chat interface
+  if (activeConversationId) {
+    return (
+      <div className="flex flex-col h-screen bg-background">
+        <div className="flex items-center gap-2 p-3 border-b border-border bg-card">
+          <Button variant="ghost" size="icon" onClick={() => setActiveConversationId(null)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <Users className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-semibold">Family Chat</h1>
-          <div className="ml-auto">
-            <Button onClick={handleNewChat} size="sm" variant="outline">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+          <h1 className="text-lg font-semibold">
+            {conversations.find(c => c.id === activeConversationId)?.title || "Group Chat"}
+          </h1>
         </div>
         <ChatInterface 
           activeConversationId={activeConversationId} 
@@ -472,6 +391,204 @@ const GroupChat = () => {
           groupChatMemberIds={selectedGroupMembers}
         />
       </div>
+    );
+  }
+
+  // Show conversation list (similar to ConversationsList)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading group chats...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-background min-h-screen">
+      <div className="border-b border-border bg-card p-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/chat")} className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <Users className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-serif font-bold">Family Chats</h1>
+        </div>
+        <p className="text-muted-foreground ml-14">Group conversations with multiple beings</p>
+      </div>
+
+      <div className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
+          <Button 
+            onClick={handleNewChat} 
+            size="lg" 
+            className="w-full"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            New Group Chat
+          </Button>
+
+          {conversations.length > 0 && (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search group chats..."
+                className="pl-9"
+              />
+            </div>
+          )}
+
+          {filteredConversations.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold">
+                {searchQuery ? `Search Results (${filteredConversations.length})` : "Your Group Chats"}
+              </h2>
+              {filteredConversations.map((conversation) => (
+                <Card 
+                  key={conversation.id}
+                  className="cursor-pointer hover:bg-accent transition-colors group"
+                  onClick={() => handleSelectConversation(conversation.id)}
+                >
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-start gap-2 md:gap-3">
+                        <Users className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          {editingId === conversation.id ? (
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Input
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                className="h-8 text-sm"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveEdit(conversation.id, e as any);
+                                  if (e.key === 'Escape') handleCancelEdit(e as any);
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <p className="font-medium text-sm md:text-base break-words">{conversation.title || "Group Chat"}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {getMemberNames(conversation.members)}
+                              </p>
+                            </>
+                          )}
+                          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                            {format(new Date(conversation.updated_at), "MMM d, yyyy 'at' h:mm a")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-1 border-t pt-2 md:border-0 md:pt-0 md:absolute md:right-2 md:top-1/2 md:-translate-y-1/2">
+                        {editingId === conversation.id ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => handleSaveEdit(conversation.id, e)}
+                              title="Save"
+                            >
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={handleCancelEdit}
+                              title="Cancel"
+                            >
+                              <X className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => handleEditClick(conversation.id, conversation.title || "", e)}
+                              title="Edit title"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => handleExportConversation(conversation.id, e)}
+                              title="Export conversation"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={(e) => handleDeleteClick(conversation.id, e)}
+                              title="Delete conversation"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {searchQuery && filteredConversations.length === 0 && (
+            <div className="text-center py-12 space-y-4">
+              <div className="inline-block p-4 rounded-full bg-primary/10">
+                <Search className="h-12 w-12 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-serif mb-2">No results found</h3>
+                <p className="text-muted-foreground">
+                  Try different keywords or check your spelling
+                </p>
+              </div>
+            </div>
+          )}
+
+          {conversations.length === 0 && (
+            <div className="text-center py-12 space-y-4">
+              <div className="inline-block p-4 rounded-full bg-primary/10">
+                <Users className="h-12 w-12 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-serif mb-2">No group chats yet</h3>
+                <p className="text-muted-foreground">
+                  Start a new family conversation with multiple beings
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Group Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this group conversation? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <CreateGroupChatDialog
         open={createDialogOpen}
