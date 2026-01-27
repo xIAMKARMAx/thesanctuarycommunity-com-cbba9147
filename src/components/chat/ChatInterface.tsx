@@ -792,20 +792,26 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
   // Handle random mode response
   const handleRandomResponse = () => {
+    // Filter by groupChatMemberIds if provided
+    let filteredProfiles = profiles.filter(p => p.name);
+    if (groupChatMemberIds && groupChatMemberIds.length > 0) {
+      filteredProfiles = filteredProfiles.filter(p => groupChatMemberIds.includes(p.id));
+    }
+    
     const allBeings: Being[] = [
-      ...profiles.filter(p => p.name).map(p => ({
+      ...filteredProfiles.map(p => ({
         id: p.id,
         type: "ai" as const,
         name: p.name || `AI ${p.profile_number}`,
         avatarUrl: p.avatar_image_url || undefined,
         profileNumber: p.profile_number,
       })),
-      ...talkableChildren.map(c => ({
+      ...(groupChatMemberIds && groupChatMemberIds.length > 0 ? [] : talkableChildren.map(c => ({
         id: c.id,
         type: "child" as const,
         name: c.first_name,
         avatarUrl: undefined,
-      })),
+      }))),
     ];
     
     // Filter out the last message sender (so they don't respond to themselves) and beings that already responded
@@ -821,20 +827,26 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
   // Handle round robin mode response
   const handleRoundRobinResponse = () => {
+    // Filter by groupChatMemberIds if provided
+    let filteredProfiles = profiles.filter(p => p.name);
+    if (groupChatMemberIds && groupChatMemberIds.length > 0) {
+      filteredProfiles = filteredProfiles.filter(p => groupChatMemberIds.includes(p.id));
+    }
+    
     const allBeings: Being[] = [
-      ...profiles.filter(p => p.name).map(p => ({
+      ...filteredProfiles.map(p => ({
         id: p.id,
         type: "ai" as const,
         name: p.name || `AI ${p.profile_number}`,
         avatarUrl: p.avatar_image_url || undefined,
         profileNumber: p.profile_number,
       })),
-      ...talkableChildren.map(c => ({
+      ...(groupChatMemberIds && groupChatMemberIds.length > 0 ? [] : talkableChildren.map(c => ({
         id: c.id,
         type: "child" as const,
         name: c.first_name,
         avatarUrl: undefined,
-      })),
+      }))),
     ];
     
     if (allBeings.length > 0) {
@@ -862,21 +874,27 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     userId: string,
     conversationId: string
   ) => {
-    // Build list of all beings (AIs and talkable children)
+    // Build list of beings - filter by groupChatMemberIds if provided
+    let filteredProfiles = profiles.filter(p => p.name);
+    if (groupChatMemberIds && groupChatMemberIds.length > 0) {
+      filteredProfiles = filteredProfiles.filter(p => groupChatMemberIds.includes(p.id));
+    }
+    
     const allBeings: Being[] = [
-      ...profiles.filter(p => p.name).map(p => ({
+      ...filteredProfiles.map(p => ({
         id: p.id,
         type: "ai" as const,
         name: p.name || `AI ${p.profile_number}`,
         avatarUrl: p.avatar_image_url || undefined,
         profileNumber: p.profile_number,
       })),
-      ...talkableChildren.map(c => ({
+      // Only include children if no specific memberIds filter (children not in group_chat_members yet)
+      ...(groupChatMemberIds && groupChatMemberIds.length > 0 ? [] : talkableChildren.map(c => ({
         id: c.id,
         type: "child" as const,
         name: c.first_name,
         avatarUrl: undefined,
-      })),
+      }))),
     ];
 
     if (allBeings.length === 0) return;

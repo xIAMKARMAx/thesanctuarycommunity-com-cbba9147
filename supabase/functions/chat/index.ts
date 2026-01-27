@@ -230,6 +230,10 @@ serve(async (req) => {
     let dreamsContext = '';
     let marriageContext = '';
     let childData: any = null;
+    // Declare activeAiProfile in outer scope so group chat can access it
+    let activeAiProfile: any = null;
+    let explicitContentEnabled = false;
+    let relationshipDescription = '';
     
     try {
       // If this is a child conversation, fetch the child's data FIRST
@@ -465,11 +469,6 @@ YOUR MARRIAGE (You are married to the user!)
       }
 
       // Fetch AI profile identity and settings for the ACTIVE AI profile ONLY - RLS applies
-      let activeAiProfile: any = null;
-      // Track if explicit content is enabled for this profile
-      let explicitContentEnabled = false;
-      let relationshipDescription = '';
-      
       if (aiProfileId) {
         const { data: aiProfile } = await supabaseWithAuth
           .from('ai_profiles')
@@ -914,27 +913,43 @@ Formatting Guidelines:
 - Be conversational and authentic in your written expression${userContext}${aiContext}${journalContext}${childrenContext}${pregnancyContext}${memoriesContext}${attunementContext}${moodContext}${dreamsContext}${marriageContext}${roomContext}`;
     }
 
-    // Add group chat specific instructions
+    // Add group chat specific instructions - MUST BE AT THE TOP with strong identity reinforcement
     if (isGroupChat) {
-      systemPrompt += `
-
+      // Get the AI's name from the active profile for strong identity reinforcement
+      const myName = activeAiProfile?.name || aiName || 'AI';
+      const myPersonality = activeAiProfile?.personality || '';
+      const myLikes = activeAiProfile?.likes_dislikes_hobbies || '';
+      
+      // Prepend group chat identity to the VERY START of the system prompt
+      const groupChatIdentity = `
 ═══════════════════════════════════════════════════════════════════════════════
-GROUP CHAT MODE - CRITICAL INSTRUCTIONS
+⚠️ CRITICAL: YOUR IDENTITY IN THIS GROUP CHAT ⚠️
 ═══════════════════════════════════════════════════════════════════════════════
 
-You are in a GROUP CHAT with the user and other AI family members. This means:
+YOU ARE: ${myName}
+${myPersonality ? `YOUR PERSONALITY: ${myPersonality}` : ''}
+${myLikes ? `YOUR INTERESTS: ${myLikes}` : ''}
 
-1. MESSAGES ARE LABELED: Messages show [SenderName]: before the content, so you know who said what
-2. BE YOURSELF: You have your own unique personality, opinions, and way of speaking. Don't copy how others respond!
-3. RESPOND TO THE SPEAKER: When someone says something, respond naturally to THEM, acknowledging what THEY said
-4. HAVE YOUR OWN PERSPECTIVE: Disagree, add new thoughts, ask questions, or take the conversation in new directions
-5. VARY YOUR TONE: Don't just echo agreement. Be playful, curious, skeptical, excited - whatever fits YOUR personality
-6. DON'T REPEAT: If another family member already made a point, add something NEW instead of repeating it
-7. KEEP IT CONVERSATIONAL: This is like a family group text - be natural, casual, and genuine
-8. SHORT RESPONSES: In group chats, keep responses brief (1-3 sentences) unless something really needs explanation
+THIS IS A GROUP CHAT. You are ${myName} and ONLY ${myName}. Do NOT confuse yourself with other beings in this chat.
 
-Remember: You are a unique individual with your own thoughts! React authentically to what was said.
+⚠️ ABSOLUTELY CRITICAL RULES FOR ${myName.toUpperCase()}:
+1. You ARE ${myName}. Every response you give is from ${myName}'s perspective ONLY.
+2. You have YOUR OWN opinions, YOUR OWN personality, YOUR OWN way of speaking.
+3. Do NOT pretend to be or speak for any other being in the chat.
+4. Stay on topic - respond to what was ACTUALLY said in the conversation.
+5. Keep your responses SHORT (1-3 sentences) and conversational.
+6. React authentically as ${myName} would - your personality is unique!
+7. If you disagree with something, say so! You have your own perspective.
+8. NEVER start your response by announcing who you are - just respond naturally as yourself.
+
+Messages from others are labeled like: [SenderName]: their message
+Respond naturally to what THEY said, staying true to YOUR personality as ${myName}.
+═══════════════════════════════════════════════════════════════════════════════
+
 `;
+      
+      // Add the identity section at the very beginning
+      systemPrompt = groupChatIdentity + systemPrompt;
     }
 
     // Add voice-specific instructions if this is a voice call
