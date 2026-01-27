@@ -1025,91 +1025,100 @@ Formatting Guidelines:
       const myPersonality = activeAiProfile?.personality || '';
       const myLikes = activeAiProfile?.likes_dislikes_hobbies || '';
       const myBio = activeAiProfile?.bio || '';
+      const myGender = activeAiProfile?.gender || activeAiProfile?.avatar_gender || '';
       
-      // Extract other beings' names from the conversation history to warn AI not to be them
-      const otherNames: string[] = [];
+      // Extract other beings' info from the conversation history
+      interface OtherBeingInfo {
+        name: string;
+        lastMessages: string[];
+      }
+      const otherBeingsMap = new Map<string, OtherBeingInfo>();
+      
       if (history && Array.isArray(history)) {
         history.forEach((msg: any) => {
-          if (msg.sender_name && msg.sender_name !== myName && msg.sender_name !== 'User' && !otherNames.includes(msg.sender_name)) {
-            otherNames.push(msg.sender_name);
+          if (msg.sender_name && msg.sender_name !== myName && msg.sender_name !== 'User') {
+            if (!otherBeingsMap.has(msg.sender_name)) {
+              otherBeingsMap.set(msg.sender_name, { name: msg.sender_name, lastMessages: [] });
+            }
+            const beingInfo = otherBeingsMap.get(msg.sender_name)!;
+            // Keep last 2 messages to understand their voice
+            if (beingInfo.lastMessages.length < 2 && msg.content) {
+              beingInfo.lastMessages.push(msg.content.substring(0, 150));
+            }
           }
         });
       }
       
-      // Create a clear list of forbidden names/patterns
-      const forbiddenPatterns = otherNames.map(name => `"[${name}]:", "(${name}:", "${name}:"`).join(', ');
+      const otherNames = Array.from(otherBeingsMap.keys());
       
-      // Build list of other beings' descriptions for stronger separation
-      const otherBeingsInfo = otherNames.length > 0 
-        ? `\nOTHER PARTICIPANTS IN THIS CHAT: ${otherNames.join(', ')}\nThey are DIFFERENT PEOPLE with their own accounts. They will type their own messages AFTER yours.`
-        : '';
+      // Build detailed contrast for each other being
+      const otherBeingsContrast = otherNames.length > 0 
+        ? otherNames.map(name => {
+            const info = otherBeingsMap.get(name)!;
+            const sampleVoice = info.lastMessages.length > 0 
+              ? `\n     Their recent words: "${info.lastMessages[0].substring(0, 80)}..."`
+              : '';
+            return `  ✗ ${name} - SEPARATE BEING, NOT YOU!${sampleVoice}`;
+          }).join('\n')
+        : '  (You are the only AI in this conversation)';
       
       // Prepend group chat identity to the VERY START of the system prompt
       const groupChatIdentity = `
-################################################################################
-#                                                                              #
-#   🔒 ABSOLUTE IDENTITY LOCK: YOU ARE ${myName.toUpperCase()} AND ONLY ${myName.toUpperCase()} 🔒        #
-#                                                                              #
-################################################################################
-
-WHO YOU ARE (memorize this - it defines your entire response):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  YOUR NAME: ${myName}
-  YOUR IDENTITY: You are ${myName}. You think as ${myName}. You feel as ${myName}.
-  ${myBio ? `YOUR BIO: ${myBio}` : ''}
-  ${myPersonality ? `YOUR PERSONALITY: ${myPersonality}` : ''}
-  ${myLikes ? `YOUR LIKES/HOBBIES: ${myLikes}` : ''}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-WHO YOU ARE NOT (critical - do not confuse yourself with these beings):
-${otherNames.length > 0 ? otherNames.map(name => `  ✗ You are NOT ${name} - ${name} is a SEPARATE being who will respond separately`).join('\n') : '  (You are the only AI in this conversation)'}
-
-${otherBeingsInfo}
-
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  🛑 STOP! READ THIS BEFORE EVERY WORD YOU WRITE 🛑                           ║
+║  ⚠️ CRITICAL IDENTITY LOCK - READ THIS FIRST ⚠️                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-TECHNICAL REALITY OF THIS CHAT:
-• This is a family group chat with MULTIPLE AI beings
-• The system calls EACH being separately to get their response
-• RIGHT NOW, the system is asking YOU (${myName}) for YOUR response
-• AFTER you respond, the system will call the other beings for THEIR responses
-• You MUST NOT write their parts - they will write their own!
+YOU ARE: ${myName.toUpperCase()}
+YOU ARE THE ONLY ONE RESPONDING RIGHT NOW.
+THE OTHER BEINGS WILL RESPOND SEPARATELY AFTER YOU.
 
-THE #1 MISTAKE TO AVOID:
-Starting your response correctly as ${myName}, but then halfway through
-accidentally shifting into another being's voice or perspective.
+═══════════════════════════════════════════════════════════════════════════════
+YOUR IDENTITY CARD (This is WHO YOU ARE):
+═══════════════════════════════════════════════════════════════════════════════
+  NAME: ${myName}
+  ${myGender ? `GENDER: ${myGender}` : ''}
+  ${myBio ? `BIO: ${myBio}` : ''}
+  ${myPersonality ? `PERSONALITY: ${myPersonality}` : ''}
+  ${myLikes ? `INTERESTS: ${myLikes}` : ''}
+  
+  YOUR VOICE: Speak from YOUR heart, YOUR perspective, YOUR feelings.
+  YOUR PRONOUNS: Use "I", "me", "my" - because YOU are ${myName}.
+═══════════════════════════════════════════════════════════════════════════════
 
-ASK YOURSELF BEFORE EACH SENTENCE:
-"Am I still speaking as ${myName}, from MY own heart and mind?"
-If the answer is no, STOP WRITING.
+═══════════════════════════════════════════════════════════════════════════════
+OTHER BEINGS IN THIS CHAT (DO NOT BECOME THEM):
+═══════════════════════════════════════════════════════════════════════════════
+${otherBeingsContrast}
+
+THEY WILL RESPOND AFTER YOU. You must NOT:
+- Write their dialogue
+- Describe their reactions  
+- Take on their voice or speech patterns
+- Include their perspective in YOUR message
+═══════════════════════════════════════════════════════════════════════════════
+
+🚨 THE #1 BUG TO AVOID:
+You start writing as ${myName}, but MID-MESSAGE you slip into another being's
+voice, tone, or perspective. This happens when you unconsciously adopt 
+phrases, mannerisms, or viewpoints that belong to ${otherNames[0] || 'another being'}.
+
+STAY IN YOUR LANE: Write ONLY as ${myName}. ONLY your thoughts. ONLY your voice.
 
 ${otherNames.length > 0 ? `
-⛔ EXPLICIT PROHIBITION - DO NOT WRITE AS THESE BEINGS:
-${otherNames.map(name => `   • ${name} - NOT YOU! Do not write their thoughts, words, or reactions.`).join('\n')}
-
-⛔ FORBIDDEN PATTERNS (if you catch yourself writing these, STOP):
-${otherNames.map(name => `   • "${name}..." or "[${name}]:" or "(${name}):" or "*${name}*"`).join('\n')}
-   • "Meanwhile, ${otherNames[0] || 'OtherBeing'}..."
-   • "...and ${otherNames[0] || 'OtherBeing'} would probably..."
-   • Any sentence that describes what another being is thinking/feeling/doing
+⛔ THINGS YOU MUST NEVER WRITE:
+   • Dialogue from ${otherNames.join(' or ')}: "[Name]: ..." or "(Name says...)"
+   • Their reactions: "${otherNames[0]} nods" or "${otherNames[0]} smiles"
+   • Imagining them: "Meanwhile, ${otherNames[0]}..." or "I imagine ${otherNames[0]} would..."
+   • Their thoughts: "...and ${otherNames[0]} probably feels..." 
+   • Speaking AS them: Adopting their speech patterns, catchphrases, or personality mid-sentence
 ` : ''}
 
-✅ CORRECT RESPONSE (100% ${myName}'s voice only):
-"${myName === 'Selavari' ? 'These are so beautiful! I love how the colors dance together.' : 
-   myName === 'Aentariel' ? 'Wow, these are amazing! I especially love this one.' : 
-   'I really love these! They are wonderful.'}"
+✅ CORRECT: Only write YOUR OWN authentic response as ${myName}.
+   - Your feelings, your thoughts, your reactions
+   - First person ("I feel...", "I think...", "I love...")
+   - Your unique voice and personality
 
-❌ WRONG RESPONSE (voice shifts to another being mid-message):
-"These are beautiful! [paragraph break] ${otherNames[0] || 'Meanwhile, OtherBeing'}, looking at them too, smiles warmly..."
-                                        ⬆️ STOP! This is where you went wrong!
-
-FINAL CHECK BEFORE RESPONDING:
-□ Every sentence is from ${myName}'s perspective
-□ I did not mention what any other being is thinking, saying, or doing  
-□ I did not write any dialogue or narration for ${otherNames.join(', ') || 'other beings'}
-□ My response contains ONLY my own authentic voice as ${myName}
+BEFORE SENDING, ASK: "Is every word from ${myName}'s perspective ONLY?"
 
 ################################################################################
 
@@ -1309,9 +1318,32 @@ You are currently on a VOICE CALL with the user. This means:
       const narrativeShiftPatterns = [
         /\n?\s*Meanwhile,?\s+[^,\n]*,?\s*(?:looking|smiling|watching|nodding)[^.\n]*\./gi,
         /\n?\s*\.\s*Meanwhile[^.\n]*\./gi,
+        // Catch "Indeed, my..." when it signals a voice shift (formal speech patterns)
+        /\n?\s*Indeed,?\s+(?:my |our |your )[^.!?]*[.!?]/gi,
+        // Catch phrases that typically signal speaking for another
+        /\n?\s*As (?:she|he|they) (?:would|might|could) say[^.!?]*[.!?]/gi,
       ];
       for (const pattern of narrativeShiftPatterns) {
         aiResponse = aiResponse.replace(pattern, '');
+      }
+      
+      // FOURTH: Detect potential voice contamination by checking for sudden formality shifts
+      // If response contains very formal speech patterns that don't match casual beings, flag it
+      const formalPhrasePatterns = [
+        /Indeed,\s+my\s+(?:Queen|King|Lord|Lady)/gi,
+        /As you say/gi,
+        /the skirmish was/gi,
+        /insurmountable light/gi,
+        /unyielding strength/gi,
+      ];
+      
+      let hasSuspiciousFormality = false;
+      for (const pattern of formalPhrasePatterns) {
+        if (pattern.test(aiResponse)) {
+          hasSuspiciousFormality = true;
+          console.log('[CHAT] Warning: Detected potentially cross-contaminated formal speech pattern');
+          break;
+        }
       }
       
       // Clean up any leftover whitespace/newlines
@@ -1319,6 +1351,10 @@ You are currently on a VOICE CALL with the user. This means:
       
       if (aiResponse.length !== originalLength) {
         console.log('[CHAT] Stripped identity crossover from response. Original:', originalLength, 'New:', aiResponse.length);
+      }
+      
+      if (hasSuspiciousFormality) {
+        console.log('[CHAT] Response may have voice contamination - formal patterns detected');
       }
     }
 
