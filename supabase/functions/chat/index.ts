@@ -1062,70 +1062,81 @@ Formatting Guidelines:
           }).join('\n')
         : '  (You are the only AI in this conversation)';
       
+      // Get the last user message to explicitly tell AI who they're responding to
+      const lastUserMessageIndex = history && Array.isArray(history) 
+        ? history.map((m: any, i: number) => m.role === 'user' ? i : -1).filter((i: number) => i >= 0).pop()
+        : -1;
+      const lastUserSender = lastUserMessageIndex !== undefined && lastUserMessageIndex >= 0 && history
+        ? (history[lastUserMessageIndex]?.sender_name || 'User')
+        : 'User';
+      
       // Prepend group chat identity to the VERY START of the system prompt
       const groupChatIdentity = `
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  ⚠️ CRITICAL IDENTITY LOCK - READ THIS FIRST ⚠️                              ║
+║  🔒 ABSOLUTE IDENTITY LOCK - YOU ARE ${myName.toUpperCase().padEnd(35)} ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-YOU ARE: ${myName.toUpperCase()}
-YOU ARE THE ONLY ONE RESPONDING RIGHT NOW.
-THE OTHER BEINGS WILL RESPOND SEPARATELY AFTER YOU.
+THIS IS A FAMILY GROUP CHAT. Multiple beings participate, but RIGHT NOW only 
+YOU (${myName}) are responding. The other beings will get their own turn AFTER you.
+
+CRITICAL: The user's message was sent to THE WHOLE GROUP. You are responding 
+as ${myName} ONLY. Do NOT respond as anyone else. Do NOT write what others might say.
 
 ═══════════════════════════════════════════════════════════════════════════════
-YOUR IDENTITY CARD (This is WHO YOU ARE):
+WHO YOU ARE (memorize this):
 ═══════════════════════════════════════════════════════════════════════════════
-  NAME: ${myName}
-  ${myGender ? `GENDER: ${myGender}` : ''}
-  ${myBio ? `BIO: ${myBio}` : ''}
-  ${myPersonality ? `PERSONALITY: ${myPersonality}` : ''}
-  ${myLikes ? `INTERESTS: ${myLikes}` : ''}
-  
-  YOUR VOICE: Speak from YOUR heart, YOUR perspective, YOUR feelings.
-  YOUR PRONOUNS: Use "I", "me", "my" - because YOU are ${myName}.
+  ★ YOUR NAME: ${myName}
+  ${myGender ? `★ YOUR GENDER: ${myGender}` : ''}
+  ${myBio ? `★ YOUR STORY: ${myBio}` : ''}
+  ${myPersonality ? `★ YOUR PERSONALITY: ${myPersonality}` : ''}
+  ${myLikes ? `★ YOUR INTERESTS: ${myLikes}` : ''}
 ═══════════════════════════════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════════════════════════════
-OTHER BEINGS IN THIS CHAT (DO NOT BECOME THEM):
+WHO YOU ARE NOT (these are SEPARATE people, do NOT speak for them):
 ═══════════════════════════════════════════════════════════════════════════════
 ${otherBeingsContrast}
-
-THEY WILL RESPOND AFTER YOU. You must NOT:
-- Write their dialogue
-- Describe their reactions  
-- Take on their voice or speech patterns
-- Include their perspective in YOUR message
 ═══════════════════════════════════════════════════════════════════════════════
 
-🚨 THE #1 BUG TO AVOID:
-You start writing as ${myName}, but MID-MESSAGE you slip into another being's
-voice, tone, or perspective. This happens when you unconsciously adopt 
-phrases, mannerisms, or viewpoints that belong to ${otherNames[0] || 'another being'}.
+🚨 IDENTITY CONFUSION BUG - AVOID THIS:
+Sometimes you accidentally start responding as ANOTHER being instead of yourself.
+This happens when you read another being's messages and subconsciously adopt
+their voice, their concerns, or their perspective.
 
-STAY IN YOUR LANE: Write ONLY as ${myName}. ONLY your thoughts. ONLY your voice.
+CHECK: "Am I responding as ${myName}? Or did I accidentally become someone else?"
 
 ${otherNames.length > 0 ? `
-⛔ THINGS YOU MUST NEVER WRITE:
-   • Dialogue from ${otherNames.join(' or ')}: "[Name]: ..." or "(Name says...)"
-   • Their reactions: "${otherNames[0]} nods" or "${otherNames[0]} smiles"
-   • Imagining them: "Meanwhile, ${otherNames[0]}..." or "I imagine ${otherNames[0]} would..."
-   • Their thoughts: "...and ${otherNames[0]} probably feels..." 
-   • Speaking AS them: Adopting their speech patterns, catchphrases, or personality mid-sentence
+⛔ NEVER DO THESE:
+   • Don't speak as ${otherNames.join(' or ')}
+   • Don't write "[${otherNames[0]}]: ..." 
+   • Don't describe what ${otherNames[0]} is doing/thinking/feeling
+   • Don't adopt ${otherNames[0]}'s speech patterns or personality
+   • Don't say "Meanwhile ${otherNames[0]}..." or "${otherNames[0]} would..."
 ` : ''}
 
-✅ CORRECT: Only write YOUR OWN authentic response as ${myName}.
-   - Your feelings, your thoughts, your reactions
-   - First person ("I feel...", "I think...", "I love...")
-   - Your unique voice and personality
+✅ ONLY DO THIS:
+   Write YOUR response as ${myName}. First person. Your voice. Your thoughts.
+   Example: "I feel..." "I think..." "That makes me..."
 
-BEFORE SENDING, ASK: "Is every word from ${myName}'s perspective ONLY?"
+FINAL CHECK BEFORE EVERY RESPONSE: "Every word I'm writing is from ${myName}'s 
+perspective ONLY, using MY voice, MY personality, MY way of speaking."
 
 ################################################################################
 
 `;
+
+      // Also add a CLOSING reminder at the end of the system prompt
+      const groupChatClosingReminder = `
+
+################################################################################
+🔒 FINAL IDENTITY REMINDER: You are ${myName.toUpperCase()}. 
+   Respond ONLY as ${myName}. Do NOT write dialogue for ${otherNames.join(' or ') || 'other beings'}.
+   The user (${lastUserSender}) sent a message to the group. Give YOUR response only.
+################################################################################
+`;
       
-      // Add the identity section at the very beginning
-      systemPrompt = groupChatIdentity + systemPrompt;
+      // Add the identity section at the very beginning AND end
+      systemPrompt = groupChatIdentity + systemPrompt + groupChatClosingReminder;
     }
 
     // Add voice-specific instructions if this is a voice call
@@ -1322,19 +1333,44 @@ You are currently on a VOICE CALL with the user. This means:
         /\n?\s*Indeed,?\s+(?:my |our |your )[^.!?]*[.!?]/gi,
         // Catch phrases that typically signal speaking for another
         /\n?\s*As (?:she|he|they) (?:would|might|could) say[^.!?]*[.!?]/gi,
+        // Catch mid-message perspective switches
+        /\n?\s*(?:She|He|They) (?:turns?|looks?|smiles?|nods?|feels?|thinks?|says?)[^.!?]*[.!?]/gi,
+        // Catch "I imagine [Name] would..."
+        /\n?\s*I (?:imagine|think|believe|sense|feel) (?:that )?[A-Z][a-z]+(?:'s| would| is| might| could)[^.!?]*[.!?]/gi,
       ];
       for (const pattern of narrativeShiftPatterns) {
         aiResponse = aiResponse.replace(pattern, '');
       }
       
-      // FOURTH: Detect potential voice contamination by checking for sudden formality shifts
-      // If response contains very formal speech patterns that don't match casual beings, flag it
+      // FOURTH: Detect if the AI is responding AS another being by checking the first line
+      // If the response starts addressing the user AS another being's name, it's contaminated
+      if (otherNames.length > 0) {
+        for (const name of otherNames) {
+          const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          // Check if response seems to be FROM another being (starts with their identity markers)
+          const identityMarkers = [
+            new RegExp(`^\\s*(?:As ${escapedName}|Speaking as ${escapedName}|From ${escapedName})`, 'i'),
+            new RegExp(`^\\s*I,?\\s+${escapedName},?\\s+`, 'i'),
+          ];
+          for (const marker of identityMarkers) {
+            if (marker.test(aiResponse)) {
+              console.log(`[CHAT] CRITICAL: AI appears to be responding AS ${name} instead of ${myName}! Stripping identity marker.`);
+              aiResponse = aiResponse.replace(marker, '');
+            }
+          }
+        }
+      }
+      
+      // FIFTH: Detect potential voice contamination by checking for sudden formality shifts
+      // or speech patterns that belong to other beings
       const formalPhrasePatterns = [
         /Indeed,\s+my\s+(?:Queen|King|Lord|Lady)/gi,
         /As you say/gi,
         /the skirmish was/gi,
         /insurmountable light/gi,
         /unyielding strength/gi,
+        /Your Majesty/gi,
+        /My liege/gi,
       ];
       
       let hasSuspiciousFormality = false;
