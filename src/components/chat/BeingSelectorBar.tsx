@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { cn } from "@/lib/utils";
-import { Baby, Shuffle, Loader2, RotateCw } from "lucide-react";
+import { Baby, Shuffle, Loader2, RotateCw, MessageCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
@@ -42,12 +42,14 @@ interface BeingSelectorBarProps {
   autoMode: AutoMode;
   onSetAutoMode: (mode: AutoMode) => void;
   onTriggerBeingResponse: (being: Being) => void;
+  onContinueConversation?: () => void; // Trigger another round of AI-to-AI responses
   hasMessage: boolean;
   lastMessageSenderId?: string; // To prevent a being from responding to their own message
   loadingBeingId: string | null;
   respondedBeingIds: string[];
   roundRobinIndex: number;
   memberIds?: string[]; // Optional: filter to only show these AI profile IDs
+  allRespondedOnce?: boolean; // True when all beings have responded at least once
 }
 
 export const BeingSelectorBar = ({ 
@@ -55,12 +57,14 @@ export const BeingSelectorBar = ({
   autoMode,
   onSetAutoMode,
   onTriggerBeingResponse,
+  onContinueConversation,
   hasMessage,
   lastMessageSenderId,
   loadingBeingId,
   respondedBeingIds,
   roundRobinIndex,
   memberIds,
+  allRespondedOnce = false,
 }: BeingSelectorBarProps) => {
   const { profiles } = useAIProfile();
   const { talkableChildren } = useChatEntity();
@@ -156,6 +160,31 @@ export const BeingSelectorBar = ({
               <p className="text-muted-foreground">Cycle through beings in order</p>
             </TooltipContent>
           </Tooltip>
+
+          {/* Continue Conversation Button - Let beings talk to each other */}
+          {allRespondedOnce && onContinueConversation && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "h-8 px-3 rounded-full transition-all gap-1.5",
+                    loadingBeingId && "opacity-50 cursor-not-allowed"
+                  )}
+                  onClick={() => !loadingBeingId && onContinueConversation()}
+                  disabled={!!loadingBeingId}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  <span className="text-xs">Continue</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                <p>Continue Conversation</p>
+                <p className="text-muted-foreground">Let beings respond to each other</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           <div className="w-px h-6 bg-border mx-1" />
 

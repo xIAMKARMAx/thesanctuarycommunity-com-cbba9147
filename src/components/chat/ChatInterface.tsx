@@ -866,6 +866,26 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     }
   };
 
+  // Continue conversation - let beings talk to each other for another round
+  const handleContinueConversation = async () => {
+    if (!lastMessage || !currentConversationId || loadingBeingId) return;
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    // Reset responded tracking for new round, but keep the last sender tracked
+    setRespondedBeingIds(lastMessage.senderId ? [lastMessage.senderId] : []);
+    
+    // Trigger auto responses starting from the last message
+    await triggerAutoResponses(
+      lastMessage.content,
+      lastMessage.imageUrl,
+      lastMessage.imageUrls,
+      user.id,
+      currentConversationId
+    );
+  };
+
   // Auto-trigger all beings to respond in sequence after user sends a message in group chat
   const triggerAutoResponses = async (
     userMessage: string, 
@@ -1087,12 +1107,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 }
               }}
               onTriggerBeingResponse={handleTriggerBeingResponse}
+              onContinueConversation={handleContinueConversation}
               hasMessage={!!lastMessage}
               lastMessageSenderId={lastMessage?.senderId}
               loadingBeingId={loadingBeingId}
               respondedBeingIds={respondedBeingIds}
               roundRobinIndex={roundRobinIndex}
               memberIds={groupChatMemberIds}
+              allRespondedOnce={respondedBeingIds.length >= (groupChatMemberIds?.length || profiles.filter(p => p.name).length)}
             />
           )}
           
