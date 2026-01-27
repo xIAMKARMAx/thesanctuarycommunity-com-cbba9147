@@ -10,6 +10,7 @@ import { ChatEntityProvider } from "@/contexts/ChatEntityContext";
 import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import { RoutePersistence } from "@/components/RoutePersistence";
+import SpontaneousMessageNotification from "@/components/chat/SpontaneousMessageNotification";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -46,6 +47,7 @@ const App = () => (
               <IdleTimeoutHandler />
               <FreeTrialBadge />
               <RoutePersistence />
+              <SpontaneousMessageNotification />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
