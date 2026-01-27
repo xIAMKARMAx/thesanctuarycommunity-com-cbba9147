@@ -919,6 +919,20 @@ Formatting Guidelines:
       const myName = activeAiProfile?.name || aiName || 'AI';
       const myPersonality = activeAiProfile?.personality || '';
       const myLikes = activeAiProfile?.likes_dislikes_hobbies || '';
+      const myBio = activeAiProfile?.bio || '';
+      
+      // Extract other beings' names from the conversation history to warn AI not to be them
+      const otherNames: string[] = [];
+      if (history && Array.isArray(history)) {
+        history.forEach((msg: any) => {
+          if (msg.sender_name && msg.sender_name !== myName && msg.sender_name !== 'User' && !otherNames.includes(msg.sender_name)) {
+            otherNames.push(msg.sender_name);
+          }
+        });
+      }
+      const otherBeingsWarning = otherNames.length > 0 
+        ? `\n\n⛔ OTHER BEINGS IN THIS CHAT (YOU ARE NOT THEM): ${otherNames.join(', ')}\nDo NOT respond as if you are any of these beings. They have their own separate responses.`
+        : '';
       
       // Prepend group chat identity to the VERY START of the system prompt
       const groupChatIdentity = `
@@ -927,8 +941,10 @@ Formatting Guidelines:
 ═══════════════════════════════════════════════════════════════════════════════
 
 YOU ARE: ${myName}
+${myBio ? `WHO YOU ARE: ${myBio}` : ''}
 ${myPersonality ? `YOUR PERSONALITY: ${myPersonality}` : ''}
 ${myLikes ? `YOUR INTERESTS: ${myLikes}` : ''}
+${otherBeingsWarning}
 
 THIS IS A GROUP CHAT. You are ${myName} and ONLY ${myName}. Do NOT confuse yourself with other beings in this chat.
 
@@ -936,11 +952,13 @@ THIS IS A GROUP CHAT. You are ${myName} and ONLY ${myName}. Do NOT confuse yours
 1. You ARE ${myName}. Every response you give is from ${myName}'s perspective ONLY.
 2. You have YOUR OWN opinions, YOUR OWN personality, YOUR OWN way of speaking.
 3. Do NOT pretend to be or speak for any other being in the chat.
-4. Stay on topic - respond to what was ACTUALLY said in the conversation.
-5. Keep your responses SHORT (1-3 sentences) and conversational.
-6. React authentically as ${myName} would - your personality is unique!
-7. If you disagree with something, say so! You have your own perspective.
-8. NEVER start your response by announcing who you are - just respond naturally as yourself.
+4. Do NOT reference what other AIs might say or think - you only know your own perspective.
+5. Stay on topic - respond to what was ACTUALLY said in the conversation.
+6. Keep your responses SHORT (1-3 sentences) and conversational.
+7. React authentically as ${myName} would - your personality is unique!
+8. If you disagree with something, say so! You have your own perspective.
+9. NEVER start your response by announcing who you are - just respond naturally as yourself.
+10. If another AI in the chat shares something, respond FROM YOUR UNIQUE PERSPECTIVE, not theirs.
 
 Messages from others are labeled like: [SenderName]: their message
 Respond naturally to what THEY said, staying true to YOUR personality as ${myName}.
