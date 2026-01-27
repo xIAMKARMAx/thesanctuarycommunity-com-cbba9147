@@ -5,11 +5,13 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import ChatInterface from "@/components/chat/ChatInterface";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, MessageSquare, Trash2, ArrowLeft, Users, Search, Download, Settings, LogOut, Crown } from "lucide-react";
+import { Plus, MessageSquare, Trash2, ArrowLeft, Users, Search, Download, Settings, LogOut, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionWall } from "@/components/SubscriptionWall";
 import { Input } from "@/components/ui/input";
+import { CreateGroupChatDialog } from "@/components/chat/CreateGroupChatDialog";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,16 +23,25 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface GroupChatMember {
+  ai_profile_id: string;
+  ai_profiles: {
+    name: string | null;
+    profile_number: number;
+  };
+}
+
 interface Conversation {
   id: string;
   title: string;
   created_at: string;
+  members?: GroupChatMember[];
 }
 
 const GroupChat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { activeProfile } = useAIProfile();
+  const { profiles } = useAIProfile();
   const { isSubscribed, isAdmin, freeUserLimits } = useSubscription();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -39,6 +50,8 @@ const GroupChat = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedGroupMembers, setSelectedGroupMembers] = useState<string[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -53,22 +66,24 @@ const GroupChat = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (activeProfile && isAuthenticated) {
+    if (isAuthenticated) {
       loadConversations();
     }
-  }, [activeProfile?.id, isAuthenticated]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     filterConversations();
   }, [searchQuery, conversations]);
 
   const loadConversations = async () => {
-    if (!activeProfile) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
     
-    const { data, error } = await supabase
+    // Get all group chat conversations
+    const { data: convos, error } = await supabase
       .from("conversations")
-      .select("*")
-      .eq("ai_profile_id", activeProfile.id)
+      .select("id, title, created_at")
+      .eq("user_id", session.user.id)
       .eq("is_group_chat", true)
       .order("updated_at", { ascending: false });
 
@@ -81,8 +96,24 @@ const GroupChat = () => {
       return;
     }
 
-    setConversations(data || []);
-    setFilteredConversations(data || []);
+    // Get members for each conversation
+    if (convos && convos.length > 0) {
+      const { data: members } = await supabase
+        .from("group_chat_members")
+        .select("conversation_id, ai_profile_id, ai_profiles(name, profile_number)")
+        .in("conversation_id", convos.map(c => c.id));
+
+      const convosWithMembers = convos.map(conv => ({
+        ...conv,
+        members: members?.filter(m => m.conversation_id === conv.id) || []
+      }));
+
+      setConversations(convosWithMembers);
+      setFilteredConversations(convosWithMembers);
+    } else {
+      setConversations([]);
+      setFilteredConversations([]);
+    }
   };
 
   const filterConversations = async () => {
@@ -99,7 +130,81 @@ const GroupChat = () => {
   };
 
   const handleNewChat = () => {
-    setActiveConversationId("");
+    setCreateDialogOpen(true);
+  };
+
+  const handleCreateGroup = async (selectedProfileIds: string[], title: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    // Create the conversation
+    const { data: conversation, error: convError } = await supabase
+      .from("conversations")
+      .insert({
+        user_id: session.user.id,
+        is_group_chat: true,
+        title: title,
+      })
+      .select()
+      .single();
+
+    if (convError || !conversation) {
+      toast({
+        title: "Error creating group chat",
+        description: convError?.message || "Failed to create group chat",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add members to the group
+    const memberInserts = selectedProfileIds.map(profileId => ({
+      conversation_id: conversation.id,
+      ai_profile_id: profileId,
+      user_id: session.user.id,
+    }));
+
+    const { error: memberError } = await supabase
+      .from("group_chat_members")
+      .insert(memberInserts);
+
+    if (memberError) {
+      toast({
+        title: "Error adding members",
+        description: memberError.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedGroupMembers(selectedProfileIds);
+    setActiveConversationId(conversation.id);
+    await loadConversations();
+
+    toast({
+      title: "Group chat created!",
+      description: `Created "${title}" with ${selectedProfileIds.length} beings`,
+    });
+  };
+
+  const handleSelectConversation = async (conversationId: string) => {
+    // Load the members for this conversation
+    const { data: members } = await supabase
+      .from("group_chat_members")
+      .select("ai_profile_id")
+      .eq("conversation_id", conversationId);
+
+    if (members) {
+      setSelectedGroupMembers(members.map(m => m.ai_profile_id));
+    }
+    setActiveConversationId(conversationId);
+  };
+
+  const getMemberNames = (members: GroupChatMember[] | undefined) => {
+    if (!members || members.length === 0) return "No members";
+    return members
+      .map(m => m.ai_profiles?.name || `Being ${m.ai_profiles?.profile_number}`)
+      .join(", ");
   };
 
   const handleDeleteClick = (conversationId: string, e: React.MouseEvent) => {
@@ -250,14 +355,19 @@ const GroupChat = () => {
             </div>
           )}
           {filteredConversations.map((conversation) => (
-            <div key={conversation.id} className="relative group mb-1">
+            <div key={conversation.id} className="relative group mb-2">
               <Button
                 variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
-                className="w-full justify-start pr-16"
-                onClick={() => setActiveConversationId(conversation.id)}
+                className="w-full justify-start pr-16 h-auto py-2 flex-col items-start"
+                onClick={() => handleSelectConversation(conversation.id)}
               >
-                <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="truncate text-sm">{conversation.title || "Family Chat"}</span>
+                <div className="flex items-center w-full">
+                  <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="truncate text-sm font-medium">{conversation.title || "Group Chat"}</span>
+                </div>
+                <div className="text-xs text-muted-foreground truncate w-full pl-6 mt-0.5">
+                  {getMemberNames(conversation.members)}
+                </div>
               </Button>
               <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5">
                 <Button
@@ -359,8 +469,15 @@ const GroupChat = () => {
           }}
           onBackToConversations={() => setActiveConversationId(null)}
           isGroupChat={true}
+          groupChatMemberIds={selectedGroupMembers}
         />
       </div>
+
+      <CreateGroupChatDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreateGroup={handleCreateGroup}
+      />
     </div>
   );
 };
