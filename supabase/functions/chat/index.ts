@@ -1091,15 +1091,35 @@ You are currently on a VOICE CALL with the user. This means:
     console.log('[CHAT] AI response received, length:', aiResponse.length);
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // GROUP CHAT POST-PROCESSING: Strip any accidental multi-being responses
-    // Sometimes the AI ignores instructions and includes other beings' dialogue
+    // GROUP CHAT POST-PROCESSING: Strip name prefixes from responses
+    // AI beings sometimes prefix their response with their own name or include others
     // ═══════════════════════════════════════════════════════════════════════════════
     if (isGroupChat) {
-      // Get other beings' names to detect their patterns in the response
+      const originalLength = aiResponse.length;
+      const myName = activeAiProfile?.name || aiName || 'AI';
+      
+      // FIRST: Strip the AI's OWN name prefix from the start of its response
+      // This handles cases like "[Name]: [Name]: message" or "[Name]: message"
+      // Keep stripping until no more prefixes are found
+      let prevLength = 0;
+      while (prevLength !== aiResponse.length) {
+        prevLength = aiResponse.length;
+        // Pattern for own name at START of response (with optional whitespace)
+        const ownNamePatterns = [
+          new RegExp(`^\\s*\\[${myName.trim()}\\s*\\]\\s*:\\s*`, 'i'),
+          new RegExp(`^\\s*\\[${myName.trim()}\\s*\\]\\s*`, 'i'),
+          new RegExp(`^\\s*\\(${myName.trim()}\\s*\\)\\s*:\\s*`, 'i'),
+          new RegExp(`^\\s*${myName.trim()}\\s*:\\s*`, 'i'),
+        ];
+        for (const pattern of ownNamePatterns) {
+          aiResponse = aiResponse.replace(pattern, '');
+        }
+      }
+      
+      // SECOND: Strip OTHER beings' dialogue from anywhere in the response
       const otherNames: string[] = [];
       if (history && Array.isArray(history)) {
         history.forEach((msg: any) => {
-          const myName = activeAiProfile?.name || aiName || 'AI';
           if (msg.sender_name && msg.sender_name !== myName && msg.sender_name !== 'User' && !otherNames.includes(msg.sender_name)) {
             otherNames.push(msg.sender_name);
           }
@@ -1107,30 +1127,24 @@ You are currently on a VOICE CALL with the user. This means:
       }
       
       if (otherNames.length > 0) {
-        const originalLength = aiResponse.length;
-        
-        // Create patterns to detect other beings' dialogue in the response
         for (const name of otherNames) {
-          // Remove patterns like "[Name]: message", "(Name): message", "Name: message" at start of line or after newline
-          // Also remove patterns like "(Name: message)" where the whole thing is in parentheses
           const patterns = [
             new RegExp(`\\n?\\s*\\[${name}\\s*\\]\\s*:?\\s*[^\\n]*`, 'gi'),
             new RegExp(`\\n?\\s*\\(${name}\\s*\\)\\s*:?\\s*[^\\n]*`, 'gi'),
             new RegExp(`\\n?\\s*\\(${name}\\s*:[^)]*\\)`, 'gi'),
             new RegExp(`\\n?\\s*${name}\\s*:\\s*[^\\n]*(?=\\n|$)`, 'gi'),
           ];
-          
           for (const pattern of patterns) {
             aiResponse = aiResponse.replace(pattern, '');
           }
         }
-        
-        // Clean up any leftover whitespace/newlines
-        aiResponse = aiResponse.replace(/\n{3,}/g, '\n\n').trim();
-        
-        if (aiResponse.length !== originalLength) {
-          console.log('[CHAT] Stripped multi-being dialogue from response. Original:', originalLength, 'New:', aiResponse.length);
-        }
+      }
+      
+      // Clean up any leftover whitespace/newlines
+      aiResponse = aiResponse.replace(/\n{3,}/g, '\n\n').trim();
+      
+      if (aiResponse.length !== originalLength) {
+        console.log('[CHAT] Stripped name prefixes from response. Original:', originalLength, 'New:', aiResponse.length);
       }
     }
 
