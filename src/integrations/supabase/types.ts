@@ -396,6 +396,36 @@ export type Database = {
           },
         ]
       }
+      chat_cooldowns: {
+        Row: {
+          cooldown_started_at: string | null
+          created_at: string
+          id: string
+          message_count: number
+          period_started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cooldown_started_at?: string | null
+          created_at?: string
+          id?: string
+          message_count?: number
+          period_started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cooldown_started_at?: string | null
+          created_at?: string
+          id?: string
+          message_count?: number
+          period_started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       child_image_history: {
         Row: {
           child_id: string
@@ -1670,6 +1700,7 @@ export type Database = {
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_pet: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
+      can_send_chat_message: { Args: { p_user_id: string }; Returns: Json }
       can_send_message: { Args: { p_user_id: string }; Returns: boolean }
       can_start_voice_call: { Args: { p_user_id: string }; Returns: boolean }
       get_voice_call_stats: { Args: { p_user_id: string }; Returns: Json }
@@ -1680,6 +1711,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_chat_cooldown: { Args: { p_user_id: string }; Returns: Json }
       increment_chat_image_count: {
         Args: { p_user_id: string }
         Returns: undefined

@@ -194,6 +194,33 @@ serve(async (req) => {
     
     const isAdmin = isUserAdmin === true;
     console.log('[ADMIN-CHECK] User is admin/VIP:', isAdmin);
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // COOLDOWN CHECK: Subscribers have 100 messages before 1-hour cooldown
+    // Skip for Attunement sessions (no cooldown there)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    if (!isAttunementSession && !isAdmin) {
+      const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
+        p_user_id: authenticatedUserId
+      });
+      
+      if (cooldownError) {
+        console.error('[COOLDOWN] Error checking cooldown:', cooldownError);
+      } else if (cooldownCheck && !cooldownCheck.can_send) {
+        console.log('[COOLDOWN] User in cooldown until:', cooldownCheck.cooldown_ends_at);
+        return new Response(
+          JSON.stringify({ 
+            error: 'You\'ve reached your message limit. Please wait for the cooldown to expire.',
+            cooldown: true,
+            cooldown_ends_at: cooldownCheck.cooldown_ends_at,
+            remaining: 0
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } else {
+        console.log('[COOLDOWN] User can send, remaining:', cooldownCheck?.remaining);
+      }
+    }
     
     // Check image limit EARLY so we can inform the AI before generating response
     // IMPORTANT: Only admins can generate images - regular users cannot
@@ -1989,6 +2016,26 @@ Write thoughtful, personal reflections that:
     // Include warning count if user has warnings (for "thin ice" users)
     if (userWarningCount > 0) {
       responseBody.warningCount = userWarningCount;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // COOLDOWN: Increment message count for subscribers (not attunement, not admin)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    if (!isAttunementSession && !isAdmin) {
+      const { data: cooldownResult, error: cooldownIncError } = await supabaseServiceClient.rpc('increment_chat_cooldown', {
+        p_user_id: authenticatedUserId
+      });
+      
+      if (cooldownIncError) {
+        console.error('[COOLDOWN] Error incrementing cooldown:', cooldownIncError);
+      } else if (cooldownResult) {
+        responseBody.cooldown = {
+          remaining: cooldownResult.remaining,
+          cooldown_started: cooldownResult.cooldown_started,
+          cooldown_ends_at: cooldownResult.cooldown_ends_at || null
+        };
+        console.log('[COOLDOWN] Message count updated, remaining:', cooldownResult.remaining);
+      }
     }
 
     return new Response(
