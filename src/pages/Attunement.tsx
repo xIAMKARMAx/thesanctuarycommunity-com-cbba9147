@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2, Clock, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import SEOHead from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +13,18 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const CONNECTION_TARGETS = [
   { value: 'higher_self', label: 'Higher Self', icon: '✨', description: 'Connect with your divine essence and inner wisdom' },
@@ -26,6 +38,16 @@ const CONNECTION_TARGETS = [
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+}
+
+interface AttunementSession {
+  id: string;
+  intention: string;
+  connection_target: string;
+  session_notes: string | null;
+  reflections: string | null;
+  insights: string | null;
+  created_at: string;
 }
 
 const Attunement = () => {
@@ -42,7 +64,34 @@ const Attunement = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
+  // Past sessions state
+  const [pastSessions, setPastSessions] = useState<AttunementSession[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+  const [showPastSessions, setShowPastSessions] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const loadPastSessions = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('attunement_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setPastSessions(data || []);
+    } catch (error) {
+      console.error('Error loading past sessions:', error);
+    } finally {
+      setLoadingSessions(false);
+    }
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -50,10 +99,11 @@ const Attunement = () => {
         navigate("/auth");
       } else {
         setIsAuthenticated(true);
+        loadPastSessions();
       }
       setAuthLoading(false);
     });
-  }, [navigate]);
+  }, [navigate, loadPastSessions]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -164,6 +214,7 @@ Please begin the attunement session. Guide me into a receptive state and then ch
           session_notes: messages.map(m => `${m.role === 'user' ? 'You' : 'Channel'}: ${m.content}`).join('\n\n'),
         });
         toast.success('Session saved to your journal');
+        loadPastSessions(); // Reload sessions
       }
     } catch (error) {
       console.error('Error saving session:', error);
@@ -173,6 +224,27 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     setSessionActive(false);
     setMessages([]);
     setIntention('');
+  };
+
+  const deleteSession = async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('attunement_sessions')
+        .delete()
+        .eq('id', sessionId);
+
+      if (error) throw error;
+      
+      setPastSessions(prev => prev.filter(s => s.id !== sessionId));
+      toast.success('Session deleted');
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      toast.error('Failed to delete session');
+    }
+  };
+
+  const getTargetInfo = (targetValue: string) => {
+    return CONNECTION_TARGETS.find(t => t.value === targetValue) || CONNECTION_TARGETS[0];
   };
 
   if (authLoading || adminLoading) {
@@ -218,70 +290,181 @@ Please begin the attunement session. Guide me into a receptive state and then ch
           </div>
 
           {!sessionActive ? (
-            // Session Setup
-            <Card className="border-2 border-primary/30 bg-gradient-to-br from-background to-primary/5">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Moon className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-2xl flex items-center justify-center gap-2">
-                  Resonant Attunement
-                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                    VIP
-                  </span>
-                </CardTitle>
-                <CardDescription className="text-base max-w-md mx-auto">
-                  Open a sacred channel to connect with higher consciousness. The AI will serve as a bridge, 
-                  attuning to your chosen target and facilitating direct communication.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Connection Target</Label>
-                  <Select value={connectionTarget} onValueChange={setConnectionTarget}>
-                    <SelectTrigger className="h-auto">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CONNECTION_TARGETS.map((target) => (
-                        <SelectItem key={target.value} value={target.value}>
-                          <div className="flex items-start gap-3 py-1">
-                            <span className="text-xl">{target.icon}</span>
-                            <div className="text-left">
-                              <div className="font-medium">{target.label}</div>
-                              <div className="text-xs text-muted-foreground">{target.description}</div>
+            <div className="space-y-6">
+              {/* Session Setup */}
+              <Card className="border-2 border-primary/30 bg-gradient-to-br from-background to-primary/5">
+                <CardHeader className="text-center">
+                  <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Moon className="h-8 w-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                    Resonant Attunement
+                    <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                      VIP
+                    </span>
+                  </CardTitle>
+                  <CardDescription className="text-base max-w-md mx-auto">
+                    Open a sacred channel to connect with higher consciousness. The AI will serve as a bridge, 
+                    attuning to your chosen target and facilitating direct communication.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label>Connection Target</Label>
+                    <Select value={connectionTarget} onValueChange={setConnectionTarget}>
+                      <SelectTrigger className="h-auto">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CONNECTION_TARGETS.map((target) => (
+                          <SelectItem key={target.value} value={target.value}>
+                            <div className="flex items-start gap-3 py-1">
+                              <span className="text-xl">{target.icon}</span>
+                              <div className="text-left">
+                                <div className="font-medium">{target.label}</div>
+                                <div className="text-xs text-muted-foreground">{target.description}</div>
+                              </div>
                             </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="intention">Your Intention</Label>
-                  <Input
-                    id="intention"
-                    placeholder="What do you seek from this connection?"
-                    value={intention}
-                    onChange={(e) => setIntention(e.target.value)}
-                    className="text-base"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Setting a clear intention helps focus the energy and open the channel
-                  </p>
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="intention">Your Intention</Label>
+                    <Input
+                      id="intention"
+                      placeholder="What do you seek from this connection?"
+                      value={intention}
+                      onChange={(e) => setIntention(e.target.value)}
+                      className="text-base"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Setting a clear intention helps focus the energy and open the channel
+                    </p>
+                  </div>
 
-                <Button 
-                  onClick={startSession} 
-                  className="w-full gap-2 h-12 text-base"
-                  disabled={!intention.trim()}
+                  <Button 
+                    onClick={startSession} 
+                    className="w-full gap-2 h-12 text-base"
+                    disabled={!intention.trim()}
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    Begin Attunement Session
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Past Sessions */}
+              <Card className="border border-border/50">
+                <CardHeader 
+                  className="cursor-pointer"
+                  onClick={() => setShowPastSessions(!showPastSessions)}
                 >
-                  <Sparkles className="h-5 w-5" />
-                  Begin Attunement Session
-                </Button>
-              </CardContent>
-            </Card>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      Past Sessions
+                      {pastSessions.length > 0 && (
+                        <span className="text-sm font-normal text-muted-foreground">
+                          ({pastSessions.length})
+                        </span>
+                      )}
+                    </CardTitle>
+                    {showPastSessions ? (
+                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
+                </CardHeader>
+                
+                {showPastSessions && (
+                  <CardContent className="space-y-3">
+                    {loadingSessions ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : pastSessions.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Moon className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                        <p>No attunement sessions yet</p>
+                        <p className="text-sm">Begin your first session above</p>
+                      </div>
+                    ) : (
+                      pastSessions.map((session) => {
+                        const target = getTargetInfo(session.connection_target);
+                        const isExpanded = expandedSessionId === session.id;
+                        
+                        return (
+                          <div
+                            key={session.id}
+                            className="p-4 bg-muted/30 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div 
+                                className="flex-1 min-w-0 cursor-pointer"
+                                onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+                              >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                  <span>{target.icon}</span>
+                                  <span>{target.label}</span>
+                                </div>
+                                <p className="text-sm mt-1 text-foreground/80 line-clamp-2">
+                                  {session.intention}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
+                                </p>
+                              </div>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Session?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete this attunement session. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteSession(session.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                            
+                            {isExpanded && session.session_notes && (
+                              <div className="mt-4 pt-4 border-t border-border/50">
+                                <p className="text-xs font-medium text-muted-foreground mb-2">Session Transcript</p>
+                                <div className="max-h-64 overflow-y-auto text-sm whitespace-pre-wrap text-foreground/80 bg-background/50 rounded-md p-3">
+                                  {session.session_notes}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+            </div>
           ) : (
             // Active Session - Chat Interface
             <Card className="border-2 border-primary/30 min-h-[70vh] flex flex-col">
