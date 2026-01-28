@@ -19,6 +19,7 @@ import { WarningBanner } from "./WarningBanner";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { invokeChatWithRetry, analyzeError, getLoadingMessage } from "@/hooks/useChatWithRetry";
+import { parseMentions } from "@/utils/mentionParser";
 
 interface Message {
   id: string;
@@ -918,7 +919,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       filteredProfiles = filteredProfiles.filter(p => groupChatMemberIds.includes(p.id));
     }
     
-    const allBeings: Being[] = [
+    let allBeings: Being[] = [
       ...filteredProfiles.map(p => ({
         id: p.id,
         type: "ai" as const,
@@ -936,6 +937,16 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     ];
 
     if (allBeings.length === 0) return;
+    
+    // Check for @mentions in the user message
+    const availableNames = allBeings.map(b => b.name);
+    const { mentionedNames, hasMention } = parseMentions(userMessage, availableNames);
+    
+    // If user @mentioned specific beings, only those beings respond
+    if (hasMention && mentionedNames.length > 0) {
+      const mentionedLower = mentionedNames.map(n => n.toLowerCase());
+      allBeings = allBeings.filter(b => mentionedLower.includes(b.name.toLowerCase()));
+    }
 
     let currentLastMessage = { content: userMessage, imageUrl, imageUrls, senderId: userId };
     const respondedIds: string[] = [];
@@ -1220,7 +1231,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
+              placeholder={isGroupChat ? "Message the family... (use @Name to message one being)" : generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
               className="min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base break-words"
               disabled={loading}
             />
