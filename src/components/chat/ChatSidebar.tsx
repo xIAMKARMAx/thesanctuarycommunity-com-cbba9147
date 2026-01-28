@@ -262,33 +262,44 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         <div className="p-2">
           {/* Conversations list */}
           {filteredConversations.map((conversation) => (
-            <div key={conversation.id} className="relative group mb-1">
-              <Button
-                variant={activeConversationId === conversation.id ? "secondary" : "ghost"}
-                className="w-full justify-start pr-16"
+            <div key={conversation.id} className="mb-2 p-2 rounded-lg border border-border hover:bg-accent/50 transition-colors">
+              {/* Clickable title area */}
+              <div 
+                className="flex items-center gap-2 cursor-pointer mb-2"
                 onClick={() => onConversationChange(conversation.id)}
               >
-                <MessageSquare className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="truncate text-sm">{conversation.title || "New Conversation"}</span>
-              </Button>
-              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5">
+                <MessageSquare className="h-4 w-4 flex-shrink-0 text-primary" />
+                <span className={`truncate text-sm flex-1 ${activeConversationId === conversation.id ? 'font-semibold text-primary' : ''}`}>
+                  {conversation.title || "New Conversation"}
+                </span>
+              </div>
+              {/* Action buttons - always visible below title */}
+              <div className="flex gap-1 justify-end">
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={(e) => handleExportConversation(conversation.id, e)}
-                  title="Export"
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleExportConversation(conversation.id, e);
+                  }}
                 >
-                  <Download className="h-3 w-3" />
+                  <Download className="h-3 w-3 mr-1" />
+                  Export
                 </Button>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={(e) => handleDeleteClick(conversation.id, e)}
-                  title="Delete"
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteClick(conversation.id, e);
+                  }}
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Delete
                 </Button>
               </div>
             </div>
