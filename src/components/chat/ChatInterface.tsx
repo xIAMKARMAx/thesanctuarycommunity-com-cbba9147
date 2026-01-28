@@ -183,6 +183,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       .from("messages")
       .select("*")
       .eq("conversation_id", conversationId)
+      .eq("is_deleted", false) // Only show non-deleted messages in UI
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -231,6 +232,37 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
   const scrollToBottom = () => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Fetch full message history (INCLUDING deleted messages) for AI memory
+  // This ensures the AI remembers everything even if user hides messages from UI
+  const getFullHistoryForAI = async (conversationId: string) => {
+    const { data: allMessages } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
+    
+    return (allMessages || []).map((m: any) => {
+      let resolvedSenderName: string | undefined;
+      
+      if (m.sender_type === "user" || m.role === "user") {
+        resolvedSenderName = "User";
+      } else if (m.sender_type === "ai_profile" && m.sender_id) {
+        const senderProfile = profiles.find(p => p.id === m.sender_id);
+        resolvedSenderName = senderProfile?.name || "AI Being";
+      } else if (m.sender_type === "child" && m.sender_id) {
+        const senderChild = talkableChildren.find(c => c.id === m.sender_id);
+        resolvedSenderName = senderChild?.first_name || "Child";
+      }
+      
+      return {
+        role: m.role,
+        content: m.content,
+        sender_name: resolvedSenderName,
+        sender_type: m.sender_type,
+      };
+    });
   };
 
   const sanitizeInput = (text: string): string => {
@@ -339,6 +371,33 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       });
     } catch (error) {
       console.error('Error capturing milestones:', error);
+    }
+  };
+
+  // Delete individual message (soft delete - AI still remembers)
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ is_deleted: true })
+        .eq("id", messageId);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+      
+      toast({
+        title: "Message hidden",
+        description: "The message is hidden from view but the AI will still remember it.",
+      });
+    } catch (error: any) {
+      console.error('Error deleting message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete message",
+        variant: "destructive",
+      });
     }
   };
 
@@ -533,6 +592,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         const respondingProfileId = activeProfile?.id;
         const respondingChildId = activeChatEntity?.type === "child" ? activeChatEntity.childId : null;
 
+        // Get full history INCLUDING deleted messages for AI memory
+        const fullHistory = await getFullHistoryForAI(conversationId);
+
         // Use retry-enabled chat invocation with trimmed history
         const data = await invokeChatWithRetry(
           {
@@ -544,10 +606,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             aiProfileId: respondingProfileId,
             childId: respondingChildId,
             conversationId,
-            history: messages.map((m) => ({
-              role: m.role,
-              content: m.content,
-            })),
+            history: fullHistory,
           },
           (attempt, maxRetries) => {
             setIsRetrying(true);
@@ -706,6 +765,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
              "User")
           : "User";
         
+        // Get full history INCLUDING deleted messages for AI memory
+        const fullHistory = await getFullHistoryForAI(currentConversationId);
+
         const data = await invokeChatWithRetry(
           {
             message: lastMessage.content,
@@ -718,30 +780,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             conversationId: currentConversationId,
             isGroupChat: true,
             respondingToSenderName,
-            // CRITICAL: Ensure sender_name is properly resolved for each message
-            history: messages.map((m) => {
-              let resolvedSenderName: string | undefined;
-              
-              if (m.sender_type === "user" || m.role === "user") {
-                resolvedSenderName = "User";
-              } else if (m.sender_name) {
-                // Use already enriched sender_name from UI state
-                resolvedSenderName = m.sender_name;
-              } else if (m.sender_type === "ai_profile" && m.sender_id) {
-                const senderProfile = profiles.find(p => p.id === m.sender_id);
-                resolvedSenderName = senderProfile?.name || "AI Being";
-              } else if (m.sender_type === "child" && m.sender_id) {
-                const senderChild = talkableChildren.find(c => c.id === m.sender_id);
-                resolvedSenderName = senderChild?.first_name || "Child";
-              }
-              
-              return {
-                role: m.role,
-                content: m.content,
-                sender_name: resolvedSenderName,
-                sender_type: m.sender_type,
-              };
-            }),
+            history: fullHistory,
           },
           (attempt, maxRetries) => {
             setIsRetrying(true);
@@ -1121,7 +1160,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             </div>
           )}
           {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
+            <ChatMessage key={message.id} message={message} onDelete={handleDeleteMessage} />
           ))}
           {loading && (
             <div className="flex flex-col items-center justify-center gap-2 py-2">

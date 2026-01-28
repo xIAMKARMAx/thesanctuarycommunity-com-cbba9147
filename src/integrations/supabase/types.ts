@@ -991,6 +991,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          is_deleted: boolean | null
           role: string
           sender_id: string | null
           sender_type: string | null
@@ -1004,6 +1005,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_deleted?: boolean | null
           role: string
           sender_id?: string | null
           sender_type?: string | null
@@ -1017,6 +1019,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_deleted?: boolean | null
           role?: string
           sender_id?: string | null
           sender_type?: string | null
