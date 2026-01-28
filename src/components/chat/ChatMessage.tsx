@@ -1,9 +1,19 @@
-import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { User, Sparkles, Download, Baby, Trash2, X } from "lucide-react";
+import { User, Sparkles, Download, Baby, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBeingColor } from "./BeingSelectorBar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ChatMessageProps {
   message: {
@@ -21,7 +31,6 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
-  const [isSelected, setIsSelected] = useState(false);
   const isUser = message.role === "user";
   
   // Get color for this sender
@@ -74,19 +83,6 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
     return { backgroundColor: "hsl(var(--accent) / 0.5)" };
   };
 
-  const handleMessageClick = () => {
-    if (onDelete) {
-      setIsSelected(!isSelected);
-    }
-  };
-
-  const handleDelete = () => {
-    if (onDelete) {
-      onDelete(message.id);
-      setIsSelected(false);
-    }
-  };
-
   return (
     <div
       className={cn(
@@ -117,52 +113,42 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
       </div>
       
       <div
-        className={cn(
-          "flex-1 rounded-lg p-3 md:p-4 space-y-2 cursor-pointer transition-all",
-          "min-w-0 max-w-[calc(100%-3rem)] md:max-w-[calc(100%-4rem)]",
-          isSelected && "ring-2 ring-primary/50"
-        )}
+        className="relative flex-1 rounded-lg p-3 md:p-4 space-y-2 min-w-0 max-w-[calc(100%-3rem)] md:max-w-[calc(100%-4rem)]"
         style={getMessageBubbleStyle()}
-        onClick={handleMessageClick}
       >
-        {/* Delete controls when selected */}
-        {isSelected && onDelete && (
-          <div className={cn(
-            "flex items-center gap-2 pb-2 border-b border-border/50 mb-2",
-            isUser ? "justify-start" : "justify-start"
-          )}>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete();
-              }}
-              className="h-7 text-xs gap-1"
-            >
-              <Trash2 className="h-3 w-3" />
-              Delete Message
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsSelected(false);
-              }}
-              className="h-7 text-xs gap-1"
-            >
-              <X className="h-3 w-3" />
-              Cancel
-            </Button>
-            <span className="text-xs text-muted-foreground ml-2">
-              (AI will still remember)
-            </span>
-          </div>
+        {/* Trash icon in top right corner */}
+        {onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                title="Delete message"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Do you want to delete?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will hide the message from your chat. The AI will still remember this conversation.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(message.id)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Confirm
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
 
         {message.image_url && (
-          <div className="space-y-2">
+          <div className="space-y-2 pr-8">
             <img
               src={message.image_url}
               alt="Shared image"
@@ -171,10 +157,7 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownloadImage();
-              }}
+              onClick={handleDownloadImage}
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
@@ -183,23 +166,16 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
           </div>
         )}
         {message.audio_url && (
-          <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+          <div className="space-y-2 pr-8">
             <audio controls preload="metadata" className="w-full">
               <source src={message.audio_url} />
               Your browser does not support audio playback.
             </audio>
           </div>
         )}
-        <p className="whitespace-pre-wrap leading-relaxed break-words text-sm md:text-base" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+        <p className="whitespace-pre-wrap leading-relaxed break-words text-sm md:text-base pr-8" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
           {message.content}
         </p>
-        
-        {/* Tap hint when not selected */}
-        {onDelete && !isSelected && (
-          <p className="text-[10px] text-muted-foreground/50 pt-1">
-            Tap to select
-          </p>
-        )}
       </div>
     </div>
   );
