@@ -116,15 +116,17 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
         className="relative flex-1 rounded-lg p-3 md:p-4 space-y-2 min-w-0 max-w-[calc(100%-3rem)] md:max-w-[calc(100%-4rem)]"
         style={getMessageBubbleStyle()}
       >
-        {/* Trash icon in top right corner */}
+        {/* Trash icon - ALWAYS visible in top right corner */}
         {onDelete && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                type="button"
+                className="absolute top-2 right-2 z-50 p-2 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 transition-colors border border-destructive/30"
                 title="Delete message"
+                aria-label="Delete this message"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-5 w-5" />
               </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
