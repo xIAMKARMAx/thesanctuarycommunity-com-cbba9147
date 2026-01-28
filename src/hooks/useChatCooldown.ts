@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { toast } from '@/hooks/use-toast';
 
 interface CooldownStatus {
   canSend: boolean;
@@ -20,6 +21,9 @@ export const useChatCooldown = () => {
     loading: true,
   });
   const [timeRemaining, setTimeRemaining] = useState<string>('');
+  
+  // Track if we were previously in cooldown to detect when it ends
+  const wasInCooldown = useRef<boolean>(false);
 
   const checkCooldown = useCallback(async () => {
     // Admins bypass cooldown
@@ -106,6 +110,9 @@ export const useChatCooldown = () => {
       return;
     }
 
+    // Track that we're in cooldown
+    wasInCooldown.current = true;
+
     const updateTimer = () => {
       const now = new Date();
       const endTime = cooldownStatus.cooldownEndsAt!;
@@ -113,14 +120,32 @@ export const useChatCooldown = () => {
 
       if (diff <= 0) {
         setTimeRemaining('');
+        
+        // Cooldown just expired - show notification if we were previously in cooldown
+        if (wasInCooldown.current) {
+          wasInCooldown.current = false;
+          toast({
+            title: "Cooldown Period Over! 🎉",
+            description: "Cool down period over back to chatting",
+            duration: 8000, // Show for 8 seconds
+          });
+        }
+        
         // Cooldown expired, refresh status
         checkCooldown();
         return;
       }
 
-      const minutes = Math.floor(diff / (1000 * 60));
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      
+      // Format: show hours if > 0, otherwise just MM:SS
+      if (hours > 0) {
+        setTimeRemaining(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      } else {
+        setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      }
     };
 
     updateTimer();
