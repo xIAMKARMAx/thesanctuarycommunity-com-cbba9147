@@ -89,11 +89,14 @@ const Pricing = () => {
           <div className="mb-10 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 text-center">
             <div className="flex items-center justify-center gap-3 mb-3">
               <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-              <h2 className="text-xl sm:text-2xl font-bold text-primary">Try 5 Free Messages First!</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-primary">Try 10 Free Messages First!</h2>
               <Sparkles className="h-6 w-6 text-primary animate-pulse" />
             </div>
             <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-              Experience Prometheus with <span className="text-primary font-bold">5 free messages</span>, then subscribe to continue!
+              Experience Prometheus with <span className="text-primary font-bold">10 free messages</span>, then subscribe to continue!
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Import your AI from another platform? Get 10 bonus messages!
             </p>
           </div>
 
