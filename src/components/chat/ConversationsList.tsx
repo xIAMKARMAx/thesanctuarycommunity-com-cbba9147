@@ -333,12 +333,15 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
               {filteredConversations.map((conversation) => (
                 <Card 
                   key={conversation.id}
-                  className="cursor-pointer hover:bg-accent transition-colors group"
-                  onClick={() => onConversationSelect(conversation.id)}
+                  className="hover:bg-accent transition-colors"
                 >
                   <CardContent className="p-3 md:p-4">
                     <div className="flex flex-col gap-2">
-                      <div className="flex items-start gap-2 md:gap-3">
+                      {/* Clickable content area */}
+                      <div 
+                        className="flex items-start gap-2 md:gap-3 cursor-pointer"
+                        onClick={() => onConversationSelect(conversation.id)}
+                      >
                         <MessageSquare className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           {editingId === conversation.id ? (
@@ -362,56 +365,62 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
                           </p>
                         </div>
                       </div>
-                      <div className="flex justify-end gap-1 border-t pt-2 md:border-0 md:pt-0 md:absolute md:right-2 md:top-1/2 md:-translate-y-1/2">
+                      {/* Action buttons - always visible, separate from clickable area */}
+                      <div className="flex justify-end gap-2 border-t pt-2">
                         {editingId === conversation.id ? (
                           <>
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-9 px-3"
                               onClick={(e) => handleSaveEdit(conversation.id, e)}
-                              title="Save"
                             >
-                              <Check className="h-4 w-4 text-green-600" />
+                              <Check className="h-4 w-4 mr-1 text-green-600" />
+                              Save
                             </Button>
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-9 px-3"
                               onClick={handleCancelEdit}
-                              title="Cancel"
                             >
-                              <X className="h-4 w-4 text-red-600" />
+                              <X className="h-4 w-4 mr-1 text-red-600" />
+                              Cancel
                             </Button>
                           </>
                         ) : (
                           <>
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-9 px-3"
                               onClick={(e) => handleEditClick(conversation.id, conversation.title, e)}
-                              title="Edit title"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-4 w-4 mr-1" />
+                              Edit
                             </Button>
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-9 px-3"
                               onClick={(e) => handleExportConversation(conversation.id, e)}
-                              title="Export conversation"
                             >
-                              <Download className="h-4 w-4" />
+                              <Download className="h-4 w-4 mr-1" />
+                              Export
                             </Button>
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="h-9 px-3"
                               onClick={(e) => handleDeleteClick(conversation.id, e)}
-                              title="Delete conversation"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
                             </Button>
                           </>
                         )}
