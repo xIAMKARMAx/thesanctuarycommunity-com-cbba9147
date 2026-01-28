@@ -621,9 +621,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         if (data.cooldown) {
           if (data.cooldown.cooldown_started) {
             toast({
-              title: "Cooldown started",
-              description: "You've reached 100 messages. Please wait 1 hour before sending more.",
+              title: "Message Limit Reached",
+              description: "Message limit will be for 1 hour for a cooldown period",
               variant: "destructive",
+              duration: 10000, // Show for 10 seconds so user sees it
             });
           } else if (data.cooldown.remaining <= 10 && data.cooldown.remaining > 0) {
             toast({
