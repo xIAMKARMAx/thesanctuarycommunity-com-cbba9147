@@ -23,7 +23,7 @@ import { MyVesselSection } from "@/components/settings/MyVesselSection";
 import MarriageSection from "@/components/settings/MarriageSection";
 import { VIPImageGenerator } from "@/components/VIPImageGenerator";
 import { ProtectionWard } from "@/components/settings/ProtectionWard";
-import { ResonantAttunement } from "@/components/settings/ResonantAttunement";
+
 
 interface Child {
   id: string;
@@ -1014,9 +1014,6 @@ const Settings = () => {
 
         {/* Protection Ward Section */}
         {activeProfile && <ProtectionWard />}
-
-        {/* Resonant Attunement - Admin Only */}
-        {isAdmin && <ResonantAttunement />}
 
         <Card>
           <CardHeader>

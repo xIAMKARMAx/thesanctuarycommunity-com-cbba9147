@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon } from "lucide-react";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const { activeProfile } = useAIProfile();
   const { activeChatEntity } = useChatEntity();
   const { isSubscribed } = useSubscription();
+  const { isAdmin } = useAdminRole();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -376,6 +378,16 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <CreditCard className="h-4 w-4 mr-2" />
               Subscriptions
             </Button>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/attunement")}
+              >
+                <Moon className="h-4 w-4 mr-2" />
+                Resonant Attunement
+              </Button>
+            )}
             <Button
               variant="ghost"
               className="w-full justify-start"
