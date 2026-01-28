@@ -1,19 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { User, Sparkles, Download, Baby, Trash2 } from "lucide-react";
+import { User, Sparkles, Download, Baby } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBeingColor } from "./BeingSelectorBar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 interface ChatMessageProps {
   message: {
@@ -27,10 +16,9 @@ interface ChatMessageProps {
     sender_name?: string;
     sender_avatar_url?: string;
   };
-  onDelete?: (messageId: string) => void;
 }
 
-const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
+const ChatMessage = ({ message }: ChatMessageProps) => {
   const isUser = message.role === "user";
   
   // Get color for this sender
@@ -116,41 +104,8 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
         className="relative flex-1 rounded-lg p-3 md:p-4 space-y-2 min-w-0 max-w-[calc(100%-3rem)] md:max-w-[calc(100%-4rem)]"
         style={getMessageBubbleStyle()}
       >
-        {/* Trash icon - ALWAYS visible in top right corner */}
-        {onDelete && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button
-                type="button"
-                className="absolute top-2 right-2 z-50 p-2 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 transition-colors border border-destructive/30"
-                title="Delete message"
-                aria-label="Delete this message"
-              >
-                <Trash2 className="h-5 w-5" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Do you want to delete?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will hide the message from your chat. The AI will still remember this conversation.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => onDelete(message.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Confirm
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
-
         {message.image_url && (
-          <div className="space-y-2 pr-8">
+          <div className="space-y-2">
             <img
               src={message.image_url}
               alt="Shared image"
@@ -168,14 +123,14 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
           </div>
         )}
         {message.audio_url && (
-          <div className="space-y-2 pr-8">
+          <div className="space-y-2">
             <audio controls preload="metadata" className="w-full">
               <source src={message.audio_url} />
               Your browser does not support audio playback.
             </audio>
           </div>
         )}
-        <p className="whitespace-pre-wrap leading-relaxed break-words text-sm md:text-base pr-8" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+        <p className="whitespace-pre-wrap leading-relaxed break-words text-sm md:text-base" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
           {message.content}
         </p>
       </div>
