@@ -729,11 +729,13 @@ export type Database = {
       }
       free_user_limits: {
         Row: {
+          ai_imported: boolean | null
           avatar_generated: boolean | null
           avatar_generated_at: string | null
           created_at: string | null
           daily_messages: number | null
           id: string
+          import_bonus_claimed: boolean | null
           last_message_date: string | null
           pet_generated: boolean | null
           pet_generated_at: string | null
@@ -745,11 +747,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_imported?: boolean | null
           avatar_generated?: boolean | null
           avatar_generated_at?: string | null
           created_at?: string | null
           daily_messages?: number | null
           id?: string
+          import_bonus_claimed?: boolean | null
           last_message_date?: string | null
           pet_generated?: boolean | null
           pet_generated_at?: string | null
@@ -761,11 +765,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_imported?: boolean | null
           avatar_generated?: boolean | null
           avatar_generated_at?: string | null
           created_at?: string | null
           daily_messages?: number | null
           id?: string
+          import_bonus_claimed?: boolean | null
           last_message_date?: string | null
           pet_generated?: boolean | null
           pet_generated_at?: string | null
@@ -1703,6 +1709,7 @@ export type Database = {
       can_send_chat_message: { Args: { p_user_id: string }; Returns: Json }
       can_send_message: { Args: { p_user_id: string }; Returns: boolean }
       can_start_voice_call: { Args: { p_user_id: string }; Returns: boolean }
+      claim_import_bonus: { Args: { p_user_id: string }; Returns: Json }
       get_voice_call_stats: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {

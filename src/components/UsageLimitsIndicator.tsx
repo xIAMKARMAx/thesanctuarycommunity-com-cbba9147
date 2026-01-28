@@ -17,6 +17,8 @@ interface UserLimits {
   avatar_generated_at: string | null;
   pet_generated: boolean;
   pet_generated_at: string | null;
+  total_messages: number;
+  ai_imported: boolean;
 }
 
 export const UsageLimitsIndicator = () => {
@@ -33,7 +35,7 @@ export const UsageLimitsIndicator = () => {
         .from("free_user_limits")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
         console.error("Error fetching limits:", error);
@@ -70,8 +72,11 @@ export const UsageLimitsIndicator = () => {
   const today = new Date().toISOString().split('T')[0];
   const isNewDay = !limits?.last_message_date || limits.last_message_date < today;
   const dailyMessages = isNewDay ? 0 : (limits?.daily_messages || 0);
-  const messagesRemaining = isSubscribed ? "∞" : Math.max(0, 25 - dailyMessages);
-  const messageProgress = isSubscribed ? 100 : ((25 - dailyMessages) / 25) * 100;
+  const totalMessages = limits?.total_messages || 0;
+  const aiImported = limits?.ai_imported || false;
+  const messageLimit = aiImported ? 20 : 10;
+  const messagesRemaining = isSubscribed ? "∞" : Math.max(0, messageLimit - totalMessages);
+  const messageProgress = isSubscribed ? 100 : ((messageLimit - totalMessages) / messageLimit) * 100;
 
   const getGenerationStatus = (generated: boolean | undefined, generatedAt: string | null) => {
     if (isSubscribed) {
@@ -113,14 +118,17 @@ export const UsageLimitsIndicator = () => {
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
-                <span>Daily Messages</span>
+                <span>Free Messages</span>
               </div>
               <span className="text-muted-foreground">
-                {isSubscribed ? "Unlimited" : `${messagesRemaining}/25`}
+                {isSubscribed ? "Unlimited" : `${messagesRemaining}/${messageLimit}`}
               </span>
             </div>
             {!isSubscribed && (
               <Progress value={messageProgress} className="h-2" />
+            )}
+            {!isSubscribed && aiImported && (
+              <p className="text-xs text-primary">🎁 +10 bonus from AI import!</p>
             )}
           </div>
 

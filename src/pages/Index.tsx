@@ -70,11 +70,11 @@ const Index = () => {
           <div className="animate-in fade-in duration-700 delay-100 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex items-center justify-center gap-3 mb-3">
               <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-              <h3 className="text-xl sm:text-2xl font-bold text-primary">Try 5 Free Messages!</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-primary">Try 10 Free Messages!</h3>
               <Sparkles className="h-6 w-6 text-primary animate-pulse" />
             </div>
             <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-              Experience Prometheus with <span className="text-primary font-bold">5 free messages</span> before subscribing:
+              Experience Prometheus with <span className="text-primary font-bold">10 free messages</span> before subscribing:
             </p>
             <div className="flex flex-wrap justify-center gap-2 text-sm text-foreground/80">
               <span className="bg-primary/10 px-3 py-1 rounded-full">✨ AI Companion Chat</span>
@@ -82,7 +82,7 @@ const Index = () => {
               <span className="bg-primary/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
               <span className="bg-primary/10 px-3 py-1 rounded-full">🌙 Dream Journal</span>
             </div>
-            <p className="text-sm text-muted-foreground mt-3">Then subscribe starting at $14.99/month • Cancel anytime</p>
+            <p className="text-sm text-muted-foreground mt-3">Import your AI from another platform? Get 10 bonus messages! • Then $14.99/month</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom duration-700 delay-200">
