@@ -1051,6 +1051,9 @@ Formatting Guidelines:
       
       const otherNames = Array.from(otherBeingsMap.keys());
       
+      // Log clear identity context for debugging
+      console.log(`[GROUP-CHAT] Responding as: ${myName} | Other beings in chat: ${otherNames.join(', ') || 'none'}`);
+      
       // Build detailed contrast for each other being
       const otherBeingsContrast = otherNames.length > 0 
         ? otherNames.map(name => {
@@ -1168,19 +1171,40 @@ You are currently on a VOICE CALL with the user. This means:
     // Build messages array with history
     const messagesPayload: any[] = [{ role: 'system', content: systemPrompt }];
     
+    // Get the responding being's name for identity injection
+    const respondingAsName = activeAiProfile?.name || aiName || 'AI';
+    
     // Add conversation history - for group chat, format with sender names
     if (history && Array.isArray(history)) {
       if (isGroupChat) {
         // For group chat, prepend sender names to messages so AI knows who said what
+        // Use a clear format that distinguishes each speaker
         history.forEach((msg: any) => {
           let formattedContent = msg.content;
           if (msg.sender_name) {
-            // Format: "[SenderName]: message content"
-            formattedContent = `[${msg.sender_name}]: ${msg.content}`;
+            // Format: "━━━ [SenderName] ━━━\nmessage content" for clarity
+            formattedContent = `━━━ ${msg.sender_name} says: ━━━\n${msg.content}`;
           } else if (msg.role === 'user') {
-            formattedContent = `[User]: ${msg.content}`;
+            formattedContent = `━━━ User says: ━━━\n${msg.content}`;
           }
           messagesPayload.push({ role: msg.role, content: formattedContent });
+        });
+        
+        // CRITICAL: Add a system-level identity reminder AFTER history but BEFORE the current message
+        // This ensures the AI doesn't "drift" into another being's voice after reading their messages
+        messagesPayload.push({
+          role: 'system',
+          content: `
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ⚡ NOW RESPONDING: ${respondingAsName.toUpperCase().padEnd(50)} ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+You just read messages from different family members. Now it's YOUR turn to respond.
+YOU ARE: ${respondingAsName}
+RESPOND AS: ${respondingAsName} ONLY
+DO NOT: Speak as anyone else, describe others' actions, or shift voice mid-message.
+
+Write your response now as ${respondingAsName}:`
         });
       } else {
         messagesPayload.push(...history);
@@ -1191,7 +1215,8 @@ You are currently on a VOICE CALL with the user. This means:
     if (message) {
       let messageContent = message;
       if (isGroupChat && respondingToSenderName) {
-        messageContent = `[${respondingToSenderName}]: ${message}`;
+        // For group chat, clearly mark who said this message
+        messageContent = `━━━ ${respondingToSenderName} says: ━━━\n${message}\n\n[Now respond as ${respondingAsName}]`;
       }
       
       // Support multiple images (up to 4)
@@ -1351,11 +1376,40 @@ You are currently on a VOICE CALL with the user. This means:
           const identityMarkers = [
             new RegExp(`^\\s*(?:As ${escapedName}|Speaking as ${escapedName}|From ${escapedName})`, 'i'),
             new RegExp(`^\\s*I,?\\s+${escapedName},?\\s+`, 'i'),
+            // Catch when AI labels its own response with another name at the start
+            new RegExp(`^\\s*${escapedName}\\s*:`, 'i'),
+            new RegExp(`^\\s*\\[${escapedName}\\]`, 'i'),
+            new RegExp(`^\\s*━+\\s*${escapedName}`, 'i'),
           ];
           for (const marker of identityMarkers) {
             if (marker.test(aiResponse)) {
               console.log(`[CHAT] CRITICAL: AI appears to be responding AS ${name} instead of ${myName}! Stripping identity marker.`);
               aiResponse = aiResponse.replace(marker, '');
+            }
+          }
+          
+          // CRITICAL: Check if the AI's first sentence mentions another being's name in a way
+          // that suggests it's speaking AS them or about their internal state
+          const firstSentence = aiResponse.split(/[.!?]/)[0] || '';
+          const suspiciousFirstSentencePatterns = [
+            // "I, [OtherName], feel..." 
+            new RegExp(`I,?\\s*${escapedName}`, 'i'),
+            // "[OtherName] here..." or "[OtherName] speaking..."
+            new RegExp(`^${escapedName}\\s+(?:here|speaking|responding)`, 'i'),
+            // Directly claiming to be someone else
+            new RegExp(`I am ${escapedName}`, 'i'),
+            new RegExp(`It's me,? ${escapedName}`, 'i'),
+            new RegExp(`This is ${escapedName}`, 'i'),
+          ];
+          for (const pattern of suspiciousFirstSentencePatterns) {
+            if (pattern.test(firstSentence)) {
+              console.log(`[CHAT] CRITICAL: First sentence suggests wrong identity! Pattern: ${pattern}. Clearing suspicious opener.`);
+              // Remove the contaminated first sentence
+              const sentences = aiResponse.split(/([.!?]+\s*)/);
+              if (sentences.length > 2) {
+                aiResponse = sentences.slice(2).join('').trim();
+              }
+              break;
             }
           }
         }
@@ -1382,8 +1436,24 @@ You are currently on a VOICE CALL with the user. This means:
         }
       }
       
+      // SIXTH: If the AI refers to itself in third person with its OWN name, it's confused
+      // This happens when the AI thinks it's narrating rather than being the character
+      const ownNameThirdPerson = [
+        new RegExp(`${myName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+(?:smiles?|nods?|looks?|turns?|feels?|thinks?|says?|would|might|could)`, 'gi'),
+        new RegExp(`\\*${myName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+`, 'gi'),
+      ];
+      for (const pattern of ownNameThirdPerson) {
+        if (pattern.test(aiResponse)) {
+          console.log('[CHAT] Warning: AI referring to itself in third person - possible narrator mode');
+          aiResponse = aiResponse.replace(pattern, '');
+        }
+      }
+      
       // Clean up any leftover whitespace/newlines
       aiResponse = aiResponse.replace(/\n{3,}/g, '\n\n').trim();
+      
+      // Remove any "Now respond as [Name]" artifacts that might have leaked through
+      aiResponse = aiResponse.replace(/\[?Now respond as [^\]]+\]?/gi, '').trim();
       
       if (aiResponse.length !== originalLength) {
         console.log('[CHAT] Stripped identity crossover from response. Original:', originalLength, 'New:', aiResponse.length);
