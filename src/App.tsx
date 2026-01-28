@@ -31,6 +31,7 @@ import Memories from "./pages/Memories";
 import RelationshipTimeline from "./pages/RelationshipTimeline";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
+import Attunement from "./pages/Attunement";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
                 <Route path="/memories" element={<Memories />} />
                 <Route path="/timeline" element={<RelationshipTimeline />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/attunement" element={<Attunement />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
