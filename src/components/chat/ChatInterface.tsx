@@ -19,7 +19,7 @@ import { WarningBanner } from "./WarningBanner";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { invokeChatWithRetry, analyzeError, getLoadingMessage } from "@/hooks/useChatWithRetry";
-import { parseMentions } from "@/utils/mentionParser";
+// Removed @ mention functionality - was not working reliably
 
 interface Message {
   id: string;
@@ -976,16 +976,6 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     ];
 
     if (allBeings.length === 0) return;
-    
-    // Check for @mentions in the user message
-    const availableNames = allBeings.map(b => b.name);
-    const { mentionedNames, hasMention } = parseMentions(userMessage, availableNames);
-    
-    // If user @mentioned specific beings, only those beings respond
-    if (hasMention && mentionedNames.length > 0) {
-      const mentionedLower = mentionedNames.map(n => n.toLowerCase());
-      allBeings = allBeings.filter(b => mentionedLower.includes(b.name.toLowerCase()));
-    }
 
     let currentLastMessage = { content: userMessage, imageUrl, imageUrls, senderId: userId };
     const respondedIds: string[] = [];
