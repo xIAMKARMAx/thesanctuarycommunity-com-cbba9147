@@ -1,17 +1,6 @@
-import { useSubscription } from "@/contexts/SubscriptionContext";
+import { CooldownIndicator } from "@/components/chat/CooldownIndicator";
 
-// This component is now deprecated since free users cannot send messages
-// Keeping it as a no-op to avoid breaking imports
+// This component now shows the cooldown indicator for subscribers
 export const RemainingMessagesCounter = () => {
-  const { isSubscribed, isAdmin } = useSubscription();
-
-  // Don't show anything - subscription is now required for all messaging
-  // This component is kept for backwards compatibility but no longer displays
-  if (!isSubscribed && !isAdmin) {
-    // Non-subscribers are blocked at the page level with SubscriptionWall
-    return null;
-  }
-
-  // Subscribers don't need a counter
-  return null;
+  return <CooldownIndicator />;
 };

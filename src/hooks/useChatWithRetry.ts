@@ -21,9 +21,16 @@ interface ChatRequest {
   respondingToSenderName?: string;
 }
 
+interface CooldownInfo {
+  remaining: number;
+  cooldown_started: boolean;
+  cooldown_ends_at?: string | null;
+}
+
 interface ChatResponse {
   response: string;
   imageUrl?: string;
+  cooldown?: CooldownInfo;
 }
 
 type ErrorType = 'rate_limit' | 'credits' | 'timeout' | 'network' | 'restricted' | 'unknown';

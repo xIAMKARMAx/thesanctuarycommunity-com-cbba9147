@@ -617,6 +617,22 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         clearInterval(loadingInterval);
         setIsRetrying(false);
 
+        // Handle cooldown notification from response
+        if (data.cooldown) {
+          if (data.cooldown.cooldown_started) {
+            toast({
+              title: "Cooldown started",
+              description: "You've reached 100 messages. Please wait 1 hour before sending more.",
+              variant: "destructive",
+            });
+          } else if (data.cooldown.remaining <= 10 && data.cooldown.remaining > 0) {
+            toast({
+              title: "Almost at limit",
+              description: `${data.cooldown.remaining} messages remaining before cooldown.`,
+            });
+          }
+        }
+
         const aiResponseContent = data.response || "I'm having trouble responding right now. Please try again.";
 
         // Determine sender based on current entity (non-group chat only)
