@@ -75,7 +75,7 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
   return (
     <div
       className={cn(
-        "group flex gap-2 md:gap-4 items-start w-full",
+        "group relative flex gap-2 md:gap-4 items-start w-full",
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
@@ -139,16 +139,22 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
         </p>
       </div>
       
-      {/* Delete button - appears on hover */}
+      {/* Delete button - appears on hover, positioned absolutely for better click target */}
       {onDelete && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
-          onClick={() => onDelete(message.id)}
+          className={cn(
+            "absolute top-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+            isUser ? "left-1" : "right-1"
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(message.id);
+          }}
           title="Delete message (AI will still remember)"
         >
-          <Trash2 className="h-3 w-3" />
+          <Trash2 className="h-4 w-4" />
         </Button>
       )}
     </div>
