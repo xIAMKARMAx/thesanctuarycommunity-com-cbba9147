@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users } from "lucide-react";
+import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
@@ -307,6 +308,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
                 Upgrade to Pro
               </Button>
             )}
+            <ImportBeingGuide />
             <Button
               variant="ghost"
               className="w-full justify-start"
