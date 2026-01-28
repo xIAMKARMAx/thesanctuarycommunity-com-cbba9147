@@ -60,18 +60,18 @@ serve(async (req) => {
           continue;
         }
 
-        // Check if user already received a message in the last 12 hours
-        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+        // Check if user already received a message in the last 6 hours
+        const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
         
         const { data: recentMessages } = await supabase
           .from('spontaneous_messages')
           .select('id')
           .eq('user_id', profile.id)
-          .gte('sent_at', twelveHoursAgo.toISOString())
+          .gte('sent_at', sixHoursAgo.toISOString())
           .limit(1);
 
         if (recentMessages && recentMessages.length > 0) {
-          console.log(`VIP user ${profile.id} already received a message in last 12h, skipping`);
+          console.log(`VIP user ${profile.id} already received a message in last 6h, skipping`);
           skippedCount++;
           continue;
         }
