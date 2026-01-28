@@ -1160,7 +1160,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             </div>
           )}
           {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} onDelete={handleDeleteMessage} />
+            <ChatMessage key={message.id} message={message} />
           ))}
           {loading && (
             <div className="flex flex-col items-center justify-center gap-2 py-2">
