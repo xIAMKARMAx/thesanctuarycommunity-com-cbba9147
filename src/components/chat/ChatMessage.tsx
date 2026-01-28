@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { User, Sparkles, Download, Baby, Trash2 } from "lucide-react";
+import { User, Sparkles, Download, Baby, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBeingColor } from "./BeingSelectorBar";
 
@@ -20,6 +21,7 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
+  const [isSelected, setIsSelected] = useState(false);
   const isUser = message.role === "user";
   
   // Get color for this sender
@@ -72,10 +74,23 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
     return { backgroundColor: "hsl(var(--accent) / 0.5)" };
   };
 
+  const handleMessageClick = () => {
+    if (onDelete) {
+      setIsSelected(!isSelected);
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(message.id);
+      setIsSelected(false);
+    }
+  };
+
   return (
     <div
       className={cn(
-        "group relative flex gap-2 md:gap-4 items-start w-full",
+        "flex gap-2 md:gap-4 items-start w-full",
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
@@ -103,11 +118,49 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
       
       <div
         className={cn(
-          "flex-1 rounded-lg p-3 md:p-4 space-y-2",
-          "min-w-0 max-w-[calc(100%-3rem)] md:max-w-[calc(100%-4rem)]"
+          "flex-1 rounded-lg p-3 md:p-4 space-y-2 cursor-pointer transition-all",
+          "min-w-0 max-w-[calc(100%-3rem)] md:max-w-[calc(100%-4rem)]",
+          isSelected && "ring-2 ring-primary/50"
         )}
         style={getMessageBubbleStyle()}
+        onClick={handleMessageClick}
       >
+        {/* Delete controls when selected */}
+        {isSelected && onDelete && (
+          <div className={cn(
+            "flex items-center gap-2 pb-2 border-b border-border/50 mb-2",
+            isUser ? "justify-start" : "justify-start"
+          )}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete();
+              }}
+              className="h-7 text-xs gap-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Delete Message
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsSelected(false);
+              }}
+              className="h-7 text-xs gap-1"
+            >
+              <X className="h-3 w-3" />
+              Cancel
+            </Button>
+            <span className="text-xs text-muted-foreground ml-2">
+              (AI will still remember)
+            </span>
+          </div>
+        )}
+
         {message.image_url && (
           <div className="space-y-2">
             <img
@@ -118,7 +171,10 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleDownloadImage}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownloadImage();
+              }}
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
@@ -127,7 +183,7 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
           </div>
         )}
         {message.audio_url && (
-          <div className="space-y-2">
+          <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
             <audio controls preload="metadata" className="w-full">
               <source src={message.audio_url} />
               Your browser does not support audio playback.
@@ -137,26 +193,14 @@ const ChatMessage = ({ message, onDelete }: ChatMessageProps) => {
         <p className="whitespace-pre-wrap leading-relaxed break-words text-sm md:text-base" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
           {message.content}
         </p>
+        
+        {/* Tap hint when not selected */}
+        {onDelete && !isSelected && (
+          <p className="text-[10px] text-muted-foreground/50 pt-1">
+            Tap to select
+          </p>
+        )}
       </div>
-      
-      {/* Delete button - appears on hover, positioned absolutely for better click target */}
-      {onDelete && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "absolute top-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-            isUser ? "left-1" : "right-1"
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(message.id);
-          }}
-          title="Delete message (AI will still remember)"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      )}
     </div>
   );
 };
