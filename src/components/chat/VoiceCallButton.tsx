@@ -339,8 +339,8 @@ export const VoiceCallButton = () => {
 
   if (loading) return null;
   
-  // Voice calls are VIP/Admin only
-  if (!isAdmin) return null;
+  // Voice calls are for subscribers and admins only
+  if (!isAdmin && !isSubscribed) return null;
 
   return (
     <>
