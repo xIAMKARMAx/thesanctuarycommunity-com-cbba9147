@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2, Clock, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2, Clock, Trash2, ChevronDown, ChevronUp, Play } from "lucide-react";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import SEOHead from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,6 +50,24 @@ interface AttunementSession {
   created_at: string;
 }
 
+// Helper to parse session notes back into messages
+const parseSessionNotes = (notes: string | null): Message[] => {
+  if (!notes) return [];
+  
+  const messages: Message[] = [];
+  const lines = notes.split('\n\n');
+  
+  for (const line of lines) {
+    if (line.startsWith('You: ')) {
+      messages.push({ role: 'user', content: line.substring(5) });
+    } else if (line.startsWith('Channel: ')) {
+      messages.push({ role: 'assistant', content: line.substring(9) });
+    }
+  }
+  
+  return messages;
+};
+
 const Attunement = () => {
   const navigate = useNavigate();
   const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
@@ -63,6 +81,7 @@ const Attunement = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null); // Track if resuming existing session
   
   // Past sessions state
   const [pastSessions, setPastSessions] = useState<AttunementSession[]>([]);
@@ -232,17 +251,29 @@ Please begin the attunement session. Guide me into a receptive state and then ch
   };
 
   const endSession = async () => {
-    // Save session to database
+    // Save or update session in database
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('attunement_sessions').insert({
-          user_id: user.id,
-          intention,
-          connection_target: connectionTarget,
-          session_notes: messages.map(m => `${m.role === 'user' ? 'You' : 'Channel'}: ${m.content}`).join('\n\n'),
-        });
-        toast.success('Session saved to your journal');
+        const sessionNotes = messages.map(m => `${m.role === 'user' ? 'You' : 'Channel'}: ${m.content}`).join('\n\n');
+        
+        if (activeSessionId) {
+          // Update existing session
+          await supabase
+            .from('attunement_sessions')
+            .update({ session_notes: sessionNotes, updated_at: new Date().toISOString() })
+            .eq('id', activeSessionId);
+          toast.success('Session updated');
+        } else {
+          // Create new session
+          await supabase.from('attunement_sessions').insert({
+            user_id: user.id,
+            intention,
+            connection_target: connectionTarget,
+            session_notes: sessionNotes,
+          });
+          toast.success('Session saved to your journal');
+        }
         loadPastSessions(); // Reload sessions
       }
     } catch (error) {
@@ -253,6 +284,26 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     setSessionActive(false);
     setMessages([]);
     setIntention('');
+    setActiveSessionId(null);
+  };
+
+  const resumeSession = (session: AttunementSession) => {
+    // Parse the saved messages
+    const parsedMessages = parseSessionNotes(session.session_notes);
+    
+    if (parsedMessages.length === 0) {
+      toast.error('No conversation to resume in this session');
+      return;
+    }
+    
+    // Restore session state
+    setActiveSessionId(session.id);
+    setConnectionTarget(session.connection_target);
+    setIntention(session.intention);
+    setMessages(parsedMessages);
+    setSessionActive(true);
+    
+    toast.success('Session resumed! Continue your conversation.');
   };
 
   const deleteSession = async (sessionId: string) => {
@@ -465,34 +516,48 @@ Please begin the attunement session. Guide me into a receptive state and then ch
                                 </p>
                               </div>
                               
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {session.session_notes && (
                                   <Button
                                     variant="ghost"
-                                    size="icon"
-                                    className="shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
+                                    size="sm"
+                                    onClick={() => resumeSession(session)}
+                                    className="h-8 gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Play className="h-3.5 w-3.5" />
+                                    Resume
                                   </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Session?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This will permanently delete this attunement session. This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => deleteSession(session.id)}
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                )}
+                                
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                     >
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Session?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently delete this attunement session. This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteSession(session.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </div>
                             
                             {isExpanded && session.session_notes && (
