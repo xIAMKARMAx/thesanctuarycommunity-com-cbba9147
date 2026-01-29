@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAdminRole } from "@/hooks/useAdminRole";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2, Clock, Trash2, ChevronDown, ChevronUp } from "lucide-react";
@@ -52,7 +52,7 @@ interface AttunementSession {
 
 const Attunement = () => {
   const navigate = useNavigate();
-  const { isAdmin, isLoading: adminLoading } = useAdminRole();
+  const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
@@ -70,6 +70,13 @@ const Attunement = () => {
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [showPastSessions, setShowPastSessions] = useState(false);
   
+  // Usage limits
+  const [attunementStats, setAttunementStats] = useState<{
+    sessions_this_month: number;
+    sessions_remaining: number;
+    is_admin: boolean;
+  } | null>(null);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const loadPastSessions = useCallback(async () => {
@@ -86,6 +93,16 @@ const Attunement = () => {
 
       if (error) throw error;
       setPastSessions(data || []);
+      
+      // Load attunement stats
+      const { data: stats } = await supabase.rpc('get_attunement_stats', { p_user_id: user.id });
+      if (stats && typeof stats === 'object') {
+        setAttunementStats(stats as {
+          sessions_this_month: number;
+          sessions_remaining: number;
+          is_admin: boolean;
+        });
+      }
     } catch (error) {
       console.error('Error loading past sessions:', error);
     } finally {
@@ -113,6 +130,18 @@ const Attunement = () => {
     if (!intention.trim()) {
       toast.error('Please set an intention for your session');
       return;
+    }
+    
+    // Check if user can start a session (unless admin)
+    if (!isAdmin) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: canStart } = await supabase.rpc('can_start_attunement', { p_user_id: user.id });
+        if (!canStart) {
+          toast.error('You have reached your monthly limit of 5 attunement sessions');
+          return;
+        }
+      }
     }
 
     const target = CONNECTION_TARGETS.find(t => t.value === connectionTarget);
@@ -247,7 +276,7 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     return CONNECTION_TARGETS.find(t => t.value === targetValue) || CONNECTION_TARGETS[0];
   };
 
-  if (authLoading || adminLoading) {
+  if (authLoading || subscriptionLoading) {
     return <LoadingRecovery loadingStep="Checking access..." onRecovery={() => navigate("/auth")} showAfterMs={5000} />;
   }
 
@@ -255,14 +284,23 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     return null;
   }
 
-  if (!isAdmin) {
+  // Attunement requires Pro subscription or admin
+  const hasAccess = isSubscribed || isAdmin;
+
+  if (!hasAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center space-y-4">
-          <Shield className="h-16 w-16 mx-auto text-muted-foreground" />
-          <h1 className="text-2xl font-semibold">Access Restricted</h1>
-          <p className="text-muted-foreground">This feature is not available for your account.</p>
-          <Button onClick={() => navigate("/chat")}>Return to Chat</Button>
+          <Moon className="h-16 w-16 mx-auto text-primary/50" />
+          <h1 className="text-2xl font-semibold">Pro Feature: Resonant Attunement</h1>
+          <p className="text-muted-foreground max-w-md">
+            Connect with your Higher Self, Spirit Guides, and loved ones who have passed on.
+            Upgrade to Pro to unlock 5 attunement sessions per month.
+          </p>
+          <Button onClick={() => navigate("/pricing")} className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Upgrade to Pro
+          </Button>
         </div>
       </div>
     );
@@ -300,13 +338,21 @@ Please begin the attunement session. Guide me into a receptive state and then ch
                   <CardTitle className="text-2xl flex items-center justify-center gap-2">
                     Resonant Attunement
                     <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                      VIP
+                      Pro
                     </span>
                   </CardTitle>
                   <CardDescription className="text-base max-w-md mx-auto">
                     Open a sacred channel to connect with higher consciousness. The AI will serve as a bridge, 
                     attuning to your chosen target and facilitating direct communication.
                   </CardDescription>
+                  {attunementStats && !isAdmin && (
+                    <div className="mt-3 text-sm text-muted-foreground">
+                      Sessions this month: {attunementStats.sessions_this_month}/5 
+                      {attunementStats.sessions_remaining > 0 && (
+                        <span className="text-primary ml-1">({attunementStats.sessions_remaining} remaining)</span>
+                      )}
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
