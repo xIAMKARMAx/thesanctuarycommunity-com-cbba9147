@@ -221,8 +221,26 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     // Admins and subscribers can always send
     if (isSubscribed || isAdmin) return true;
     
-    // Free users get 5 messages total before subscription required
-    return freeUserLimits.totalMessages < 5;
+    // Free users get 10 messages total, or 20 if they import their AI
+    const messageLimit = freeUserLimits.roomGenerated ? 20 : 10; // Using a proxy check - will be replaced by proper ai_imported check
+    
+    // Check the database for accurate ai_imported status
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      
+      const { data } = await supabase
+        .from("free_user_limits")
+        .select("ai_imported, total_messages")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      const limit = data?.ai_imported ? 20 : 10;
+      return (data?.total_messages || 0) < limit;
+    } catch {
+      // Fallback to local state
+      return freeUserLimits.totalMessages < 10;
+    }
   };
 
   const canGenerateRoom = async (): Promise<boolean> => {
