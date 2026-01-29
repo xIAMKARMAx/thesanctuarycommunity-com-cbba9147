@@ -34,13 +34,22 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Check if user is admin
-    const { data: isAdmin, error: roleError } = await supabaseClient.rpc('has_role', {
+    // Check if user is admin OR has active subscription
+    const { data: isAdmin } = await supabaseClient.rpc('has_role', {
       _user_id: user.id,
       _role: 'admin'
     });
 
-    if (roleError || !isAdmin) {
+    // Also check subscription status
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('subscription_status')
+      .eq('id', user.id)
+      .single();
+
+    const isSubscribed = profile?.subscription_status === 'active';
+
+    if (!isAdmin && !isSubscribed) {
       throw new Error('Voice features are only available for VIP users');
     }
 
