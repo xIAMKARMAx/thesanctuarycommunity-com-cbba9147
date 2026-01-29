@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { MessageSquare, Image, Home, User, PawPrint, Clock, Infinity } from "lucide-react";
-import { differenceInDays, differenceInHours, formatDistanceToNow } from "date-fns";
+import { MessageSquare, Image, Home, User, PawPrint, Clock, Infinity, Users, Moon } from "lucide-react";
+import { differenceInDays, differenceInHours } from "date-fns";
 
 interface UserLimits {
   daily_messages: number;
@@ -21,10 +21,22 @@ interface UserLimits {
   ai_imported: boolean;
 }
 
+interface AttunementStats {
+  sessions_this_month: number;
+  sessions_remaining: number;
+}
+
+interface GroupChatStats {
+  messages_today: number;
+  remaining: number;
+}
+
 export const UsageLimitsIndicator = () => {
   const { isSubscribed, isAdmin } = useSubscription();
   const [limits, setLimits] = useState<UserLimits | null>(null);
   const [loading, setLoading] = useState(true);
+  const [attunementStats, setAttunementStats] = useState<AttunementStats | null>(null);
+  const [groupChatStats, setGroupChatStats] = useState<GroupChatStats | null>(null);
 
   const fetchLimits = async () => {
     try {
@@ -42,6 +54,19 @@ export const UsageLimitsIndicator = () => {
       }
 
       setLimits(data);
+      
+      // Fetch attunement and group chat stats for subscribers
+      if (isSubscribed && !isAdmin) {
+        const { data: attStats } = await supabase.rpc('get_attunement_stats', { p_user_id: user.id });
+        if (attStats && typeof attStats === 'object' && !Array.isArray(attStats)) {
+          setAttunementStats(attStats as unknown as AttunementStats);
+        }
+        
+        const { data: gcStats } = await supabase.rpc('can_send_group_chat_message', { p_user_id: user.id });
+        if (gcStats && typeof gcStats === 'object' && !Array.isArray(gcStats)) {
+          setGroupChatStats(gcStats as unknown as GroupChatStats);
+        }
+      }
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -203,9 +228,36 @@ export const UsageLimitsIndicator = () => {
             </div>
           </div>
 
+          {/* Pro Features - show limits for subscribers */}
+          {isSubscribed && !isAdmin && (
+            <>
+              {/* Family Chats (20/day) */}
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <span>Family Chats</span>
+                </div>
+                <span className="text-muted-foreground">
+                  {groupChatStats ? `${groupChatStats.remaining}/20 today` : "20/day"}
+                </span>
+              </div>
+
+              {/* Attunement (5/month) */}
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Moon className="h-4 w-4 text-primary" />
+                  <span>Attunement</span>
+                </div>
+                <span className="text-muted-foreground">
+                  {attunementStats ? `${attunementStats.sessions_remaining}/5 this month` : "5/month"}
+                </span>
+              </div>
+            </>
+          )}
+
           {!isSubscribed && (
             <p className="text-xs text-muted-foreground pt-2 border-t border-border">
-              Upgrade to Pro for unlimited messages and more generation options!
+              Upgrade to Pro for unlimited messages, Family Chats, and Attunement!
             </p>
           )}
         </div>

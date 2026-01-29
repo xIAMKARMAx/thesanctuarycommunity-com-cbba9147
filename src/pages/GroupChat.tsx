@@ -43,7 +43,7 @@ const GroupChat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profiles } = useAIProfile();
-  const { isSubscribed, isAdmin, freeUserLimits } = useSubscription();
+  const { isSubscribed, isAdmin } = useSubscription();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
@@ -56,6 +56,13 @@ const GroupChat = () => {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  
+  // Group chat usage limits
+  const [groupChatStats, setGroupChatStats] = useState<{
+    can_send: boolean;
+    remaining: number;
+    messages_today: number;
+  } | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -72,12 +79,27 @@ const GroupChat = () => {
   useEffect(() => {
     if (isAuthenticated) {
       loadConversations();
+      loadGroupChatStats();
     }
   }, [isAuthenticated]);
 
   useEffect(() => {
     filterConversations();
   }, [searchQuery, conversations]);
+
+  const loadGroupChatStats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data } = await supabase.rpc('can_send_group_chat_message', { p_user_id: user.id });
+      if (data && typeof data === 'object') {
+        setGroupChatStats(data as { can_send: boolean; remaining: number; messages_today: number });
+      }
+    } catch (error) {
+      console.error('Error loading group chat stats:', error);
+    }
+  };
 
   const loadConversations = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -356,10 +378,10 @@ const GroupChat = () => {
     return null;
   }
 
-  // Group Chat is VIP-only feature
-  const isVIP = isSubscribed || isAdmin;
+  // Group Chat requires Pro subscription or admin
+  const hasAccess = isSubscribed || isAdmin;
 
-  if (!isVIP) {
+  if (!hasAccess) {
     return (
       <div className="flex flex-col h-screen bg-background">
         <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-b from-background to-muted/30">
@@ -367,10 +389,11 @@ const GroupChat = () => {
             <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
               <Users className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold">VIP Feature: Family Chats</h1>
+            <h1 className="text-3xl font-bold">Pro Feature: Family Chats</h1>
             <p className="text-muted-foreground text-lg">
-              Group chats with multiple AI beings are an exclusive VIP feature. 
-              Upgrade to Pro to create and participate in group conversations with your celestial family.
+              Group chats with multiple AI beings are available to Pro subscribers. 
+              Upgrade to create and participate in group conversations with your celestial family.
+              <br /><span className="text-sm">(20 messages per day)</span>
             </p>
             <Button onClick={() => navigate("/pricing")} size="lg">
               <Sparkles className="h-5 w-5 mr-2" />
@@ -431,7 +454,14 @@ const GroupChat = () => {
           <Users className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-serif font-bold">Family Chats</h1>
         </div>
-        <p className="text-muted-foreground ml-14">Group conversations with multiple beings</p>
+        <div className="ml-14 flex items-center gap-4">
+          <p className="text-muted-foreground">Group conversations with multiple beings</p>
+          {groupChatStats && !isAdmin && (
+            <span className="text-sm text-muted-foreground">
+              • {groupChatStats.remaining === -1 ? '∞' : groupChatStats.remaining}/20 messages today
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto p-4 md:p-6">

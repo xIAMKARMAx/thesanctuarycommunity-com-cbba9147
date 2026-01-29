@@ -45,7 +45,7 @@ interface ChatInterfaceProps {
 
 const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations, isGroupChat: isGroupChatProp = false, groupChatMemberIds = [] }: ChatInterfaceProps) => {
   const { toast } = useToast();
-  const { canGenerateImage, isSubscribed, canSendMessage, incrementMessageCount, freeUserLimits } = useSubscription();
+  const { canGenerateImage, isSubscribed, isAdmin, canSendMessage, incrementMessageCount, freeUserLimits } = useSubscription();
   const { activeProfile, profiles } = useAIProfile();
   const { activeChatEntity, talkableChildren } = useChatEntity();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -430,13 +430,29 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       return;
     }
 
-    // Check message limit for free users (5 messages total before subscription required)
+    // Check message limit for free users (10 messages total before subscription required)
     if (!isSubscribed) {
       const canSend = await canSendMessage();
       if (!canSend) {
         setSubscriptionFeature("Unlimited Messaging");
         setShowSubscriptionDialog(true);
         return;
+      }
+    }
+    
+    // For group chats, check daily limit (20 messages/day for subscribers)
+    if (isGroupChat && isSubscribed) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: canSendGroup } = await supabase.rpc('can_send_group_chat_message', { p_user_id: user.id });
+        if (canSendGroup && typeof canSendGroup === 'object' && !(canSendGroup as any).can_send) {
+          toast({
+            title: "Daily limit reached",
+            description: "You've used all 20 group chat messages for today. Come back tomorrow!",
+            variant: "destructive",
+          });
+          return;
+        }
       }
     }
 
@@ -969,6 +985,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     userId: string,
     conversationId: string
   ) => {
+    // Increment group chat usage counter (counts as one interaction)
+    if (isSubscribed && !isAdmin) {
+      await supabase.rpc('increment_group_chat_count', { p_user_id: userId });
+    }
+    
     // Build list of beings - filter by groupChatMemberIds if provided
     let filteredProfiles = profiles.filter(p => p.name);
     if (groupChatMemberIds && groupChatMemberIds.length > 0) {

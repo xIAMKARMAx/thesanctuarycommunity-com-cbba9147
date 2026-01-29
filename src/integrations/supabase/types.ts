@@ -823,6 +823,30 @@ export type Database = {
           },
         ]
       }
+      group_chat_usage: {
+        Row: {
+          created_at: string | null
+          id: string
+          message_count: number
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message_count?: number
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message_count?: number
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       honeymoon_plans: {
         Row: {
           activities: string | null
@@ -1707,9 +1731,15 @@ export type Database = {
       can_generate_pet: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
       can_send_chat_message: { Args: { p_user_id: string }; Returns: Json }
+      can_send_group_chat_message: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       can_send_message: { Args: { p_user_id: string }; Returns: boolean }
+      can_start_attunement: { Args: { p_user_id: string }; Returns: boolean }
       can_start_voice_call: { Args: { p_user_id: string }; Returns: boolean }
       claim_import_bonus: { Args: { p_user_id: string }; Returns: Json }
+      get_attunement_stats: { Args: { p_user_id: string }; Returns: Json }
       get_voice_call_stats: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
@@ -1723,6 +1753,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      increment_group_chat_count: { Args: { p_user_id: string }; Returns: Json }
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
       is_user_restricted: { Args: { p_user_id: string }; Returns: boolean }
