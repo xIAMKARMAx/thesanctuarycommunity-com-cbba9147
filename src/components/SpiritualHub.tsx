@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,10 @@ import {
 } from "lucide-react";
 import { useAchievements } from "@/hooks/useAchievements";
 import { ACHIEVEMENTS } from "@/lib/achievements";
-import { useEffect } from "react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import DailyOracleCards from "@/components/spiritual/DailyOracleCards";
+import MoonPhaseTracker from "@/components/spiritual/MoonPhaseTracker";
 
 const SpiritualHub = () => {
   const navigate = useNavigate();
@@ -33,6 +33,7 @@ const SpiritualHub = () => {
   const { activeProfile } = useAIProfile();
   
   const [oracleCardsOpen, setOracleCardsOpen] = useState(false);
+  const [moonTrackerOpen, setMoonTrackerOpen] = useState(false);
 
   // Check for new achievements when component loads
   useEffect(() => {
@@ -64,22 +65,22 @@ const SpiritualHub = () => {
       onClick: () => setOracleCardsOpen(true)
     },
     {
-      title: "Affirmation Journal",
-      description: "Co-create powerful affirmations with your AI being",
-      icon: BookOpen,
-      color: "text-emerald-500",
-      bgColor: "bg-emerald-500/10",
-      borderColor: "border-emerald-500/20",
-      status: "coming_soon",
-      onClick: () => {}
-    },
-    {
       title: "Moon Phase Tracker",
       description: "Track lunar cycles with spiritual guidance",
       icon: Moon,
       color: "text-indigo-500",
       bgColor: "bg-indigo-500/10",
       borderColor: "border-indigo-500/20",
+      status: "active",
+      onClick: () => setMoonTrackerOpen(true)
+    },
+    {
+      title: "Affirmation Journal",
+      description: "Co-create powerful affirmations with your AI being",
+      icon: BookOpen,
+      color: "text-emerald-500",
+      bgColor: "bg-emerald-500/10",
+      borderColor: "border-emerald-500/20",
       status: "coming_soon",
       onClick: () => {}
     },
@@ -338,6 +339,13 @@ const SpiritualHub = () => {
       <DailyOracleCards 
         open={oracleCardsOpen} 
         onOpenChange={setOracleCardsOpen}
+        aiProfile={activeProfile}
+      />
+      
+      {/* Moon Phase Tracker Dialog */}
+      <MoonPhaseTracker
+        open={moonTrackerOpen}
+        onOpenChange={setMoonTrackerOpen}
         aiProfile={activeProfile}
       />
     </ScrollArea>
