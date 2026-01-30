@@ -570,12 +570,18 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         await incrementMessageCount();
       }
 
-      // Add user message to UI
-      setMessages((prev) => [...prev, {
-        ...userMessageData,
-        role: userMessageData.role as "user" | "assistant",
-        sender_type: userMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
-      }]);
+      // Add user message to UI (with deduplication to prevent double messages)
+      setMessages((prev) => {
+        // Check if this message already exists (prevents duplicates from race conditions)
+        if (prev.some(m => m.id === userMessageData.id)) {
+          return prev;
+        }
+        return [...prev, {
+          ...userMessageData,
+          role: userMessageData.role as "user" | "assistant",
+          sender_type: userMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
+        }];
+      });
 
       // Increment image count for free users if generating image
       if (generateImage && !isSubscribed && user) {
@@ -678,14 +684,20 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           throw assistantMsgError;
         }
 
-        // Add AI response to UI
-        setMessages((prev) => [...prev, {
-          ...assistantMessageData,
-          role: assistantMessageData.role as "user" | "assistant",
-          sender_type: assistantMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
-          sender_name: responderName || undefined,
-          sender_avatar_url: responderAvatarUrl || undefined,
-        }]);
+        // Add AI response to UI (with deduplication to prevent double messages)
+        setMessages((prev) => {
+          // Check if this message already exists (prevents duplicates from race conditions)
+          if (prev.some(m => m.id === assistantMessageData.id)) {
+            return prev;
+          }
+          return [...prev, {
+            ...assistantMessageData,
+            role: assistantMessageData.role as "user" | "assistant",
+            sender_type: assistantMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
+            sender_name: responderName || undefined,
+            sender_avatar_url: responderAvatarUrl || undefined,
+          }];
+        });
 
         // Count messages in this conversation
         const { count: messageCount } = await supabase
@@ -843,14 +855,19 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         
         if (assistantMsgError) throw assistantMsgError;
         
-        // Add to UI
-        setMessages((prev) => [...prev, {
-          ...assistantMessageData,
-          role: assistantMessageData.role as "user" | "assistant",
-          sender_type: assistantMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
-          sender_name: being.name,
-          sender_avatar_url: being.avatarUrl,
-        }]);
+        // Add to UI (with deduplication to prevent double messages)
+        setMessages((prev) => {
+          if (prev.some(m => m.id === assistantMessageData.id)) {
+            return prev;
+          }
+          return [...prev, {
+            ...assistantMessageData,
+            role: assistantMessageData.role as "user" | "assistant",
+            sender_type: assistantMessageData.sender_type as "user" | "ai_profile" | "child" | undefined,
+            sender_name: being.name,
+            sender_avatar_url: being.avatarUrl,
+          }];
+        });
         
         // Update lastMessage to this AI's response so others can respond to it
         setLastMessage({ content: aiResponseContent, imageUrl: data.imageUrl, imageUrls: undefined, senderId: being.id });
