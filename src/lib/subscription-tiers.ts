@@ -3,8 +3,8 @@ export const SUBSCRIPTION_TIERS = {
   pro: {
     name: "Pro",
     price: 14.99,
-    priceId: "price_1SdwgrLeA9CCp7fqIHpBrHBp",
-    productId: "prod_TWIdhyRIT9aJm3",
+    priceId: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month - correct live price
+    productId: "prod_TgZlr0QLYQPqEn",
     features: {
       dailyMessages: "Unlimited",
       roomGeneration: "Every 3 days",
