@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -334,23 +334,23 @@ const DailyOracleCards = ({ open, onOpenChange, aiProfile }: DailyOracleCardsPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogClose asChild>
-          <button
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </button>
-        </DialogClose>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col p-0 gap-0">
+        <div className="sticky top-0 z-20 bg-background border-b px-6 py-4 flex items-center justify-between">
+          <DialogTitle className="flex items-center gap-2 m-0">
             <Sparkles className="h-5 w-5 text-purple-500" />
             Daily Oracle Cards
           </DialogTitle>
-        </DialogHeader>
-        {renderContent()}
+          <button
+            className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {renderContent()}
+        </div>
       </DialogContent>
     </Dialog>
   );
