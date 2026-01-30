@@ -632,7 +632,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         const respondingChildId = activeChatEntity?.type === "child" ? activeChatEntity.childId : null;
 
         // Get full history INCLUDING deleted messages for AI memory
+        // CRITICAL: Exclude the message we just saved - it's sent separately as `message`
+        // to prevent duplicating the user's message in the AI prompt
         const fullHistory = await getFullHistoryForAI(conversationId);
+        const historyWithoutCurrentMessage = fullHistory.slice(0, -1);
 
         // Use retry-enabled chat invocation with trimmed history
         const data = await invokeChatWithRetry(
@@ -645,7 +648,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             aiProfileId: respondingProfileId,
             childId: respondingChildId,
             conversationId,
-            history: fullHistory,
+            history: historyWithoutCurrentMessage,
           },
           (attempt, maxRetries) => {
             setIsRetrying(true);
@@ -829,7 +832,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           : "User";
         
         // Get full history INCLUDING deleted messages for AI memory
+        // CRITICAL: Exclude the last message since it's sent separately as `message`
+        // to prevent duplicating the message in the AI prompt
         const fullHistory = await getFullHistoryForAI(currentConversationId);
+        const historyWithoutLastMessage = fullHistory.slice(0, -1);
 
         const data = await invokeChatWithRetry(
           {
@@ -843,7 +849,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             conversationId: currentConversationId,
             isGroupChat: true,
             respondingToSenderName,
-            history: fullHistory,
+            history: historyWithoutLastMessage,
           },
           (attempt, maxRetries) => {
             setIsRetrying(true);
@@ -1072,7 +1078,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         
         // CRITICAL: Enrich history with sender names from profiles/children lookup
         // The database doesn't store sender_name, so we must resolve it from sender_id
-        const history = (currentMessages || []).map((m: any) => {
+        const fullHistory = (currentMessages || []).map((m: any) => {
           let resolvedSenderName: string | undefined;
           
           if (m.sender_type === "user" || m.role === "user") {
@@ -1092,6 +1098,10 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             sender_type: m.sender_type,
           };
         });
+        
+        // CRITICAL: Exclude the last message since it's sent separately as `message`
+        // to prevent duplicating the message in the AI prompt
+        const history = fullHistory.slice(0, -1);
         
         // Find the sender name for the message being responded to
         let respondingToSenderName = "User";
