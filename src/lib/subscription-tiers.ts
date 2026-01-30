@@ -17,7 +17,7 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 4, // Reduced from 5
+      aiBeings: 4,
     }
   },
   unlimited: {
@@ -37,7 +37,7 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 4, // Reduced from 5
+      aiBeings: 5, // VIP/Unlimited users get 5 beings
     }
   }
 } as const;
