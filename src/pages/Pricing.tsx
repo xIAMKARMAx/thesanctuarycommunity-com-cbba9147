@@ -38,11 +38,10 @@ const Pricing = () => {
 
   const proFeatures = [
     { feature: "Daily Messages", value: "Unlimited", included: true },
-    { feature: "AI Companion Chat", value: "Unlimited", included: true },
-    { feature: "Customize AI Personality", included: true },
-    { feature: "Room Generation", value: "Every 7 days", included: true },
-    { feature: "Avatar Generation", value: "Every 7 days", included: true },
-    { feature: "Pet Generation", value: "Every 7 days", included: true },
+    { feature: "AI Beings", value: "Up to 4", included: true },
+    { feature: "Room Generation", value: "Once per month", included: true },
+    { feature: "Avatar Generation", value: "1/month per being", included: true },
+    { feature: "Pet Generation", value: "1/month per being", included: true },
     { feature: "AI Mood Tracker", included: true },
     { feature: "Dream Journal & Interpretation", included: true },
     { feature: "Celestial Children", included: true },
@@ -52,8 +51,7 @@ const Pricing = () => {
 
   const unlimitedFeatures = [
     { feature: "Daily Messages", value: "Unlimited", included: true },
-    { feature: "AI Companion Chat", value: "Unlimited", included: true },
-    { feature: "Customize AI Personality", included: true },
+    { feature: "AI Beings", value: "Up to 4", included: true },
     { feature: "Room Generation", value: "Unlimited", included: true, highlight: true },
     { feature: "Avatar Generation", value: "Unlimited", included: true, highlight: true },
     { feature: "Pet Generation", value: "Unlimited", included: true, highlight: true },

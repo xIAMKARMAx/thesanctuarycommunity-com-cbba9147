@@ -103,23 +103,23 @@ export const UsageLimitsIndicator = () => {
   const messagesRemaining = isSubscribed ? "∞" : Math.max(0, messageLimit - totalMessages);
   const messageProgress = isSubscribed ? 100 : ((messageLimit - totalMessages) / messageLimit) * 100;
 
-  const getGenerationStatus = (generated: boolean | undefined, generatedAt: string | null) => {
+  const getGenerationStatus = (generated: boolean | undefined, generatedAt: string | null, cooldownDays: number = 30) => {
     if (isSubscribed) {
-      // Pro users: check 7-day cooldown
+      // Pro users: check cooldown period
       if (!generatedAt) return { canGenerate: true, timeLeft: null };
       const daysSince = differenceInDays(new Date(), new Date(generatedAt));
-      if (daysSince >= 7) return { canGenerate: true, timeLeft: null };
-      const hoursLeft = (7 - daysSince) * 24 - differenceInHours(new Date(), new Date(generatedAt)) % 24;
-      return { canGenerate: false, timeLeft: `${Math.ceil(hoursLeft / 24)}d` };
+      if (daysSince >= cooldownDays) return { canGenerate: true, timeLeft: null };
+      const daysLeft = cooldownDays - daysSince;
+      return { canGenerate: false, timeLeft: `${daysLeft}d` };
     } else {
       // Free users: one-time only
       return { canGenerate: !generated, timeLeft: generated ? "Used" : null };
     }
   };
 
-  const roomStatus = getGenerationStatus(limits?.room_generated, limits?.room_generated_at || null);
-  const avatarStatus = getGenerationStatus(limits?.avatar_generated, limits?.avatar_generated_at || null);
-  const petStatus = getGenerationStatus(limits?.pet_generated, limits?.pet_generated_at || null);
+  const roomStatus = getGenerationStatus(limits?.room_generated, limits?.room_generated_at || null, 30); // 30 days for room
+  const avatarStatus = getGenerationStatus(limits?.avatar_generated, limits?.avatar_generated_at || null, 30); // 30 days for avatar (per being)
+  const petStatus = getGenerationStatus(limits?.pet_generated, limits?.pet_generated_at || null, 30); // 30 days for pet (per being)
 
   return (
     <Popover>
