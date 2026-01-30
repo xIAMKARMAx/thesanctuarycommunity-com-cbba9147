@@ -10,7 +10,7 @@ const corsHeaders = {
 // Price IDs for different tiers
 const PRICE_IDS = {
   pro: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
-  unlimited: "price_1Slt3kLeA9CCp7fqrN8gl10P", // $19.99/month
+  vip: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month VIP tier
 };
 
 serve(async (req) => {
@@ -34,7 +34,7 @@ serve(async (req) => {
     let tier = "pro";
     try {
       const body = await req.json();
-      if (body.tier && (body.tier === "pro" || body.tier === "unlimited")) {
+      if (body.tier && (body.tier === "pro" || body.tier === "vip")) {
         tier = body.tier;
       }
     } catch {
