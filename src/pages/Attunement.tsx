@@ -315,22 +315,40 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     }
   };
 
+  // Ref to prevent duplicate sends
+  const isSendingRef = useRef(false);
+  
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    // Triple protection: check state, ref, and input
+    if (!inputMessage.trim() || isLoading || isSendingRef.current) {
+      console.log('[Attunement] Blocked duplicate send:', { isLoading, isSending: isSendingRef.current });
+      return;
+    }
 
+    // Immediately set both guards
+    isSendingRef.current = true;
     const userMessage = inputMessage.trim();
     setInputMessage('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
+    
+    // Add user message with unique ID check to prevent duplicates
+    const userMsgContent = userMessage;
+    setMessages(prev => {
+      // Check if this exact message was just added (within last item)
+      const lastMsg = prev[prev.length - 1];
+      if (lastMsg?.role === 'user' && lastMsg?.content === userMsgContent) {
+        console.log('[Attunement] Prevented duplicate user message');
+        return prev;
+      }
+      return [...prev, { role: 'user', content: userMsgContent }];
+    });
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const target = CONNECTION_TARGETS.find(t => t.value === connectionTarget);
-
-      // Build conversation history for context
-      const conversationHistory = messages.map(m => ({
+      // Build conversation history for context (including the new user message)
+      const conversationHistory = [...messages, { role: 'user' as const, content: userMessage }].map(m => ({
         role: m.role,
         content: m.content
       }));
@@ -353,13 +371,23 @@ Please begin the attunement session. Guide me into a receptive state and then ch
       if (!response.ok) throw new Error('Failed to send message');
       
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      
+      // Prevent duplicate assistant messages
+      setMessages(prev => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg?.role === 'assistant' && lastMsg?.content === data.response) {
+          console.log('[Attunement] Prevented duplicate assistant message');
+          return prev;
+        }
+        return [...prev, { role: 'assistant', content: data.response }];
+      });
       setHasUnsavedChanges(true);
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
     } finally {
       setIsLoading(false);
+      isSendingRef.current = false;
     }
   };
 
