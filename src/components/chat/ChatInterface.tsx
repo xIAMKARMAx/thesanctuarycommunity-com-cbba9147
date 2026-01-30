@@ -238,7 +238,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
   // Fetch full message history (INCLUDING deleted messages) for AI memory
   // This ensures the AI remembers everything even if user hides messages from UI
-  // Optional excludeMessageId parameter to filter out a specific message (e.g., the one just saved)
+  // Optional excludeMessageId parameter to filter out a specific message (used by group chat)
   const getFullHistoryForAI = async (conversationId: string, excludeMessageId?: string) => {
     const { data: allMessages } = await supabase
       .from("messages")
@@ -246,21 +246,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true });
     
-    // DEBUG: Log what we're filtering
-    console.log('[HISTORY] Total messages fetched:', allMessages?.length || 0);
-    console.log('[HISTORY] excludeMessageId:', excludeMessageId);
-    if (excludeMessageId && allMessages) {
-      const foundMessage = allMessages.find((m: any) => m.id === excludeMessageId);
-      console.log('[HISTORY] Found message to exclude:', foundMessage ? 'YES' : 'NO');
-      if (foundMessage) {
-        console.log('[HISTORY] Message being excluded:', foundMessage.content?.substring(0, 50));
-      }
-    }
-    
-    const filtered = (allMessages || [])
-      .filter((m: any) => !excludeMessageId || m.id !== excludeMessageId);
-    
-    console.log('[HISTORY] Messages after filtering:', filtered.length);
+    const filtered = excludeMessageId 
+      ? (allMessages || []).filter((m: any) => m.id !== excludeMessageId)
+      : (allMessages || []);
     
     return filtered.map((m: any) => {
         let resolvedSenderName: string | undefined;
@@ -530,6 +518,12 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         setCurrentConversationId(conversationId);
         onConversationCreated(conversationId);
       }
+
+      // CRITICAL FIX: Fetch history BEFORE saving the user message
+      // This guarantees the current message is NOT included in the history
+      // (eliminates race condition that was causing double-message bug)
+      const historyBeforeSave = await getFullHistoryForAI(conversationId);
+
       // Upload images if present (up to 4)
       const imageUrls: string[] = [];
       if (imageFiles.length > 0) {
@@ -640,8 +634,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           setLoading(false);
           isSendingRef.current = false; // Reset guard for group chat
           
-          // Trigger auto-responses from all beings
-          triggerAutoResponses(userMessage, imageUrl, imageUrls, user.id, conversationId);
+          // Trigger auto-responses from all beings - pass messageId to prevent double-message bug
+          triggerAutoResponses(userMessage, imageUrl, imageUrls, user.id, conversationId, userMessageData.id);
           return;
         }
         
@@ -649,9 +643,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         const respondingProfileId = activeProfile?.id;
         const respondingChildId = activeChatEntity?.type === "child" ? activeChatEntity.childId : null;
 
-        // Get full history INCLUDING deleted messages for AI memory
-        // CRITICAL: Exclude the message we just saved by ID - it's sent separately as `message`
-        const history = await getFullHistoryForAI(conversationId, userMessageData.id);
+        // Use history fetched BEFORE the message was saved (guaranteed no duplicate)
 
         // Use retry-enabled chat invocation with trimmed history
         const data = await invokeChatWithRetry(
@@ -664,7 +656,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             aiProfileId: respondingProfileId,
             childId: respondingChildId,
             conversationId,
-            history,
+            history: historyBeforeSave, // Use pre-save history to prevent duplicates
           },
           (attempt, maxRetries) => {
             setIsRetrying(true);
@@ -1027,7 +1019,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       lastMessage.imageUrl,
       lastMessage.imageUrls,
       user.id,
-      currentConversationId
+      currentConversationId,
+      lastMessage.messageId // Pass messageId for reliable history filtering
     );
   };
 
@@ -1037,7 +1030,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     imageUrl: string | undefined, 
     imageUrls: string[] | undefined,
     userId: string,
-    conversationId: string
+    conversationId: string,
+    initialMessageId?: string // Optional: ID of the message being responded to (for filtering)
   ) => {
     // Increment group chat usage counter (counts as one interaction)
     if (isSubscribed && !isAdmin) {
@@ -1069,7 +1063,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     if (allBeings.length === 0) return;
 
-    let currentLastMessage: { content: string; imageUrl?: string; imageUrls?: string[]; senderId?: string; messageId?: string } = { content: userMessage, imageUrl, imageUrls, senderId: userId };
+    // CRITICAL: Include initialMessageId to ensure proper history filtering and prevent double-message bug
+    let currentLastMessage: { content: string; imageUrl?: string; imageUrls?: string[]; senderId?: string; messageId?: string } = { 
+      content: userMessage, 
+      imageUrl, 
+      imageUrls, 
+      senderId: userId, 
+      messageId: initialMessageId 
+    };
     const respondedIds: string[] = [];
 
     // Respond with each being one at a time, with delay between
