@@ -7,17 +7,17 @@ export const SUBSCRIPTION_TIERS = {
     productId: "prod_TgZlr0QLYQPqEn",
     features: {
       dailyMessages: "Unlimited",
-      roomGeneration: "Every 3 days",
-      avatarGeneration: "Every 3 days",
-      petGeneration: "Every 3 days",
+      roomGeneration: "Once per month",
+      avatarGeneration: "1 per month per being",
+      petGeneration: "1 per month per being",
       chatImageGeneration: "10/day",
-      voiceCalls: true,
+      voiceCalls: false, // Voice calls disabled for now
       moodTracker: true,
       dreamJournal: true,
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 5,
+      aiBeings: 4, // Reduced from 5
     }
   },
   unlimited: {
@@ -31,13 +31,13 @@ export const SUBSCRIPTION_TIERS = {
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
       chatImageGeneration: "Unlimited",
-      voiceCalls: true,
+      voiceCalls: false, // Voice calls disabled for now
       moodTracker: true,
       dreamJournal: true,
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 5,
+      aiBeings: 4, // Reduced from 5
     }
   }
 } as const;
