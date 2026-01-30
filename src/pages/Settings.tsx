@@ -741,7 +741,7 @@ const Settings = () => {
               <div>
                 <p className="font-semibold">Current Plan</p>
                 <p className="text-sm text-muted-foreground">
-                  {subLoading ? "Loading..." : isAdmin ? "Admin VIP" : isSubscribed ? "Pro ($9.99/month)" : "Free"}
+                  {subLoading ? "Loading..." : isAdmin ? "Admin VIP" : isSubscribed ? "Pro ($14.99/month)" : "Free"}
                 </p>
               </div>
               <div className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -822,7 +822,7 @@ const Settings = () => {
                     <li>✓ Access to AI Journal</li>
                     <li>✓ Access to Mood Tracker</li>
                   </ul>
-                  <p className="text-sm font-semibold pt-2">$9.99/month</p>
+                  <p className="text-sm font-semibold pt-2">$14.99/month</p>
                 </div>
                 <Button 
                   className="w-full"

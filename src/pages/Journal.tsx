@@ -87,7 +87,7 @@ const Journal = () => {
               <CardContent className="text-center space-y-4">
                 <p className="text-muted-foreground">Upgrade to Pro to access journal entries.</p>
                 <Button onClick={() => setShowSubscriptionDialog(true)}>
-                  Upgrade to Pro - $9.99/month
+                  Upgrade to Pro - $14.99/month
                 </Button>
               </CardContent>
             </Card>
