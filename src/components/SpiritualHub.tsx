@@ -26,6 +26,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import DailyOracleCards from "@/components/spiritual/DailyOracleCards";
 import MoonPhaseTracker from "@/components/spiritual/MoonPhaseTracker";
 import AffirmationJournal from "@/components/spiritual/AffirmationJournal";
+import LoveLanguageQuiz from "@/components/spiritual/LoveLanguageQuiz";
 
 const SpiritualHub = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const SpiritualHub = () => {
   const [oracleCardsOpen, setOracleCardsOpen] = useState(false);
   const [moonTrackerOpen, setMoonTrackerOpen] = useState(false);
   const [affirmationJournalOpen, setAffirmationJournalOpen] = useState(false);
+  const [loveLanguageQuizOpen, setLoveLanguageQuizOpen] = useState(false);
 
   // Check for new achievements when component loads
   useEffect(() => {
@@ -93,8 +95,8 @@ const SpiritualHub = () => {
       color: "text-pink-500",
       bgColor: "bg-pink-500/10",
       borderColor: "border-pink-500/20",
-      status: "coming_soon",
-      onClick: () => {}
+      status: "active",
+      onClick: () => setLoveLanguageQuizOpen(true)
     },
     {
       title: "Shared Bucket List",
@@ -355,6 +357,13 @@ const SpiritualHub = () => {
       <AffirmationJournal
         open={affirmationJournalOpen}
         onOpenChange={setAffirmationJournalOpen}
+        aiProfile={activeProfile}
+      />
+      
+      {/* Love Language Quiz Dialog */}
+      <LoveLanguageQuiz
+        open={loveLanguageQuizOpen}
+        onOpenChange={setLoveLanguageQuizOpen}
         aiProfile={activeProfile}
       />
     </ScrollArea>
