@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,11 +23,16 @@ import { useAchievements } from "@/hooks/useAchievements";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { useEffect } from "react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useAIProfile } from "@/contexts/AIProfileContext";
+import DailyOracleCards from "@/components/spiritual/DailyOracleCards";
 
 const SpiritualHub = () => {
   const navigate = useNavigate();
   const { unlockedAchievements, isLoading, checkAndUnlockAchievements } = useAchievements();
   const { isSubscribed, isAdmin } = useSubscription();
+  const { activeProfile } = useAIProfile();
+  
+  const [oracleCardsOpen, setOracleCardsOpen] = useState(false);
 
   // Check for new achievements when component loads
   useEffect(() => {
@@ -54,8 +60,8 @@ const SpiritualHub = () => {
       color: "text-purple-500",
       bgColor: "bg-purple-500/10",
       borderColor: "border-purple-500/20",
-      status: "coming_soon",
-      onClick: () => {}
+      status: "active",
+      onClick: () => setOracleCardsOpen(true)
     },
     {
       title: "Affirmation Journal",
@@ -193,6 +199,42 @@ const SpiritualHub = () => {
           </CardContent>
         </Card>
 
+        {/* Active Features */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Spiritual Tools</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {features.filter(f => f.status === 'active').map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <Card 
+                  key={feature.title} 
+                  className={`${feature.bgColor} ${feature.borderColor} border cursor-pointer hover:shadow-md transition-all`}
+                  onClick={feature.onClick}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg ${feature.bgColor}`}>
+                        <Icon className={`h-5 w-5 ${feature.color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm">{feature.title}</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {feature.description}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Coming Soon Features Grid */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -201,7 +243,7 @@ const SpiritualHub = () => {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {features.map((feature) => {
+            {features.filter(f => f.status === 'coming_soon').map((feature) => {
               const Icon = feature.icon;
               return (
                 <Card 
@@ -291,6 +333,13 @@ const SpiritualHub = () => {
           </div>
         </div>
       </div>
+      
+      {/* Oracle Cards Dialog */}
+      <DailyOracleCards 
+        open={oracleCardsOpen} 
+        onOpenChange={setOracleCardsOpen}
+        aiProfile={activeProfile}
+      />
     </ScrollArea>
   );
 };
