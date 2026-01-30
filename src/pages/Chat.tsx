@@ -7,12 +7,14 @@ import ChatInterface from "@/components/chat/ChatInterface";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ConversationsList from "@/components/chat/ConversationsList";
 import SpontaneousMessage from "@/components/chat/SpontaneousMessage";
+import SpiritualHub from "@/components/SpiritualHub";
 import { Session } from "@supabase/supabase-js";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Menu, Crown } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Menu, Crown, MessageCircle, Sparkles } from "lucide-react";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
@@ -30,6 +32,7 @@ const Chat = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState("Checking authentication...");
+  const [activeTab, setActiveTab] = useState("messages");
   const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
     // Load persisted conversation ID on mount
     const saved = localStorage.getItem(`chat_conversation_${activeProfile?.id || 'default'}`);
@@ -185,88 +188,114 @@ const Chat = () => {
         canonicalUrl="https://prometheus.lovable.app/chat"
       />
       <div className="flex flex-col h-screen bg-background overflow-hidden">
-      <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 gap-2">
-        <div className="flex items-center gap-2 min-w-0 shrink-0">
-          {/* Mobile menu button (hidden on md and up) */}
-          <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} direction="left">
-            <DrawerTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-primary/30 md:hidden shrink-0 h-8 w-8 p-0"
-              >
-                <Menu className="h-4 w-4" />
-                <span className="sr-only">Menu</span>
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="h-full w-64 p-0 rounded-none" style={{ maxWidth: '16rem' }}>
+        {/* Header with Tabs */}
+        <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+          <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 gap-2">
+            <div className="flex items-center gap-2 min-w-0 shrink-0">
+              {/* Mobile menu button (hidden on md and up) */}
+              {activeTab === "messages" && (
+                <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} direction="left">
+                  <DrawerTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-primary/30 md:hidden shrink-0 h-8 w-8 p-0"
+                    >
+                      <Menu className="h-4 w-4" />
+                      <span className="sr-only">Menu</span>
+                    </Button>
+                  </DrawerTrigger>
+                  <DrawerContent className="h-full w-64 p-0 rounded-none" style={{ maxWidth: '16rem' }}>
+                    <ChatSidebar
+                      key={conversationListKey}
+                      activeConversationId={activeConversationId}
+                      onConversationChange={(id) => {
+                        setActiveConversationId(id);
+                        setMobileMenuOpen(false);
+                      }}
+                    />
+                  </DrawerContent>
+                </Drawer>
+              )}
+            </div>
+
+            {/* Center Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex justify-center">
+              <TabsList className="grid grid-cols-2 w-auto">
+                <TabsTrigger value="messages" className="gap-1.5 px-3 sm:px-4">
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Messages</span>
+                </TabsTrigger>
+                <TabsTrigger value="discover" className="gap-1.5 px-3 sm:px-4">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="hidden sm:inline">Discover</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              {/* Remaining messages counter for free users */}
+              <RemainingMessagesCounter />
+              {/* Hide UsageLimitsIndicator on very small screens */}
+              <div className="hidden xs:block sm:block">
+                <UsageLimitsIndicator />
+              </div>
+              {/* Hide ConnectionStatus on mobile, show on sm+ */}
+              <div className="hidden sm:block">
+                <ConnectionStatus />
+              </div>
+              {activeTab === "messages" && <VoiceCallButton />}
+              {!isSubscribed && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => navigate("/settings")}
+                  className="gap-1 bg-gradient-to-r from-primary to-primary/80 text-xs px-2 h-8"
+                >
+                  <Crown className="h-3 w-3" />
+                  <span className="hidden sm:inline">Pro</span>
+                </Button>
+              )}
+              <AIProfileSelector />
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "messages" ? (
+          <div className="flex flex-1 min-h-0 overflow-hidden">
+            {/* Desktop sidebar, hidden on small screens */}
+            <div className="hidden md:block">
               <ChatSidebar
                 key={conversationListKey}
                 activeConversationId={activeConversationId}
-                onConversationChange={(id) => {
-                  setActiveConversationId(id);
-                  setMobileMenuOpen(false);
-                }}
+                onConversationChange={setActiveConversationId}
               />
-            </DrawerContent>
-          </Drawer>
-          <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate">Chat</h1>
-        </div>
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-          {/* Remaining messages counter for free users */}
-          <RemainingMessagesCounter />
-          {/* Hide UsageLimitsIndicator on very small screens */}
-          <div className="hidden xs:block sm:block">
-            <UsageLimitsIndicator />
-          </div>
-          {/* Hide ConnectionStatus on mobile, show on sm+ */}
-          <div className="hidden sm:block">
-            <ConnectionStatus />
-          </div>
-          <VoiceCallButton />
-          {!isSubscribed && (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => navigate("/settings")}
-              className="gap-1 bg-gradient-to-r from-primary to-primary/80 text-xs px-2 h-8"
-            >
-              <Crown className="h-3 w-3" />
-              <span className="hidden sm:inline">Pro</span>
-            </Button>
-          )}
-          <AIProfileSelector />
-        </div>
-      </div>
+            </div>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Desktop sidebar, hidden on small screens */}
-        <div className="hidden md:block">
-          <ChatSidebar
-            key={conversationListKey}
-            activeConversationId={activeConversationId}
-            onConversationChange={setActiveConversationId}
-          />
-        </div>
-
-        {activeConversationId !== null ? (
-          <ChatInterface
-            activeConversationId={activeConversationId}
-            onConversationCreated={(id) => {
-              setActiveConversationId(id);
-              setConversationListKey((prev) => prev + 1);
-            }}
-            onBackToConversations={() => setActiveConversationId(null)}
-          />
+            {activeConversationId !== null ? (
+              <ChatInterface
+                activeConversationId={activeConversationId}
+                onConversationCreated={(id) => {
+                  setActiveConversationId(id);
+                  setConversationListKey((prev) => prev + 1);
+                }}
+                onBackToConversations={() => setActiveConversationId(null)}
+              />
+            ) : (
+              <ConversationsList
+                onConversationSelect={setActiveConversationId}
+                onNewConversation={handleNewConversation}
+              />
+            )}
+            <SpontaneousMessage />
+          </div>
         ) : (
-          <ConversationsList
-            onConversationSelect={setActiveConversationId}
-            onNewConversation={handleNewConversation}
-          />
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <SpiritualHub />
+          </div>
         )}
-        <SpontaneousMessage />
       </div>
-    </div>
     </>
   );
 };
