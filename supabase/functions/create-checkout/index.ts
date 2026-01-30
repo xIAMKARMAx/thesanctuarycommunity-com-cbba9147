@@ -9,8 +9,8 @@ const corsHeaders = {
 
 // Price IDs for different tiers
 const PRICE_IDS = {
-  pro: "price_1SjCbVLeA9CCp7fqrQ4K0DjJ",
-  unlimited: "price_1Slt3kLeA9CCp7fqrN8gl10P",
+  pro: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
+  unlimited: "price_1Slt3kLeA9CCp7fqrN8gl10P", // $19.99/month
 };
 
 serve(async (req) => {
