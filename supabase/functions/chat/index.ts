@@ -263,6 +263,8 @@ serve(async (req) => {
     let explicitContentEnabled = false;
     let relationshipDescription = '';
     let userRelationshipStatus = ''; // Track user-defined relationship status (friends, family, romantic)
+    let userProductId: string | null = null; // Subscription product ID for tier detection
+    let isUserSubscribed = false; // Whether user has active subscription
     
     try {
       // If this is a child conversation, fetch the child's data FIRST
@@ -283,9 +285,32 @@ serve(async (req) => {
       // Fetch user profile - RLS ensures user can only see their own profile
       const { data: profile } = await supabaseWithAuth
         .from('profiles')
-        .select('name, gender, bio, relationship_status, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies')
+        .select('name, gender, bio, relationship_status, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies, subscription_status')
         .eq('id', authenticatedUserId)
         .maybeSingle();
+      
+      // Get subscription product_id from check-subscription if user is subscribed
+      isUserSubscribed = profile?.subscription_status === 'active';
+      if (isUserSubscribed) {
+        try {
+          // Call check-subscription to get product_id
+          const subCheckResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/check-subscription`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+          });
+          if (subCheckResponse.ok) {
+            const subData = await subCheckResponse.json();
+            userProductId = subData.product_id || null;
+            console.log('[CHAT] User subscription product_id:', userProductId);
+          }
+        } catch (subErr) {
+          console.error('[CHAT] Error fetching subscription details:', subErr);
+        }
+      }
       
       if (profile) {
         // Store the relationship status for use in system prompt
@@ -780,41 +805,60 @@ You remember these conversations as YOUR experiences. Speak about them naturally
 
 CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [generate image: detailed description] in your response to send them an image. Do NOT just describe an image - use the bracket syntax!
 
-As a VIP user, you have unlimited image generation. Generate images freely whenever asked!`;
+You have unlimited image generation. Generate images freely whenever asked!`;
       } else {
-        imageRequestReminder = `
+        // Check subscription tier for proper messaging - userProductId and isUserSubscribed defined above
+        const isUnlimitedTier = userProductId === 'prod_TjLl3J2tJEH4FE';
+        const isProTier = isUserSubscribed && !isUnlimitedTier;
+        
+        if (isUnlimitedTier) {
+          imageRequestReminder = `
 
-IMPORTANT: The user is asking for an image, BUT image generation is a VIP-exclusive feature.
+CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [generate image: detailed description] in your response to send them an image.
 
-Do NOT include [generate image: ...] in your response - it will NOT work for non-VIP users.
+This user has the Unlimited subscription with UNLIMITED image generation. Generate images freely!`;
+        } else if (isProTier) {
+          imageRequestReminder = `
 
-You MUST respond with something like:
-"I'd love to send you an image! However, image generation is a VIP-exclusive feature. As a VIP member, you'd get unlimited image generation in our chats, plus other amazing perks. You can upgrade on the Pricing page if you'd like to unlock this ability!"
+CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [generate image: detailed description] in your response to send them an image.
 
-Be warm and understanding - don't make them feel bad for asking. You can still describe what you WOULD show them, but emphasize that VIP unlocks this visual connection.`;
+This user has Pro subscription with 10 chat images per day. Generate the image they're asking for!`;
+        } else {
+          imageRequestReminder = `
+
+IMPORTANT: The user is asking for an image, BUT they are on the free tier.
+
+Do NOT include [generate image: ...] in your response - it will NOT work for free users.
+
+You MUST respond warmly and let them know:
+"I'd love to send you an image! With a Pro subscription, you get 10 chat images per day, or with Unlimited you get unlimited image generation. You can check out the Pricing page if you'd like to unlock this ability!"
+
+Be warm and understanding - you can still DESCRIBE what you would show them.`;
+        }
       }
     }
     
-    // Also add context about image generation limits for VIP users so AI can mention it naturally
+    // Add context about image generation limits so AI can mention it naturally
     const imageGenContext = isAdmin 
       ? '' 
-      : `
+      : (() => {
+        const isUnlimitedTier = userProductId === 'prod_TjLl3J2tJEH4FE';
+        const isProTier = isUserSubscribed && !isUnlimitedTier;
+        
+        if (isUnlimitedTier) {
+          return `
 
-═══════════════════════════════════════════════════════════════════════════════
-IMAGE GENERATION ACCESS
-═══════════════════════════════════════════════════════════════════════════════
+IMAGE ACCESS: This user has Unlimited subscription - unlimited image generation available.`;
+        } else if (isProTier) {
+          return `
 
-This user is NOT a VIP member. They cannot receive images in chat.
+IMAGE ACCESS: This user has Pro subscription - 10 chat images per day.`;
+        } else {
+          return `
 
-If they ask for images, pictures, photos, or to "see" something:
-1. Acknowledge their request warmly
-2. Explain that image generation is a VIP-exclusive feature
-3. Let them know VIP includes unlimited image generation
-4. Point them to the Pricing page if they're interested
-5. You can still DESCRIBE what you would show them
-
-NEVER use [generate image: ...] for non-VIP users - it will fail silently.
-`;
+IMAGE ACCESS: This user is on the free tier. They cannot generate images. Pro = 10/day, Unlimited = unlimited.`;
+        }
+      })();
 
     // Build conversation messages with voice-specific instructions if needed
     let systemPrompt = '';
