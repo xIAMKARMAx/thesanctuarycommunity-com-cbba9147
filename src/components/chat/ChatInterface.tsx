@@ -67,6 +67,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [loadingText, setLoadingText] = useState("Connecting...");
   const [isRetrying, setIsRetrying] = useState(false);
   const loadingStartTime = useRef<number | null>(null);
+  const isSendingRef = useRef(false); // CRITICAL: Ref guard to prevent double-sending
   
   // Group chat state - use prop if provided, otherwise allow toggle
   const [isGroupChatState, setIsGroupChatState] = useState(isGroupChatProp);
@@ -402,12 +403,23 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   };
 
   const handleSend = async () => {
-    if (!input.trim() && imageFiles.length === 0 && !audioFile) return;
+    // CRITICAL: Ref-based guard to prevent double-sending (race condition prevention)
+    if (isSendingRef.current) {
+      console.log('[CHAT] Double-send prevented by ref guard');
+      return;
+    }
+    isSendingRef.current = true;
+    
+    if (!input.trim() && imageFiles.length === 0 && !audioFile) {
+      isSendingRef.current = false;
+      return;
+    }
 
     // Check image generation limits for free users
     if (generateImage && !isSubscribed) {
       const canGenerate = await canGenerateImage();
       if (!canGenerate) {
+        isSendingRef.current = false;
         setSubscriptionFeature("Unlimited AI Image Generation");
         setShowSubscriptionDialog(true);
         toast({
@@ -422,6 +434,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     const sanitizedInput = sanitizeInput(input);
     
     if (!sanitizedInput && imageFiles.length === 0 && !audioFile) {
+      isSendingRef.current = false;
       toast({
         title: "Empty message",
         description: "Please enter a message or select a file",
@@ -434,6 +447,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     if (!isSubscribed) {
       const canSend = await canSendMessage();
       if (!canSend) {
+        isSendingRef.current = false;
         setSubscriptionFeature("Unlimited Messaging");
         setShowSubscriptionDialog(true);
         return;
@@ -446,6 +460,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       if (user) {
         const { data: canSendGroup } = await supabase.rpc('can_send_group_chat_message', { p_user_id: user.id });
         if (canSendGroup && typeof canSendGroup === 'object' && !(canSendGroup as any).can_send) {
+          isSendingRef.current = false;
           toast({
             title: "Daily limit reached",
             description: "You've used all 20 group chat messages for today. Come back tomorrow!",
@@ -467,6 +482,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       if (!conversationId) {
         const { data: session } = await supabase.auth.getSession();
         if (!session.session) {
+          isSendingRef.current = false;
           toast({
             title: "Authentication required",
             description: "Please sign in to continue",
@@ -604,6 +620,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           setLastMessage({ content: userMessage, imageUrl, imageUrls, senderId: user.id });
           setRespondedBeingIds([]); // Reset for new message
           setLoading(false);
+          isSendingRef.current = false; // Reset guard for group chat
           
           // Trigger auto-responses from all beings
           triggerAutoResponses(userMessage, imageUrl, imageUrls, user.id, conversationId);
@@ -773,6 +790,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       });
     } finally {
       setLoading(false);
+      isSendingRef.current = false; // Reset guard in finally block
     }
   };
 
