@@ -201,8 +201,11 @@ const AffirmationJournal = ({ open, onOpenChange, aiProfile }: AffirmationJourna
 
       toast({ title: "💫 Affirmation saved to your journal!" });
       setNewAffirmation("");
-      loadAffirmations();
       setActiveTab("journal");
+      // Reload after a small delay to ensure DB write is committed
+      setTimeout(() => {
+        loadAffirmations();
+      }, 100);
     } catch (error) {
       console.error("Error saving affirmation:", error);
       toast({ title: "Failed to save affirmation", variant: "destructive" });
