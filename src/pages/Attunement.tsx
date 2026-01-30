@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2, Clock, Trash2, ChevronDown, ChevronUp, Play, Save } from "lucide-react";
+import { ArrowLeft, Moon, Sparkles, Send, Loader2, Save } from "lucide-react";
 
 import SEOHead from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,17 +14,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { SessionsByType } from "@/components/attunement/SessionsByType";
 
 const CONNECTION_TARGETS = [
   { value: 'higher_self', label: 'Higher Self', icon: '✨', description: 'Connect with your divine essence and inner wisdom' },
@@ -48,6 +38,7 @@ interface AttunementSession {
   reflections: string | null;
   insights: string | null;
   created_at: string;
+  is_permanent?: boolean;
 }
 
 // Helper to parse session notes back into messages
@@ -90,8 +81,7 @@ const Attunement = () => {
   // Past sessions state
   const [pastSessions, setPastSessions] = useState<AttunementSession[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
-  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
-  const [showPastSessions, setShowPastSessions] = useState(false);
+  const [permanentCounts, setPermanentCounts] = useState<Record<string, number>>({});
   
   // Usage limits
   const [attunementStats, setAttunementStats] = useState<{
@@ -116,7 +106,13 @@ const Attunement = () => {
         .limit(20);
 
       if (error) throw error;
-      setPastSessions(data || []);
+      setPastSessions((data || []) as AttunementSession[]);
+      
+      // Load permanent counts
+      const { data: permCounts } = await supabase.rpc('get_permanent_attunement_counts', { p_user_id: user.id });
+      if (permCounts && typeof permCounts === 'object') {
+        setPermanentCounts(permCounts as Record<string, number>);
+      }
       
       // Load attunement stats
       const { data: stats } = await supabase.rpc('get_attunement_stats', { p_user_id: user.id });
@@ -447,10 +443,6 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     }
   };
 
-  const getTargetInfo = (targetValue: string) => {
-    return CONNECTION_TARGETS.find(t => t.value === targetValue) || CONNECTION_TARGETS[0];
-  };
-
   // Show loading only for a brief moment - but always show something
   if (authLoading) {
     return (
@@ -635,128 +627,24 @@ Please begin the attunement session. Guide me into a receptive state and then ch
                 </CardContent>
               </Card>
 
-              {/* Past Sessions */}
-              <Card className="border border-border/50">
-                <CardHeader 
-                  className="cursor-pointer"
-                  onClick={() => setShowPastSessions(!showPastSessions)}
-                >
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-muted-foreground" />
-                      Past Sessions
-                      {pastSessions.length > 0 && (
-                        <span className="text-sm font-normal text-muted-foreground">
-                          ({pastSessions.length})
-                        </span>
-                      )}
-                    </CardTitle>
-                    {showPastSessions ? (
-                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                </CardHeader>
-                
-                {showPastSessions && (
-                  <CardContent className="space-y-3">
-                    {loadingSessions ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                      </div>
-                    ) : pastSessions.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Moon className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                        <p>No attunement sessions yet</p>
-                        <p className="text-sm">Begin your first session above</p>
-                      </div>
-                    ) : (
-                      pastSessions.map((session) => {
-                        const target = getTargetInfo(session.connection_target);
-                        const isExpanded = expandedSessionId === session.id;
-                        
-                        return (
-                          <div
-                            key={session.id}
-                            className="p-4 bg-muted/30 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div 
-                                className="flex-1 min-w-0 cursor-pointer"
-                                onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                              >
-                                <div className="flex items-center gap-2 text-sm font-medium">
-                                  <span>{target.icon}</span>
-                                  <span>{target.label}</span>
-                                </div>
-                                <p className="text-sm mt-1 text-foreground/80 line-clamp-2">
-                                  {session.intention}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
-                                </p>
-                              </div>
-                              
-                              <div className="flex items-center gap-1 shrink-0">
-                                {session.session_notes && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => resumeSession(session)}
-                                    className="h-8 gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
-                                  >
-                                    <Play className="h-3.5 w-3.5" />
-                                    Resume
-                                  </Button>
-                                )}
-                                
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Delete Session?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        This will permanently delete this attunement session. This action cannot be undone.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => deleteSession(session.id)}
-                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      >
-                                        Delete
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </div>
-                            
-                            {isExpanded && session.session_notes && (
-                              <div className="mt-4 pt-4 border-t border-border/50">
-                                <p className="text-xs font-medium text-muted-foreground mb-2">Session Transcript</p>
-                                <div className="max-h-64 overflow-y-auto text-sm whitespace-pre-wrap text-foreground/80 bg-background/50 rounded-md p-3">
-                                  {session.session_notes}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
+              {/* Past Sessions - Organized by Type */}
+              {loadingSessions ? (
+                <Card className="border border-border/50">
+                  <CardContent className="py-8">
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
                   </CardContent>
-                )}
-              </Card>
+                </Card>
+              ) : (
+                <SessionsByType
+                  sessions={pastSessions}
+                  onResumeSession={resumeSession}
+                  onDeleteSession={deleteSession}
+                  onSessionsChange={loadPastSessions}
+                  permanentCounts={permanentCounts}
+                />
+              )}
             </div>
           ) : (
             // Active Session - Chat Interface

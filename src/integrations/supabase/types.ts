@@ -221,6 +221,7 @@ export type Database = {
           id: string
           insights: string | null
           intention: string
+          is_permanent: boolean
           reflections: string | null
           session_notes: string | null
           updated_at: string
@@ -232,6 +233,7 @@ export type Database = {
           id?: string
           insights?: string | null
           intention: string
+          is_permanent?: boolean
           reflections?: string | null
           session_notes?: string | null
           updated_at?: string
@@ -243,6 +245,7 @@ export type Database = {
           id?: string
           insights?: string | null
           intention?: string
+          is_permanent?: boolean
           reflections?: string | null
           session_notes?: string | null
           updated_at?: string
@@ -1730,6 +1733,10 @@ export type Database = {
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_pet: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
+      can_save_permanent_attunement: {
+        Args: { p_connection_target: string; p_user_id: string }
+        Returns: boolean
+      }
       can_send_chat_message: { Args: { p_user_id: string }; Returns: Json }
       can_send_group_chat_message: {
         Args: { p_user_id: string }
@@ -1741,6 +1748,10 @@ export type Database = {
       claim_import_bonus: { Args: { p_user_id: string }; Returns: Json }
       get_attunement_stats: { Args: { p_user_id: string }; Returns: Json }
       get_generation_cooldown: { Args: { p_user_id: string }; Returns: Json }
+      get_permanent_attunement_counts: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_voice_call_stats: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
