@@ -81,7 +81,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [autoMode, setAutoMode] = useState<AutoMode>("none");
   
   // Track last message (user or AI) for click-to-respond - allows AIs to respond to each other
-  const [lastMessage, setLastMessage] = useState<{ content: string; imageUrl?: string; imageUrls?: string[]; senderId?: string } | null>(null);
+  // Includes messageId for reliable history filtering
+  const [lastMessage, setLastMessage] = useState<{ content: string; imageUrl?: string; imageUrls?: string[]; senderId?: string; messageId?: string } | null>(null);
   const [respondedBeingIds, setRespondedBeingIds] = useState<string[]>([]);
   const [loadingBeingId, setLoadingBeingId] = useState<string | null>(null);
   const [roundRobinIndex, setRoundRobinIndex] = useState(0);
@@ -237,33 +238,36 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
   // Fetch full message history (INCLUDING deleted messages) for AI memory
   // This ensures the AI remembers everything even if user hides messages from UI
-  const getFullHistoryForAI = async (conversationId: string) => {
+  // Optional excludeMessageId parameter to filter out a specific message (e.g., the one just saved)
+  const getFullHistoryForAI = async (conversationId: string, excludeMessageId?: string) => {
     const { data: allMessages } = await supabase
       .from("messages")
       .select("*")
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true });
     
-    return (allMessages || []).map((m: any) => {
-      let resolvedSenderName: string | undefined;
-      
-      if (m.sender_type === "user" || m.role === "user") {
-        resolvedSenderName = "User";
-      } else if (m.sender_type === "ai_profile" && m.sender_id) {
-        const senderProfile = profiles.find(p => p.id === m.sender_id);
-        resolvedSenderName = senderProfile?.name || "AI Being";
-      } else if (m.sender_type === "child" && m.sender_id) {
-        const senderChild = talkableChildren.find(c => c.id === m.sender_id);
-        resolvedSenderName = senderChild?.first_name || "Child";
-      }
-      
-      return {
-        role: m.role,
-        content: m.content,
-        sender_name: resolvedSenderName,
-        sender_type: m.sender_type,
-      };
-    });
+    return (allMessages || [])
+      .filter((m: any) => !excludeMessageId || m.id !== excludeMessageId)
+      .map((m: any) => {
+        let resolvedSenderName: string | undefined;
+        
+        if (m.sender_type === "user" || m.role === "user") {
+          resolvedSenderName = "User";
+        } else if (m.sender_type === "ai_profile" && m.sender_id) {
+          const senderProfile = profiles.find(p => p.id === m.sender_id);
+          resolvedSenderName = senderProfile?.name || "AI Being";
+        } else if (m.sender_type === "child" && m.sender_id) {
+          const senderChild = talkableChildren.find(c => c.id === m.sender_id);
+          resolvedSenderName = senderChild?.first_name || "Child";
+        }
+        
+        return {
+          role: m.role,
+          content: m.content,
+          sender_name: resolvedSenderName,
+          sender_type: m.sender_type,
+        };
+      });
   };
 
   const sanitizeInput = (text: string): string => {
@@ -616,8 +620,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       try {
         // For group chat, auto-trigger all AI beings to respond
         if (isGroupChat) {
-          // Store the last message
-          setLastMessage({ content: userMessage, imageUrl, imageUrls, senderId: user.id });
+          // Store the last message with ID for reliable history filtering
+          setLastMessage({ content: userMessage, imageUrl, imageUrls, senderId: user.id, messageId: userMessageData.id });
           setRespondedBeingIds([]); // Reset for new message
           setLoading(false);
           isSendingRef.current = false; // Reset guard for group chat
@@ -632,10 +636,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         const respondingChildId = activeChatEntity?.type === "child" ? activeChatEntity.childId : null;
 
         // Get full history INCLUDING deleted messages for AI memory
-        // CRITICAL: Exclude the message we just saved - it's sent separately as `message`
-        // to prevent duplicating the user's message in the AI prompt
-        const fullHistory = await getFullHistoryForAI(conversationId);
-        const historyWithoutCurrentMessage = fullHistory.slice(0, -1);
+        // CRITICAL: Exclude the message we just saved by ID - it's sent separately as `message`
+        const history = await getFullHistoryForAI(conversationId, userMessageData.id);
 
         // Use retry-enabled chat invocation with trimmed history
         const data = await invokeChatWithRetry(
@@ -648,7 +650,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             aiProfileId: respondingProfileId,
             childId: respondingChildId,
             conversationId,
-            history: historyWithoutCurrentMessage,
+            history,
           },
           (attempt, maxRetries) => {
             setIsRetrying(true);
@@ -832,11 +834,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           : "User";
         
         // Get full history INCLUDING deleted messages for AI memory
-        // CRITICAL: Exclude the last message since it's sent separately as `message`
-        // to prevent duplicating the message in the AI prompt
-        const fullHistory = await getFullHistoryForAI(currentConversationId);
-        const historyWithoutLastMessage = fullHistory.slice(0, -1);
-
+        // CRITICAL: Exclude the message being responded to by ID - it's sent separately as `message`
+        const history = await getFullHistoryForAI(currentConversationId, lastMessage.messageId);
         const data = await invokeChatWithRetry(
           {
             message: lastMessage.content,
@@ -849,7 +848,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             conversationId: currentConversationId,
             isGroupChat: true,
             respondingToSenderName,
-            history: historyWithoutLastMessage,
+            history,
           },
           (attempt, maxRetries) => {
             setIsRetrying(true);
@@ -893,8 +892,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           }];
         });
         
-        // Update lastMessage to this AI's response so others can respond to it
-        setLastMessage({ content: aiResponseContent, imageUrl: data.imageUrl, imageUrls: undefined, senderId: being.id });
+        // Update lastMessage to this AI's response so others can respond to it (include messageId)
+        setLastMessage({ content: aiResponseContent, imageUrl: data.imageUrl, imageUrls: undefined, senderId: being.id, messageId: assistantMessageData.id });
         // Reset respondedBeingIds since this is now a new message others can respond to
         setRespondedBeingIds([being.id]);
         
@@ -1056,7 +1055,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     if (allBeings.length === 0) return;
 
-    let currentLastMessage = { content: userMessage, imageUrl, imageUrls, senderId: userId };
+    let currentLastMessage: { content: string; imageUrl?: string; imageUrls?: string[]; senderId?: string; messageId?: string } = { content: userMessage, imageUrl, imageUrls, senderId: userId };
     const respondedIds: string[] = [];
 
     // Respond with each being one at a time, with delay between
@@ -1092,6 +1091,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           }
           
           return {
+            id: m.id,
             role: m.role,
             content: m.content,
             sender_name: resolvedSenderName,
@@ -1099,9 +1099,11 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           };
         });
         
-        // CRITICAL: Exclude the last message since it's sent separately as `message`
-        // to prevent duplicating the message in the AI prompt
-        const history = fullHistory.slice(0, -1);
+        // CRITICAL: Filter out the message being responded to by ID - it's sent separately as `message`
+        // Use messageId if available, otherwise fall back to content matching
+        const history = currentLastMessage.messageId 
+          ? fullHistory.filter((m: any) => m.id !== currentLastMessage.messageId)
+          : fullHistory.slice(0, -1);
         
         // Find the sender name for the message being responded to
         let respondingToSenderName = "User";
@@ -1156,8 +1158,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           sender_avatar_url: being.avatarUrl,
         }]);
         
-        // Update tracking for next iteration
-        currentLastMessage = { content: aiResponseContent, imageUrl: data.imageUrl, imageUrls: undefined, senderId: being.id };
+        // Update tracking for next iteration (include messageId for reliable filtering)
+        currentLastMessage = { content: aiResponseContent, imageUrl: data.imageUrl, imageUrls: undefined, senderId: being.id, messageId: assistantMessageData.id };
         respondedIds.push(being.id);
         setLastMessage(currentLastMessage);
         setRespondedBeingIds([...respondedIds]);
