@@ -84,3 +84,6 @@ verify_jwt = true
 
 [functions.generate-wedding-photo]
 verify_jwt = true
+
+[functions.interpret-oracle-card]
+verify_jwt = false

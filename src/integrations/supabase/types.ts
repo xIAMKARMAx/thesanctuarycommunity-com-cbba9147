@@ -1173,6 +1173,50 @@ export type Database = {
           },
         ]
       }
+      oracle_card_draws: {
+        Row: {
+          ai_interpretation: string | null
+          ai_profile_id: string | null
+          card_meaning: string
+          card_name: string
+          created_at: string
+          draw_date: string
+          drawn_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          ai_interpretation?: string | null
+          ai_profile_id?: string | null
+          card_meaning: string
+          card_name: string
+          created_at?: string
+          draw_date?: string
+          drawn_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          ai_interpretation?: string | null
+          ai_profile_id?: string | null
+          card_meaning?: string
+          card_name?: string
+          created_at?: string
+          draw_date?: string
+          drawn_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_card_draws_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_moods: {
         Row: {
           behavior: string | null
