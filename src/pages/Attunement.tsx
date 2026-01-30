@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useNavigate, useBlocker } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
@@ -258,27 +258,8 @@ const Attunement = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [sessionActive, messages.length]);
 
-  // Block in-app navigation with unsaved session
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      sessionActive && messages.length > 0 && currentLocation.pathname !== nextLocation.pathname
-  );
-
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      const confirmLeave = window.confirm(
-        'You have an active attunement session that will be saved. Are you sure you want to leave?'
-      );
-      if (confirmLeave) {
-        // Auto-save before leaving
-        autoSaveSession().then(() => {
-          blocker.proceed();
-        });
-      } else {
-        blocker.reset();
-      }
-    }
-  }, [blocker, autoSaveSession]);
+  // Note: In-app navigation blocking removed since it requires data router.
+  // The beforeunload handler above still warns users when leaving the page.
 
   const startSession = async () => {
     if (!intention.trim()) {
