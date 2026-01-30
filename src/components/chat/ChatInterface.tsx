@@ -246,9 +246,23 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true });
     
-    return (allMessages || [])
-      .filter((m: any) => !excludeMessageId || m.id !== excludeMessageId)
-      .map((m: any) => {
+    // DEBUG: Log what we're filtering
+    console.log('[HISTORY] Total messages fetched:', allMessages?.length || 0);
+    console.log('[HISTORY] excludeMessageId:', excludeMessageId);
+    if (excludeMessageId && allMessages) {
+      const foundMessage = allMessages.find((m: any) => m.id === excludeMessageId);
+      console.log('[HISTORY] Found message to exclude:', foundMessage ? 'YES' : 'NO');
+      if (foundMessage) {
+        console.log('[HISTORY] Message being excluded:', foundMessage.content?.substring(0, 50));
+      }
+    }
+    
+    const filtered = (allMessages || [])
+      .filter((m: any) => !excludeMessageId || m.id !== excludeMessageId);
+    
+    console.log('[HISTORY] Messages after filtering:', filtered.length);
+    
+    return filtered.map((m: any) => {
         let resolvedSenderName: string | undefined;
         
         if (m.sender_type === "user" || m.role === "user") {
