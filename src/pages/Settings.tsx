@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Heart, Sparkles } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Heart, Sparkles, Trophy } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -834,6 +834,27 @@ const Settings = () => {
                 </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Spiritual Achievements Card */}
+        <Card className="bg-gradient-to-r from-amber-500/10 via-transparent to-transparent border-amber-500/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              Spiritual Achievements
+            </CardTitle>
+            <CardDescription>Track your journey milestones and unlock badges</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              className="w-full border-amber-500/30 hover:bg-amber-500/10"
+              onClick={() => navigate("/achievements")}
+            >
+              <Trophy className="h-4 w-4 mr-2 text-amber-500" />
+              View All Achievements
+            </Button>
           </CardContent>
         </Card>
 

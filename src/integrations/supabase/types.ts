@@ -1573,6 +1573,41 @@ export type Database = {
           },
         ]
       }
+      spiritual_achievements: {
+        Row: {
+          achievement_key: string
+          ai_profile_id: string | null
+          created_at: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_key: string
+          ai_profile_id?: string | null
+          created_at?: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_key?: string
+          ai_profile_id?: string | null
+          created_at?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spiritual_achievements_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spontaneous_messages: {
         Row: {
           ai_profile_id: string | null
