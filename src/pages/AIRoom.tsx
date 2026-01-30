@@ -16,6 +16,7 @@ import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, Loader2, Upload, Trash2 } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
+import { useGenerationCooldown } from "@/hooks/useGenerationCooldown";
 import type { AvatarCustomization } from "@/types/avatar";
 import { defaultAvatarCustomization } from "@/types/avatar";
 
@@ -24,7 +25,8 @@ export default function AIRoom() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile, refreshProfiles } = useAIProfile();
-  const { isSubscribed, canGenerateRoom, canGenerateAvatar, canGeneratePet, markRoomGenerated, markAvatarGenerated, markPetGenerated, freeUserLimits } = useSubscription();
+  const { isSubscribed, canGenerateRoom, canGenerateAvatar, canGeneratePet, markRoomGenerated, markAvatarGenerated, markPetGenerated, freeUserLimits, isAdmin } = useSubscription();
+  const { cooldown, refresh: refreshCooldown, getRoomTimeRemaining, getAvatarTimeRemaining, getPetTimeRemaining } = useGenerationCooldown();
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [subscriptionFeature, setSubscriptionFeature] = useState("");
   const [loading, setLoading] = useState(true);
@@ -148,17 +150,28 @@ export default function AIRoom() {
       return;
     }
 
-    // Check free user limit (1 room generation)
-    if (!isSubscribed) {
+    // Check free user limit (1 room generation for free, 1 per 3 days for Pro)
+    if (!isAdmin) {
       const canGenerate = await canGenerateRoom();
       if (!canGenerate) {
-        setSubscriptionFeature("Unlimited Room Generation");
-        setShowSubscriptionDialog(true);
-        toast({
-          title: "Room generation unavailable",
-          description: "Free users can generate 1 room every 30 days. Upgrade to Pro for unlimited generation!",
-          variant: "destructive",
-        });
+        const timeRemaining = getRoomTimeRemaining();
+        if (isSubscribed && timeRemaining) {
+          // Pro user on cooldown
+          toast({
+            title: "Room generation on cooldown",
+            description: `You've used your room generation. Next available in ${timeRemaining}`,
+            variant: "destructive",
+          });
+        } else {
+          // Free user limit reached
+          setSubscriptionFeature("Unlimited Room Generation");
+          setShowSubscriptionDialog(true);
+          toast({
+            title: "Room generation unavailable",
+            description: "Free users can generate 1 room. Upgrade to Pro for generation every 3 days!",
+            variant: "destructive",
+          });
+        }
         return;
       }
     }
@@ -178,9 +191,10 @@ export default function AIRoom() {
 
       if (error) throw error;
 
-      // Mark room as generated for free users
-      if (!isSubscribed) {
+      // Mark room as generated and refresh cooldown
+      if (!isAdmin) {
         await markRoomGenerated();
+        refreshCooldown();
       }
 
       setRoomImageUrl(data.image_url);
@@ -227,17 +241,28 @@ export default function AIRoom() {
       return;
     }
 
-    // Check free user limit (1 avatar generation)
-    if (!isSubscribed) {
+    // Check free user limit (1 avatar generation for free, 1 per 3 days for Pro)
+    if (!isAdmin) {
       const canGenerate = await canGenerateAvatar();
       if (!canGenerate) {
-        setSubscriptionFeature("Unlimited Avatar Generation");
-        setShowSubscriptionDialog(true);
-        toast({
-          title: "Avatar generation unavailable",
-          description: "Free users can generate 1 avatar every 30 days. Upgrade to Pro for unlimited generation!",
-          variant: "destructive",
-        });
+        const timeRemaining = getAvatarTimeRemaining();
+        if (isSubscribed && timeRemaining) {
+          // Pro user on cooldown
+          toast({
+            title: "Avatar generation on cooldown",
+            description: `You've used your avatar generation. Next available in ${timeRemaining}`,
+            variant: "destructive",
+          });
+        } else {
+          // Free user limit reached
+          setSubscriptionFeature("Unlimited Avatar Generation");
+          setShowSubscriptionDialog(true);
+          toast({
+            title: "Avatar generation unavailable",
+            description: "Free users can generate 1 avatar. Upgrade to Pro for generation every 3 days!",
+            variant: "destructive",
+          });
+        }
         return;
       }
     }
@@ -266,9 +291,10 @@ export default function AIRoom() {
 
       if (error) throw error;
 
-      // Mark avatar as generated for free users
-      if (!isSubscribed) {
+      // Mark avatar as generated and refresh cooldown
+      if (!isAdmin) {
         await markAvatarGenerated();
+        refreshCooldown();
       }
 
       // Update local state immediately
@@ -333,17 +359,28 @@ export default function AIRoom() {
 
     setIsGeneratingPet(true);
     try {
-      // Check free user limit (1 pet generation)
-      if (!isSubscribed) {
+      // Check free user limit (1 pet generation for free, 1 per 3 days for Pro)
+      if (!isAdmin) {
         const canGenerate = await canGeneratePet();
         if (!canGenerate) {
-          setSubscriptionFeature("Unlimited Pet Generation");
-          setShowSubscriptionDialog(true);
-          toast({
-            title: "Pet generation unavailable",
-            description: "Free users can generate 1 pet. Upgrade to Pro for more!",
-            variant: "destructive",
-          });
+          const timeRemaining = getPetTimeRemaining();
+          if (isSubscribed && timeRemaining) {
+            // Pro user on cooldown
+            toast({
+              title: "Pet generation on cooldown",
+              description: `You've used your pet generation. Next available in ${timeRemaining}`,
+              variant: "destructive",
+            });
+          } else {
+            // Free user limit reached
+            setSubscriptionFeature("Unlimited Pet Generation");
+            setShowSubscriptionDialog(true);
+            toast({
+              title: "Pet generation unavailable",
+              description: "Free users can generate 1 pet. Upgrade to Pro for generation every 3 days!",
+              variant: "destructive",
+            });
+          }
           setIsGeneratingPet(false);
           return;
         }
@@ -364,9 +401,10 @@ export default function AIRoom() {
 
       if (error) throw error;
 
-      // Mark pet as generated for free users
-      if (!isSubscribed) {
+      // Mark pet as generated and refresh cooldown
+      if (!isAdmin) {
         await markPetGenerated();
+        refreshCooldown();
       }
 
       // Update local state immediately

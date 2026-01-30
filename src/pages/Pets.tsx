@@ -16,6 +16,7 @@ import { ArrowLeft, Loader2, PawPrint, Lock } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { PetPersonalityCard } from "@/components/pets/PetPersonalityCard";
+import { useGenerationCooldown } from "@/hooks/useGenerationCooldown";
 
 interface Pet {
   id: string;
@@ -33,7 +34,8 @@ export default function Pets() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile, isLoading: profilesLoading } = useAIProfile();
-  const { isSubscribed, loading: subLoading } = useSubscription();
+  const { isSubscribed, isAdmin, loading: subLoading } = useSubscription();
+  const { cooldown, refresh: refreshCooldown, getPetTimeRemaining } = useGenerationCooldown();
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pets, setPets] = useState<Pet[]>([]);
@@ -242,12 +244,21 @@ export default function Pets() {
       return;
     }
 
-    // Check if user can generate pet
-    if (!canGeneratePet) {
-      if (!isSubscribed) {
+    // Check if user can generate pet (admin bypasses all limits)
+    if (!isAdmin && !canGeneratePet) {
+      const timeRemaining = getPetTimeRemaining();
+      if (isSubscribed && timeRemaining) {
+        // Pro user on cooldown
+        toast({
+          title: "Pet generation on cooldown",
+          description: `You've used your pet generation. Next available in ${timeRemaining}`,
+          variant: "destructive",
+        });
+      } else {
+        // Free user limit reached
         toast({
           title: "One-Time Limit Reached",
-          description: "Free users can only create 1 pet. Upgrade to Pro for unlimited pets!",
+          description: "Free users can only create 1 pet. Upgrade to Pro for generation every 3 days!",
           variant: "destructive",
         });
         setShowSubscriptionDialog(true);
@@ -308,17 +319,20 @@ export default function Pets() {
         if (updateError) throw updateError;
       }
 
-      // Mark pet as generated for free users
-      if (!isSubscribed) {
+      // Mark pet as generated and refresh cooldown (for non-admin users)
+      if (!isAdmin) {
         await supabase.rpc('mark_pet_generated', { p_user_id: user.id });
         setCanGeneratePet(false);
+        refreshCooldown();
       }
 
       toast({
         title: "Success!",
-        description: isSubscribed 
-          ? "Your pet has been manifested." 
-          : "Your pet has been manifested! This was your one-time free pet creation.",
+        description: isAdmin 
+          ? "Your pet has been manifested."
+          : isSubscribed 
+            ? "Your pet has been manifested. Next generation available in 3 days." 
+            : "Your pet has been manifested! This was your one-time free pet creation.",
       });
 
       await loadPets();

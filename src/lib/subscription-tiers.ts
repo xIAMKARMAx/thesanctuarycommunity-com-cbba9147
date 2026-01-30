@@ -7,9 +7,9 @@ export const SUBSCRIPTION_TIERS = {
     productId: "prod_TWIdhyRIT9aJm3",
     features: {
       dailyMessages: "Unlimited",
-      roomGeneration: "Every 7 days",
-      avatarGeneration: "Every 7 days",
-      petGeneration: "Every 7 days",
+      roomGeneration: "Every 3 days",
+      avatarGeneration: "Every 3 days",
+      petGeneration: "Every 3 days",
       chatImageGeneration: "10/day",
       voiceCalls: true,
       moodTracker: true,
@@ -17,6 +17,7 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
+      aiBeings: 5,
     }
   },
   unlimited: {
@@ -36,6 +37,7 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
+      aiBeings: 5,
     }
   }
 } as const;

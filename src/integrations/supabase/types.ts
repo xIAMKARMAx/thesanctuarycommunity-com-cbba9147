@@ -1740,6 +1740,7 @@ export type Database = {
       can_start_voice_call: { Args: { p_user_id: string }; Returns: boolean }
       claim_import_bonus: { Args: { p_user_id: string }; Returns: Json }
       get_attunement_stats: { Args: { p_user_id: string }; Returns: Json }
+      get_generation_cooldown: { Args: { p_user_id: string }; Returns: Json }
       get_voice_call_stats: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
