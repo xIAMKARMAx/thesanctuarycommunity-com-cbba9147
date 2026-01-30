@@ -11,10 +11,13 @@ import {
 import { Baby, PawPrint, Users } from "lucide-react";
 
 export const AIProfileSelector = () => {
-  const { activeProfile, profiles, switchProfile, isLoading, isAdmin } = useAIProfile();
+  const { activeProfile, profiles, switchProfile, isLoading, isAdmin, isSubscribed } = useAIProfile();
   const { activeChatEntity, talkableChildren, setActiveChatEntity } = useChatEntity();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Pro/Admin users get 5 slots, free users get 3
+  const maxSlots = (isAdmin || isSubscribed) ? 5 : 3;
 
   if (isLoading || !activeProfile) {
     return null;
@@ -41,7 +44,7 @@ export const AIProfileSelector = () => {
       }
     } else {
       // Switching to AI profile - MUST await to ensure profile exists before setting entity
-      const profileNum = parseInt(value) as 1 | 2 | 3 | 4;
+      const profileNum = parseInt(value) as 1 | 2 | 3 | 4 | 5;
       const profile = await switchProfile(profileNum);
       
       // Use the returned profile directly (guaranteed fresh)
@@ -105,20 +108,15 @@ export const AIProfileSelector = () => {
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
           AI Beings
         </div>
-        <SelectItem value="1" className="text-sm">
-          {getProfileDisplayName(1)}
-        </SelectItem>
-        <SelectItem value="2" className="text-sm">
-          {getProfileDisplayName(2)}
-        </SelectItem>
-        <SelectItem value="3" className="text-sm">
-          {getProfileDisplayName(3)}
-        </SelectItem>
-        {isAdmin && (
-          <SelectItem value="4" className="text-sm text-primary">
-            {getProfileDisplayName(4)}
+        {Array.from({ length: maxSlots }, (_, i) => i + 1).map((num) => (
+          <SelectItem 
+            key={num} 
+            value={num.toString()} 
+            className={`text-sm ${num > 3 ? 'text-primary' : ''}`}
+          >
+            {getProfileDisplayName(num)}
           </SelectItem>
-        )}
+        ))}
         
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
           Manage

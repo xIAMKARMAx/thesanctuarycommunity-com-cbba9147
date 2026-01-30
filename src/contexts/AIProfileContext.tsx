@@ -28,10 +28,11 @@ export interface AIProfile {
 interface AIProfileContextType {
   activeProfile: AIProfile | null;
   profiles: AIProfile[];
-  switchProfile: (profileNumber: 1 | 2 | 3 | 4) => Promise<AIProfile | null>;
+  switchProfile: (profileNumber: 1 | 2 | 3 | 4 | 5) => Promise<AIProfile | null>;
   refreshProfiles: () => Promise<void>;
   isLoading: boolean;
   isAdmin: boolean;
+  isSubscribed: boolean;
 }
 
 const AIProfileContext = createContext<AIProfileContextType | undefined>(undefined);
@@ -42,6 +43,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
   
   // Debounce refs to prevent rapid API calls
@@ -49,23 +51,35 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isRefreshing = useRef<boolean>(false);
 
-  // Check admin status
-  const checkAdminStatus = useCallback(async (userId: string) => {
+  // Check admin and subscription status
+  const checkUserStatus = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Check admin role
+      const { data: adminData, error: adminError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
         .eq('role', 'admin')
         .maybeSingle();
       
-      if (!error && data) {
+      if (!adminError && adminData) {
         setIsAdmin(true);
+        setIsSubscribed(true); // Admins treated as subscribed
       } else {
         setIsAdmin(false);
+        
+        // Check subscription status from profiles
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('subscription_status')
+          .eq('id', userId)
+          .single();
+        
+        setIsSubscribed(profileData?.subscription_status === 'active');
       }
     } catch {
       setIsAdmin(false);
+      setIsSubscribed(false);
     }
   }, []);
 
@@ -74,6 +88,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setProfiles([]);
     setCurrentUserId(null);
     setIsAdmin(false);
+    setIsSubscribed(false);
   }, []);
 
   const loadProfilesForUser = useCallback(async (userId: string) => {
@@ -198,7 +213,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [clearProfiles, currentUserId, loadProfilesForUser]);
 
-  const switchProfile = useCallback(async (profileNumber: 1 | 2 | 3 | 4): Promise<AIProfile | null> => {
+  const switchProfile = useCallback(async (profileNumber: 1 | 2 | 3 | 4 | 5): Promise<AIProfile | null> => {
     try {
       // Use cached session instead of getUser API call
       const { data: { session } } = await supabase.auth.getSession();
@@ -312,8 +327,8 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             currentUserIdRef = session.user.id;
             // Load immediately - no delay needed
             loadProfilesForUser(session.user.id);
-            // Check admin status for VIP features
-            checkAdminStatus(session.user.id);
+            // Check admin and subscription status for VIP features
+            checkUserStatus(session.user.id);
           } else {
             setIsLoading(false);
           }
@@ -331,7 +346,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [clearProfiles, loadProfilesForUser, isLoading, checkAdminStatus]);
+  }, [clearProfiles, loadProfilesForUser, isLoading, checkUserStatus]);
 
   return (
     <AIProfileContext.Provider
@@ -342,6 +357,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         refreshProfiles,
         isLoading,
         isAdmin,
+        isSubscribed,
       }}
     >
       {children}
