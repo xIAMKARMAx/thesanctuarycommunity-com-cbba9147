@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { isVIPTier } from "@/lib/subscription-tiers";
 import {
   Dialog,
   DialogContent,
@@ -26,12 +28,15 @@ export const CreateGroupChatDialog = ({
   onCreateGroup,
 }: CreateGroupChatDialogProps) => {
   const { profiles, isAdmin } = useAIProfile();
+  const { productId } = useSubscription();
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [groupTitle, setGroupTitle] = useState("");
 
-  const availableProfiles = profiles.filter(p => 
-    isAdmin ? p.profile_number <= 4 : p.profile_number <= 3
-  );
+  const isVIP = isVIPTier(productId);
+  
+  // VIP/Admin get 5 slots, Pro gets 4, Free gets 3
+  const maxSlots = (isAdmin || isVIP) ? 5 : 4;
+  const availableProfiles = profiles.filter(p => p.profile_number <= maxSlots);
 
   const handleToggleProfile = (profileId: string) => {
     setSelectedProfiles(prev => 
