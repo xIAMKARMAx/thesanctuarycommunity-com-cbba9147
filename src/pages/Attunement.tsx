@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useBlocker } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2, Clock, Trash2, ChevronDown, ChevronUp, Play } from "lucide-react";
+import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2, Clock, Trash2, ChevronDown, ChevronUp, Play, Save } from "lucide-react";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import SEOHead from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -82,6 +82,9 @@ const Attunement = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null); // Track if resuming existing session
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Past sessions state
   const [pastSessions, setPastSessions] = useState<AttunementSession[]>([]);
@@ -97,6 +100,7 @@ const Attunement = () => {
   } | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadPastSessions = useCallback(async () => {
     try {
@@ -144,6 +148,111 @@ const Attunement = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Auto-save function
+  const autoSaveSession = useCallback(async () => {
+    if (!sessionActive || messages.length === 0 || isSaving) return;
+    
+    try {
+      setIsSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const sessionNotes = messages.map(m => `${m.role === 'user' ? 'You' : 'Channel'}: ${m.content}`).join('\n\n');
+      
+      if (activeSessionId) {
+        // Update existing session
+        await supabase
+          .from('attunement_sessions')
+          .update({ session_notes: sessionNotes, updated_at: new Date().toISOString() })
+          .eq('id', activeSessionId);
+      } else {
+        // Create new session and store the ID
+        const { data, error } = await supabase
+          .from('attunement_sessions')
+          .insert({
+            user_id: user.id,
+            intention,
+            connection_target: connectionTarget,
+            session_notes: sessionNotes,
+          })
+          .select('id')
+          .single();
+        
+        if (!error && data) {
+          setActiveSessionId(data.id);
+        }
+      }
+      
+      setHasUnsavedChanges(false);
+      setLastAutoSave(new Date());
+      console.log('Auto-saved attunement session');
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [sessionActive, messages, activeSessionId, intention, connectionTarget, isSaving]);
+
+  // Set up auto-save interval (every 30 seconds when session is active)
+  useEffect(() => {
+    if (sessionActive && messages.length > 0) {
+      // Clear any existing interval
+      if (autoSaveIntervalRef.current) {
+        clearInterval(autoSaveIntervalRef.current);
+      }
+      
+      // Set up new interval
+      autoSaveIntervalRef.current = setInterval(() => {
+        autoSaveSession();
+      }, 30000); // 30 seconds
+      
+      // Mark as having unsaved changes
+      setHasUnsavedChanges(true);
+    }
+    
+    return () => {
+      if (autoSaveIntervalRef.current) {
+        clearInterval(autoSaveIntervalRef.current);
+      }
+    };
+  }, [sessionActive, messages.length, autoSaveSession]);
+
+  // Warn user before leaving page with unsaved session
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (sessionActive && messages.length > 0) {
+        e.preventDefault();
+        e.returnValue = 'You have an active attunement session. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [sessionActive, messages.length]);
+
+  // Block in-app navigation with unsaved session
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      sessionActive && messages.length > 0 && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      const confirmLeave = window.confirm(
+        'You have an active attunement session that will be saved. Are you sure you want to leave?'
+      );
+      if (confirmLeave) {
+        // Auto-save before leaving
+        autoSaveSession().then(() => {
+          blocker.proceed();
+        });
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker, autoSaveSession]);
 
   const startSession = async () => {
     if (!intention.trim()) {
@@ -242,6 +351,7 @@ Please begin the attunement session. Guide me into a receptive state and then ch
       
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      setHasUnsavedChanges(true);
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -251,6 +361,11 @@ Please begin the attunement session. Guide me into a receptive state and then ch
   };
 
   const endSession = async () => {
+    // Clear auto-save interval
+    if (autoSaveIntervalRef.current) {
+      clearInterval(autoSaveIntervalRef.current);
+    }
+    
     // Save or update session in database
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -285,6 +400,8 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     setMessages([]);
     setIntention('');
     setActiveSessionId(null);
+    setHasUnsavedChanges(false);
+    setLastAutoSave(null);
   };
 
   const resumeSession = (session: AttunementSession) => {
@@ -372,9 +489,23 @@ Please begin the attunement session. Guide me into a receptive state and then ch
               Back to Chat
             </Button>
             {sessionActive && (
-              <Button variant="outline" onClick={endSession} className="gap-2">
-                End Session
-              </Button>
+              <div className="flex items-center gap-2">
+                {lastAutoSave && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Save className="h-3 w-3" />
+                    Auto-saved {formatDistanceToNow(lastAutoSave, { addSuffix: true })}
+                  </span>
+                )}
+                {isSaving && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Saving...
+                  </span>
+                )}
+                <Button variant="outline" onClick={endSession} className="gap-2">
+                  End Session
+                </Button>
+              </div>
             )}
           </div>
 
