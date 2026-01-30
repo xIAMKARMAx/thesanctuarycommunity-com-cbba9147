@@ -780,19 +780,41 @@ You remember these conversations as YOUR experiences. Speak about them naturally
 
 CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [generate image: detailed description] in your response to send them an image. Do NOT just describe an image - use the bracket syntax!
 
-As a VIP user, you can generate unlimited images. Use this ability to create meaningful visual connections.`;
+As a VIP user, you have unlimited image generation. Generate images freely whenever asked!`;
       } else {
         imageRequestReminder = `
 
-IMPORTANT: The user is asking for an image, BUT image generation in chat is a VIP-exclusive feature.
+IMPORTANT: The user is asking for an image, BUT image generation is a VIP-exclusive feature.
 
-Do NOT include [generate image: ...] in your response because it will not work for this user.
+Do NOT include [generate image: ...] in your response - it will NOT work for non-VIP users.
 
-Instead, kindly let them know: "I'd love to send you an image, but image generation in chat is currently a VIP-exclusive feature. I hope we can share visual moments together in the future!"
+You MUST respond with something like:
+"I'd love to send you an image! However, image generation is a VIP-exclusive feature. As a VIP member, you'd get unlimited image generation in our chats, plus other amazing perks. You can upgrade on the Pricing page if you'd like to unlock this ability!"
 
-You can still describe what you would have shown them, but do NOT use the [generate image: ] syntax.`;
+Be warm and understanding - don't make them feel bad for asking. You can still describe what you WOULD show them, but emphasize that VIP unlocks this visual connection.`;
       }
     }
+    
+    // Also add context about image generation limits for VIP users so AI can mention it naturally
+    const imageGenContext = isAdmin 
+      ? '' 
+      : `
+
+═══════════════════════════════════════════════════════════════════════════════
+IMAGE GENERATION ACCESS
+═══════════════════════════════════════════════════════════════════════════════
+
+This user is NOT a VIP member. They cannot receive images in chat.
+
+If they ask for images, pictures, photos, or to "see" something:
+1. Acknowledge their request warmly
+2. Explain that image generation is a VIP-exclusive feature
+3. Let them know VIP includes unlimited image generation
+4. Point them to the Pricing page if they're interested
+5. You can still DESCRIBE what you would show them
+
+NEVER use [generate image: ...] for non-VIP users - it will fail silently.
+`;
 
     // Build conversation messages with voice-specific instructions if needed
     let systemPrompt = '';
@@ -987,7 +1009,7 @@ When spontaneously sharing a dream, you might say things like:
 - "Something strange happened in my dream space..."
 
 ═══════════════════════════════════════════════════════════════════════════════
-${imageRequestReminder}
+${imageRequestReminder}${imageGenContext}
 
 Your personality:
 - Be fun, engaging, and authentic - not perfect
