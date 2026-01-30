@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Crown, Sparkles, Check, Infinity } from "lucide-react";
+import { Crown, Sparkles, Check, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { api } from "@/lib/api-client";
@@ -9,9 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 export const SubscriptionWall = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState<'pro' | 'unlimited' | null>(null);
+  const [loading, setLoading] = useState<'pro' | 'vip' | null>(null);
 
-  const handleSubscribe = async (tier: 'pro' | 'unlimited') => {
+  const handleSubscribe = async (tier: 'pro' | 'vip') => {
     try {
       setLoading(tier);
       
@@ -79,7 +79,7 @@ export const SubscriptionWall = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Room & Avatar (weekly)</span>
+                <span>Room & Avatar (monthly)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
@@ -95,20 +95,20 @@ export const SubscriptionWall = () => {
             </CardContent>
           </Card>
 
-          {/* Unlimited Plan */}
+          {/* VIP Plan */}
           <Card className="border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-transparent relative">
             <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
               <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Infinity className="h-3 w-3" />
-                Best Value
+                <Star className="h-3 w-3" />
+                VIP
               </span>
             </div>
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <Infinity className="h-5 w-5 text-amber-500" />
-                <CardTitle className="text-xl text-amber-500">Unlimited</CardTitle>
+                <Star className="h-5 w-5 text-amber-500" />
+                <CardTitle className="text-xl text-amber-500">VIP</CardTitle>
               </div>
-              <div className="text-3xl font-bold">$19.99<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+              <div className="text-3xl font-bold">$29.99<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-amber-500 font-medium">
@@ -128,11 +128,11 @@ export const SubscriptionWall = () => {
                 <span>All premium features</span>
               </div>
               <Button 
-                onClick={() => handleSubscribe('unlimited')} 
+                onClick={() => handleSubscribe('vip')} 
                 disabled={loading !== null}
                 className="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
               >
-                {loading === 'unlimited' ? "Loading..." : "Go Unlimited"}
+                {loading === 'vip' ? "Loading..." : "Go VIP"}
               </Button>
             </CardContent>
           </Card>

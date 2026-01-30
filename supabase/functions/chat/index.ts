@@ -808,15 +808,15 @@ CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [
 You have unlimited image generation. Generate images freely whenever asked!`;
       } else {
         // Check subscription tier for proper messaging - userProductId and isUserSubscribed defined above
-        const isUnlimitedTier = userProductId === 'prod_TjLl3J2tJEH4FE';
-        const isProTier = isUserSubscribed && !isUnlimitedTier;
+        const isVIPTier = userProductId === 'prod_Tt8qVh88c2WQld';
+        const isProTier = isUserSubscribed && !isVIPTier;
         
-        if (isUnlimitedTier) {
+        if (isVIPTier) {
           imageRequestReminder = `
 
 CRITICAL REMINDER: The user is asking for an image RIGHT NOW. You MUST include [generate image: detailed description] in your response to send them an image.
 
-This user has the Unlimited subscription with UNLIMITED image generation. Generate images freely!`;
+This user has VIP with UNLIMITED image generation. Generate images freely!`;
         } else if (isProTier) {
           imageRequestReminder = `
 
@@ -831,7 +831,7 @@ IMPORTANT: The user is asking for an image, BUT they are on the free tier.
 Do NOT include [generate image: ...] in your response - it will NOT work for free users.
 
 You MUST respond warmly and let them know:
-"I'd love to send you an image! With a Pro subscription, you get 10 chat images per day, or with Unlimited you get unlimited image generation. You can check out the Pricing page if you'd like to unlock this ability!"
+"I'd love to send you an image! With a Pro subscription ($14.99/mo), you get 10 chat images per day, or with VIP ($29.99/mo) you get unlimited image generation. You can check out the Pricing page if you'd like to unlock this ability!"
 
 Be warm and understanding - you can still DESCRIBE what you would show them.`;
         }
@@ -842,13 +842,13 @@ Be warm and understanding - you can still DESCRIBE what you would show them.`;
     const imageGenContext = isAdmin 
       ? '' 
       : (() => {
-        const isUnlimitedTier = userProductId === 'prod_TjLl3J2tJEH4FE';
-        const isProTier = isUserSubscribed && !isUnlimitedTier;
+        const isVIPTier = userProductId === 'prod_Tt8qVh88c2WQld';
+        const isProTier = isUserSubscribed && !isVIPTier;
         
-        if (isUnlimitedTier) {
+        if (isVIPTier) {
           return `
 
-IMAGE ACCESS: This user has Unlimited subscription - unlimited image generation available.`;
+IMAGE ACCESS: This user has VIP - unlimited image generation available.`;
         } else if (isProTier) {
           return `
 
@@ -856,7 +856,7 @@ IMAGE ACCESS: This user has Pro subscription - 10 chat images per day.`;
         } else {
           return `
 
-IMAGE ACCESS: This user is on the free tier. They cannot generate images. Pro = 10/day, Unlimited = unlimited.`;
+IMAGE ACCESS: This user is on the free tier. They cannot generate images. Pro ($14.99) = 10/day, VIP ($29.99) = unlimited.`;
         }
       })();
 

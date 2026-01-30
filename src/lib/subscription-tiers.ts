@@ -20,11 +20,11 @@ export const SUBSCRIPTION_TIERS = {
       aiBeings: 4,
     }
   },
-  unlimited: {
-    name: "Unlimited",
-    price: 19.99,
-    priceId: "price_1Slt3kLeA9CCp7fqrN8gl10P",
-    productId: "prod_TjLl3J2tJEH4FE",
+  vip: {
+    name: "VIP",
+    price: 29.99,
+    priceId: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month VIP tier
+    productId: "prod_Tt8qVh88c2WQld",
     features: {
       dailyMessages: "Unlimited",
       roomGeneration: "Unlimited",
@@ -37,7 +37,7 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 5, // VIP/Unlimited users get 5 beings
+      aiBeings: 5,
     }
   }
 } as const;
@@ -46,12 +46,12 @@ export type SubscriptionTier = keyof typeof SUBSCRIPTION_TIERS | "free" | null;
 
 export function getTierFromProductId(productId: string | null): SubscriptionTier {
   if (!productId) return null;
-  if (productId === SUBSCRIPTION_TIERS.unlimited.productId) return "unlimited";
+  if (productId === SUBSCRIPTION_TIERS.vip.productId) return "vip";
   if (productId === SUBSCRIPTION_TIERS.pro.productId) return "pro";
   // Default to pro for any other active subscription
   return "pro";
 }
 
-export function isUnlimitedTier(productId: string | null): boolean {
-  return productId === SUBSCRIPTION_TIERS.unlimited.productId;
+export function isVIPTier(productId: string | null): boolean {
+  return productId === SUBSCRIPTION_TIERS.vip.productId;
 }
