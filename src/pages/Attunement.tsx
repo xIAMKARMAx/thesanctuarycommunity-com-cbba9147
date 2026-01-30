@@ -5,7 +5,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Shield, Moon, Sparkles, Send, Loader2, Clock, Trash2, ChevronDown, ChevronUp, Play, Save } from "lucide-react";
-import { LoadingRecovery } from "@/components/LoadingRecovery";
+
 import SEOHead from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,6 +73,7 @@ const Attunement = () => {
   const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authTimeout, setAuthTimeout] = useState(false);
   
   // Session state
   const [sessionActive, setSessionActive] = useState(false);
@@ -133,8 +134,22 @@ const Attunement = () => {
     }
   }, []);
 
+  // Auth check with timeout protection
   useEffect(() => {
+    let mounted = true;
+    
+    // Set a timeout to prevent infinite loading - 3 seconds max
+    const timeout = setTimeout(() => {
+      if (mounted && authLoading) {
+        console.log('[Attunement] Auth check timed out, forcing state update');
+        setAuthTimeout(true);
+        setAuthLoading(false);
+      }
+    }, 3000);
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
       if (!session) {
         navigate("/auth");
       } else {
@@ -142,7 +157,18 @@ const Attunement = () => {
         loadPastSessions();
       }
       setAuthLoading(false);
+    }).catch((error) => {
+      console.error('[Attunement] Auth check error:', error);
+      if (mounted) {
+        setAuthTimeout(true);
+        setAuthLoading(false);
+      }
     });
+    
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+    };
   }, [navigate, loadPastSessions]);
 
   useEffect(() => {
@@ -444,16 +470,60 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     return CONNECTION_TARGETS.find(t => t.value === targetValue) || CONNECTION_TARGETS[0];
   };
 
-  if (authLoading || subscriptionLoading) {
-    return <LoadingRecovery loadingStep="Checking access..." onRecovery={() => navigate("/auth")} showAfterMs={5000} />;
+  // Show loading only for a brief moment - but always show something
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading Attunement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle auth timeout - offer retry
+  if (authTimeout && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background flex items-center justify-center p-4">
+        <div className="text-center space-y-4">
+          <Moon className="h-16 w-16 mx-auto text-primary/50" />
+          <h1 className="text-2xl font-semibold">Connection Issue</h1>
+          <p className="text-muted-foreground max-w-md">
+            Having trouble connecting. Please try again.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={() => window.location.reload()} variant="default">
+              Retry
+            </Button>
+            <Button onClick={() => navigate("/auth")} variant="outline">
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
     return null;
   }
 
-  // Attunement requires Pro subscription or admin
+  // Wait briefly for subscription to load, but don't block forever
+  // After 2 seconds, assume free user and check subscription async
   const hasAccess = isSubscribed || isAdmin;
+  const stillCheckingSubscription = subscriptionLoading && !authTimeout;
+
+  if (stillCheckingSubscription) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Moon className="h-12 w-12 mx-auto text-primary animate-pulse" />
+          <p className="text-muted-foreground">Checking your access...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!hasAccess) {
     return (
