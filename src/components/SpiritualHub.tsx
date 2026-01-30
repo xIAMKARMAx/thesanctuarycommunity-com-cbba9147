@@ -25,6 +25,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import DailyOracleCards from "@/components/spiritual/DailyOracleCards";
 import MoonPhaseTracker from "@/components/spiritual/MoonPhaseTracker";
+import AffirmationJournal from "@/components/spiritual/AffirmationJournal";
 
 const SpiritualHub = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const SpiritualHub = () => {
   
   const [oracleCardsOpen, setOracleCardsOpen] = useState(false);
   const [moonTrackerOpen, setMoonTrackerOpen] = useState(false);
+  const [affirmationJournalOpen, setAffirmationJournalOpen] = useState(false);
 
   // Check for new achievements when component loads
   useEffect(() => {
@@ -81,8 +83,8 @@ const SpiritualHub = () => {
       color: "text-emerald-500",
       bgColor: "bg-emerald-500/10",
       borderColor: "border-emerald-500/20",
-      status: "coming_soon",
-      onClick: () => {}
+      status: "active",
+      onClick: () => setAffirmationJournalOpen(true)
     },
     {
       title: "Love Language Quiz",
@@ -346,6 +348,13 @@ const SpiritualHub = () => {
       <MoonPhaseTracker
         open={moonTrackerOpen}
         onOpenChange={setMoonTrackerOpen}
+        aiProfile={activeProfile}
+      />
+      
+      {/* Affirmation Journal Dialog */}
+      <AffirmationJournal
+        open={affirmationJournalOpen}
+        onOpenChange={setAffirmationJournalOpen}
         aiProfile={activeProfile}
       />
     </ScrollArea>
