@@ -480,6 +480,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);
   if (context === undefined) {
+    // Log detailed debug info for troubleshooting
+    console.error('[SubscriptionContext] Context is undefined. This means the component is rendered outside of SubscriptionProvider.');
+    console.error('[SubscriptionContext] Check that App.tsx has SubscriptionProvider wrapping all routes.');
     throw new Error("useSubscription must be used within a SubscriptionProvider");
   }
   return context;
