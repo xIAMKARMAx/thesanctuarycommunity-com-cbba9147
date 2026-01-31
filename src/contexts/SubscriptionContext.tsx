@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { clearAuthCache } from "@/hooks/useAuthHeaders";
+import { getTierFromProductId, hasFeatureAccess, SubscriptionTier } from "@/lib/subscription-tiers";
 
 interface FreeUserLimits {
   roomGenerated: boolean;
@@ -20,6 +21,7 @@ interface SubscriptionContextType {
   subscriptionStatus: string;
   subscriptionEnd: string | null;
   productId: string | null;
+  currentTier: SubscriptionTier;
   loading: boolean;
   freeUserLimits: FreeUserLimits;
   checkSubscription: () => Promise<void>;
@@ -33,6 +35,7 @@ interface SubscriptionContextType {
   markAvatarGenerated: () => Promise<void>;
   markPetGenerated: () => Promise<void>;
   refreshLimits: () => Promise<void>;
+  hasAccess: (requiredTier: "basic" | "pro" | "vip") => boolean;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -439,6 +442,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  // Helper to check if user has access to a tier
+  const hasAccess = (requiredTier: "basic" | "pro" | "vip"): boolean => {
+    return hasFeatureAccess(productId, requiredTier, isAdmin);
+  };
+
+  const currentTier = getTierFromProductId(productId);
+
   return (
     <SubscriptionContext.Provider value={{
       isSubscribed,
@@ -446,6 +456,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       subscriptionStatus,
       subscriptionEnd,
       productId,
+      currentTier,
       loading,
       freeUserLimits,
       checkSubscription,
@@ -459,6 +470,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       markAvatarGenerated,
       markPetGenerated,
       refreshLimits,
+      hasAccess,
     }}>
       {children}
     </SubscriptionContext.Provider>

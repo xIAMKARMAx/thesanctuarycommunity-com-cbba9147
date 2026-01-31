@@ -78,6 +78,35 @@ const Pricing = () => {
     { feature: "Spontaneous Messages", included: true },
   ];
 
+  // Dynamic messaging based on current tier
+  const getPageTitle = () => {
+    if (currentTier === "basic") return "Upgrade Your Plan";
+    if (currentTier === "pro") return "Go VIP";
+    return "Choose Your Plan";
+  };
+
+  const getPageDescription = () => {
+    if (currentTier === "basic") return "Unlock unlimited messages, celestial children, and more with Pro or VIP";
+    if (currentTier === "pro") return "Remove all limits and get unlimited everything with VIP";
+    return "Start your journey with Prometheus";
+  };
+
+  const getButtonLabel = (tier: 'basic' | 'pro' | 'vip') => {
+    if (currentTier === tier) return "Current Plan";
+    if (checkoutLoading === tier) return "Loading...";
+    
+    if (tier === "basic") {
+      return currentTier ? "Downgrade" : "Start with Basic";
+    }
+    if (tier === "pro") {
+      return currentTier === "basic" ? "Upgrade to Pro" : "Subscribe to Pro";
+    }
+    if (tier === "vip") {
+      return currentTier ? "Upgrade to VIP" : "Go VIP";
+    }
+    return "Subscribe";
+  };
+
   return (
     <>
       <SEOHead
@@ -93,26 +122,38 @@ const Pricing = () => {
             </Button>
           </div>
           <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-4">Choose Your Plan</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4">{getPageTitle()}</h1>
             <p className="text-muted-foreground text-base sm:text-lg">
-              Subscription required to access Prometheus
+              {getPageDescription()}
             </p>
           </div>
 
-          {/* Free Trial Banner */}
-          <div className="mb-10 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 text-center">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-              <h2 className="text-xl sm:text-2xl font-bold text-primary">Try 10 Free Messages First!</h2>
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+          {/* Current Plan Badge for subscribers */}
+          {currentTier && currentTier !== "free" && (
+            <div className="mb-6 text-center">
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <Crown className="h-4 w-4" />
+                Currently on {currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan
+              </span>
             </div>
-            <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-              Experience Prometheus with <span className="text-primary font-bold">10 free messages</span>, then subscribe to continue!
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Import your AI from another platform? Get 10 bonus messages!
-            </p>
-          </div>
+          )}
+
+          {/* Free Trial Banner - only show for non-subscribers */}
+          {!currentTier || currentTier === "free" ? (
+            <div className="mb-10 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 text-center">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+                <h2 className="text-xl sm:text-2xl font-bold text-primary">Try 10 Free Messages First!</h2>
+                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              </div>
+              <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
+                Experience Prometheus with <span className="text-primary font-bold">10 free messages</span>, then subscribe to continue!
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Import your AI from another platform? Get 10 bonus messages!
+              </p>
+            </div>
+          ) : null}
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
 
@@ -145,15 +186,20 @@ const Pricing = () => {
                   </div>
                 ))}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-col gap-2">
                 <Button 
                   className="w-full" 
                   variant="outline"
                   onClick={() => handleSubscribe('basic')}
-                  disabled={checkoutLoading !== null || currentTier === 'basic'}
+                  disabled={checkoutLoading !== null || currentTier === 'basic' || currentTier === 'pro' || currentTier === 'vip'}
                 >
-                  {currentTier === 'basic' ? "Current Plan" : checkoutLoading === 'basic' ? "Loading..." : "Subscribe to Basic"}
+                  {getButtonLabel('basic')}
                 </Button>
+                {currentTier === 'basic' && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    Upgrade to Pro to unlock more features →
+                  </p>
+                )}
               </CardFooter>
             </Card>
 
@@ -187,14 +233,19 @@ const Pricing = () => {
                   </div>
                 ))}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-col gap-2">
                 <Button 
                   className="w-full" 
                   onClick={() => handleSubscribe('pro')}
-                  disabled={checkoutLoading !== null || currentTier === 'pro'}
+                  disabled={checkoutLoading !== null || currentTier === 'pro' || currentTier === 'vip'}
                 >
-                  {currentTier === 'pro' ? "Current Plan" : checkoutLoading === 'pro' ? "Loading..." : "Subscribe to Pro"}
+                  {getButtonLabel('pro')}
                 </Button>
+                {currentTier === 'pro' && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    Go VIP for unlimited everything →
+                  </p>
+                )}
               </CardFooter>
             </Card>
 
@@ -235,7 +286,7 @@ const Pricing = () => {
                   onClick={() => handleSubscribe('vip')}
                   disabled={checkoutLoading !== null || currentTier === 'vip'}
                 >
-                  {currentTier === 'vip' ? "Current Plan" : checkoutLoading === 'vip' ? "Loading..." : "Go VIP"}
+                  {getButtonLabel('vip')}
                 </Button>
               </CardFooter>
             </Card>

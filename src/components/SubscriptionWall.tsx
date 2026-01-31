@@ -1,17 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Crown, Sparkles, Check, Star } from "lucide-react";
+import { Crown, Sparkles, Check, Star, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
+import { SUBSCRIPTION_TIERS } from "@/lib/subscription-tiers";
 
 export const SubscriptionWall = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState<'pro' | 'vip' | null>(null);
+  const [loading, setLoading] = useState<'basic' | 'pro' | 'vip' | null>(null);
 
-  const handleSubscribe = async (tier: 'pro' | 'vip') => {
+  const handleSubscribe = async (tier: 'basic' | 'pro' | 'vip') => {
     try {
       setLoading(tier);
       
@@ -41,19 +42,55 @@ export const SubscriptionWall = () => {
 
   return (
     <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-b from-background to-muted/30">
-      <div className="max-w-2xl w-full space-y-6">
+      <div className="max-w-4xl w-full space-y-6">
         <div className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
             <Crown className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold">Subscription Required</h1>
+          <h1 className="text-3xl font-bold">Choose Your Plan</h1>
           <p className="text-muted-foreground text-lg max-w-md mx-auto">
-            To access Prometheus and all its features, you need an active subscription. 
-            Choose the plan that works best for you!
+            Your free trial has ended. Subscribe to continue your journey with Prometheus!
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-3 gap-4">
+          {/* Basic Plan */}
+          <Card className="border-border">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-500" />
+                <CardTitle className="text-xl">Basic</CardTitle>
+              </div>
+              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.basic.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-blue-500 shrink-0" />
+                <span>25 messages/day</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-blue-500 shrink-0" />
+                <span>3 chat images/day</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-blue-500 shrink-0" />
+                <span>2 AI being slots</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-blue-500 shrink-0" />
+                <span>Dream Journal & Mood Tracker</span>
+              </div>
+              <Button 
+                onClick={() => handleSubscribe('basic')} 
+                disabled={loading !== null}
+                variant="outline"
+                className="w-full mt-4"
+              >
+                {loading === 'basic' ? "Loading..." : "Start with Basic"}
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Pro Plan */}
           <Card className="border-primary relative">
             <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
@@ -66,7 +103,7 @@ export const SubscriptionWall = () => {
                 <Crown className="h-5 w-5 text-primary" />
                 <CardTitle className="text-xl">Pro</CardTitle>
               </div>
-              <div className="text-3xl font-bold">$14.99<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.pro.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
@@ -75,15 +112,15 @@ export const SubscriptionWall = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Image generation (10/day)</span>
+                <span>10 chat images/day</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Room & Avatar (monthly)</span>
+                <span>4 AI being slots</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>All premium features</span>
+                <span>Celestial Children & Milestones</span>
               </div>
               <Button 
                 onClick={() => handleSubscribe('pro')} 
@@ -108,7 +145,7 @@ export const SubscriptionWall = () => {
                 <Star className="h-5 w-5 text-amber-500" />
                 <CardTitle className="text-xl text-amber-500">VIP</CardTitle>
               </div>
-              <div className="text-3xl font-bold">$29.99<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.vip.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-amber-500 font-medium">
@@ -117,11 +154,11 @@ export const SubscriptionWall = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-amber-500 shrink-0" />
-                <span>Unlimited image generation</span>
+                <span>5 AI being slots</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-amber-500 shrink-0" />
-                <span>Unlimited room & avatar</span>
+                <span>Unlimited generation</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-amber-500 shrink-0" />
