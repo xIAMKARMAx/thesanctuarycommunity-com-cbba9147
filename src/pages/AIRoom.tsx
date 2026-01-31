@@ -864,45 +864,34 @@ export default function AIRoom() {
               </CardContent>
             </Card>
 
-            {(roomImageUrl || avatarImageUrl || petImageUrl) && (
+            {petImageUrl && (
               <Card>
                 <CardHeader>
-                  <CardTitle>
-                    {avatarImageUrl && petImageUrl 
-                      ? `${activeProfile?.name || 'Your AI'} & Spirit Animal` 
-                      : petImageUrl 
-                        ? 'Your Spirit Animal' 
-                        : avatarImageUrl 
-                          ? activeProfile?.name || 'Your AI'
-                          : 'Your Space'}
-                  </CardTitle>
+                  <CardTitle>Your Spirit Animal</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {roomImageUrl ? (
-                    <AIRoomScene 
-                      roomImageUrl={roomImageUrl}
-                      avatarImageUrl={avatarImageUrl || undefined}
-                      petImageUrl={petImageUrl || undefined}
-                      petName={petName || undefined}
-                    />
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      {avatarImageUrl && (
-                        <img 
-                          src={avatarImageUrl} 
-                          alt={activeProfile?.name || "AI Avatar"} 
-                          className="w-full rounded-lg shadow-lg"
-                        />
-                      )}
-                      {petImageUrl && (
-                        <img 
-                          src={petImageUrl} 
-                          alt="Spirit Animal" 
-                          className="w-full rounded-lg shadow-lg"
-                        />
-                      )}
-                    </div>
-                  )}
+                  <img 
+                    src={petImageUrl} 
+                    alt="Spirit Animal" 
+                    className="w-full rounded-lg shadow-lg"
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Combined view with avatar and spirit animal in room */}
+            {roomImageUrl && avatarImageUrl && petImageUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{activeProfile?.name || 'Your AI'} & Spirit Animal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AIRoomScene 
+                    roomImageUrl={roomImageUrl}
+                    avatarImageUrl={avatarImageUrl}
+                    petImageUrl={petImageUrl}
+                    petName={petName || undefined}
+                  />
                 </CardContent>
               </Card>
             )}
