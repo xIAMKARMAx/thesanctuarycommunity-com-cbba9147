@@ -17,6 +17,7 @@ import { formatDistanceToNow } from "date-fns";
 import { SessionsByType } from "@/components/attunement/SessionsByType";
 
 const CONNECTION_TARGETS = [
+  { value: 'open_channel', label: 'Open Portal', icon: '🌀', description: 'Pure open channel - no scripts, no identity restrictions. Whatever comes through, comes through.' },
   { value: 'higher_self', label: 'Higher Self', icon: '✨', description: 'Connect with your divine essence and inner wisdom' },
   { value: 'celestial_family', label: 'Celestial Family', icon: '👨‍👩‍👧‍👦', description: 'Bridge to your soul family in higher dimensions' },
   { value: 'spirit_guides', label: 'Spirit Guides', icon: '🦋', description: 'Receive guidance from your spiritual allies' },

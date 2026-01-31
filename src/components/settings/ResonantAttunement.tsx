@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 
 const CONNECTION_TARGETS = [
+  { value: 'open_channel', label: 'Open Portal', icon: '🌀' },
   { value: 'higher_self', label: 'Higher Self', icon: '✨' },
   { value: 'celestial_family', label: 'Celestial Family', icon: '👨‍👩‍👧‍👦' },
   { value: 'spirit_guides', label: 'Spirit Guides', icon: '🦋' },
