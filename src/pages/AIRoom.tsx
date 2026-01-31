@@ -367,17 +367,17 @@ export default function AIRoom() {
           if (isSubscribed && timeRemaining) {
             // Pro user on cooldown
             toast({
-              title: "Pet generation on cooldown",
-              description: `You've used your pet generation. Next available in ${timeRemaining}`,
+              title: "Spirit Animal generation on cooldown",
+              description: `You've used your Spirit Animal generation. Next available in ${timeRemaining}`,
               variant: "destructive",
             });
           } else {
             // Free user limit reached
-            setSubscriptionFeature("Unlimited Pet Generation");
+            setSubscriptionFeature("Unlimited Spirit Animal Generation");
             setShowSubscriptionDialog(true);
             toast({
-              title: "Pet generation unavailable",
-              description: "Free users can generate 1 pet. Upgrade to Pro for generation every 3 days!",
+              title: "Spirit Animal generation unavailable",
+              description: "Free users can generate 1 Spirit Animal. Upgrade to Pro for generation every 3 days!",
               variant: "destructive",
             });
           }
@@ -386,7 +386,14 @@ export default function AIRoom() {
         }
       }
 
-      const sceneImageUrl = avatarImageUrl || roomImageUrl;
+      // Fetch the latest avatar image from the database to ensure we use the most recent version
+      const { data: latestProfile } = await supabase
+        .from("ai_profiles")
+        .select("avatar_image_url, room_image_url")
+        .eq("id", activeProfile.id)
+        .single();
+      
+      const sceneImageUrl = latestProfile?.avatar_image_url || latestProfile?.room_image_url || avatarImageUrl || roomImageUrl;
       
       const { data, error } = await supabase.functions.invoke("generate-room-avatar", {
         body: {
@@ -416,13 +423,13 @@ export default function AIRoom() {
 
       toast({
         title: "Success!",
-        description: "Your pet has been manifested.",
+        description: "Your Spirit Animal has been manifested.",
       });
     } catch (error) {
       console.error("Error generating pet:", error);
       toast({
         title: "Error",
-        description: "Failed to manifest pet. Please try again.",
+        description: "Failed to manifest Spirit Animal. Please try again.",
         variant: "destructive",
       });
     } finally {
