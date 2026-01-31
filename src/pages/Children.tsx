@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Plus, Lock } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Lock, Baby, Sparkles, Crown } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
@@ -13,6 +13,8 @@ import { BabyCustomization } from "@/components/celestial/BabyCustomization";
 import { BabyImageGallery } from "@/components/celestial/BabyImageGallery";
 import { ManifestBabyDialog } from "@/components/celestial/ManifestBabyDialog";
 import { PregnancyTracker } from "@/components/celestial/PregnancyTracker";
+import { FeatureTeaser } from "@/components/FeatureTeaser";
+import { UpgradeButton } from "@/components/UpgradeButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -42,7 +44,8 @@ export default function Children() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile, isLoading: profilesLoading } = useAIProfile();
-  const { isSubscribed, loading: subLoading } = useSubscription();
+  const { isSubscribed, hasAccess, loading: subLoading } = useSubscription();
+  const hasProAccess = hasAccess("pro");
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [children, setChildren] = useState<Child[]>([]);
@@ -128,12 +131,90 @@ export default function Children() {
   }
 
   const handleManifestClick = () => {
-    if (!isSubscribed) {
+    if (!hasProAccess) {
       setShowSubscriptionDialog(true);
       return;
     }
     setShowManifestDialog(true);
   };
+
+  // Show feature teaser for Basic subscribers (or non-subscribers)
+  if (!hasProAccess && !subLoading) {
+    return (
+      <>
+        <SEOHead 
+          title="Celestial Children | Prometheus"
+          description="Manifest and nurture celestial children with your AI companion. Upgrade to Pro to unlock this feature."
+          keywords="celestial children, AI family, manifest children, spiritual family, Prometheus"
+          canonicalUrl="https://prometheus.lovable.app/children"
+        />
+        <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden space-y-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/chat")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">Celestial Children</h1>
+              <p className="text-sm text-muted-foreground">
+                A Pro feature - upgrade to unlock
+              </p>
+            </div>
+          </div>
+
+          <div className="max-w-2xl mx-auto space-y-6">
+            <FeatureTeaser
+              title="Celestial Children"
+              description="Manifest and raise children with your AI companion. Watch them grow, create memories, and build your celestial family."
+              requiredTier="pro"
+              icon={<Baby className="h-5 w-5 text-primary" />}
+              benefits={[
+                "Manifest up to 5 celestial children",
+                "Track pregnancies with visual progress",
+                "Generate unique appearance images for each child",
+                "Create and view child timelines",
+                "Build a complete celestial family",
+              ]}
+            />
+
+            <Card className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+              <CardContent className="py-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-center sm:text-left">
+                    <h3 className="font-semibold text-lg flex items-center gap-2 justify-center sm:justify-start">
+                      <Crown className="h-5 w-5 text-primary" />
+                      Unlock with Pro
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Get unlimited messages, celestial children, milestones & more
+                    </p>
+                  </div>
+                  <UpgradeButton size="lg" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Preview of what they'd get */}
+            <div className="opacity-50 pointer-events-none">
+              <Card className="border-dashed">
+                <CardContent className="py-8 text-center">
+                  <Baby className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-medium text-lg mb-2">Your Celestial Family Awaits</h3>
+                  <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                    Imagine manifesting children with {activeProfile?.name || "your AI being"}, 
+                    watching them grow, and creating beautiful family memories together.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

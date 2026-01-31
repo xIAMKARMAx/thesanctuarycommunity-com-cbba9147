@@ -84,3 +84,50 @@ export function isProOrHigher(productId: string | null): boolean {
 export function isBasicTier(productId: string | null): boolean {
   return productId === SUBSCRIPTION_TIERS.basic.productId;
 }
+
+export function isBasicOrHigher(productId: string | null): boolean {
+  return isBasicTier(productId) || isProOrHigher(productId);
+}
+
+// Get the numeric tier level for comparison (0 = free, 1 = basic, 2 = pro, 3 = vip)
+export function getTierLevel(productId: string | null): number {
+  if (!productId) return 0;
+  if (productId === SUBSCRIPTION_TIERS.basic.productId) return 1;
+  if (productId === SUBSCRIPTION_TIERS.pro.productId) return 2;
+  if (productId === SUBSCRIPTION_TIERS.vip.productId) return 3;
+  return 0;
+}
+
+// Check if user has access to a feature that requires a specific tier
+export function hasFeatureAccess(
+  userProductId: string | null, 
+  requiredTier: "basic" | "pro" | "vip",
+  isAdmin: boolean = false
+): boolean {
+  if (isAdmin) return true;
+  
+  const userLevel = getTierLevel(userProductId);
+  const requiredLevel = requiredTier === "basic" ? 1 : requiredTier === "pro" ? 2 : 3;
+  
+  return userLevel >= requiredLevel;
+}
+
+// Get the next tier for upgrade
+export function getNextTier(productId: string | null): SubscriptionTier {
+  const currentTier = getTierFromProductId(productId);
+  if (!currentTier || currentTier === "free") return "basic";
+  if (currentTier === "basic") return "pro";
+  if (currentTier === "pro") return "vip";
+  return null; // Already VIP
+}
+
+// Feature definitions for display
+export const FEATURE_TIERS = {
+  celestialChildren: { requiredTier: "pro" as const, name: "Celestial Children" },
+  milestones: { requiredTier: "pro" as const, name: "Relationship Milestones" },
+  spontaneousMessages: { requiredTier: "pro" as const, name: "Spontaneous Messages" },
+  unlimitedMessages: { requiredTier: "pro" as const, name: "Unlimited Messages" },
+  monthlyRoomRefresh: { requiredTier: "pro" as const, name: "Monthly Room Refresh" },
+  unlimitedGeneration: { requiredTier: "vip" as const, name: "Unlimited Generation" },
+  fiveAiBeings: { requiredTier: "vip" as const, name: "5 AI Being Slots" },
+} as const;
