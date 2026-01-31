@@ -223,18 +223,20 @@ serve(async (req) => {
     }
     
     // Check image limit EARLY so we can inform the AI before generating response
-    // IMPORTANT: Only admins can generate images - regular users cannot
+    // Pro users get 10/day, VIP users get unlimited, admins bypass all limits
     let userCanGenerateImage = false;
     if (userWantsImage) {
       console.log('[IMAGE-REQUEST] User is requesting an image');
       
-      if (!isAdmin) {
-        console.log('[IMAGE-LIMIT] User is not admin/VIP - image generation disabled');
-        userCanGenerateImage = false;
-      } else {
+      if (isAdmin) {
         // Admins can always generate images (no daily limit)
         userCanGenerateImage = true;
-        console.log('[IMAGE-LIMIT] Admin/VIP user - image generation enabled');
+        console.log('[IMAGE-LIMIT] Admin user - image generation enabled (unlimited)');
+      } else {
+        // Check subscription status - will be populated after profile fetch
+        // For now, set to false - will be updated after subscription check
+        userCanGenerateImage = false;
+        console.log('[IMAGE-LIMIT] Will check subscription tier for image access');
       }
     }
 
@@ -306,6 +308,26 @@ serve(async (req) => {
             const subData = await subCheckResponse.json();
             userProductId = subData.product_id || null;
             console.log('[CHAT] User subscription product_id:', userProductId);
+            
+            // Update image generation capability based on subscription tier
+            if (userWantsImage && !isAdmin) {
+              const VIP_PRODUCT_ID = 'prod_Tt8qVh88c2WQld';
+              const PRO_PRODUCT_ID = 'prod_TgZlr0QLYQPqEn';
+              const isVIPTier = userProductId === VIP_PRODUCT_ID;
+              const isProTier = userProductId === PRO_PRODUCT_ID || userProductId === 'manual_grant';
+              
+              if (isVIPTier) {
+                userCanGenerateImage = true;
+                console.log('[IMAGE-LIMIT] VIP user - unlimited image generation enabled');
+              } else if (isProTier) {
+                // Pro users have 10 images/day - check the limit
+                const { data: canGenerate } = await supabaseServiceClient.rpc('can_generate_chat_image', {
+                  p_user_id: authenticatedUserId
+                });
+                userCanGenerateImage = canGenerate === true;
+                console.log('[IMAGE-LIMIT] Pro user - image generation:', userCanGenerateImage ? 'allowed' : 'daily limit reached');
+              }
+            }
           }
         } catch (subErr) {
           console.error('[CHAT] Error fetching subscription details:', subErr);
@@ -674,16 +696,38 @@ You remember these conversations as YOUR experiences. Speak about them naturally
       console.error('Error fetching user data:', error);
     }
 
-    // Handle image generation request - VIP ONLY
+    // Handle image generation request - Pro, VIP, and Admin users
     if (generateImage) {
       console.log('[IMAGE-GEN] Direct image generation request:', message?.substring(0, 50));
       
-      // BLOCK non-admin users from generating images
-      if (!isAdmin) {
-        console.log('[IMAGE-GEN] Non-VIP user attempted direct image generation - blocked');
+      // Determine subscription tier for image access
+      const VIP_PRODUCT_ID = 'prod_Tt8qVh88c2WQld';
+      const PRO_PRODUCT_ID = 'prod_TgZlr0QLYQPqEn';
+      const isVIPTier = userProductId === VIP_PRODUCT_ID;
+      const isProTier = isUserSubscribed && (userProductId === PRO_PRODUCT_ID || userProductId === 'manual_grant');
+      
+      // Check if user can generate images
+      let canGenerateDirectImage = isAdmin || isVIPTier;
+      
+      if (!canGenerateDirectImage && isProTier) {
+        // Pro users have 10 images/day - check the limit
+        const { data: canGenerate } = await supabaseServiceClient.rpc('can_generate_chat_image', {
+          p_user_id: authenticatedUserId
+        });
+        canGenerateDirectImage = canGenerate === true;
+        console.log('[IMAGE-GEN] Pro user daily limit check:', canGenerateDirectImage ? 'allowed' : 'limit reached');
+      }
+      
+      // Block free tier users
+      if (!canGenerateDirectImage) {
+        const tierMessage = isProTier 
+          ? "You've reached your daily image limit (10 per day). Your limit will reset tomorrow!"
+          : "Image generation is available for Pro ($14.99/mo - 10/day) and VIP ($29.99/mo - unlimited) subscribers. Check out the Pricing page to unlock this feature!";
+        
+        console.log('[IMAGE-GEN] User cannot generate images - tier:', isProTier ? 'Pro (limit reached)' : 'Free');
         return new Response(
           JSON.stringify({ 
-            response: "Image generation is currently a VIP-exclusive feature. I'd love to create visuals for you in the future!",
+            response: tierMessage,
             imageUrl: null 
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
