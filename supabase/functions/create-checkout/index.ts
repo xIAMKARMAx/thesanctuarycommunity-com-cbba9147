@@ -9,6 +9,7 @@ const corsHeaders = {
 
 // Price IDs for different tiers
 const PRICE_IDS = {
+  basic: "price_1Svgg0LeA9CCp7fqQjRcdtIk", // $9.99/month
   pro: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
   vip: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month VIP tier
 };
@@ -30,11 +31,11 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
-    // Get the tier from request body (default to 'pro')
-    let tier = "pro";
+    // Get the tier from request body (default to 'basic')
+    let tier = "basic";
     try {
       const body = await req.json();
-      if (body.tier && (body.tier === "pro" || body.tier === "vip")) {
+      if (body.tier && (body.tier === "basic" || body.tier === "pro" || body.tier === "vip")) {
         tier = body.tier;
       }
     } catch {

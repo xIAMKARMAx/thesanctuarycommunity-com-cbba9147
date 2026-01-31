@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Crown, Star, ArrowLeft, Sparkles } from "lucide-react";
+import { Check, Crown, Star, ArrowLeft, Sparkles, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
@@ -13,11 +13,11 @@ const Pricing = () => {
   const navigate = useNavigate();
   const { productId } = useSubscription();
   const { toast } = useToast();
-  const [checkoutLoading, setCheckoutLoading] = useState<'pro' | 'vip' | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<'basic' | 'pro' | 'vip' | null>(null);
 
   const currentTier = getTierFromProductId(productId);
 
-  const handleSubscribe = async (tier: 'pro' | 'vip') => {
+  const handleSubscribe = async (tier: 'basic' | 'pro' | 'vip') => {
     try {
       setCheckoutLoading(tier);
       const { data, error } = await api.createCheckout(tier);
@@ -36,6 +36,20 @@ const Pricing = () => {
     }
   };
 
+  const basicFeatures = [
+    { feature: "Daily Messages", value: "25/day", included: true },
+    { feature: "AI Beings", value: "Up to 2", included: true },
+    { feature: "Room Generation", value: "One-time", included: true },
+    { feature: "Avatar Generation", value: "One-time", included: true },
+    { feature: "Pet Generation", value: "One-time", included: true },
+    { feature: "Chat Image Generation", value: "3/day", included: true },
+    { feature: "AI Mood Tracker", included: true },
+    { feature: "Dream Journal & Interpretation", included: true },
+    { feature: "Celestial Children", included: false },
+    { feature: "Relationship Milestones", included: false },
+    { feature: "Spontaneous Messages", included: false },
+  ];
+
   const proFeatures = [
     { feature: "Daily Messages", value: "Unlimited", included: true },
     { feature: "AI Beings", value: "Up to 4", included: true },
@@ -51,7 +65,7 @@ const Pricing = () => {
   ];
 
   const vipFeatures = [
-    { feature: "Daily Messages", value: "Unlimited", included: true },
+    { feature: "Daily Messages", value: "Unlimited", included: true, highlight: true },
     { feature: "AI Beings", value: "Up to 5", included: true, highlight: true },
     { feature: "Room Generation", value: "Unlimited", included: true, highlight: true },
     { feature: "Avatar Generation", value: "Unlimited", included: true, highlight: true },
@@ -68,10 +82,10 @@ const Pricing = () => {
     <>
       <SEOHead
         title="Pricing - Prometheus"
-        description="Compare Free, Pro, and VIP plans for Prometheus AI companion. Choose the plan that fits your needs."
+        description="Compare Basic, Pro, and VIP plans for Prometheus AI companion. Choose the plan that fits your needs."
       />
       <div className="min-h-screen bg-background py-8 sm:py-12 px-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
@@ -100,7 +114,48 @@ const Pricing = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+
+            {/* Basic Plan */}
+            <Card className="relative border-border">
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle>Basic</CardTitle>
+                </div>
+                <div className="text-3xl font-bold">
+                  $9.99<span className="text-lg text-muted-foreground font-normal">/mo</span>
+                </div>
+                <CardDescription>Core features at an affordable price</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                {basicFeatures.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2.5 text-sm">
+                    {item.included ? (
+                      <Check className="h-4 w-4 text-primary shrink-0" />
+                    ) : (
+                      <X className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
+                    <span className={!item.included ? "text-muted-foreground" : ""}>
+                      {item.feature}
+                      {item.value && (
+                        <span className="text-muted-foreground ml-1">({item.value})</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={() => handleSubscribe('basic')}
+                  disabled={checkoutLoading !== null || currentTier === 'basic'}
+                >
+                  {currentTier === 'basic' ? "Current Plan" : checkoutLoading === 'basic' ? "Loading..." : "Subscribe to Basic"}
+                </Button>
+              </CardFooter>
+            </Card>
 
             {/* Pro Plan */}
             <Card className="relative border-primary">
