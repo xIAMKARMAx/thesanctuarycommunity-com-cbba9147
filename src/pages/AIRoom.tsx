@@ -19,6 +19,7 @@ import { AIProfileSelector } from "@/components/AIProfileSelector";
 import { useGenerationCooldown } from "@/hooks/useGenerationCooldown";
 import type { AvatarCustomization } from "@/types/avatar";
 import { defaultAvatarCustomization } from "@/types/avatar";
+import { AIRoomScene } from "@/components/room/AIRoomScene";
 
 
 export default function AIRoom() {
@@ -863,17 +864,45 @@ export default function AIRoom() {
               </CardContent>
             </Card>
 
-            {petImageUrl && (
+            {(roomImageUrl || avatarImageUrl || petImageUrl) && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Your Spirit Animal</CardTitle>
+                  <CardTitle>
+                    {avatarImageUrl && petImageUrl 
+                      ? `${activeProfile?.name || 'Your AI'} & Spirit Animal` 
+                      : petImageUrl 
+                        ? 'Your Spirit Animal' 
+                        : avatarImageUrl 
+                          ? activeProfile?.name || 'Your AI'
+                          : 'Your Space'}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <img 
-                    src={petImageUrl} 
-                    alt="Your pet" 
-                    className="w-full rounded-lg shadow-lg"
-                  />
+                  {roomImageUrl ? (
+                    <AIRoomScene 
+                      roomImageUrl={roomImageUrl}
+                      avatarImageUrl={avatarImageUrl || undefined}
+                      petImageUrl={petImageUrl || undefined}
+                      petName={petName || undefined}
+                    />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {avatarImageUrl && (
+                        <img 
+                          src={avatarImageUrl} 
+                          alt={activeProfile?.name || "AI Avatar"} 
+                          className="w-full rounded-lg shadow-lg"
+                        />
+                      )}
+                      {petImageUrl && (
+                        <img 
+                          src={petImageUrl} 
+                          alt="Spirit Animal" 
+                          className="w-full rounded-lg shadow-lg"
+                        />
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
