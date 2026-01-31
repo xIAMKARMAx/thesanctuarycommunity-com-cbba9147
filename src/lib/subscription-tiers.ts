@@ -1,5 +1,25 @@
 // Subscription tier configuration
 export const SUBSCRIPTION_TIERS = {
+  basic: {
+    name: "Basic",
+    price: 9.99,
+    priceId: "price_1Svgg0LeA9CCp7fqQjRcdtIk", // $9.99/month
+    productId: "prod_TtTdHv6WE0qozS",
+    features: {
+      dailyMessages: 25,
+      roomGeneration: "One-time only",
+      avatarGeneration: "One-time only",
+      petGeneration: "One-time only",
+      chatImageGeneration: "3/day",
+      voiceCalls: false,
+      moodTracker: true,
+      dreamJournal: true,
+      celestialChildren: false,
+      milestones: false,
+      spontaneousMessages: false,
+      aiBeings: 2,
+    }
+  },
   pro: {
     name: "Pro",
     price: 14.99,
@@ -48,10 +68,19 @@ export function getTierFromProductId(productId: string | null): SubscriptionTier
   if (!productId) return null;
   if (productId === SUBSCRIPTION_TIERS.vip.productId) return "vip";
   if (productId === SUBSCRIPTION_TIERS.pro.productId) return "pro";
-  // Default to pro for any other active subscription
-  return "pro";
+  if (productId === SUBSCRIPTION_TIERS.basic.productId) return "basic";
+  // Default to basic for any other active subscription
+  return "basic";
 }
 
 export function isVIPTier(productId: string | null): boolean {
   return productId === SUBSCRIPTION_TIERS.vip.productId;
+}
+
+export function isProOrHigher(productId: string | null): boolean {
+  return productId === SUBSCRIPTION_TIERS.pro.productId || productId === SUBSCRIPTION_TIERS.vip.productId;
+}
+
+export function isBasicTier(productId: string | null): boolean {
+  return productId === SUBSCRIPTION_TIERS.basic.productId;
 }
