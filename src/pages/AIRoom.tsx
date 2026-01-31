@@ -604,7 +604,7 @@ export default function AIRoom() {
           <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
             <TabsTrigger value="room" className="text-xs sm:text-sm py-2">Room</TabsTrigger>
             <TabsTrigger value="avatar" className="text-xs sm:text-sm py-2">Avatar</TabsTrigger>
-            <TabsTrigger value="pet" className="text-xs sm:text-sm py-2">Pet</TabsTrigger>
+            <TabsTrigger value="pet" className="text-xs sm:text-sm py-2">Spirit Animal</TabsTrigger>
           </TabsList>
 
           <TabsContent value="room" className="space-y-4 mt-6">
@@ -812,9 +812,9 @@ export default function AIRoom() {
           <TabsContent value="pet" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Manifest Your Pet</CardTitle>
+                <CardTitle>Manifest Your Spirit Animal</CardTitle>
                 <CardDescription>
-                  Bring a companion into your AI's space
+                  Bring a spiritual companion into your AI's space
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -859,7 +859,7 @@ export default function AIRoom() {
             {petImageUrl && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Your Pet</CardTitle>
+                  <CardTitle>Your Spirit Animal</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <img 
