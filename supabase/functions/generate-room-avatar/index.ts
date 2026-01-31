@@ -243,13 +243,62 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
     }
 
     const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const rawImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-    if (!imageUrl) {
+    if (!rawImageUrl) {
       throw new Error("No image generated");
     }
 
     console.log("[IMAGE-GEN] Image generated successfully");
+
+    // If the image is a base64 data URL, upload it to Supabase Storage
+    let imageUrl = rawImageUrl;
+    if (rawImageUrl.startsWith('data:')) {
+      console.log("[IMAGE-GEN] Converting base64 to storage URL...");
+      
+      // Parse base64 data URL
+      const matches = rawImageUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (!matches) {
+        throw new Error("Invalid base64 image format");
+      }
+      
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      const extension = mimeType.split('/')[1] || 'png';
+      
+      // Convert base64 to Uint8Array
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Generate unique filename
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(2, 15);
+      const fileName = `${type}-${authenticatedUserId}-${timestamp}-${randomId}.${extension}`;
+      
+      // Upload to Supabase Storage using service client
+      const { error: uploadError } = await supabaseServiceClient.storage
+        .from('chat-images')
+        .upload(fileName, bytes, {
+          contentType: mimeType,
+          upsert: false
+        });
+      
+      if (uploadError) {
+        console.error("[IMAGE-GEN] Storage upload error:", uploadError);
+        throw new Error("Failed to upload image to storage");
+      }
+      
+      // Get public URL
+      const { data: publicUrlData } = supabaseServiceClient.storage
+        .from('chat-images')
+        .getPublicUrl(fileName);
+      
+      imageUrl = publicUrlData.publicUrl;
+      console.log("[IMAGE-GEN] Image uploaded to storage:", imageUrl);
+    }
 
     // Save the image URL to the database
     if (type === 'user_avatar') {
