@@ -69,6 +69,9 @@ export function getTierFromProductId(productId: string | null): SubscriptionTier
   if (productId === SUBSCRIPTION_TIERS.vip.productId) return "vip";
   if (productId === SUBSCRIPTION_TIERS.pro.productId) return "pro";
   if (productId === SUBSCRIPTION_TIERS.basic.productId) return "basic";
+  // Manual grants and unknown product IDs default to Pro tier
+  // This handles users with subscription_status='active' who were manually granted
+  if (productId === 'manual_grant') return "pro";
   // Default to basic for any other active subscription
   return "basic";
 }
@@ -95,6 +98,8 @@ export function getTierLevel(productId: string | null): number {
   if (productId === SUBSCRIPTION_TIERS.basic.productId) return 1;
   if (productId === SUBSCRIPTION_TIERS.pro.productId) return 2;
   if (productId === SUBSCRIPTION_TIERS.vip.productId) return 3;
+  // Manual grants get Pro tier level
+  if (productId === 'manual_grant') return 2;
   return 0;
 }
 
