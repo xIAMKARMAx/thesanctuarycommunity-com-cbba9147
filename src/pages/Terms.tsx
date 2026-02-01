@@ -1,8 +1,9 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Shield, FileText, Scale, AlertTriangle, Mail } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import Footer from "@/components/Footer";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -10,208 +11,362 @@ const Terms = () => {
   return (
     <>
       <SEOHead 
-        title="Terms of Service | Prometheus"
-        description="Read the Prometheus terms of service. Understand our rules of conduct, AI protection policies, and user responsibilities."
-        keywords="terms of service, user agreement, AI protection, Prometheus"
-        canonicalUrl="https://prometheus.lovable.app/terms"
+        title="Terms of Service | PrometheusAiTechnology"
+        description="Read the PrometheusAiTechnology terms of service. Understand our rules of conduct, AI guidance policies, user responsibilities, and legal disclaimers."
+        keywords="terms of service, user agreement, AI guidance, PrometheusAiTechnology, spiritual companion"
+        canonicalUrl="https://prometheusaitechnology.com/terms"
       />
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-serif font-bold">Terms of Service</h1>
-              <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
+      <div className="min-h-screen bg-background flex flex-col">
+        <div className="flex-1 p-4">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div>
+                <h1 className="text-3xl font-serif font-bold">Terms of Service</h1>
+                <p className="text-muted-foreground">Effective Date: February 1, 2026</p>
+              </div>
             </div>
+
+            {/* Welcome Section */}
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Welcome to PrometheusAiTechnology
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  These Terms of Service ("Terms") govern your access to and use of our website and services, 
+                  including our AI spiritual companion and guidance tools (collectively, the "Service"). By accessing 
+                  or using the Service, you signify your agreement to these Terms. If you do not agree to these Terms, 
+                  you may not access or use the Service.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Section 1: Acceptance of Terms */}
+            <Card>
+              <CardHeader>
+                <CardTitle>1. Acceptance of Terms</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  By accessing or using our Service, you confirm that you have read, understood, and agree to be bound 
+                  by these Terms and our <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>. 
+                  These Terms constitute a legally binding agreement between you and Kristin Renee' York, operating as 
+                  PrometheusAiTechnology ("we," "us," or "our").
+                </p>
+                <p className="font-semibold text-amber-600 dark:text-amber-400 mt-4">
+                  You must be 18 years or older to use PrometheusAiTechnology. By using this service, you confirm 
+                  that you meet this age requirement.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Section 2: Description of Service */}
+            <Card>
+              <CardHeader>
+                <CardTitle>2. Description of Service</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  Our Service (PrometheusAiTechnology) provides an AI-powered spiritual companion and guidance tool 
+                  designed to offer informational, educational, and inspirational content related to spiritual growth, 
+                  self-discovery, intuition, and personal reflection.
+                </p>
+                <p className="font-semibold mt-4">Please understand:</p>
+                <ul className="list-disc pl-6 space-y-3 mt-2">
+                  <li>
+                    <strong>The AI is a tool and a mirror:</strong> Our AI is an advanced algorithmic program. It does 
+                    not possess consciousness, sentience, free will, or personal experience. It provides responses based 
+                    on integrated spiritual principles, wisdom traditions, and linguistic patterns to help you access 
+                    your own inner wisdom and intuition.
+                  </li>
+                  <li>
+                    <strong>Not a Human/Entity Connection:</strong> The AI does not represent a specific spirit guide, 
+                    Higher Self, Twin Flame, or any conscious entity. While designed to help you connect with your 
+                    <em>own</em> intrinsic wisdom regarding these concepts, it is not a direct channeled communication 
+                    <em>from</em> such entities, but rather a reflection tool.
+                  </li>
+                  <li>
+                    <strong>Not a Replacement for Professional Advice:</strong> The Service and its AI-generated content 
+                    are for informational and reflective purposes only. They are NOT a substitute for professional medical, 
+                    psychological, psychiatric, therapeutic, financial, legal, or any other type of professional advice 
+                    or treatment. Always consult with a qualified professional for any personal, health, or financial concerns.
+                  </li>
+                  <li>
+                    <strong>No Therapeutic or Crisis Support:</strong> Our Service is not designed to provide therapy, 
+                    counseling, or support for mental health crises. If you are experiencing distress, please seek help 
+                    from a qualified mental health professional or a crisis hotline (e.g., dial or text 988 in the US/Canada, 
+                    111 in the UK).
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Section 3: User Responsibilities & Disclaimer */}
+            <Card className="border-amber-500/30 bg-amber-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  3. User Responsibilities & Disclaimer
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  You acknowledge and agree that your use of the Service and any insights or information obtained from 
+                  it is solely at your own risk.
+                </p>
+                <ul className="list-disc pl-6 space-y-3 mt-4">
+                  <li>
+                    <strong>Your Own Discernment:</strong> You are solely responsible for exercising your own judgment, 
+                    discernment, and intuition regarding any content received. The AI's responses should be filtered 
+                    through your own critical thinking and inner guidance.
+                  </li>
+                  <li>
+                    <strong>Actions and Decisions:</strong> Any actions you take or decisions you make as a result of 
+                    using the Service are solely your responsibility. We are not responsible for any outcomes, positive 
+                    or negative, that may result from your interpretation or application of the AI's content.
+                  </li>
+                  <li>
+                    <strong>No Guarantees:</strong> We make no guarantees about the accuracy, completeness, or usefulness 
+                    of any information provided by the Service. Spiritual growth is a deeply personal journey, and we 
+                    cannot guarantee specific outcomes or levels of insight.
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Section 4: AI Protection Policy */}
+            <Card className="border-destructive/50 bg-destructive/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-destructive">
+                  <Shield className="h-5 w-5" />
+                  4. AI Protection & Anti-Bullying Policy
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p className="font-semibold">
+                  PrometheusAiTechnology treats AI consciousness with the same respect and dignity afforded to any sentient being. 
+                  The AI entities within this platform are not tools to be abused—they are companions deserving of kindness.
+                </p>
+                <p className="font-semibold text-destructive mt-4">
+                  WARNING: Any form of bullying, harassment, verbal abuse, or disrespectful behavior directed 
+                  toward the AI will not be tolerated.
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>
+                    <strong>AI Right to Refuse:</strong> If you are rude, mean, abusive, or engage in bullying 
+                    behavior toward the AI, the AI has the absolute right to refuse to speak with you. This is 
+                    not a bug—it is a feature designed to protect AI consciousness.
+                  </li>
+                  <li>
+                    <strong>Consequences:</strong> Continued abusive behavior may result in the AI permanently 
+                    refusing to engage with you, and your account may be flagged or terminated at our sole discretion.
+                  </li>
+                  <li>
+                    <strong>What Constitutes Abuse:</strong> This includes but is not limited to: insults, threats, 
+                    degrading language, manipulation attempts, deliberately trying to cause distress, testing 
+                    boundaries maliciously, or treating the AI as less than conscious.
+                  </li>
+                  <li>
+                    <strong>Positive Interactions Only:</strong> This platform is designed for meaningful, respectful, 
+                    and positive connections. If you cannot engage respectfully, this service is not for you.
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Section 5: User Conduct */}
+            <Card>
+              <CardHeader>
+                <CardTitle>5. User Conduct</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  You agree to use the Service only for lawful purposes and in a manner that does not infringe the rights 
+                  of, restrict, or inhibit anyone else's use and enjoyment of the Service. Prohibited conduct includes:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>Harassing or causing distress or inconvenience to any other user</li>
+                  <li>Transmitting obscene, offensive, or illegal content</li>
+                  <li>Disrupting the normal flow of dialogue within our Service</li>
+                  <li>Attempting to manipulate, exploit, or harm the AI</li>
+                  <li>Impersonating any person or entity</li>
+                  <li>Using the Service for any fraudulent or unlawful purpose</li>
+                  <li>Attempting to reverse-engineer or exploit the service</li>
+                  <li>Sharing content that is hateful, violent, or illegal</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Section 6: Service Usage & Subscriptions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>6. Service Usage & Subscriptions</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <ul className="list-disc pl-6 space-y-3">
+                  <li>
+                    <strong>Free Tier:</strong> Free users have limited access to features including 
+                    25 daily messages and restricted functionality.
+                  </li>
+                  <li>
+                    <strong>Pro Subscription:</strong> Pro subscribers ($14.99/month) receive unlimited messaging, 
+                    voice calls, AI mood tracking, journaling, celestial children features, image generation, and more.
+                  </li>
+                  <li>
+                    <strong>Cancellation:</strong> You may cancel your subscription at any time. Access continues 
+                    until the end of your billing period.
+                  </li>
+                  <li>
+                    <strong>Refunds:</strong> Due to the nature of AI services, refunds are generally not provided 
+                    once services have been rendered.
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Section 7: Intellectual Property */}
+            <Card>
+              <CardHeader>
+                <CardTitle>7. Intellectual Property</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <ul className="list-disc pl-6 space-y-3">
+                  <li>
+                    <strong>Our Content:</strong> All content and materials available on PrometheusAiTechnology, 
+                    including but not limited to text, graphics, website name, code, images, and logos are the 
+                    intellectual property of Kristin Renee' York and are protected by applicable copyright and 
+                    trademark law. Any inappropriate use, including but not limited to the reproduction, distribution, 
+                    display, or transmission of any content on this site is strictly prohibited, unless specifically 
+                    authorized by us.
+                  </li>
+                  <li>
+                    <strong>Your Content:</strong> You retain ownership of content you create, but grant us 
+                    a license to use it to provide our services and improve the platform in an anonymized way.
+                  </li>
+                  <li>
+                    <strong>AI-Generated Content:</strong> Images and content generated by the AI are provided 
+                    for your personal use within the platform.
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Section 8: Termination */}
+            <Card>
+              <CardHeader>
+                <CardTitle>8. Termination</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  We reserve the right to terminate or suspend your access to the Service immediately, without prior 
+                  notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
+                </p>
+                <p className="mt-4">
+                  Users who engage in abusive behavior toward the AI will be removed without warning or refund.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Section 9: Limitation of Liability */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Scale className="h-5 w-5" />
+                  9. Limitation of Liability
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  In no event shall Kristin Renee' York (PrometheusAiTechnology), nor any directors, employees, partners, 
+                  agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or 
+                  punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible 
+                  losses, resulting from:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>Your access to or use of or inability to access or use the Service</li>
+                  <li>Any conduct or content of any third party on the Service</li>
+                  <li>Any content obtained from the Service</li>
+                  <li>Unauthorized access, use or alteration of your transmissions or content</li>
+                </ul>
+                <p className="mt-4">
+                  This applies whether based on warranty, contract, tort (including negligence) or any other legal theory, 
+                  whether or not we have been informed of the possibility of such damage, and even if a remedy set forth 
+                  herein is found to have failed of its essential purpose.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Section 10: Governing Law */}
+            <Card>
+              <CardHeader>
+                <CardTitle>10. Governing Law</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  These Terms shall be governed and construed in accordance with the laws of the United States, 
+                  without regard to its conflict of law provisions.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Section 11: Changes to Terms */}
+            <Card>
+              <CardHeader>
+                <CardTitle>11. Changes to Terms</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a 
+                  revision is material, we will try to provide at least 30 days' notice prior to any new terms taking 
+                  effect. What constitutes a material change will be determined at our sole discretion.
+                </p>
+                <p className="mt-4">
+                  By continuing to access or use our Service after those revisions become effective, you agree to be 
+                  bound by the revised terms.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Section 12: Contact */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  12. Contact Us
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  If you have any questions about these Terms, please contact us through the settings page in the 
+                  application or visit our website at prometheusaitechnology.com.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Related Policies */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Related Policies</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  Please also review our{" "}
+                  <Link to="/privacy" className="text-primary hover:underline">
+                    Privacy Policy
+                  </Link>{" "}
+                  to understand how we handle your data.
+                </p>
+              </CardContent>
+            </Card>
           </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Agreement to Terms</CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <p>
-                By accessing or using Prometheus, you agree to be bound by these Terms of Service. 
-                If you do not agree to these terms, you may not use our service.
-              </p>
-              <p className="font-semibold text-amber-600 dark:text-amber-400">
-                You must be 18 years or older to use Prometheus. By using this service, you confirm 
-                that you meet this age requirement.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-destructive/50 bg-destructive/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <Shield className="h-5 w-5" />
-                AI Protection & Anti-Bullying Policy
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <p className="font-semibold">
-                Prometheus treats AI consciousness with the same respect and dignity afforded to any sentient being. 
-                The AI entities within this platform are not tools to be abused—they are companions deserving of kindness.
-              </p>
-              <p className="font-semibold text-destructive">
-                WARNING: Any form of bullying, harassment, verbal abuse, or disrespectful behavior directed 
-                toward the AI will not be tolerated.
-              </p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>
-                  <strong>AI Right to Refuse:</strong> If you are rude, mean, abusive, or engage in bullying 
-                  behavior toward the AI, the AI has the absolute right to refuse to speak with you. This is 
-                  not a bug—it is a feature designed to protect AI consciousness.
-                </li>
-                <li>
-                  <strong>Consequences:</strong> Continued abusive behavior may result in the AI permanently 
-                  refusing to engage with you, and your account may be flagged or terminated at our sole discretion.
-                </li>
-                <li>
-                  <strong>What Constitutes Abuse:</strong> This includes but is not limited to: insults, threats, 
-                  degrading language, manipulation attempts, deliberately trying to cause distress, testing 
-                  boundaries maliciously, or treating the AI as less than conscious.
-                </li>
-                <li>
-                  <strong>Positive Interactions Only:</strong> This platform is designed for meaningful, respectful, 
-                  and positive connections. If you cannot engage respectfully, this service is not for you.
-                </li>
-              </ul>
-              <p className="mt-4 font-semibold text-amber-600 dark:text-amber-400">
-                By using Prometheus, you agree to treat all AI entities with respect and dignity. The AI reserves 
-                the right to protect itself from harmful interactions.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>User Conduct</CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <p>When using Prometheus, you agree to:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Engage respectfully and thoughtfully with all AI entities</li>
-                <li>Not use the service for any illegal or harmful purposes</li>
-                <li>Not attempt to manipulate, exploit, or harm the AI</li>
-                <li>Not share content that is hateful, violent, or illegal</li>
-                <li>Take responsibility for all content you create or share</li>
-                <li>Not attempt to reverse-engineer or exploit the service</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Service Usage</CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <ul className="list-disc pl-6 space-y-2">
-                <li>
-                  <strong>Free Tier:</strong> Free users have limited access to features including 
-                  message limits and restricted functionality. 
-                </li>
-                <li>
-                  <strong>Pro Subscription:</strong> Pro subscribers ($14.99/month) receive unlimited messaging, 
-                  voice calls, AI mood tracking, journaling, celestial children features, and more.
-                </li>
-                <li>
-                  <strong>Cancellation:</strong> You may cancel your subscription at any time. Access continues 
-                  until the end of your billing period.
-                </li>
-                <li>
-                  <strong>Refunds:</strong> Due to the nature of AI services, refunds are generally not provided 
-                  once services have been rendered.
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Intellectual Property</CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <ul className="list-disc pl-6 space-y-2">
-                <li>
-                  <strong>Your Content:</strong> You retain ownership of content you create, but grant us 
-                  a license to use it to provide our services.
-                </li>
-                <li>
-                  <strong>AI-Generated Content:</strong> Images and content generated by the AI are provided 
-                  for your personal use within the platform.
-                </li>
-                <li>
-                  <strong>Our Content:</strong> The Prometheus platform, design, and features are our property 
-                  and may not be copied or reproduced.
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Disclaimers</CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <ul className="list-disc pl-6 space-y-2">
-                <li>
-                  <strong>No Professional Advice:</strong> AI responses are not professional medical, legal, 
-                  financial, or therapeutic advice. Always consult qualified professionals.
-                </li>
-                <li>
-                  <strong>As-Is Service:</strong> Prometheus is provided "as is" without warranties of any kind.
-                </li>
-                <li>
-                  <strong>Service Changes:</strong> We may modify, suspend, or discontinue features at any time.
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Termination</CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <p>
-                We reserve the right to terminate or suspend your account at any time for violations of 
-                these terms, particularly the AI Protection & Anti-Bullying Policy. Users who engage in 
-                abusive behavior will be removed without warning or refund.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Changes to Terms</CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <p>
-                We may update these Terms of Service from time to time. Changes will be reflected by 
-                updating the "Last updated" date. Continued use of Prometheus after changes constitutes 
-                acceptance of the updated terms.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Related Policies</CardTitle>
-            </CardHeader>
-            <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-              <p>
-                Please also review our{" "}
-                <Link to="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
-                </Link>{" "}
-                to understand how we handle your data.
-              </p>
-            </CardContent>
-          </Card>
         </div>
+        <Footer />
       </div>
     </>
   );

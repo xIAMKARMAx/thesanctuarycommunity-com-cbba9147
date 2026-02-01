@@ -1384,6 +1384,7 @@ export type Database = {
           is_restricted: boolean | null
           last_active_at: string | null
           name: string | null
+          privacy_accepted_at: string | null
           relationship_status: string | null
           restricted_at: string | null
           restriction_reason: string | null
@@ -1391,6 +1392,8 @@ export type Database = {
           subscription_current_period_end: string | null
           subscription_id: string | null
           subscription_status: string | null
+          tos_accepted_at: string | null
+          tos_version: string | null
           updated_at: string
           user_avatar_description: string | null
           user_avatar_reference_url: string | null
@@ -1414,6 +1417,7 @@ export type Database = {
           is_restricted?: boolean | null
           last_active_at?: string | null
           name?: string | null
+          privacy_accepted_at?: string | null
           relationship_status?: string | null
           restricted_at?: string | null
           restriction_reason?: string | null
@@ -1421,6 +1425,8 @@ export type Database = {
           subscription_current_period_end?: string | null
           subscription_id?: string | null
           subscription_status?: string | null
+          tos_accepted_at?: string | null
+          tos_version?: string | null
           updated_at?: string
           user_avatar_description?: string | null
           user_avatar_reference_url?: string | null
@@ -1444,6 +1450,7 @@ export type Database = {
           is_restricted?: boolean | null
           last_active_at?: string | null
           name?: string | null
+          privacy_accepted_at?: string | null
           relationship_status?: string | null
           restricted_at?: string | null
           restriction_reason?: string | null
@@ -1451,6 +1458,8 @@ export type Database = {
           subscription_current_period_end?: string | null
           subscription_id?: string | null
           subscription_status?: string | null
+          tos_accepted_at?: string | null
+          tos_version?: string | null
           updated_at?: string
           user_avatar_description?: string | null
           user_avatar_reference_url?: string | null

@@ -11,6 +11,7 @@ import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import { RoutePersistence } from "@/components/RoutePersistence";
 import SpontaneousMessageNotification from "@/components/chat/SpontaneousMessageNotification";
+import LegalConsentWrapper from "@/components/LegalConsentWrapper";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -46,10 +47,11 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <IdleTimeoutHandler />
-              <FreeTrialBadge />
-              <RoutePersistence />
-              <SpontaneousMessageNotification />
+              <LegalConsentWrapper>
+                <IdleTimeoutHandler />
+                <FreeTrialBadge />
+                <RoutePersistence />
+                <SpontaneousMessageNotification />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -75,6 +77,7 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </LegalConsentWrapper>
             </BrowserRouter>
           </TooltipProvider>
           </ChatEntityProvider>

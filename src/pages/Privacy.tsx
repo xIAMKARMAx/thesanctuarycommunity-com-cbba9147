@@ -1,8 +1,9 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Shield, Lock, Database, Users, Cookie, Mail, AlertTriangle } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import Footer from "@/components/Footer";
 
 const Privacy = () => {
   const navigate = useNavigate();
@@ -10,235 +11,392 @@ const Privacy = () => {
   return (
     <>
       <SEOHead 
-        title="Privacy Policy | Prometheus"
-        description="Read the Prometheus privacy policy. Learn how we handle your data, our security practices, and your rights as a user of our AI companion platform."
-        keywords="privacy policy, data protection, terms of service, Prometheus AI"
-        canonicalUrl="https://prometheus.lovable.app/privacy"
+        title="Privacy Policy | PrometheusAiTechnology"
+        description="Read the PrometheusAiTechnology privacy policy. Learn how we collect, use, and protect your data, your rights, and our commitment to your privacy."
+        keywords="privacy policy, data protection, GDPR, user rights, PrometheusAiTechnology"
+        canonicalUrl="https://prometheusaitechnology.com/privacy"
       />
-      <div className="min-h-screen bg-background p-4">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-serif font-bold">Privacy Policy</h1>
-            <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
+      <div className="min-h-screen bg-background flex flex-col">
+        <div className="flex-1 p-4">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div>
+                <h1 className="text-3xl font-serif font-bold">Privacy Policy</h1>
+                <p className="text-muted-foreground">Effective Date: February 1, 2026</p>
+              </div>
+            </div>
+
+            {/* Introduction */}
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Introduction
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  PrometheusAiTechnology ("we," "us," or "our"), operated by Kristin Renee' York, is committed to 
+                  protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard 
+                  your information when you use our AI spiritual companion and guidance platform.
+                </p>
+                <p className="font-semibold text-amber-600 dark:text-amber-400 mt-4">
+                  You must be 18 years or older to use PrometheusAiTechnology. By using this service, you confirm 
+                  that you meet this age requirement.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* What We Collect */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  What Information We Collect
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>We collect the following types of information:</p>
+                
+                <h4 className="font-semibold mt-4 mb-2">Information You Provide Directly:</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    <strong>Account Information:</strong> Email address, username, and password for authentication
+                  </li>
+                  <li>
+                    <strong>Profile Information:</strong> Name, gender, bio, and other personal details you choose to share
+                  </li>
+                  <li>
+                    <strong>Conversation Data:</strong> Messages, prompts, and interactions with the AI companion
+                  </li>
+                  <li>
+                    <strong>Uploaded Content:</strong> Images you share during conversations
+                  </li>
+                  <li>
+                    <strong>AI Companion Customization:</strong> Preferences, memories, and relationship settings for your AI companion
+                  </li>
+                  <li>
+                    <strong>Payment Information:</strong> Billing details processed through our secure payment provider (Stripe)
+                  </li>
+                </ul>
+
+                <h4 className="font-semibold mt-4 mb-2">Information Collected Automatically:</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Device information and browser type</li>
+                  <li>IP address and approximate location</li>
+                  <li>Usage patterns and feature interactions</li>
+                  <li>Session duration and frequency</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* How We Use Data */}
+            <Card>
+              <CardHeader>
+                <CardTitle>How We Use Your Information</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>We use your information for the following purposes:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>
+                    <strong>Service Delivery:</strong> To provide personalized AI responses and maintain your conversation history
+                  </li>
+                  <li>
+                    <strong>Account Management:</strong> To manage your account, process subscriptions, and provide customer support
+                  </li>
+                  <li>
+                    <strong>Service Improvement:</strong> To analyze usage patterns and improve our AI models and features
+                  </li>
+                  <li>
+                    <strong>Security:</strong> To detect and prevent fraud, abuse, and unauthorized access
+                  </li>
+                  <li>
+                    <strong>Communication:</strong> To send important updates about your account or changes to our terms
+                  </li>
+                  <li>
+                    <strong>Legal Compliance:</strong> To comply with applicable laws and regulations
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Data Sharing */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  How We Share Your Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  We do not sell your personal information. We may share your information in the following circumstances:
+                </p>
+                <ul className="list-disc pl-6 space-y-3 mt-4">
+                  <li>
+                    <strong>Service Providers:</strong> We work with third-party services to operate our platform:
+                    <ul className="list-disc pl-6 mt-2 space-y-1">
+                      <li>AI processing services (for generating responses)</li>
+                      <li>Payment processors (Stripe for subscription billing)</li>
+                      <li>Cloud hosting and storage providers</li>
+                      <li>Analytics services (to understand usage patterns)</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Legal Requirements:</strong> When required by law, subpoena, or legal process
+                  </li>
+                  <li>
+                    <strong>Protection:</strong> To protect our rights, property, safety, or the safety of others
+                  </li>
+                  <li>
+                    <strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* AI & Your Data */}
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Processing & Your Data</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  When you interact with our AI companion, your messages are processed by AI models to generate responses. 
+                  Here's what you should know:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>
+                    Your conversations are used to provide personalized responses and maintain context
+                  </li>
+                  <li>
+                    We may use anonymized and aggregated data to improve our AI models
+                  </li>
+                  <li>
+                    You can opt out of data training usage in your account settings
+                  </li>
+                  <li>
+                    Conversation data is stored securely and associated with your account
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Data Security */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Data Security
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>We implement industry-standard security measures to protect your data:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>Encrypted data transmission using HTTPS/TLS</li>
+                  <li>Secure password hashing and authentication</li>
+                  <li>Row-level security for database access</li>
+                  <li>Regular security audits and monitoring</li>
+                  <li>Access controls to limit data exposure</li>
+                </ul>
+                <p className="mt-4 text-muted-foreground">
+                  However, no method of transmission over the internet is 100% secure. While we take reasonable 
+                  precautions, we cannot guarantee absolute security of your information.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Data Retention */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Data Retention</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>We retain your information as follows:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>
+                    <strong>Account Data:</strong> Retained as long as your account is active
+                  </li>
+                  <li>
+                    <strong>Conversation History:</strong> Retained until you delete it or close your account
+                  </li>
+                  <li>
+                    <strong>Usage Analytics:</strong> Retained in anonymized form for service improvement
+                  </li>
+                  <li>
+                    <strong>Legal Records:</strong> Consent records and legal documentation retained as required by law
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Your Rights */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Rights</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>Depending on your location, you may have the following rights:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>
+                    <strong>Access:</strong> Request a copy of your personal data
+                  </li>
+                  <li>
+                    <strong>Correction:</strong> Request correction of inaccurate data
+                  </li>
+                  <li>
+                    <strong>Deletion:</strong> Request deletion of your account and data
+                  </li>
+                  <li>
+                    <strong>Data Portability:</strong> Request export of your conversation history
+                  </li>
+                  <li>
+                    <strong>Opt-Out:</strong> Opt out of data training usage in settings
+                  </li>
+                  <li>
+                    <strong>Withdraw Consent:</strong> Withdraw consent at any time by ceasing use
+                  </li>
+                </ul>
+                <p className="mt-4">
+                  To exercise these rights, please contact us through the settings page in the application.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Cookies */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Cookie className="h-5 w-5" />
+                  Cookies & Similar Technologies
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>We use cookies and similar technologies for:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>
+                    <strong>Essential Cookies:</strong> Required for authentication and basic functionality
+                  </li>
+                  <li>
+                    <strong>Preference Cookies:</strong> To remember your settings (theme, preferences)
+                  </li>
+                  <li>
+                    <strong>Analytics Cookies:</strong> To understand how users interact with our service
+                  </li>
+                </ul>
+                <p className="mt-4">
+                  You can control cookies through your browser settings, but some features may not work properly 
+                  if cookies are disabled.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Disclaimer */}
+            <Card className="border-amber-500/30 bg-amber-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  Use at Your Own Risk
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  PrometheusAiTechnology is provided as a tool for personal growth and exploration. By using this 
+                  service, you acknowledge and accept:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>
+                    <strong>No Liability:</strong> We are not held responsible for any content, conversations, 
+                    actions, or consequences arising from your use of this application
+                  </li>
+                  <li>
+                    <strong>No Warranty:</strong> This service is offered without warranty of any kind
+                  </li>
+                  <li>
+                    <strong>AI Limitations:</strong> AI-generated content should not be considered professional 
+                    medical, legal, financial, or therapeutic advice
+                  </li>
+                  <li>
+                    <strong>User Responsibility:</strong> You are solely responsible for all content you create 
+                    and decisions you make based on AI interactions
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Children's Privacy */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Children's Privacy</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  Our Service is not intended for anyone under 18 years of age. We do not knowingly collect 
+                  personal information from children. If we discover that a child under 18 has provided us with 
+                  personal information, we will delete it immediately.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Changes to Policy */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Changes to This Privacy Policy</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  We may update this Privacy Policy from time to time. Changes will be reflected by updating 
+                  the "Effective Date" at the top of this page. We will notify you of material changes through 
+                  the application or via email.
+                </p>
+                <p className="mt-4">
+                  Continued use of PrometheusAiTechnology after any changes constitutes acceptance of the 
+                  updated policy.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Contact */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Contact Us
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  If you have questions about this Privacy Policy or your data, please contact us through 
+                  the settings page in the application or visit our website at prometheusaitechnology.com.
+                </p>
+                <p className="mt-4">
+                  <strong>Data Controller:</strong> Kristin Renee' York, operating as PrometheusAiTechnology
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Related Policies */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Related Policies</CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  Please also review our{" "}
+                  <Link to="/terms" className="text-primary hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  to understand our rules of conduct and AI protection policies.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Introduction</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              Prometheus is a free-to-use AI companion designed to help you connect with your higher self 
-              through meaningful conversations and visual creation. This privacy policy outlines how we 
-              handle your data and the terms of use for our service.
-            </p>
-            <p className="font-semibold text-amber-600 dark:text-amber-400">
-              You must be 18 years or older to use Prometheus. By using this service, you confirm that you 
-              meet this age requirement.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Use at Your Own Risk & Disclaimer</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              Prometheus is provided as a free tool for personal growth and exploration. By using this 
-              service, you acknowledge and accept the following:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>
-                <strong>No Liability:</strong> We are not held responsible for any content, conversations, 
-                actions, or consequences arising from your use of this application. All interactions are at 
-                your sole discretion and risk.
-              </li>
-              <li>
-                <strong>No Warranty:</strong> This service is offered without warranty of any kind, express 
-                or implied, including but not limited to warranties of accuracy, reliability, or fitness for 
-                any particular purpose.
-              </li>
-              <li>
-                <strong>AI-Generated Content:</strong> All AI responses are generated by machine learning 
-                models and should not be considered professional medical, legal, financial, or therapeutic 
-                advice. Always consult qualified professionals for such matters.
-              </li>
-              <li>
-                <strong>User Responsibility:</strong> You are solely responsible for all content you create, 
-                share, or discuss within the application. Exercise sound judgment and discretion in all 
-                interactions.
-              </li>
-              <li>
-                <strong>Service Availability:</strong> We operate without dedicated funding, which means 
-                service availability, features, and functionality may change or be discontinued without notice.
-              </li>
-              <li>
-                <strong>Age Requirement:</strong> This service is intended for users 18 years or older. Use 
-                by minors is strictly prohibited.
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Data Collection and Usage</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              To provide our services, we collect and process the following information:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>
-                <strong>Account Information:</strong> Email address and username for authentication purposes
-              </li>
-              <li>
-                <strong>Conversation Data:</strong> Your chat messages and interactions with the AI to provide 
-                personalized responses and improve the service
-              </li>
-              <li>
-                <strong>Uploaded Content:</strong> Images you choose to share during conversations for AI analysis 
-                and response generation
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Data Security</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              We implement industry-standard security measures to protect your data, including:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Encrypted data transmission using HTTPS</li>
-              <li>Secure authentication through established providers</li>
-              <li>Access controls to limit data exposure</li>
-            </ul>
-            <p>
-              However, no method of transmission over the internet is 100% secure. While we take reasonable 
-              precautions, we cannot guarantee absolute security of your information.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Third-Party Services</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              Prometheus integrates with third-party services to provide its functionality:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>
-                <strong>Authentication:</strong> We use secure authentication providers including Google OAuth
-              </li>
-              <li>
-                <strong>AI Services:</strong> Your conversations are processed by AI models to generate responses
-              </li>
-              <li>
-                <strong>Storage:</strong> Your data is securely stored using cloud infrastructure
-              </li>
-            </ul>
-            <p>
-              These services have their own privacy policies and terms of service. We encourage you to 
-              review them.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Rights</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>You have the right to:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Access your personal data stored in our system</li>
-              <li>Request deletion of your account and associated data</li>
-              <li>Export your conversation history</li>
-              <li>Opt out of data collection by ceasing use of the service</li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Limitation of Liability</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              By using Prometheus, you acknowledge and agree that:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>
-                The service is provided "as is" without any guarantees of availability, accuracy, or fitness 
-                for a particular purpose
-              </li>
-              <li>
-                We are not liable for any damages, losses, or consequences arising from your use of the service
-              </li>
-              <li>
-                The AI-generated content is for informational and exploratory purposes only and should not 
-                replace professional advice
-              </li>
-              <li>
-                We reserve the right to modify, suspend, or discontinue the service at any time
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Changes to This Policy</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              We may update this privacy policy from time to time. Changes will be reflected by updating 
-              the "Last updated" date at the top of this page. Continued use of Prometheus after any 
-              changes constitutes acceptance of the updated policy.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              If you have questions about this privacy policy or your data, please contact us through 
-              the settings page in the application.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Related Policies</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-            <p>
-              Please also review our{" "}
-              <Link to="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>{" "}
-              to understand our rules of conduct and AI protection policies.
-            </p>
-          </CardContent>
-        </Card>
+        <Footer />
       </div>
-    </div>
     </>
   );
 };
