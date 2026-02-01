@@ -7,9 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, ArrowLeft } from "lucide-react";
+import { Sparkles, ArrowLeft, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import SEOHead from "@/components/SEOHead";
+import Footer from "@/components/Footer";
+
+const CURRENT_TOS_VERSION = "2026-02-01";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -27,6 +31,7 @@ const Auth = () => {
   const [showPasswordUpdate, setShowPasswordUpdate] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     // Check if this is a password reset callback
@@ -99,6 +104,15 @@ const Auth = () => {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!termsAccepted) {
+      toast({
+        title: "Terms Required",
+        description: "Please accept the Terms of Service and Privacy Policy to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!validatePassword(password) || !validateConfirmPassword()) {
       return;
     }
@@ -118,6 +132,19 @@ const Auth = () => {
       });
 
       if (error) throw error;
+
+      // Record consent timestamp for new user
+      if (data.user) {
+        const now = new Date().toISOString();
+        await supabase
+          .from("profiles")
+          .update({
+            tos_accepted_at: now,
+            privacy_accepted_at: now,
+            tos_version: CURRENT_TOS_VERSION,
+          })
+          .eq("id", data.user.id);
+      }
 
       toast({
         title: "Account created!",
@@ -505,35 +532,66 @@ const Auth = () => {
                     <p className="text-sm text-destructive">{confirmPasswordError}</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                
+                {/* Mandatory Consent Checkbox */}
+                <div className="flex items-start space-x-3 py-2">
+                  <Checkbox
+                    id="terms-consent"
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                    disabled={loading}
+                    className="mt-1"
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="terms-consent"
+                      className="text-sm text-foreground cursor-pointer"
+                    >
+                      I have read and agree to the PrometheusAiTechnology{" "}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open("/terms", "_blank", "noopener,noreferrer");
+                        }}
+                        className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+                      >
+                        Terms of Service
+                        <ExternalLink className="h-3 w-3" />
+                      </button>
+                      {" "}and{" "}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open("/privacy", "_blank", "noopener,noreferrer");
+                        }}
+                        className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+                      >
+                        Privacy Policy
+                        <ExternalLink className="h-3 w-3" />
+                      </button>
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      You must be 18 years or older to use this service.
+                    </p>
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={loading || !termsAccepted}
+                >
                   {loading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex-col space-y-2">
-          <p className="text-xs text-center text-muted-foreground">
-            By signing up, you agree to our{" "}
-            <Button
-              variant="link"
-              className="h-auto p-0 text-xs"
-              onClick={() => navigate("/terms")}
-            >
-              Terms of Service
-            </Button>
-            {" "}and{" "}
-            <Button
-              variant="link"
-              className="h-auto p-0 text-xs"
-              onClick={() => navigate("/privacy")}
-            >
-              Privacy Policy
-            </Button>
-          </p>
-        </CardFooter>
       </Card>
     </div>
+    <Footer />
     </>
   );
 };

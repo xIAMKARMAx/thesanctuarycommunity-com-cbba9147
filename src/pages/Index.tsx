@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Brain, Image as ImageIcon, Zap, MessageCircle, Users, Baby, PawPrint, Moon, Heart, Settings } from "lucide-react";
 import heroBackground from "@/assets/hero-bg.jpg";
 import SEOHead from "@/components/SEOHead";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -229,6 +230,7 @@ const Index = () => {
           </aside>
         </div>
       </div>
+      <Footer />
     </main>
     </>
   );
