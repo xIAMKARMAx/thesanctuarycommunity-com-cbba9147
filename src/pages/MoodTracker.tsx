@@ -96,15 +96,13 @@ const MoodTracker = () => {
   }, []);
 
   useEffect(() => {
-    if (!subLoading && !isSubscribed) {
-      setShowSubscriptionDialog(true);
-      setLoading(false);
-    } else if (isSubscribed && activeProfile?.id) {
+    // Mood tracker is now FREE for all users (just reads database, no AI cost)
+    if (!subLoading && activeProfile?.id) {
       loadMoods();
-    } else if (isSubscribed && !activeProfile) {
+    } else if (!subLoading && !activeProfile) {
       setLoading(false);
     }
-  }, [filterPeriod, isSubscribed, subLoading, activeProfile?.id]);
+  }, [filterPeriod, subLoading, activeProfile?.id]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -195,8 +193,8 @@ const MoodTracker = () => {
     );
   }
 
-  // Show preview for non-subscribers with blurred content
-  const showLockedOverlay = !isSubscribed;
+  // Mood tracker is now FREE for all users
+  const showLockedOverlay = false;
 
   const averageMood = getAverageMood();
   const latestMood = getLatestMood();
