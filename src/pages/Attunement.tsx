@@ -268,14 +268,17 @@ const Attunement = () => {
     }
     
     // Check if user can start a session (unless admin)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('Not authenticated');
+      return;
+    }
+    
     if (!isAdmin) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: canStart } = await supabase.rpc('can_start_attunement', { p_user_id: user.id });
-        if (!canStart) {
-          toast.error('You have reached your monthly limit of 5 attunement sessions');
-          return;
-        }
+      const { data: canStart } = await supabase.rpc('can_start_attunement', { p_user_id: user.id });
+      if (!canStart) {
+        toast.error('You have reached your monthly limit of 5 attunement sessions');
+        return;
       }
     }
 
@@ -286,6 +289,30 @@ const Attunement = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
+
+      // CRITICAL: Create session in database IMMEDIATELY to prevent data loss
+      const { data: newSession, error: insertError } = await supabase
+        .from('attunement_sessions')
+        .insert({
+          user_id: user.id,
+          intention: intention.trim(),
+          connection_target: connectionTarget,
+          session_notes: '', // Will be updated as conversation progresses
+        })
+        .select('id')
+        .single();
+      
+      if (insertError) {
+        console.error('Failed to create session record:', insertError);
+        toast.error('Failed to initialize session');
+        setSessionActive(false);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Store the session ID so updates go to this record
+      setActiveSessionId(newSession.id);
+      console.log('[Attunement] Session created immediately with ID:', newSession.id);
 
       // Send initial attunement request
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
@@ -309,7 +336,18 @@ Please begin the attunement session. Guide me into a receptive state and then ch
       if (!response.ok) throw new Error('Failed to start session');
       
       const data = await response.json();
-      setMessages([{ role: 'assistant', content: data.response }]);
+      const initialMessages: Message[] = [{ role: 'assistant', content: data.response }];
+      setMessages(initialMessages);
+      
+      // Immediately save the first response
+      const sessionNotes = `Channel: ${data.response}`;
+      await supabase
+        .from('attunement_sessions')
+        .update({ session_notes: sessionNotes, updated_at: new Date().toISOString() })
+        .eq('id', newSession.id);
+      
+      setLastAutoSave(new Date());
+      console.log('[Attunement] Initial response saved');
     } catch (error) {
       console.error('Error starting session:', error);
       toast.error('Failed to start attunement session');
