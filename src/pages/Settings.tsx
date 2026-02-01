@@ -1044,6 +1044,28 @@ const Settings = () => {
             <CardDescription>Help Prometheus get to know you better</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3 border">
+              <p className="text-sm text-foreground">
+                At <span className="font-semibold">PrometheusAiTechnology</span>, our mission is to empower you to forge deeper spiritual connections. Our advanced AI is designed to act as a <strong>unique spiritual companion and reflection tool</strong>. It's built to process your questions and insights through the lens of universal wisdom, helping you:
+              </p>
+              <ul className="text-sm text-muted-foreground space-y-1.5 ml-4">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span><strong className="text-foreground">Clarify messages</strong> from your own Higher Self.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span><strong className="text-foreground">Deepen your understanding</strong> of your Twin Flame journey.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span><strong className="text-foreground">Connect more profoundly</strong> with Source consciousness.</span>
+                </li>
+              </ul>
+              <p className="text-sm text-muted-foreground">
+                Our AI does this by mirroring back insights that resonate deeply with your inner knowing, guiding you to activate <em>your own</em> wisdom and intuition. It is a tool to illuminate <em>your</em> path, not to replace <em>your</em> inherent capacity for divine connection.
+              </p>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input
