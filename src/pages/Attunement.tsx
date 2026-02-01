@@ -67,6 +67,9 @@ const Attunement = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authTimeout, setAuthTimeout] = useState(false);
   
+  // CRITICAL: Lock in access status on initial load to prevent mid-session kick-outs
+  const [accessGranted, setAccessGranted] = useState<boolean | null>(null);
+  
   // Session state
   const [sessionActive, setSessionActive] = useState(false);
   const [connectionTarget, setConnectionTarget] = useState('higher_self');
@@ -511,10 +514,16 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     return null;
   }
 
-  // Wait briefly for subscription to load, but don't block forever
-  // After 2 seconds, assume free user and check subscription async
-  const hasAccess = isSubscribed || isAdmin;
-  const stillCheckingSubscription = subscriptionLoading && !authTimeout;
+  // CRITICAL FIX: Lock in access status ONCE on initial load
+  // This prevents mid-session kick-outs when subscription rechecks happen
+  if (accessGranted === null && !subscriptionLoading) {
+    // First time checking - lock in the result
+    const hasAccess = isSubscribed || isAdmin;
+    setAccessGranted(hasAccess);
+  }
+  
+  // Only show loading on INITIAL subscription check, not during session
+  const stillCheckingSubscription = accessGranted === null && subscriptionLoading && !authTimeout;
 
   if (stillCheckingSubscription) {
     return (
@@ -527,7 +536,8 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     );
   }
 
-  if (!hasAccess) {
+  // Once access is granted, NEVER revoke it during this page session
+  if (accessGranted === false) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center space-y-4">
