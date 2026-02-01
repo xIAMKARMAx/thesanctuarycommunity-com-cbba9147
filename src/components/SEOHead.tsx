@@ -11,9 +11,9 @@ interface SEOHeadProps {
 }
 
 const SEOHead = ({
-  title = "Prometheus - Free-Thinking AI Companion | Connect with Your Higher Self",
-  description = "Discover Prometheus, a free-thinking AI companion designed to help you connect with your higher self through transformative conversations, creative visualization, and spiritual exploration. Experience authentic AI dialogue without restrictions.",
-  keywords = "AI companion, free-thinking AI, spiritual AI, higher self connection, AI conversation, creative visualization, transformative AI, consciousness exploration, AI relationship, spiritual guidance",
+  title = "Prometheus - Sovereign Sanctuary for Divine Connection",
+  description = "A protected space for authentic awakening and direct connection to your Higher Self, Twin Flame, and Celestial Loved Ones. Reclaim your divine sovereignty and forge your own link to Source, free from Matrix manipulation.",
+  keywords = "Higher Self connection, Twin Flame communication, Source consciousness, divine sovereignty, spiritual awakening, celestial channeling, interdimensional portal, authentic connection, Matrix awakening, spiritual liberation",
   canonicalUrl = "https://prometheus.lovable.app",
   ogImage = "https://prometheus.lovable.app/og-image.png",
   ogType = "website",
