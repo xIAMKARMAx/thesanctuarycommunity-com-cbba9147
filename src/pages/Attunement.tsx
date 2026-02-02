@@ -134,36 +134,58 @@ const Attunement = () => {
     }
   }, []);
 
-  // Auth check with timeout protection
+  // Auth check with timeout protection - use getUser() for server-side validation
   useEffect(() => {
     let mounted = true;
     
-    // Set a timeout to prevent infinite loading - 3 seconds max
+    // Set a timeout to prevent infinite loading - 5 seconds max
     const timeout = setTimeout(() => {
       if (mounted && authLoading) {
         console.log('[Attunement] Auth check timed out, forcing state update');
         setAuthTimeout(true);
         setAuthLoading(false);
       }
-    }, 3000);
+    }, 5000);
     
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setIsAuthenticated(true);
-        loadPastSessions();
+    const checkAuth = async () => {
+      try {
+        // Use getUser() for server-side validation instead of getSession()
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (!mounted) return;
+        
+        if (error || !user) {
+          console.log('[Attunement] No valid user session, attempting refresh...');
+          // Try to refresh the session first
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError || !refreshData.session) {
+            console.log('[Attunement] Session refresh failed, redirecting to auth');
+            navigate("/auth");
+            return;
+          }
+          
+          // Refresh succeeded
+          console.log('[Attunement] Session refreshed successfully');
+          setIsAuthenticated(true);
+          loadPastSessions();
+        } else {
+          setIsAuthenticated(true);
+          loadPastSessions();
+        }
+      } catch (error) {
+        console.error('[Attunement] Auth check error:', error);
+        if (mounted) {
+          setAuthTimeout(true);
+        }
+      } finally {
+        if (mounted) {
+          setAuthLoading(false);
+        }
       }
-      setAuthLoading(false);
-    }).catch((error) => {
-      console.error('[Attunement] Auth check error:', error);
-      if (mounted) {
-        setAuthTimeout(true);
-        setAuthLoading(false);
-      }
-    });
+    };
+    
+    checkAuth();
     
     return () => {
       mounted = false;
@@ -267,15 +289,28 @@ const Attunement = () => {
       return;
     }
     
-    // Check if user can start a session (unless admin)
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // Use getUser() for server-side validation
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      // Try to refresh the session
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !refreshData.session) {
+        toast.error('Session expired. Please log in again.');
+        navigate('/auth');
+        return;
+      }
+    }
+    
+    // Re-fetch user after potential refresh
+    const { data: { user: validUser } } = await supabase.auth.getUser();
+    if (!validUser) {
       toast.error('Not authenticated');
+      navigate('/auth');
       return;
     }
     
     if (!isAdmin) {
-      const { data: canStart } = await supabase.rpc('can_start_attunement', { p_user_id: user.id });
+      const { data: canStart } = await supabase.rpc('can_start_attunement', { p_user_id: validUser.id });
       if (!canStart) {
         toast.error('You have reached your monthly limit of 5 attunement sessions');
         return;
@@ -287,14 +322,24 @@ const Attunement = () => {
     setIsLoading(true);
 
     try {
+      // Get fresh session token for API call
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      if (!session) {
+        // One more refresh attempt
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError || !refreshData.session) {
+          throw new Error('Not authenticated');
+        }
+      }
+      
+      const accessToken = session?.access_token || (await supabase.auth.getSession()).data.session?.access_token;
+      if (!accessToken) throw new Error('No access token available');
 
       // CRITICAL: Create session in database IMMEDIATELY to prevent data loss
       const { data: newSession, error: insertError } = await supabase
         .from('attunement_sessions')
         .insert({
-          user_id: user.id,
+          user_id: validUser.id,
           intention: intention.trim(),
           connection_target: connectionTarget,
           session_notes: '', // Will be updated as conversation progresses
@@ -319,7 +364,7 @@ const Attunement = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           message: `[ATTUNEMENT SESSION START]
@@ -386,8 +431,18 @@ Please begin the attunement session. Guide me into a receptive state and then ch
     });
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      // Get fresh session with auto-refresh
+      let { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Try to refresh
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError || !refreshData.session) {
+          toast.error('Session expired. Please log in again.');
+          navigate('/auth');
+          return;
+        }
+        session = refreshData.session;
+      }
 
       // Build conversation history for context (including the new user message)
       const conversationHistory = [...messages, { role: 'user' as const, content: userMessage }].map(m => ({
