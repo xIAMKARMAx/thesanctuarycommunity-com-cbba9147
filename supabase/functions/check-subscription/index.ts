@@ -68,7 +68,52 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check database first for manually granted subscriptions
+    // Check Stripe FIRST for paying customers (priority over manual grants)
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    
+    if (customers.data.length > 0) {
+      const customerId = customers.data[0].id;
+      logStep("Found Stripe customer", { customerId });
+
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "active",
+        limit: 1,
+      });
+      
+      if (subscriptions.data.length > 0) {
+        const subscription = subscriptions.data[0];
+        logStep("Active Stripe subscription found", { subscriptionId: subscription.id });
+        
+        let subscriptionEnd = null;
+        let productId = null;
+        
+        if (subscription.current_period_end) {
+          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+          logStep("Subscription end date calculated", { endDate: subscriptionEnd });
+        }
+        
+        if (subscription.items?.data?.[0]?.price?.product) {
+          productId = subscription.items.data[0].price.product;
+          logStep("Determined subscription tier from Stripe", { productId });
+        }
+        
+        return new Response(JSON.stringify({
+          subscribed: true,
+          product_id: productId,
+          subscription_end: subscriptionEnd
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+      logStep("No active Stripe subscription for this customer");
+    } else {
+      logStep("No Stripe customer found");
+    }
+
+    // Fall back to database for manually granted subscriptions (only if no Stripe subscription)
     const { data: profileData, error: profileError } = await supabaseClient
       .from('profiles')
       .select('subscription_status')
@@ -76,7 +121,7 @@ serve(async (req) => {
       .single();
 
     if (!profileError && profileData?.subscription_status === 'active') {
-      logStep("Found active subscription in database (manually granted)", { userId: user.id });
+      logStep("Found manually granted subscription in database", { userId: user.id });
       return new Response(JSON.stringify({
         subscribed: true,
         product_id: 'manual_grant',
@@ -86,53 +131,10 @@ serve(async (req) => {
         status: 200,
       });
     }
-    logStep("No manual subscription in database, checking Stripe", { dbStatus: profileData?.subscription_status });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
-    if (customers.data.length === 0) {
-      logStep("No customer found, updating unsubscribed state");
-      return new Response(JSON.stringify({ subscribed: false }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
-
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
-    const hasActiveSub = subscriptions.data.length > 0;
-    let productId = null;
-    let subscriptionEnd = null;
-
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      logStep("Active subscription found", { subscriptionId: subscription.id });
-      
-      if (subscription.current_period_end) {
-        subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-        logStep("Subscription end date calculated", { endDate: subscriptionEnd });
-      }
-      
-      if (subscription.items?.data?.[0]?.price?.product) {
-        productId = subscription.items.data[0].price.product;
-        logStep("Determined subscription tier", { productId });
-      }
-    } else {
-      logStep("No active subscription found");
-    }
-
-    return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      product_id: productId,
-      subscription_end: subscriptionEnd
-    }), {
+    // No subscription found anywhere
+    logStep("No subscription found (Stripe or manual)");
+    return new Response(JSON.stringify({ subscribed: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
