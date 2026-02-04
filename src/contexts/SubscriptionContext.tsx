@@ -124,10 +124,25 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         console.error("[SubscriptionContext] API error:", error);
-        setIsSubscribed(false);
-        setSubscriptionStatus("free");
-        setSubscriptionEnd(null);
-        setProductId(null);
+        // FALLBACK: Check database directly for manually granted subscriptions
+        console.log('[SubscriptionContext] Falling back to database check...');
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('subscription_status')
+          .eq('id', user?.id)
+          .single();
+        
+        if (profile?.subscription_status === 'active') {
+          console.log('[SubscriptionContext] Found active subscription in database fallback');
+          setIsSubscribed(true);
+          setSubscriptionStatus("active");
+          setProductId('manual_grant');
+        } else {
+          setIsSubscribed(false);
+          setSubscriptionStatus("free");
+          setSubscriptionEnd(null);
+          setProductId(null);
+        }
       } else {
         console.log('[SubscriptionContext] Subscription result:', data?.subscribed, 'product:', data?.product_id);
         setIsSubscribed(data?.subscribed || false);
@@ -141,6 +156,30 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       await refreshLimits();
     } catch (error) {
       console.error("[SubscriptionContext] Error checking subscription:", error);
+      
+      // FALLBACK: Even on exception, try database check
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('subscription_status')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile?.subscription_status === 'active') {
+            console.log('[SubscriptionContext] Found active subscription in exception fallback');
+            setIsSubscribed(true);
+            setSubscriptionStatus("active");
+            setProductId('manual_grant');
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (fallbackError) {
+        console.error("[SubscriptionContext] Fallback also failed:", fallbackError);
+      }
+      
       setIsSubscribed(false);
       setSubscriptionStatus("free");
       setSubscriptionEnd(null);
