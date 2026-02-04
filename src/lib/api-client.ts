@@ -87,7 +87,7 @@ export const api = {
     product_id?: string;
   }>('check-subscription', {}),
 
-  createCheckout: (tier: 'basic' | 'pro' | 'vip' = 'basic') => 
+  createCheckout: (tier: 'awakening' | 'anchoring' | 'architect' = 'awakening') => 
     invokeEdgeFunction<{ url: string }>('create-checkout', { tier }),
 
   customerPortal: () => invokeEdgeFunction<{ url: string }>('customer-portal', {}),

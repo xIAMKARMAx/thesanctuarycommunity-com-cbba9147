@@ -7,11 +7,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Price IDs for different tiers
+// Price IDs for different tiers (Awakening / Anchoring / Architect)
 const PRICE_IDS = {
-  basic: "price_1Svgg0LeA9CCp7fqQjRcdtIk", // $9.99/month
-  pro: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
-  vip: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month VIP tier
+  // New tier names
+  awakening: "price_1Svgg0LeA9CCp7fqQjRcdtIk", // $9.99/month
+  anchoring: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
+  architect: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month
+  // Legacy aliases for backwards compatibility
+  basic: "price_1Svgg0LeA9CCp7fqQjRcdtIk",
+  pro: "price_1SttD4LeA9CCp7fqRZ5GeDY3",
+  vip: "price_1SvMYWLeA9CCp7fqCZW21kS0",
 };
 
 serve(async (req) => {
@@ -31,11 +36,11 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
-    // Get the tier from request body (default to 'basic')
-    let tier = "basic";
+    // Get the tier from request body (default to 'awakening')
+    let tier = "awakening";
     try {
       const body = await req.json();
-      if (body.tier && (body.tier === "basic" || body.tier === "pro" || body.tier === "vip")) {
+      if (body.tier && body.tier in PRICE_IDS) {
         tier = body.tier;
       }
     } catch {

@@ -45,7 +45,7 @@ export default function Children() {
   const { toast } = useToast();
   const { activeProfile, isLoading: profilesLoading } = useAIProfile();
   const { isSubscribed, hasAccess, loading: subLoading } = useSubscription();
-  const hasProAccess = hasAccess("pro");
+  const hasProAccess = hasAccess("anchoring");
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [children, setChildren] = useState<Child[]>([]);

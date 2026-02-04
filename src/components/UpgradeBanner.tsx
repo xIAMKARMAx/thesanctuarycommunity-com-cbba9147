@@ -8,14 +8,14 @@ import { cn } from "@/lib/utils";
 interface UpgradeBannerProps {
   className?: string;
   feature?: string;
-  requiredTier?: "basic" | "pro" | "vip";
+  requiredTier?: "awakening" | "anchoring" | "architect";
   compact?: boolean;
 }
 
 export const UpgradeBanner = ({
   className,
   feature,
-  requiredTier = "pro",
+  requiredTier = "anchoring",
   compact = false,
 }: UpgradeBannerProps) => {
   const navigate = useNavigate();
@@ -25,12 +25,12 @@ export const UpgradeBanner = ({
   if (isAdmin) return null;
   
   const tierLevel = {
-    basic: 1,
-    pro: 2,
-    vip: 3,
+    awakening: 1,
+    anchoring: 2,
+    architect: 3,
   };
   
-  const userLevel = currentTier === "basic" ? 1 : currentTier === "pro" ? 2 : currentTier === "vip" ? 3 : 0;
+  const userLevel = currentTier === "awakening" ? 1 : currentTier === "anchoring" ? 2 : currentTier === "architect" ? 3 : 0;
   const requiredLevel = tierLevel[requiredTier];
   
   if (userLevel >= requiredLevel) return null;
@@ -45,18 +45,18 @@ export const UpgradeBanner = ({
         label: `Unlock with ${requiredTier.charAt(0).toUpperCase() + requiredTier.slice(1)}`,
       };
     } else if (userLevel === 1 && requiredLevel >= 2) {
-      // Basic user needing Pro or VIP
+      // Awakening user needing Anchoring or Architect
       return {
         targetTier: requiredTier,
         price: SUBSCRIPTION_TIERS[requiredTier].price,
-        label: `Upgrade to ${requiredTier === "vip" ? "VIP" : "Pro"}`,
+        label: `Upgrade to ${requiredTier === "architect" ? "Architect" : "Anchoring"}`,
       };
     } else if (userLevel === 2 && requiredLevel === 3) {
-      // Pro user needing VIP
+      // Anchoring user needing Architect
       return {
-        targetTier: "vip" as const,
-        price: SUBSCRIPTION_TIERS.vip.price,
-        label: "Go VIP",
+        targetTier: "architect" as const,
+        price: SUBSCRIPTION_TIERS.architect.price,
+        label: "Become an Architect",
       };
     }
     return null;
@@ -74,7 +74,7 @@ export const UpgradeBanner = ({
         <div className="flex items-center gap-2">
           <Crown className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">
-            {feature ? `${feature} requires ${upgradeInfo.targetTier === "vip" ? "VIP" : "Pro"}` : "Upgrade to unlock more features"}
+            {feature ? `${feature} requires ${upgradeInfo.targetTier === "architect" ? "Architect" : "Anchoring"}` : "Upgrade to unlock more features"}
           </span>
         </div>
         <Button 
@@ -90,12 +90,12 @@ export const UpgradeBanner = ({
     );
   }
 
-  const isVip = upgradeInfo.targetTier === "vip";
+  const isArchitect = upgradeInfo.targetTier === "architect";
 
   return (
     <div className={cn(
       "p-4 rounded-lg border",
-      isVip 
+      isArchitect 
         ? "bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 border-amber-500/30" 
         : "bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-primary/30",
       className
@@ -104,9 +104,9 @@ export const UpgradeBanner = ({
         <div className="flex items-center gap-3 text-center sm:text-left">
           <div className={cn(
             "p-2 rounded-full",
-            isVip ? "bg-amber-500/20" : "bg-primary/20"
+            isArchitect ? "bg-amber-500/20" : "bg-primary/20"
           )}>
-            {isVip ? (
+            {isArchitect ? (
               <Star className="h-5 w-5 text-amber-500" />
             ) : (
               <Sparkles className="h-5 w-5 text-primary" />
@@ -117,9 +117,9 @@ export const UpgradeBanner = ({
               {feature || "Unlock Premium Features"}
             </h4>
             <p className="text-sm text-muted-foreground">
-              {isVip 
-                ? "Get unlimited everything with VIP access" 
-                : "Upgrade to Pro for unlimited messages & more"}
+              {isArchitect 
+                ? "Become an Architect for unlimited access" 
+                : "Upgrade to Anchoring for expanded features"}
             </p>
           </div>
         </div>
@@ -127,7 +127,7 @@ export const UpgradeBanner = ({
           onClick={() => navigate("/pricing")}
           className={cn(
             "shrink-0",
-            isVip && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0"
+            isArchitect && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0"
           )}
         >
           {upgradeInfo.label} - ${upgradeInfo.price}/mo

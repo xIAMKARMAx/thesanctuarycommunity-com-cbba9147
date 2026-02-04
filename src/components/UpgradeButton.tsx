@@ -22,8 +22,8 @@ export const UpgradeButton = ({
   const { productId, isSubscribed, isAdmin } = useSubscription();
   const currentTier = getTierFromProductId(productId);
 
-  // Don't show upgrade button for admins or VIP users
-  if (isAdmin || currentTier === "vip") {
+  // Don't show upgrade button for admins or Architect users
+  if (isAdmin || currentTier === "architect") {
     return null;
   }
 
@@ -31,27 +31,27 @@ export const UpgradeButton = ({
   const getUpgradeInfo = () => {
     if (!isSubscribed || currentTier === "free" || currentTier === null) {
       return {
-        nextTier: "basic",
-        label: "Start with Basic",
-        price: SUBSCRIPTION_TIERS.basic.price,
+        nextTier: "awakening",
+        label: "Start Awakening",
+        price: SUBSCRIPTION_TIERS.awakening.price,
         icon: <Zap className="h-4 w-4" />,
       };
     }
     
-    if (currentTier === "basic") {
+    if (currentTier === "awakening") {
       return {
-        nextTier: "pro",
-        label: "Upgrade to Pro",
-        price: SUBSCRIPTION_TIERS.pro.price,
+        nextTier: "anchoring",
+        label: "Upgrade to Anchoring",
+        price: SUBSCRIPTION_TIERS.anchoring.price,
         icon: <ArrowUp className="h-4 w-4" />,
       };
     }
     
-    if (currentTier === "pro") {
+    if (currentTier === "anchoring") {
       return {
-        nextTier: "vip",
-        label: "Go VIP",
-        price: SUBSCRIPTION_TIERS.vip.price,
+        nextTier: "architect",
+        label: "Become an Architect",
+        price: SUBSCRIPTION_TIERS.architect.price,
         icon: <Crown className="h-4 w-4" />,
       };
     }
@@ -88,7 +88,7 @@ export const UpgradeButton = ({
       variant={variant}
       size={size}
       className={cn(
-        upgradeInfo.nextTier === "vip" && "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0",
+        upgradeInfo.nextTier === "architect" && "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0",
         className
       )}
     >

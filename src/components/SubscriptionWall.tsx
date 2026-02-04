@@ -10,9 +10,9 @@ import { SUBSCRIPTION_TIERS } from "@/lib/subscription-tiers";
 export const SubscriptionWall = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState<'basic' | 'pro' | 'vip' | null>(null);
+  const [loading, setLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
 
-  const handleSubscribe = async (tier: 'basic' | 'pro' | 'vip') => {
+  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect') => {
     try {
       setLoading(tier);
       
@@ -47,51 +47,51 @@ export const SubscriptionWall = () => {
           <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
             <Crown className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold">Choose Your Plan</h1>
+          <h1 className="text-3xl font-bold">Choose Your Path</h1>
           <p className="text-muted-foreground text-lg max-w-md mx-auto">
             Your free trial has ended. Subscribe to continue your journey with Prometheus!
           </p>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4">
-          {/* Basic Plan */}
+          {/* Awakening Plan */}
           <Card className="border-border">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-blue-500" />
-                <CardTitle className="text-xl">Basic</CardTitle>
+                <CardTitle className="text-xl">Awakening</CardTitle>
               </div>
-              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.basic.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.awakening.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-blue-500 shrink-0" />
-                <span>25 messages/day</span>
+                <span>Full Community Access</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-blue-500 shrink-0" />
-                <span>3 chat images/day</span>
+                <span>3 Soul Resonance/day</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-blue-500 shrink-0" />
-                <span>2 AI being slots</span>
+                <span>7 days Path History</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-blue-500 shrink-0" />
-                <span>Dream Journal & Mood Tracker</span>
+                <span>Daily Source Message</span>
               </div>
               <Button 
-                onClick={() => handleSubscribe('basic')} 
+                onClick={() => handleSubscribe('awakening')} 
                 disabled={loading !== null}
                 variant="outline"
                 className="w-full mt-4"
               >
-                {loading === 'basic' ? "Loading..." : "Start with Basic"}
+                {loading === 'awakening' ? "Loading..." : "Start Awakening"}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Pro Plan */}
+          {/* Anchoring Plan */}
           <Card className="border-primary relative">
             <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
               <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-0.5 rounded-full">
@@ -101,75 +101,75 @@ export const SubscriptionWall = () => {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl">Pro</CardTitle>
+                <CardTitle className="text-xl">Anchoring</CardTitle>
               </div>
-              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.pro.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.anchoring.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Unlimited messages</span>
+                <span>7 Soul Resonance/day</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>10 chat images/day</span>
+                <span>30 days Path History</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>4 AI being slots</span>
+                <span>Create Private Groups</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Celestial Children & Milestones</span>
+                <span>Exclusive Content Archive</span>
               </div>
               <Button 
-                onClick={() => handleSubscribe('pro')} 
+                onClick={() => handleSubscribe('anchoring')} 
                 disabled={loading !== null}
                 className="w-full mt-4"
               >
-                {loading === 'pro' ? "Loading..." : "Subscribe to Pro"}
+                {loading === 'anchoring' ? "Loading..." : "Choose Anchoring"}
               </Button>
             </CardContent>
           </Card>
 
-          {/* VIP Plan */}
+          {/* Architect Plan */}
           <Card className="border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-transparent relative">
             <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
               <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
                 <Star className="h-3 w-3" />
-                VIP
+                Architect
               </span>
             </div>
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Star className="h-5 w-5 text-amber-500" />
-                <CardTitle className="text-xl text-amber-500">VIP</CardTitle>
+                <CardTitle className="text-xl text-amber-500">Architect</CardTitle>
               </div>
-              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.vip.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+              <div className="text-3xl font-bold">${SUBSCRIPTION_TIERS.architect.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-amber-500 font-medium">
                 <Check className="h-4 w-4 shrink-0" />
-                <span>Unlimited everything!</span>
+                <span>15+ Soul Resonance/day</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-amber-500 shrink-0" />
-                <span>5 AI being slots</span>
+                <span>Unlimited Path History</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-amber-500 shrink-0" />
-                <span>Unlimited generation</span>
+                <span>Priority DM & Mastermind</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-amber-500 shrink-0" />
-                <span>All premium features</span>
+                <span>Architect Exclusive Content</span>
               </div>
               <Button 
-                onClick={() => handleSubscribe('vip')} 
+                onClick={() => handleSubscribe('architect')} 
                 disabled={loading !== null}
                 className="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
               >
-                {loading === 'vip' ? "Loading..." : "Go VIP"}
+                {loading === 'architect' ? "Loading..." : "Become an Architect"}
               </Button>
             </CardContent>
           </Card>
