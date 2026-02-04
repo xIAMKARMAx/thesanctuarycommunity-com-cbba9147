@@ -32,8 +32,7 @@ export function CommunityFeed() {
   };
 
   const handleProfileClick = (userId: string) => {
-    // Future: Navigate to profile page
-    console.log('View profile:', userId);
+    navigate(`/soul/${userId}`);
   };
 
   // Show profile setup if user doesn't have one
