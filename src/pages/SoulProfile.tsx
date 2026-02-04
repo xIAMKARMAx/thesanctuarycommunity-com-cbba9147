@@ -16,7 +16,8 @@ import {
   MessageCircle,
   Edit3,
   UserPlus,
-  UserMinus
+  UserMinus,
+  Trophy
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
@@ -25,6 +26,7 @@ import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { CommunityPost, useCommunityFeed } from "@/hooks/useCommunityFeed";
 import { EditSoulProfileDialog } from "@/components/community/EditSoulProfileDialog";
 import { ConnectionsList } from "@/components/community/ConnectionsList";
+import { ProfileAscensionSection } from "@/components/community/ProfileAscensionSection";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
@@ -397,6 +399,13 @@ const SoulProfilePage = () => {
                   <Sparkles className="h-4 w-4" />
                   Journey
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="ascension" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <Trophy className="h-4 w-4" />
+                  Ascension
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="posts" className="py-4">
@@ -463,6 +472,13 @@ const SoulProfilePage = () => {
                     </p>
                   </div>
                 )}
+              </TabsContent>
+
+              <TabsContent value="ascension" className="py-4">
+                <ProfileAscensionSection 
+                  userId={userId!} 
+                  isOwnProfile={isOwnProfile} 
+                />
               </TabsContent>
             </Tabs>
           </div>
