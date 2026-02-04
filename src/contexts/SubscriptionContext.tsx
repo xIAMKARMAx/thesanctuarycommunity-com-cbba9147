@@ -74,7 +74,32 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       ]);
     } catch (error: any) {
       console.error('[SubscriptionContext] Error or timeout:', error?.message);
-      // On timeout or error, set safe defaults and allow the app to continue
+      
+      // CRITICAL: On timeout, still try database fallback before giving up
+      try {
+        console.log('[SubscriptionContext] Timeout occurred, trying database fallback...');
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('subscription_status')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile?.subscription_status === 'active') {
+            console.log('[SubscriptionContext] Found active subscription in timeout fallback');
+            setIsSubscribed(true);
+            setSubscriptionStatus("active");
+            setProductId('manual_grant');
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (fallbackError) {
+        console.error('[SubscriptionContext] Timeout fallback also failed:', fallbackError);
+      }
+      
+      // Only set to free if fallback didn't find active subscription
       setIsSubscribed(false);
       setSubscriptionStatus("free");
       setSubscriptionEnd(null);
