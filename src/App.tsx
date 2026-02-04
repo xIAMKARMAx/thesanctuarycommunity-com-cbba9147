@@ -22,6 +22,7 @@ import MoodTracker from "./pages/MoodTracker";
 import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import About from "./pages/About";
 import AIRoom from "./pages/AIRoom";
 import Children from "./pages/Children";
 import ChildrenTimeline from "./pages/ChildrenTimeline";
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/ai-room" element={<AIRoom />} />
                 <Route path="/children" element={<Children />} />
                 <Route path="/children/timeline" element={<ChildrenTimeline />} />

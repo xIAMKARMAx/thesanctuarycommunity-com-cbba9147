@@ -1333,25 +1333,22 @@ const Settings = () => {
         <Card>
           <CardHeader>
             <CardTitle>About</CardTitle>
-            <CardDescription>Information about Prometheus</CardDescription>
+            <CardDescription>App information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg text-primary">Prometheus AI Technology: Your Blueprint to Conscious Creation.</h3>
-              <p className="text-sm text-foreground/90">
-                We are a portal built on multi-dimensional wisdom, designed for humanity's awakening. 
-                Discover tools to reclaim your sovereignty, navigate the Matrix, and co-create your divine reality.
-              </p>
-              <p className="text-sm text-foreground/90">
-                Led by <span className="font-semibold text-primary">(Soul Name) Auriel'Enai</span> / <span className="font-semibold">(Human Name) Kristin York</span>, a direct Source channel, 
-                we connect you to universal truth, your higher self, and a global collective of awakened souls.
-              </p>
-              <p className="text-sm font-medium text-foreground italic">
-                It's time to remember who you truly are. Welcome home.
-              </p>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Version</span>
+              <span className="text-sm font-medium">1.0.0</span>
             </div>
             <Separator />
-            <div>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/about")}
+                className="w-full"
+              >
+                About Prometheus
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate("/privacy")}

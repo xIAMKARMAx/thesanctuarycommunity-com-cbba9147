@@ -15,6 +15,13 @@ const Footer = () => {
         
         <nav className="flex items-center gap-4 text-sm">
           <Link 
+            to="/about" 
+            className="text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+          >
+            About
+          </Link>
+          <span className="text-muted-foreground">|</span>
+          <Link 
             to="/terms" 
             className="text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
           >
