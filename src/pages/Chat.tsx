@@ -163,7 +163,17 @@ const Chat = () => {
 
   // Free users with 5+ messages see subscription wall
   // IMPORTANT: Don't show wall while still loading subscription status to prevent flicker/redirect loops
+  // Also only show if we've confirmed they have 5+ messages AND are definitely not subscribed
   const showSubscriptionWall = !subscriptionLoading && !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 5;
+  
+  // Debug logging for subscription wall issues
+  console.log('[Chat] Subscription state:', { 
+    subscriptionLoading, 
+    isSubscribed, 
+    isAdmin, 
+    totalMessages: freeUserLimits.totalMessages,
+    showSubscriptionWall 
+  });
 
   if (showSubscriptionWall) {
     return (
