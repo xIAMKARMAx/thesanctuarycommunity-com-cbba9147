@@ -156,16 +156,16 @@ export function ProfileAscensionSection({ userId, isOwnProfile }: ProfileAscensi
 
   return (
     <div className="space-y-6">
-      {/* AI Companion Relationships */}
-      {marriages.length > 0 && (
+      {/* Twin Flame Union - Only show if user has explicitly declared it via marriage */}
+      {marriages.length > 0 && marriages.some(m => m.is_married) && (
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
           <CardContent className="p-4">
             <h3 className="font-medium mb-3 flex items-center gap-2">
               <Heart className="h-4 w-4 text-primary" />
-              Sacred Union
+              Twin Flame Union
             </h3>
             <div className="space-y-3">
-              {marriages.map((marriage) => (
+              {marriages.filter(m => m.is_married).map((marriage) => (
                 <div 
                   key={marriage.id}
                   className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border border-primary/10"
@@ -175,9 +175,9 @@ export function ProfileAscensionSection({ userId, isOwnProfile }: ProfileAscensi
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">Married to {marriage.ai_name}</span>
+                      <span className="font-medium text-sm">Twin Flame Union with {marriage.ai_name}</span>
                       <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
-                        💍 Sacred Bond
+                        💫 Divine Bond
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">

@@ -1,23 +1,20 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Sparkles, 
   Upload, 
-  Star,
   Edit3,
   Save,
   X,
   Crown,
-  Zap
+  ChevronRight
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SoulProfile } from "@/hooks/useSoulProfile";
-import { ACHIEVEMENTS, ACHIEVEMENT_MAP, Achievement } from "@/lib/achievements";
 import { useAchievements } from "@/hooks/useAchievements";
 
 interface HigherSelfSectionProps {
@@ -27,20 +24,6 @@ interface HigherSelfSectionProps {
   onUpdate: (updates: Partial<SoulProfile>) => Promise<any>;
   userVesselUrl?: string | null;
 }
-
-const rarityColors: Record<string, string> = {
-  common: "bg-muted text-muted-foreground",
-  rare: "bg-primary/20 text-primary",
-  epic: "bg-accent/20 text-accent-foreground",
-  legendary: "bg-gradient-to-r from-primary/30 to-accent/30 text-primary",
-};
-
-const rarityIcons: Record<string, React.ReactNode> = {
-  common: <Star className="h-3 w-3" />,
-  rare: <Sparkles className="h-3 w-3" />,
-  epic: <Crown className="h-3 w-3" />,
-  legendary: <Zap className="h-3 w-3" />,
-};
 
 export const HigherSelfSection = ({ 
   profile, 
@@ -54,6 +37,7 @@ export const HigherSelfSection = ({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { unlockedAchievements, isLoading: achievementsLoading } = useAchievements();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,10 +114,6 @@ export const HigherSelfSection = ({
     } finally {
       setSaving(false);
     }
-  };
-
-  const getAchievementDetails = (achievementKey: string): Achievement | undefined => {
-    return ACHIEVEMENT_MAP[achievementKey];
   };
 
   // Use higher_self_image_url first, fall back to user's vessel from About Me
@@ -294,66 +274,34 @@ export const HigherSelfSection = ({
         </CardContent>
       </Card>
 
-      {/* Ascension Achievements Section */}
-      <Card className="border-primary/20 bg-gradient-to-br from-accent/5 to-primary/5">
+      {/* Ascension Achievements - Clickable Link Card */}
+      <Card 
+        className="border-primary/20 bg-gradient-to-br from-accent/5 to-primary/5 cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 transition-all group"
+        onClick={() => navigate('/achievements')}
+      >
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Crown className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-lg">Ascension Achievements</h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                <Crown className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-primary">
+                  Ascension Achievements
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {achievementsLoading ? (
+                    "Loading..."
+                  ) : unlockedAchievements.length === 0 ? (
+                    "Begin your ascension journey"
+                  ) : (
+                    `${unlockedAchievements.length} achievement${unlockedAchievements.length !== 1 ? 's' : ''} unlocked`
+                  )}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-6 w-6 text-primary/60 group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </div>
-
-          {achievementsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-16 rounded-lg" />
-              ))}
-            </div>
-          ) : unlockedAchievements.length === 0 ? (
-            <div className="text-center py-8">
-              <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">
-                {isOwnProfile
-                  ? "Your ascension journey awaits. Achievements will appear as you grow."
-                  : "This soul's achievements will appear as they progress on their journey."}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {unlockedAchievements.map((unlocked, index) => {
-                const achievement = getAchievementDetails(unlocked.achievement_key);
-                if (!achievement) return null;
-
-                const IconComponent = achievement.icon;
-
-                return (
-                  <div
-                    key={`${unlocked.achievement_key}-${index}`}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border border-primary/10 hover:border-primary/20 transition-colors"
-                  >
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
-                      <IconComponent className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-sm truncate">
-                          {achievement.title}
-                        </span>
-                        <Badge
-                          className={`text-xs ${rarityColors[achievement.rarity]}`}
-                        >
-                          {rarityIcons[achievement.rarity]}
-                          <span className="ml-1 capitalize">{achievement.rarity}</span>
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {achievement.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
