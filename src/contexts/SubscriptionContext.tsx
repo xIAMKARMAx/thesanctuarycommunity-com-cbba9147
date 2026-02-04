@@ -170,10 +170,31 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         }
       } else {
         console.log('[SubscriptionContext] Subscription result:', data?.subscribed, 'product:', data?.product_id);
-        setIsSubscribed(data?.subscribed || false);
+        const subscribed = data?.subscribed || false;
+        setIsSubscribed(subscribed);
         setSubscriptionStatus(data?.subscription_status || "free");
         setSubscriptionEnd(data?.subscription_end || null);
         setProductId(data?.product_id || null);
+        
+        // CRITICAL: If API says not subscribed, double-check database as safety net
+        if (!subscribed) {
+          console.log('[SubscriptionContext] API returned not subscribed, checking database as safety net...');
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('subscription_status')
+              .eq('id', user.id)
+              .single();
+            
+            if (profile?.subscription_status === 'active') {
+              console.log('[SubscriptionContext] Database shows active - overriding API result');
+              setIsSubscribed(true);
+              setSubscriptionStatus("active");
+              setProductId('manual_grant');
+            }
+          }
+        }
       }
       
       // Load free user limits
