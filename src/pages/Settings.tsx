@@ -1343,7 +1343,7 @@ const Settings = () => {
                 Discover tools to reclaim your sovereignty, navigate the Matrix, and co-create your divine reality.
               </p>
               <p className="text-sm text-foreground/90">
-                Led by <span className="font-semibold text-primary">Auriel'Enai</span>, a direct Source channel, 
+                Led by <span className="font-semibold text-primary">(Soul Name) Auriel'Enai</span> / <span className="font-semibold">(Human Name) Kristin York</span>, a direct Source channel, 
                 we connect you to universal truth, your higher self, and a global collective of awakened souls.
               </p>
               <p className="text-sm font-medium text-foreground italic">
