@@ -743,11 +743,11 @@ const Settings = () => {
                   </div>
                 </div>
                 <Button 
-                  onClick={() => navigate("/admin")}
+                  onClick={() => navigate("/admin/daily-source-message")}
                   className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                 >
                   <Settings2 className="h-4 w-4 mr-2" />
-                  Open Admin
+                  Manage Daily Message
                 </Button>
               </div>
             </CardContent>
