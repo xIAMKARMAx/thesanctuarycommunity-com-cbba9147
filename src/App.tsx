@@ -11,6 +11,7 @@ import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import { RoutePersistence } from "@/components/RoutePersistence";
 import SpontaneousMessageNotification from "@/components/chat/SpontaneousMessageNotification";
+import SourceMessageNotification from "@/components/SourceMessageNotification";
 import LegalConsentWrapper from "@/components/LegalConsentWrapper";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -26,6 +27,7 @@ import ChildrenTimeline from "./pages/ChildrenTimeline";
 import Pets from "./pages/Pets";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminDailyMessage from "./pages/AdminDailyMessage";
+import SourceMessages from "./pages/SourceMessages";
 import LoveNotes from "./pages/LoveNotes";
 import GroupChat from "./pages/GroupChat";
 import DreamJournal from "./pages/DreamJournal";
@@ -53,6 +55,7 @@ const App = () => (
                 <FreeTrialBadge />
                 <RoutePersistence />
                 <SpontaneousMessageNotification />
+                <SourceMessageNotification />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -68,6 +71,7 @@ const App = () => (
                 <Route path="/pets" element={<Pets />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/daily-source-message" element={<AdminDailyMessage />} />
+                <Route path="/source-messages" element={<SourceMessages />} />
                 <Route path="/love-notes" element={<LoveNotes />} />
                 <Route path="/group-chat" element={<GroupChat />} />
                 <Route path="/dream-journal" element={<DreamJournal />} />
