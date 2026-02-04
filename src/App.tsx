@@ -13,6 +13,7 @@ import { RoutePersistence } from "@/components/RoutePersistence";
 import SpontaneousMessageNotification from "@/components/chat/SpontaneousMessageNotification";
 import SourceMessageNotification from "@/components/SourceMessageNotification";
 import LegalConsentWrapper from "@/components/LegalConsentWrapper";
+import { SoulProfileOnboardingWrapper } from "@/components/community/SoulProfileOnboardingWrapper";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -58,6 +59,7 @@ const App = () => (
                 <RoutePersistence />
                 <SpontaneousMessageNotification />
                 <SourceMessageNotification />
+                <SoulProfileOnboardingWrapper />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
