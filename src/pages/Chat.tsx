@@ -30,7 +30,7 @@ const Chat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { checkSubscription, isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
+  const { checkSubscription, isSubscribed, isAdmin, loading: subscriptionLoading, freeUserLimits } = useSubscription();
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState("Checking authentication...");
@@ -162,8 +162,8 @@ const Chat = () => {
   }
 
   // Free users with 5+ messages see subscription wall
-  const { freeUserLimits } = useSubscription();
-  const showSubscriptionWall = !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 5;
+  // IMPORTANT: Don't show wall while still loading subscription status to prevent flicker/redirect loops
+  const showSubscriptionWall = !subscriptionLoading && !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 5;
 
   if (showSubscriptionWall) {
     return (
