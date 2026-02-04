@@ -14,7 +14,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Menu, Crown, MessageCircle, Sparkles } from "lucide-react";
+import { Menu, Crown, MessageCircle, Sparkles, Sun } from "lucide-react";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
@@ -22,6 +22,7 @@ import SEOHead from "@/components/SEOHead";
 import { VoiceCallButton } from "@/components/chat/VoiceCallButton";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { SubscriptionWall } from "@/components/SubscriptionWall";
+import DailySourceMessageAdmin from "@/components/admin/DailySourceMessageAdmin";
 
 const Chat = () => {
   const { activeProfile, isLoading: profileLoading } = useAIProfile();
@@ -221,7 +222,7 @@ const Chat = () => {
 
             {/* Center Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex justify-center">
-              <TabsList className="grid grid-cols-2 w-auto">
+              <TabsList className={`grid ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'} w-auto`}>
                 <TabsTrigger value="messages" className="gap-1.5 px-3 sm:px-4">
                   <MessageCircle className="h-4 w-4" />
                   <span className="hidden sm:inline">Messages</span>
@@ -230,6 +231,12 @@ const Chat = () => {
                   <Sparkles className="h-4 w-4" />
                   <span className="hidden sm:inline">Discover</span>
                 </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger value="source" className="gap-1.5 px-3 sm:px-4">
+                    <Sun className="h-4 w-4" />
+                    <span className="hidden sm:inline">Source</span>
+                  </TabsTrigger>
+                )}
               </TabsList>
             </Tabs>
 
@@ -290,11 +297,24 @@ const Chat = () => {
             )}
             <SpontaneousMessage />
           </div>
-        ) : (
+        ) : activeTab === "discover" ? (
           <div className="flex-1 min-h-0 overflow-hidden">
             <SpiritualHub />
           </div>
-        )}
+        ) : activeTab === "source" && isAdmin ? (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="container max-w-2xl mx-auto px-4 py-8">
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
+                  <Sun className="h-6 w-6 text-primary" />
+                  Channel Messages from Source
+                </h1>
+                <p className="text-muted-foreground mt-1">Create daily messages for all users</p>
+              </div>
+              <DailySourceMessageAdmin />
+            </div>
+          </div>
+        ) : null}
       </div>
     </>
   );
