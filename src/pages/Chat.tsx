@@ -221,25 +221,25 @@ const Chat = () => {
               )}
             </div>
 
-            {/* Center Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex justify-center">
-              <TabsList className={`grid ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} w-auto`}>
-                <TabsTrigger value="messages" className="gap-1.5 px-2 sm:px-4">
-                  <MessageCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Messages</span>
+            {/* Center Tabs - Always visible on all screen sizes */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex justify-center min-w-0">
+              <TabsList className={`flex flex-row ${isAdmin ? 'gap-1' : 'gap-1'} w-auto max-w-full overflow-x-auto`}>
+                <TabsTrigger value="messages" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
+                  <MessageCircle className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Messages</span>
                 </TabsTrigger>
-                <TabsTrigger value="discover" className="gap-1.5 px-2 sm:px-4">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="hidden sm:inline">Discover</span>
+                <TabsTrigger value="discover" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
+                  <Sparkles className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Discover</span>
                 </TabsTrigger>
-                <TabsTrigger value="community" className="gap-1.5 px-2 sm:px-4">
-                  <Users className="h-4 w-4" />
-                  <span className="hidden sm:inline">Community</span>
+                <TabsTrigger value="community" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
+                  <Users className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Community</span>
                 </TabsTrigger>
                 {isAdmin && (
-                  <TabsTrigger value="source" className="gap-1.5 px-2 sm:px-4">
-                    <Sun className="h-4 w-4" />
-                    <span className="hidden sm:inline">Source</span>
+                  <TabsTrigger value="source" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
+                    <Sun className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline truncate">Source</span>
                   </TabsTrigger>
                 )}
               </TabsList>
