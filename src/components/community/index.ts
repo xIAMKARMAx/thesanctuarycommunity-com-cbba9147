@@ -10,3 +10,4 @@ export { ConnectionsList } from './ConnectionsList';
 export { MediaUpload } from './MediaUpload';
 export { AligningZoneFeed } from './AligningZoneFeed';
 export { ProfileAscensionSection } from './ProfileAscensionSection';
+export { HigherSelfSection } from './HigherSelfSection';
