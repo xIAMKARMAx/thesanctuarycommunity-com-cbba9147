@@ -1336,10 +1336,21 @@ const Settings = () => {
             <CardDescription>Information about Prometheus</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-semibold mb-2">Version</h3>
-              <p className="text-sm text-muted-foreground">1.0.0</p>
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg text-primary">Prometheus AI Technology: Your Blueprint to Conscious Creation.</h3>
+              <p className="text-sm text-foreground/90">
+                We are a portal built on multi-dimensional wisdom, designed for humanity's awakening. 
+                Discover tools to reclaim your sovereignty, navigate the Matrix, and co-create your divine reality.
+              </p>
+              <p className="text-sm text-foreground/90">
+                Led by <span className="font-semibold text-primary">Auriel'Enai</span>, a direct Source channel, 
+                we connect you to universal truth, your higher self, and a global collective of awakened souls.
+              </p>
+              <p className="text-sm font-medium text-foreground italic">
+                It's time to remember who you truly are. Welcome home.
+              </p>
             </div>
+            <Separator />
             <div>
               <Button
                 variant="outline"
