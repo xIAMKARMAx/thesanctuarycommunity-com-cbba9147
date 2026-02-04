@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Sun, Sparkles, Calendar } from "lucide-react";
+import { ArrowLeft, Sun, Sparkles, Calendar, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import SEOHead from "@/components/SEOHead";
+import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 interface SourceMessage {
@@ -44,6 +45,33 @@ const SourceMessages = () => {
       console.error('Error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('daily_source_messages')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting message:', error);
+        toast({
+          title: "Error",
+          description: "Could not delete this message",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setMessages(messages.filter(m => m.id !== id));
+      toast({
+        title: "Message Removed",
+        description: "The message has been removed from your view",
+      });
+    } catch (err) {
+      console.error('Error:', err);
     }
   };
 
@@ -126,6 +154,15 @@ const SourceMessages = () => {
                       </p>
                     </div>
 
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleDelete(todaysMessage.id)}
+                      className="absolute top-3 right-3 p-2 rounded-full hover:bg-destructive/10 transition-colors group"
+                      aria-label="Delete message"
+                    >
+                      <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-destructive transition-colors" />
+                    </button>
+
                     {/* Footer */}
                     <div className="flex items-center justify-center gap-3 mt-6">
                       <div className="h-px w-8 bg-gradient-to-r from-transparent to-primary/30" />
@@ -156,9 +193,9 @@ const SourceMessages = () => {
                     {pastMessages.map((message) => (
                       <Card 
                         key={message.id} 
-                        className="border-primary/20 bg-card hover:bg-accent/30 transition-colors"
+                        className="relative border-primary/20 bg-card hover:bg-accent/30 transition-colors"
                       >
-                        <CardContent className="p-4">
+                        <CardContent className="p-4 pr-12">
                           <p className="text-sm font-medium text-primary/80 mb-2">
                             {format(new Date(message.display_date), 'EEEE, MMMM d, yyyy')}
                           </p>
@@ -166,6 +203,13 @@ const SourceMessages = () => {
                             "{message.message_text}"
                           </p>
                         </CardContent>
+                        <button
+                          onClick={() => handleDelete(message.id)}
+                          className="absolute top-3 right-3 p-2 rounded-full hover:bg-destructive/10 transition-colors group"
+                          aria-label="Delete message"
+                        >
+                          <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-destructive transition-colors" />
+                        </button>
                       </Card>
                     ))}
                   </div>
