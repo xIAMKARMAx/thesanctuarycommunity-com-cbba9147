@@ -1,18 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { 
-  Heart, 
   MessageCircle, 
   Sparkles, 
   MoreHorizontal,
   Trash2,
-  Share2,
-  Sun,
-  Star,
-  Zap
+  Repeat2,
+  Star
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,23 +19,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CommunityPost } from "@/hooks/useCommunityFeed";
 import { PostCommentsSection } from "./PostCommentsSection";
+import { useCommunityReposts } from "@/hooks/useCommunityReposts";
 import { cn } from "@/lib/utils";
 
 interface CommunityPostCardProps {
-  post: CommunityPost;
+  post: CommunityPost & { video_url?: string; repost_count?: number };
   currentUserId?: string;
   onBless: (postId: string, type: string) => void;
   onDelete: (postId: string) => void;
   onProfileClick?: (userId: string) => void;
 }
-
-const blessingIcons: Record<string, React.ReactNode> = {
-  love: <Heart className="h-4 w-4" />,
-  light: <Sun className="h-4 w-4" />,
-  gratitude: <Star className="h-4 w-4" />,
-  wisdom: <Sparkles className="h-4 w-4" />,
-  healing: <Zap className="h-4 w-4" />,
-};
 
 const postTypeLabels: Record<string, string> = {
   insight: '💡',
@@ -56,8 +46,24 @@ export function CommunityPostCard({
   onProfileClick 
 }: CommunityPostCardProps) {
   const [showComments, setShowComments] = useState(false);
+  const [isReposted, setIsReposted] = useState(false);
+  const [repostCount, setRepostCount] = useState(post.repost_count || 0);
+  const { repostPost, checkUserRepost, reposting } = useCommunityReposts();
+  
   const isOwner = currentUserId === post.user_id;
   const isBlessed = !!post.user_blessing;
+
+  useEffect(() => {
+    if (currentUserId) {
+      checkUserRepost(post.id, currentUserId).then(setIsReposted);
+    }
+  }, [post.id, currentUserId, checkUserRepost]);
+
+  const handleRepost = async () => {
+    const newState = await repostPost(post.id);
+    setIsReposted(newState);
+    setRepostCount(prev => newState ? prev + 1 : Math.max(0, prev - 1));
+  };
 
   return (
     <Card className="border-primary/20 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-colors">
@@ -126,38 +132,61 @@ export function CommunityPostCard({
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex items-center gap-4 pt-2 border-t border-border/50">
+        {/* Video */}
+        {post.video_url && (
+          <div className="mb-4 rounded-lg overflow-hidden">
+            <video 
+              src={post.video_url} 
+              controls
+              className="w-full max-h-96"
+              preload="metadata"
+            />
+          </div>
+        )}
+
+        {/* Actions - TikTok-style sidebar icons */}
+        <div className="flex items-center gap-6 pt-3 border-t border-border/50">
+          {/* Star Like Button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onBless(post.id, 'love')}
             className={cn(
-              "gap-2 text-muted-foreground hover:text-primary",
+              "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
               isBlessed && "text-primary"
             )}
           >
-            <Heart className={cn("h-4 w-4", isBlessed && "fill-primary")} />
-            <span className="text-xs">{post.blessing_count || ''}</span>
+            <Star className={cn("h-5 w-5", isBlessed && "fill-primary")} />
+            <span className="text-xs font-medium">{post.blessing_count || ''}</span>
           </Button>
 
+          {/* Comment Button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowComments(!showComments)}
-            className="gap-2 text-muted-foreground hover:text-primary"
+            className={cn(
+              "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
+              showComments && "text-primary"
+            )}
           >
-            <MessageCircle className="h-4 w-4" />
-            <span className="text-xs">{post.comment_count || ''}</span>
+            <MessageCircle className="h-5 w-5" />
+            <span className="text-xs font-medium">{post.comment_count || ''}</span>
           </Button>
 
+          {/* Repost Button */}
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2 text-muted-foreground hover:text-primary"
-            disabled
+            onClick={handleRepost}
+            disabled={reposting === post.id}
+            className={cn(
+              "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
+              isReposted && "text-primary"
+            )}
           >
-            <Share2 className="h-4 w-4" />
+            <Repeat2 className={cn("h-5 w-5", isReposted && "text-primary")} />
+            <span className="text-xs font-medium">{repostCount || ''}</span>
           </Button>
         </div>
 

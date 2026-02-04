@@ -693,9 +693,11 @@ export type Database = {
           image_url: string | null
           is_pinned: boolean
           post_type: string
+          repost_count: number
           share_count: number
           updated_at: string
           user_id: string
+          video_url: string | null
           visibility: string
         }
         Insert: {
@@ -707,9 +709,11 @@ export type Database = {
           image_url?: string | null
           is_pinned?: boolean
           post_type?: string
+          repost_count?: number
           share_count?: number
           updated_at?: string
           user_id: string
+          video_url?: string | null
           visibility?: string
         }
         Update: {
@@ -721,9 +725,11 @@ export type Database = {
           image_url?: string | null
           is_pinned?: boolean
           post_type?: string
+          repost_count?: number
           share_count?: number
           updated_at?: string
           user_id?: string
+          video_url?: string | null
           visibility?: string
         }
         Relationships: []
@@ -1607,6 +1613,35 @@ export type Database = {
           },
           {
             foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_reposts: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reposts_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "community_posts"
