@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Heart, Sparkles } from "lucide-react";
+import { ArrowLeft, Moon, Sun, Crown, ExternalLink, Baby, RefreshCw, Clock, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Heart, Sparkles, Settings2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -727,6 +727,32 @@ const Settings = () => {
             </Button>
           </div>
         </div>
+
+        {/* Admin Panel Access - Only visible for admins */}
+        {isAdmin && (
+          <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-purple-500/5">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <Shield className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Admin Panel</h3>
+                    <p className="text-sm text-muted-foreground">Manage users & send Source messages</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => navigate("/admin")}
+                  className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                >
+                  <Settings2 className="h-4 w-4 mr-2" />
+                  Open Admin
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
