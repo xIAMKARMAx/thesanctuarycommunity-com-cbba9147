@@ -667,6 +667,36 @@ export type Database = {
           },
         ]
       }
+      daily_source_messages: {
+        Row: {
+          created_at: string
+          display_date: string
+          id: string
+          is_active: boolean
+          message_text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_date: string
+          id?: string
+          is_active?: boolean
+          message_text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_date?: string
+          id?: string
+          is_active?: boolean
+          message_text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dream_journal_entries: {
         Row: {
           ai_interpretation: string | null

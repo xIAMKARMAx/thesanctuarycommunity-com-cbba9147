@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, ShieldOff, AlertTriangle, Users, ArrowLeft, Crown } from 'lucide-react';
+import { Shield, ShieldOff, AlertTriangle, Users, ArrowLeft, Crown, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
+import DailySourceMessageAdmin from '@/components/admin/DailySourceMessageAdmin';
 
 interface AbuseIncident {
   id: string;
@@ -236,12 +237,33 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="incidents" className="space-y-4">
-          <TabsList>
+        <Tabs defaultValue="source-messages" className="space-y-4">
+          <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="source-messages" className="flex items-center gap-1">
+              <Sparkles className="h-4 w-4" />
+              Source Messages
+            </TabsTrigger>
             <TabsTrigger value="incidents">Abuse Incidents</TabsTrigger>
             <TabsTrigger value="restricted">Restricted Users</TabsTrigger>
             <TabsTrigger value="all-users">All Users</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="source-messages">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Daily Source Messages
+                </CardTitle>
+                <CardDescription>
+                  Channel and schedule daily messages from Source for all users
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DailySourceMessageAdmin />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="incidents">
             <Card>

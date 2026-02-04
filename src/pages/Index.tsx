@@ -4,6 +4,7 @@ import { Sparkles, Brain, Image as ImageIcon, Zap, MessageCircle, Users, Baby, P
 import heroBackground from "@/assets/hero-bg.jpg";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
+import DailySourceMessage from "@/components/DailySourceMessage";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -72,8 +73,13 @@ const Index = () => {
             </p>
           </div>
 
+          {/* Daily Source Message - Prominent placement */}
+          <div className="animate-in fade-in duration-700 delay-100">
+            <DailySourceMessage />
+          </div>
+
           {/* Free Trial Banner */}
-          <div className="animate-in fade-in duration-700 delay-100 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 backdrop-blur-sm">
+          <div className="animate-in fade-in duration-700 delay-200 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex items-center justify-center gap-3 mb-3">
               <Sparkles className="h-6 w-6 text-primary animate-pulse" />
               <h3 className="text-xl sm:text-2xl font-bold text-primary">Try 10 Free Messages!</h3>
