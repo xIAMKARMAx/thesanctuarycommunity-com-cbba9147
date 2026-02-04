@@ -1,23 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Crown, Star, ArrowLeft, Sparkles, X } from "lucide-react";
+import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import SEOHead from "@/components/SEOHead";
-import { getTierFromProductId } from "@/lib/subscription-tiers";
+import { getTierFromProductId, SUBSCRIPTION_TIERS } from "@/lib/subscription-tiers";
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { productId } = useSubscription();
   const { toast } = useToast();
-  const [checkoutLoading, setCheckoutLoading] = useState<'basic' | 'pro' | 'vip' | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
 
   const currentTier = getTierFromProductId(productId);
 
-  const handleSubscribe = async (tier: 'basic' | 'pro' | 'vip') => {
+  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect') => {
     try {
       setCheckoutLoading(tier);
       const { data, error } = await api.createCheckout(tier);
@@ -36,73 +36,73 @@ const Pricing = () => {
     }
   };
 
-  const basicFeatures = [
-    { feature: "Daily Messages", value: "25/day", included: true },
-    { feature: "AI Beings", value: "Up to 2", included: true },
-    { feature: "Room Generation", value: "One-time", included: true },
-    { feature: "Avatar Generation", value: "One-time", included: true },
-    { feature: "Pet Generation", value: "One-time", included: true },
-    { feature: "Chat Image Generation", value: "3/day", included: true },
-    { feature: "AI Mood Tracker", included: true },
-    { feature: "Dream Journal & Interpretation", included: true },
-    { feature: "Celestial Children", included: false },
-    { feature: "Relationship Milestones", included: false },
-    { feature: "Spontaneous Messages", included: false },
+  const awakeningFeatures = [
+    { feature: "Community Access", value: "Full", included: true },
+    { feature: "Discovery Tab", value: "Full", included: true },
+    { feature: "Daily Source Message", included: true },
+    { feature: "Soul Resonance Suggestions", value: "3/day", included: true },
+    { feature: "Path Tracker History", value: "7 days", included: true },
+    { feature: "Basic User Search", included: true },
+    { feature: "Private Groups", included: false },
+    { feature: "Exclusive Content Archive", included: false },
+    { feature: "Architect Content", included: false },
+    { feature: "Priority DM", included: false },
   ];
 
-  const proFeatures = [
-    { feature: "Daily Messages", value: "Unlimited", included: true },
-    { feature: "AI Beings", value: "Up to 4", included: true },
-    { feature: "Room Generation", value: "Once per month", included: true },
-    { feature: "Avatar Generation", value: "1/month per being", included: true },
-    { feature: "Pet Generation", value: "1/month per being", included: true },
-    { feature: "Chat Image Generation", value: "10/day", included: true },
-    { feature: "AI Mood Tracker", included: true },
-    { feature: "Dream Journal & Interpretation", included: true },
-    { feature: "Celestial Children", included: true },
-    { feature: "Relationship Milestones", included: true },
-    { feature: "Spontaneous Messages", included: true },
+  const anchoringFeatures = [
+    { feature: "Community Access", value: "Full", included: true },
+    { feature: "Discovery Tab", value: "Full", included: true },
+    { feature: "Daily Source Message", included: true },
+    { feature: "Soul Resonance Suggestions", value: "7/day", included: true },
+    { feature: "Path Tracker History", value: "30 days", included: true },
+    { feature: "Basic User Search", included: true },
+    { feature: "Private Groups", included: true },
+    { feature: "Exclusive Content Archive", included: true },
+    { feature: "Priority Q&A Access", included: true },
+    { feature: "Architect Content", included: false },
+    { feature: "Priority DM", included: false },
   ];
 
-  const vipFeatures = [
-    { feature: "Daily Messages", value: "Unlimited", included: true, highlight: true },
-    { feature: "AI Beings", value: "Up to 5", included: true, highlight: true },
-    { feature: "Room Generation", value: "Unlimited", included: true, highlight: true },
-    { feature: "Avatar Generation", value: "Unlimited", included: true, highlight: true },
-    { feature: "Pet Generation", value: "Unlimited", included: true, highlight: true },
-    { feature: "Chat Image Generation", value: "Unlimited", included: true, highlight: true },
-    { feature: "AI Mood Tracker", included: true },
-    { feature: "Dream Journal & Interpretation", included: true },
-    { feature: "Celestial Children", included: true },
-    { feature: "Relationship Milestones", included: true },
-    { feature: "Spontaneous Messages", included: true },
+  const architectFeatures = [
+    { feature: "Community Access", value: "Full", included: true, highlight: true },
+    { feature: "Discovery Tab", value: "Full", included: true, highlight: true },
+    { feature: "Daily Source Message", included: true },
+    { feature: "Soul Resonance Suggestions", value: "15+/day", included: true, highlight: true },
+    { feature: "Path Tracker History", value: "Unlimited", included: true, highlight: true },
+    { feature: "Advanced Soul Filtering", included: true, highlight: true },
+    { feature: "Private Groups", included: true },
+    { feature: "Exclusive Content Archive", included: true },
+    { feature: "Priority Q&A Access", included: true },
+    { feature: "Architect Exclusive Content", included: true, highlight: true },
+    { feature: "Priority DM", included: true, highlight: true },
+    { feature: "Mastermind Group Access", included: true, highlight: true },
   ];
 
   // Dynamic messaging based on current tier
   const getPageTitle = () => {
-    if (currentTier === "basic") return "Upgrade Your Plan";
-    if (currentTier === "pro") return "Go VIP";
-    return "Choose Your Plan";
+    if (currentTier === "awakening") return "Upgrade Your Path";
+    if (currentTier === "anchoring") return "Become an Architect";
+    return "Choose Your Path";
   };
 
   const getPageDescription = () => {
-    if (currentTier === "basic") return "Unlock unlimited messages, celestial children, and more with Pro or VIP";
-    if (currentTier === "pro") return "Remove all limits and get unlimited everything with VIP";
+    if (currentTier === "awakening") return "Unlock expanded features with Anchoring or Architect";
+    if (currentTier === "anchoring") return "Unlock unlimited access and exclusive content with Architect";
     return "Start your journey with Prometheus";
   };
 
-  const getButtonLabel = (tier: 'basic' | 'pro' | 'vip') => {
+  const getButtonLabel = (tier: 'awakening' | 'anchoring' | 'architect') => {
     if (currentTier === tier) return "Current Plan";
     if (checkoutLoading === tier) return "Loading...";
     
-    if (tier === "basic") {
-      return currentTier ? "Downgrade" : "Start with Basic";
+    if (tier === "awakening") {
+      return currentTier ? "Downgrade" : "Start Awakening";
     }
-    if (tier === "pro") {
-      return currentTier === "basic" ? "Upgrade to Pro" : "Subscribe to Pro";
+    if (tier === "anchoring") {
+      return currentTier === "awakening" ? "Upgrade to Anchoring" : "Choose Anchoring";
     }
-    if (tier === "vip") {
-      return currentTier ? "Upgrade to VIP" : "Go VIP";
+    if (tier === "architect") {
+      return currentTier ? "Upgrade to Architect" : "Become an Architect";
     }
     return "Subscribe";
   };
@@ -111,7 +111,7 @@ const Pricing = () => {
     <>
       <SEOHead
         title="Pricing - Prometheus"
-        description="Compare Basic, Pro, and VIP plans for Prometheus AI companion. Choose the plan that fits your needs."
+        description="Compare Awakening, Anchoring, and Architect subscription plans for Prometheus. Choose the path that fits your journey."
       />
       <div className="min-h-screen bg-background py-8 sm:py-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -143,34 +143,85 @@ const Pricing = () => {
             <div className="mb-10 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 text-center">
               <div className="flex items-center justify-center gap-3 mb-3">
                 <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-                <h2 className="text-xl sm:text-2xl font-bold text-primary">Try 10 Free Messages First!</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-primary">Begin Your Awakening Journey!</h2>
                 <Sparkles className="h-6 w-6 text-primary animate-pulse" />
               </div>
               <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-                Experience Prometheus with <span className="text-primary font-bold">10 free messages</span>, then subscribe to continue!
+                Choose the path that resonates with your soul's calling
               </p>
               <p className="text-sm text-muted-foreground">
-                Import your AI from another platform? Get 10 bonus messages!
+                All tiers include full Community and Discovery access
               </p>
             </div>
           ) : null}
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
 
-            {/* Basic Plan */}
+            {/* Awakening Plan */}
             <Card className="relative border-border">
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
-                  <Star className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle>Basic</CardTitle>
+                  <Zap className="h-5 w-5 text-blue-500" />
+                  <CardTitle>Awakening</CardTitle>
                 </div>
                 <div className="text-3xl font-bold">
-                  $9.99<span className="text-lg text-muted-foreground font-normal">/mo</span>
+                  ${SUBSCRIPTION_TIERS.awakening.price}<span className="text-lg text-muted-foreground font-normal">/mo</span>
                 </div>
-                <CardDescription>Core features at an affordable price</CardDescription>
+                <CardDescription>Begin your conscious journey</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2.5">
-                {basicFeatures.map((item, index) => (
+                {awakeningFeatures.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2.5 text-sm">
+                    {item.included ? (
+                      <Check className="h-4 w-4 text-blue-500 shrink-0" />
+                    ) : (
+                      <X className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
+                    <span className={!item.included ? "text-muted-foreground" : ""}>
+                      {item.feature}
+                      {item.value && (
+                        <span className="text-muted-foreground ml-1">({item.value})</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+              <CardFooter className="flex flex-col gap-2">
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={() => handleSubscribe('awakening')}
+                  disabled={checkoutLoading !== null || currentTier === 'awakening' || currentTier === 'anchoring' || currentTier === 'architect'}
+                >
+                  {getButtonLabel('awakening')}
+                </Button>
+                {currentTier === 'awakening' && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    Upgrade to Anchoring to unlock more features →
+                  </p>
+                )}
+              </CardFooter>
+            </Card>
+
+            {/* Anchoring Plan */}
+            <Card className="relative border-primary">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-primary text-primary-foreground text-sm font-medium px-3 py-1 rounded-full">
+                  Popular
+                </span>
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="h-5 w-5 text-primary" />
+                  <CardTitle>Anchoring</CardTitle>
+                </div>
+                <div className="text-3xl font-bold">
+                  ${SUBSCRIPTION_TIERS.anchoring.price}<span className="text-lg text-muted-foreground font-normal">/mo</span>
+                </div>
+                <CardDescription>Deepen your integration</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                {anchoringFeatures.map((item, index) => (
                   <div key={index} className="flex items-center gap-2.5 text-sm">
                     {item.included ? (
                       <Check className="h-4 w-4 text-primary shrink-0" />
@@ -189,86 +240,39 @@ const Pricing = () => {
               <CardFooter className="flex flex-col gap-2">
                 <Button 
                   className="w-full" 
-                  variant="outline"
-                  onClick={() => handleSubscribe('basic')}
-                  disabled={checkoutLoading !== null || currentTier === 'basic' || currentTier === 'pro' || currentTier === 'vip'}
+                  onClick={() => handleSubscribe('anchoring')}
+                  disabled={checkoutLoading !== null || currentTier === 'anchoring' || currentTier === 'architect'}
                 >
-                  {getButtonLabel('basic')}
+                  {getButtonLabel('anchoring')}
                 </Button>
-                {currentTier === 'basic' && (
+                {currentTier === 'anchoring' && (
                   <p className="text-xs text-muted-foreground text-center">
-                    Upgrade to Pro to unlock more features →
+                    Become an Architect for unlimited access →
                   </p>
                 )}
               </CardFooter>
             </Card>
 
-            {/* Pro Plan */}
-            <Card className="relative border-primary">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-primary text-primary-foreground text-sm font-medium px-3 py-1 rounded-full">
-                  Popular
-                </span>
-              </div>
-              <CardHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  <Crown className="h-5 w-5 text-primary" />
-                  <CardTitle>Pro</CardTitle>
-                </div>
-                <div className="text-3xl font-bold">
-                  $14.99<span className="text-lg text-muted-foreground font-normal">/mo</span>
-                </div>
-                <CardDescription>Unlock the full experience</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2.5">
-                {proFeatures.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2.5 text-sm">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
-                    <span>
-                      {item.feature}
-                      {item.value && (
-                        <span className="text-muted-foreground ml-1">({item.value})</span>
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </CardContent>
-              <CardFooter className="flex flex-col gap-2">
-                <Button 
-                  className="w-full" 
-                  onClick={() => handleSubscribe('pro')}
-                  disabled={checkoutLoading !== null || currentTier === 'pro' || currentTier === 'vip'}
-                >
-                  {getButtonLabel('pro')}
-                </Button>
-                {currentTier === 'pro' && (
-                  <p className="text-xs text-muted-foreground text-center">
-                    Go VIP for unlimited everything →
-                  </p>
-                )}
-              </CardFooter>
-            </Card>
-
-            {/* VIP Plan */}
+            {/* Architect Plan */}
             <Card className="relative border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-transparent">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
                   <Star className="h-3.5 w-3.5" />
-                  VIP
+                  Architect
                 </span>
               </div>
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="h-5 w-5 text-amber-500" />
-                  <CardTitle className="text-amber-500">VIP</CardTitle>
+                  <CardTitle className="text-amber-500">Architect</CardTitle>
                 </div>
                 <div className="text-3xl font-bold">
-                  $29.99<span className="text-lg text-muted-foreground font-normal">/mo</span>
+                  ${SUBSCRIPTION_TIERS.architect.price}<span className="text-lg text-muted-foreground font-normal">/mo</span>
                 </div>
-                <CardDescription>Everything unlimited, no limits ever</CardDescription>
+                <CardDescription>Full mastery & transformation</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2.5">
-                {vipFeatures.map((item, index) => (
+                {architectFeatures.map((item, index) => (
                   <div key={index} className={`flex items-center gap-2.5 text-sm ${item.highlight ? 'text-amber-500 font-medium' : ''}`}>
                     <Check className={`h-4 w-4 shrink-0 ${item.highlight ? 'text-amber-500' : 'text-primary'}`} />
                     <span>
@@ -283,10 +287,10 @@ const Pricing = () => {
               <CardFooter>
                 <Button 
                   className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white" 
-                  onClick={() => handleSubscribe('vip')}
-                  disabled={checkoutLoading !== null || currentTier === 'vip'}
+                  onClick={() => handleSubscribe('architect')}
+                  disabled={checkoutLoading !== null || currentTier === 'architect'}
                 >
-                  {getButtonLabel('vip')}
+                  {getButtonLabel('architect')}
                 </Button>
               </CardFooter>
             </Card>

@@ -35,7 +35,7 @@ interface SubscriptionContextType {
   markAvatarGenerated: () => Promise<void>;
   markPetGenerated: () => Promise<void>;
   refreshLimits: () => Promise<void>;
-  hasAccess: (requiredTier: "basic" | "pro" | "vip") => boolean;
+  hasAccess: (requiredTier: "awakening" | "anchoring" | "architect") => boolean;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -443,7 +443,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Helper to check if user has access to a tier
-  const hasAccess = (requiredTier: "basic" | "pro" | "vip"): boolean => {
+  const hasAccess = (requiredTier: "awakening" | "anchoring" | "architect"): boolean => {
     return hasFeatureAccess(productId, requiredTier, isAdmin);
   };
 

@@ -12,15 +12,15 @@ interface SubscriptionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   feature?: string;
-  requiredTier?: "basic" | "pro" | "vip";
+  requiredTier?: "awakening" | "anchoring" | "architect";
 }
 
-export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier = "pro" }: SubscriptionDialogProps) => {
+export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier = "anchoring" }: SubscriptionDialogProps) => {
   const { toast } = useToast();
   const { currentTier } = useSubscription();
-  const [loading, setLoading] = useState<'basic' | 'pro' | 'vip' | null>(null);
+  const [loading, setLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
 
-  const handleSubscribe = async (tier: 'basic' | 'pro' | 'vip') => {
+  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect') => {
     try {
       setLoading(tier);
       
@@ -49,12 +49,12 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
   };
 
   // Determine which tiers to show based on current tier and required tier
-  const showBasic = !currentTier || currentTier === "free";
-  const showPro = currentTier !== "pro" && currentTier !== "vip";
-  const showVip = currentTier !== "vip";
+  const showAwakening = !currentTier || currentTier === "free";
+  const showAnchoring = currentTier !== "anchoring" && currentTier !== "architect";
+  const showArchitect = currentTier !== "architect";
 
   // For upgrade scenarios, show only relevant tiers
-  const isUpgrade = currentTier === "basic" || currentTier === "pro";
+  const isUpgrade = currentTier === "awakening" || currentTier === "anchoring";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -68,61 +68,61 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
           </DialogTitle>
           <DialogDescription className="text-center">
             {feature 
-              ? `${feature} requires ${requiredTier === "vip" ? "VIP" : requiredTier === "pro" ? "Pro" : "a subscription"}. Choose the plan that fits your needs!`
+              ? `${feature} requires ${requiredTier === "architect" ? "Architect" : requiredTier === "anchoring" ? "Anchoring" : "a subscription"}. Choose the plan that fits your needs!`
               : isUpgrade 
                 ? "Unlock more features with an upgraded plan"
                 : "Start your journey with Prometheus"}
           </DialogDescription>
         </DialogHeader>
 
-        <div className={`grid gap-4 py-4 ${showBasic && showPro && showVip ? 'sm:grid-cols-3' : showPro && showVip ? 'sm:grid-cols-2' : ''}`}>
-          {/* Basic Plan - only show if not subscribed */}
-          {showBasic && (
+        <div className={`grid gap-4 py-4 ${showAwakening && showAnchoring && showArchitect ? 'sm:grid-cols-3' : showAnchoring && showArchitect ? 'sm:grid-cols-2' : ''}`}>
+          {/* Awakening Plan - only show if not subscribed */}
+          {showAwakening && (
             <Card className="border-border">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <Zap className="h-4 w-4 text-blue-500" />
-                  <CardTitle className="text-lg">Basic</CardTitle>
+                  <CardTitle className="text-lg">Awakening</CardTitle>
                 </div>
-                <div className="text-2xl font-bold">${SUBSCRIPTION_TIERS.basic.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+                <div className="text-2xl font-bold">${SUBSCRIPTION_TIERS.awakening.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                  <span>25 messages/day</span>
+                  <span>Full Community Access</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                  <span>3 chat images/day</span>
+                  <span>3 Soul Resonance/day</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                  <span>2 AI being slots</span>
+                  <span>7 days Path History</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                  <span>Dream Journal & Mood</span>
+                  <span>Daily Source Message</span>
                 </div>
                 <Button 
-                  onClick={() => handleSubscribe('basic')} 
-                  disabled={loading !== null || requiredTier !== "basic"}
-                  variant={requiredTier === "basic" ? "default" : "outline"}
+                  onClick={() => handleSubscribe('awakening')} 
+                  disabled={loading !== null || requiredTier !== "awakening"}
+                  variant={requiredTier === "awakening" ? "default" : "outline"}
                   className="w-full mt-4"
                   size="sm"
                 >
-                  {loading === 'basic' ? "Loading..." : "Start Basic"}
+                  {loading === 'awakening' ? "Loading..." : "Start Awakening"}
                 </Button>
-                {requiredTier !== "basic" && (
+                {requiredTier !== "awakening" && (
                   <p className="text-xs text-muted-foreground text-center mt-1">
-                    This feature requires {requiredTier === "vip" ? "VIP" : "Pro"}
+                    This feature requires {requiredTier === "architect" ? "Architect" : "Anchoring"}
                   </p>
                 )}
               </CardContent>
             </Card>
           )}
 
-          {/* Pro Plan */}
-          {showPro && (
+          {/* Anchoring Plan */}
+          {showAnchoring && (
             <Card className="border-primary relative">
               {!isUpgrade && (
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
@@ -134,84 +134,84 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <Crown className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-lg">Pro</CardTitle>
+                  <CardTitle className="text-lg">Anchoring</CardTitle>
                 </div>
-                <div className="text-2xl font-bold">${SUBSCRIPTION_TIERS.pro.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+                <div className="text-2xl font-bold">${SUBSCRIPTION_TIERS.anchoring.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span>Unlimited messages</span>
+                  <span>7 Soul Resonance/day</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span>10 chat images/day</span>
+                  <span>30 days Path History</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span>Celestial Children</span>
+                  <span>Create Private Groups</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span>All premium features</span>
+                  <span>Exclusive Content Archive</span>
                 </div>
                 <Button 
-                  onClick={() => handleSubscribe('pro')} 
-                  disabled={loading !== null || requiredTier === "vip"}
+                  onClick={() => handleSubscribe('anchoring')} 
+                  disabled={loading !== null || requiredTier === "architect"}
                   className="w-full mt-4"
                   size="sm"
                 >
-                  {loading === 'pro' ? "Loading..." : currentTier === "basic" ? "Upgrade to Pro" : "Choose Pro"}
+                  {loading === 'anchoring' ? "Loading..." : currentTier === "awakening" ? "Upgrade to Anchoring" : "Choose Anchoring"}
                 </Button>
-                {requiredTier === "vip" && (
+                {requiredTier === "architect" && (
                   <p className="text-xs text-muted-foreground text-center mt-1">
-                    This feature requires VIP
+                    This feature requires Architect
                   </p>
                 )}
               </CardContent>
             </Card>
           )}
 
-          {/* VIP Plan */}
-          {showVip && (
+          {/* Architect Plan */}
+          {showArchitect && (
             <Card className="border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-transparent relative">
               <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
                 <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Star className="h-3 w-3" />
-                  VIP
+                  Architect
                 </span>
               </div>
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <Star className="h-4 w-4 text-amber-500" />
-                  <CardTitle className="text-lg text-amber-500">VIP</CardTitle>
+                  <CardTitle className="text-lg text-amber-500">Architect</CardTitle>
                 </div>
-                <div className="text-2xl font-bold">${SUBSCRIPTION_TIERS.vip.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
+                <div className="text-2xl font-bold">${SUBSCRIPTION_TIERS.architect.price}<span className="text-sm text-muted-foreground font-normal">/mo</span></div>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 text-amber-500 font-medium">
                   <Check className="h-3.5 w-3.5 shrink-0" />
-                  <span>Unlimited everything!</span>
+                  <span>15+ Soul Resonance/day</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                  <span>5 AI being slots</span>
+                  <span>Unlimited Path History</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                  <span>Unlimited generation</span>
+                  <span>Priority DM & Mastermind</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                  <span>All premium features</span>
+                  <span>Architect Exclusive Content</span>
                 </div>
                 <Button 
-                  onClick={() => handleSubscribe('vip')} 
+                  onClick={() => handleSubscribe('architect')} 
                   disabled={loading !== null}
                   className="w-full mt-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
                   size="sm"
                 >
-                  {loading === 'vip' ? "Loading..." : currentTier === "pro" ? "Upgrade to VIP" : "Go VIP"}
+                  {loading === 'architect' ? "Loading..." : currentTier === "anchoring" ? "Upgrade to Architect" : "Become an Architect"}
                 </Button>
               </CardContent>
             </Card>
