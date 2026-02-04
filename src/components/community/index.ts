@@ -8,3 +8,4 @@ export { CommunityTab } from './CommunityTab';
 export { EditSoulProfileDialog } from './EditSoulProfileDialog';
 export { ConnectionsList } from './ConnectionsList';
 export { MediaUpload } from './MediaUpload';
+export { AligningZoneFeed } from './AligningZoneFeed';

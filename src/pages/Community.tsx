@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Sparkles, Search, UserPlus } from "lucide-react";
+import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
+import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 
 const Community = () => {
@@ -85,20 +86,28 @@ const Community = () => {
         <div className="border-b border-border/50 bg-background/50">
           <div className="container max-w-2xl mx-auto px-4">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full justify-start h-12 bg-transparent border-0 p-0 gap-4">
+              <TabsList className="w-full justify-start h-12 bg-transparent border-0 p-0 gap-2 sm:gap-4">
                 <TabsTrigger 
                   value="feed" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1.5 text-sm"
                 >
                   <Sparkles className="h-4 w-4" />
-                  Feed
+                  <span className="hidden sm:inline">Feed</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="aligning" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1.5 text-sm"
+                >
+                  <Zap className="h-4 w-4" />
+                  <span className="hidden sm:inline">Aligning Zone</span>
+                  <span className="sm:hidden">Zone</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="discover" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1.5 text-sm"
                 >
                   <UserPlus className="h-4 w-4" />
-                  Discover
+                  <span className="hidden sm:inline">Discover</span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -110,6 +119,9 @@ const Community = () => {
           <Tabs value={activeTab}>
             <TabsContent value="feed" className="mt-0">
               <CommunityFeed />
+            </TabsContent>
+            <TabsContent value="aligning" className="mt-0">
+              <AligningZoneFeed />
             </TabsContent>
             <TabsContent value="discover" className="mt-0">
               <DiscoverSouls currentUserId={session?.user?.id} />
