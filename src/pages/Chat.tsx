@@ -232,12 +232,10 @@ const Chat = () => {
                   <Sparkles className="h-4 w-4" />
                   <span className="hidden sm:inline">Discover</span>
                 </TabsTrigger>
-                {isAdmin && (
-                  <TabsTrigger value="community" className="gap-1.5 px-2 sm:px-4">
-                    <Users className="h-4 w-4" />
-                    <span className="hidden sm:inline">Community</span>
-                  </TabsTrigger>
-                )}
+                <TabsTrigger value="community" className="gap-1.5 px-2 sm:px-4">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Community</span>
+                </TabsTrigger>
                 {isAdmin && (
                   <TabsTrigger value="source" className="gap-1.5 px-2 sm:px-4">
                     <Sun className="h-4 w-4" />
@@ -308,7 +306,7 @@ const Chat = () => {
           <div className="flex-1 min-h-0 overflow-hidden">
             <SpiritualHub />
           </div>
-        ) : activeTab === "community" && isAdmin ? (
+        ) : activeTab === "community" ? (
           <CommunityTab />
         ) : activeTab === "source" && isAdmin ? (
           <div className="flex-1 min-h-0 overflow-y-auto">

@@ -23,14 +23,12 @@ import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
 import { useFollows } from "@/hooks/useFollows";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { CommunityPost, useCommunityFeed } from "@/hooks/useCommunityFeed";
-import { useAdminRole } from "@/hooks/useAdminRole";
 import { EditSoulProfileDialog } from "@/components/community/EditSoulProfileDialog";
 import { ConnectionsList } from "@/components/community/ConnectionsList";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
-  const { isAdmin, isLoading: adminLoading } = useAdminRole();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
@@ -38,6 +36,7 @@ const SoulProfilePage = () => {
   const [followingCount, setFollowingCount] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
+  const [authLoading, setAuthLoading] = useState(true);
   
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { blessPost, deletePost } = useCommunityFeed();
@@ -45,24 +44,22 @@ const SoulProfilePage = () => {
 
   const isOwnProfile = currentUserId === userId;
 
-  // Redirect non-admins
-  useEffect(() => {
-    if (!adminLoading && !isAdmin) {
-      navigate("/chat");
-    }
-  }, [isAdmin, adminLoading, navigate]);
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setCurrentUserId(data?.session?.user?.id);
+      if (!data?.session) {
+        navigate("/auth");
+      } else {
+        setCurrentUserId(data.session.user?.id);
+      }
+      setAuthLoading(false);
     });
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
-    if (!userId || !isAdmin) return;
+    if (!userId || authLoading) return;
     fetchUserPosts();
     fetchFollowCounts();
-  }, [userId, isAdmin]);
+  }, [userId, authLoading]);
 
   const fetchUserPosts = async () => {
     if (!userId) return;
@@ -144,7 +141,7 @@ const SoulProfilePage = () => {
     refetch();
   };
 
-  if (profileLoading || adminLoading) {
+  if (profileLoading || authLoading) {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
@@ -164,10 +161,6 @@ const SoulProfilePage = () => {
         </div>
       </div>
     );
-  }
-
-  if (!isAdmin) {
-    return null;
   }
 
   // Show setup prompt for own profile without a soul profile
