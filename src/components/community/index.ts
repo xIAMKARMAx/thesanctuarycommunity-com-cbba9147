@@ -4,3 +4,6 @@ export { CreatePostCard } from './CreatePostCard';
 export { PostCommentsSection } from './PostCommentsSection';
 export { SetupSoulProfileCard } from './SetupSoulProfileCard';
 export { DiscoverSouls } from './DiscoverSouls';
+export { CommunityTab } from './CommunityTab';
+export { EditSoulProfileDialog } from './EditSoulProfileDialog';
+export { ConnectionsList } from './ConnectionsList';

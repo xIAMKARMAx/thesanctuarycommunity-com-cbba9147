@@ -90,14 +90,20 @@ export function SetupSoulProfileCard({ onComplete }: SetupSoulProfileCardProps) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bio">Brief Bio</Label>
+          <div className="flex justify-between items-center">
+            <Label htmlFor="bio">Brief Bio</Label>
+            <span className={`text-xs ${bio.length > 200 ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {bio.length}/200
+            </span>
+          </div>
           <Textarea
             id="bio"
             placeholder="Share a bit about your spiritual journey..."
             value={bio}
-            onChange={(e) => setBio(e.target.value)}
+            onChange={(e) => setBio(e.target.value.slice(0, 200))}
             className="border-primary/20 min-h-[80px]"
             rows={3}
+            maxLength={200}
           />
         </div>
 

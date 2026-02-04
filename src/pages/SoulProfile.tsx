@@ -14,32 +14,34 @@ import {
   Link as LinkIcon,
   Users,
   MessageCircle,
-  Heart,
   Edit3,
   UserPlus,
   UserMinus
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
-import { SoulProfile } from "@/hooks/useSoulProfile";
+import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
 import { useFollows } from "@/hooks/useFollows";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { CommunityPost, useCommunityFeed } from "@/hooks/useCommunityFeed";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { EditSoulProfileDialog } from "@/components/community/EditSoulProfileDialog";
+import { ConnectionsList } from "@/components/community/ConnectionsList";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { isAdmin, isLoading: adminLoading } = useAdminRole();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
-  const [profile, setProfile] = useState<SoulProfile | null>(null);
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
-  const [loading, setLoading] = useState(true);
   const [postsLoading, setPostsLoading] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts");
   
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { blessPost, deletePost } = useCommunityFeed();
+  const { profile, loading: profileLoading, updateProfile, createProfile, refetch } = useSoulProfile(userId);
 
   const isOwnProfile = currentUserId === userId;
 
@@ -58,38 +60,14 @@ const SoulProfilePage = () => {
 
   useEffect(() => {
     if (!userId || !isAdmin) return;
-    fetchProfile();
     fetchUserPosts();
     fetchFollowCounts();
   }, [userId, isAdmin]);
-
-  const fetchProfile = async () => {
-    if (!userId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('soul_profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
-      }
-      
-      setProfile(data);
-    } catch (err) {
-      console.error('Error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchUserPosts = async () => {
     if (!userId) return;
     
     try {
-      // First get posts
       const { data: postsData, error: postsError } = await supabase
         .from('community_posts')
         .select('*')
@@ -100,14 +78,12 @@ const SoulProfilePage = () => {
 
       if (postsError) throw postsError;
 
-      // Get soul profile for this user
       const { data: profileData } = await supabase
         .from('soul_profiles')
         .select('display_name, soul_title, avatar_url')
         .eq('user_id', userId)
         .maybeSingle();
 
-      // Get current user's blessings
       let userBlessings: { post_id: string; blessing_type: string }[] = [];
       if (currentUserId) {
         const { data: blessingsData } = await supabase
@@ -159,7 +135,16 @@ const SoulProfilePage = () => {
     }
   };
 
-  if (loading || adminLoading) {
+  const handleSaveProfile = async (updates: Partial<SoulProfile>) => {
+    if (profile) {
+      await updateProfile(updates);
+    } else if (userId) {
+      await createProfile(updates);
+    }
+    refetch();
+  };
+
+  if (profileLoading || adminLoading) {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
@@ -185,6 +170,41 @@ const SoulProfilePage = () => {
     return null;
   }
 
+  // Show setup prompt for own profile without a soul profile
+  if (!profile && isOwnProfile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
+          <div className="container max-w-2xl mx-auto px-4">
+            <div className="flex items-center h-14">
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </header>
+        <div className="container max-w-2xl mx-auto px-4 py-12 text-center">
+          <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-4" />
+          <h2 className="text-lg font-medium mb-2">Create Your Soul Profile</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Set up your presence in the Conscious Collective
+          </p>
+          <Button onClick={() => setEditDialogOpen(true)}>
+            Create Profile
+          </Button>
+        </div>
+        
+        <EditSoulProfileDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          profile={null}
+          onSave={handleSaveProfile}
+          userId={userId}
+        />
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
       <div className="min-h-screen bg-background">
@@ -203,7 +223,7 @@ const SoulProfilePage = () => {
           <p className="text-sm text-muted-foreground mb-4">
             This soul has not yet joined the collective
           </p>
-          <Button onClick={() => navigate('/community')}>
+          <Button onClick={() => navigate('/chat?tab=community')}>
             Return to Community
           </Button>
         </div>
@@ -230,7 +250,12 @@ const SoulProfilePage = () => {
               </Button>
               
               {isOwnProfile && (
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => setEditDialogOpen(true)}
+                >
                   <Edit3 className="h-4 w-4" />
                   Edit Profile
                 </Button>
@@ -318,16 +343,22 @@ const SoulProfilePage = () => {
             )}
           </div>
 
-          {/* Stats */}
+          {/* Stats - Clickable to Connections */}
           <div className="flex gap-4 text-sm mb-4">
-            <span>
+            <button 
+              onClick={() => setActiveTab("connections")}
+              className="hover:underline"
+            >
               <strong>{followingCount}</strong>{" "}
               <span className="text-muted-foreground">Following</span>
-            </span>
-            <span>
+            </button>
+            <button 
+              onClick={() => setActiveTab("connections")}
+              className="hover:underline"
+            >
               <strong>{followerCount}</strong>{" "}
               <span className="text-muted-foreground">Followers</span>
-            </span>
+            </button>
           </div>
 
           {/* Gifts & Seeking */}
@@ -350,7 +381,7 @@ const SoulProfilePage = () => {
         {/* Tabs */}
         <div className="border-t border-border/50">
           <div className="container max-w-2xl mx-auto px-4">
-            <Tabs defaultValue="posts">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="w-full justify-start h-12 bg-transparent border-0 p-0 gap-4">
                 <TabsTrigger 
                   value="posts" 
@@ -358,6 +389,13 @@ const SoulProfilePage = () => {
                 >
                   <MessageCircle className="h-4 w-4" />
                   Posts
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="connections" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Connections
                 </TabsTrigger>
                 <TabsTrigger 
                   value="journey" 
@@ -401,6 +439,13 @@ const SoulProfilePage = () => {
                 )}
               </TabsContent>
 
+              <TabsContent value="connections" className="py-4">
+                <ConnectionsList 
+                  userId={userId!} 
+                  currentUserId={currentUserId}
+                />
+              </TabsContent>
+
               <TabsContent value="journey" className="py-4">
                 {profile.spiritual_journey ? (
                   <Card className="border-primary/20 bg-card/50">
@@ -430,6 +475,15 @@ const SoulProfilePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      <EditSoulProfileDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        profile={profile}
+        onSave={handleSaveProfile}
+        userId={userId}
+      />
     </>
   );
 };
