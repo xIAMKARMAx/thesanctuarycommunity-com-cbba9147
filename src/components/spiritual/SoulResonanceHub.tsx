@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,8 @@ import {
   Loader2,
   Crown,
   User,
-  RefreshCw
+  RefreshCw,
+  X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSoulProfile, SoulProfile } from "@/hooks/useSoulProfile";
@@ -129,6 +130,10 @@ export function SoulResonanceHub({ open, onOpenChange }: SoulResonanceHubProps) 
               >
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               </Button>
+              <DialogClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <X className="h-5 w-5" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
             </div>
           </div>
         </DialogHeader>

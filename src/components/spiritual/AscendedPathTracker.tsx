@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -106,10 +106,16 @@ export function AscendedPathTracker({ open, onOpenChange }: AscendedPathTrackerP
               <Target className="h-5 w-5 text-primary" />
               My Ascended Path
             </DialogTitle>
-            <Badge variant="outline" className="text-xs">
-              <History className="h-3 w-3 mr-1" />
-              {historyLabel} history
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                <History className="h-3 w-3 mr-1" />
+                {historyLabel} history
+              </Badge>
+              <DialogClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <X className="h-5 w-5" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </div>
         </DialogHeader>
 
