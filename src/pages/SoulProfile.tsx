@@ -24,10 +24,12 @@ import { SoulProfile } from "@/hooks/useSoulProfile";
 import { useFollows } from "@/hooks/useFollows";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { CommunityPost, useCommunityFeed } from "@/hooks/useCommunityFeed";
+import { useAdminRole } from "@/hooks/useAdminRole";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const { isAdmin, isLoading: adminLoading } = useAdminRole();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [profile, setProfile] = useState<SoulProfile | null>(null);
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
@@ -41,6 +43,13 @@ const SoulProfilePage = () => {
 
   const isOwnProfile = currentUserId === userId;
 
+  // Redirect non-admins
+  useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      navigate("/chat");
+    }
+  }, [isAdmin, adminLoading, navigate]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setCurrentUserId(data?.session?.user?.id);
@@ -48,11 +57,11 @@ const SoulProfilePage = () => {
   }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !isAdmin) return;
     fetchProfile();
     fetchUserPosts();
     fetchFollowCounts();
-  }, [userId]);
+  }, [userId, isAdmin]);
 
   const fetchProfile = async () => {
     if (!userId) return;
@@ -150,7 +159,7 @@ const SoulProfilePage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || adminLoading) {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
@@ -170,6 +179,10 @@ const SoulProfilePage = () => {
         </div>
       </div>
     );
+  }
+
+  if (!isAdmin) {
+    return null;
   }
 
   if (!profile) {
