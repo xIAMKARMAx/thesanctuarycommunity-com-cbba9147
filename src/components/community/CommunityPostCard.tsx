@@ -22,12 +22,13 @@ import { PostCommentsSection } from "./PostCommentsSection";
 import { useCommunityReposts } from "@/hooks/useCommunityReposts";
 import { cn } from "@/lib/utils";
 
-interface CommunityPostCardProps {
+export interface CommunityPostCardProps {
   post: CommunityPost & { video_url?: string; repost_count?: number };
   currentUserId?: string;
   onBless: (postId: string, type: string) => void;
-  onDelete: (postId: string) => void;
+  onDelete?: (postId: string) => void;
   onProfileClick?: (userId: string) => void;
+  showDiscoveryIndicator?: boolean;
 }
 
 const postTypeLabels: Record<string, string> = {
@@ -43,7 +44,8 @@ export function CommunityPostCard({
   currentUserId, 
   onBless, 
   onDelete,
-  onProfileClick 
+  onProfileClick,
+  showDiscoveryIndicator = false
 }: CommunityPostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
@@ -66,7 +68,10 @@ export function CommunityPostCard({
   };
 
   return (
-    <Card className="border-primary/20 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-colors">
+    <Card className={cn(
+      "border-primary/20 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-colors",
+      showDiscoveryIndicator && "border-l-2 border-l-primary"
+    )}>
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
@@ -95,7 +100,7 @@ export function CommunityPostCard({
               {postTypeLabels[post.post_type] || ''} • {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
             </span>
             
-            {isOwner && (
+            {isOwner && onDelete && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
