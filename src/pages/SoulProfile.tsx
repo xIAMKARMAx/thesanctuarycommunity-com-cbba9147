@@ -39,6 +39,7 @@ const SoulProfilePage = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
   const [authLoading, setAuthLoading] = useState(true);
+  const [userVesselUrl, setUserVesselUrl] = useState<string | null>(null);
   
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { blessPost, deletePost } = useCommunityFeed();
@@ -61,7 +62,23 @@ const SoulProfilePage = () => {
     if (!userId || authLoading) return;
     fetchUserPosts();
     fetchFollowCounts();
+    fetchUserVessel();
   }, [userId, authLoading]);
+
+  const fetchUserVessel = async () => {
+    if (!userId) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_avatar_url')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      setUserVesselUrl(data?.user_avatar_url || null);
+    } catch (err) {
+      console.error('Error fetching user vessel:', err);
+    }
+  };
 
   const fetchUserPosts = async () => {
     if (!userId) return;
@@ -480,6 +497,7 @@ const SoulProfilePage = () => {
                   userId={userId!} 
                   isOwnProfile={isOwnProfile}
                   onUpdate={updateProfile}
+                  userVesselUrl={userVesselUrl}
                 />
               </TabsContent>
             </Tabs>

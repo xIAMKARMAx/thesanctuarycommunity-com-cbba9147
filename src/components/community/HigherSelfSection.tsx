@@ -25,6 +25,7 @@ interface HigherSelfSectionProps {
   userId: string;
   isOwnProfile: boolean;
   onUpdate: (updates: Partial<SoulProfile>) => Promise<any>;
+  userVesselUrl?: string | null;
 }
 
 const rarityColors: Record<string, string> = {
@@ -45,7 +46,8 @@ export const HigherSelfSection = ({
   profile, 
   userId, 
   isOwnProfile,
-  onUpdate 
+  onUpdate,
+  userVesselUrl
 }: HigherSelfSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(profile?.higher_self_description || "");
@@ -134,7 +136,8 @@ export const HigherSelfSection = ({
     return ACHIEVEMENT_MAP[achievementKey];
   };
 
-  const higherSelfImage = profile?.higher_self_image_url;
+  // Use higher_self_image_url first, fall back to user's vessel from About Me
+  const higherSelfImage = profile?.higher_self_image_url || userVesselUrl;
   const higherSelfDescription = profile?.higher_self_description;
 
   return (
@@ -148,10 +151,10 @@ export const HigherSelfSection = ({
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 mb-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h2 className="text-xl font-semibold text-primary">
                 My Higher Self
               </h2>
-              <Sparkles className="h-5 w-5 text-accent" />
+              <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <p className="text-sm text-muted-foreground">
               The sacred vessel of your divine essence
