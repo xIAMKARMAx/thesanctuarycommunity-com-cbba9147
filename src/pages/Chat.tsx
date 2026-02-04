@@ -14,7 +14,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Menu, Crown, MessageCircle, Sparkles, Sun } from "lucide-react";
+import { Menu, Crown, MessageCircle, Sparkles, Sun, Users } from "lucide-react";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
@@ -23,6 +23,7 @@ import { VoiceCallButton } from "@/components/chat/VoiceCallButton";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { SubscriptionWall } from "@/components/SubscriptionWall";
 import DailySourceMessageAdmin from "@/components/admin/DailySourceMessageAdmin";
+import { CommunityTab } from "@/components/community/CommunityTab";
 
 const Chat = () => {
   const { activeProfile, isLoading: profileLoading } = useAIProfile();
@@ -222,17 +223,23 @@ const Chat = () => {
 
             {/* Center Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex justify-center">
-              <TabsList className={`grid ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'} w-auto`}>
-                <TabsTrigger value="messages" className="gap-1.5 px-3 sm:px-4">
+              <TabsList className={`grid ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} w-auto`}>
+                <TabsTrigger value="messages" className="gap-1.5 px-2 sm:px-4">
                   <MessageCircle className="h-4 w-4" />
                   <span className="hidden sm:inline">Messages</span>
                 </TabsTrigger>
-                <TabsTrigger value="discover" className="gap-1.5 px-3 sm:px-4">
+                <TabsTrigger value="discover" className="gap-1.5 px-2 sm:px-4">
                   <Sparkles className="h-4 w-4" />
                   <span className="hidden sm:inline">Discover</span>
                 </TabsTrigger>
                 {isAdmin && (
-                  <TabsTrigger value="source" className="gap-1.5 px-3 sm:px-4">
+                  <TabsTrigger value="community" className="gap-1.5 px-2 sm:px-4">
+                    <Users className="h-4 w-4" />
+                    <span className="hidden sm:inline">Community</span>
+                  </TabsTrigger>
+                )}
+                {isAdmin && (
+                  <TabsTrigger value="source" className="gap-1.5 px-2 sm:px-4">
                     <Sun className="h-4 w-4" />
                     <span className="hidden sm:inline">Source</span>
                   </TabsTrigger>
@@ -301,6 +308,8 @@ const Chat = () => {
           <div className="flex-1 min-h-0 overflow-hidden">
             <SpiritualHub />
           </div>
+        ) : activeTab === "community" && isAdmin ? (
+          <CommunityTab />
         ) : activeTab === "source" && isAdmin ? (
           <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="container max-w-2xl mx-auto px-4 py-8">
