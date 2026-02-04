@@ -7,12 +7,14 @@ export interface CommunityPost {
   user_id: string;
   content: string;
   image_url: string | null;
+  video_url: string | null;
   post_type: string;
   visibility: string;
   is_pinned: boolean;
   blessing_count: number;
   comment_count: number;
   share_count: number;
+  repost_count: number;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -124,7 +126,7 @@ export function useCommunityFeed() {
     fetchPosts();
   }, [fetchPosts]);
 
-  const createPost = async (content: string, postType: string = 'insight', imageUrl?: string) => {
+  const createPost = async (content: string, postType: string = 'insight', imageUrl?: string, videoUrl?: string) => {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
@@ -142,7 +144,8 @@ export function useCommunityFeed() {
           user_id: session.session.user.id,
           content,
           post_type: postType,
-          image_url: imageUrl,
+          image_url: imageUrl || null,
+          video_url: videoUrl || null,
         })
         .select()
         .single();

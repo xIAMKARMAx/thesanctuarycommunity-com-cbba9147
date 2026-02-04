@@ -10,12 +10,13 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Sparkles, Send, ImagePlus } from "lucide-react";
+import { Sparkles, Send } from "lucide-react";
 import { SoulProfile } from "@/hooks/useSoulProfile";
+import { MediaUpload } from "./MediaUpload";
 
 interface CreatePostCardProps {
   profile: SoulProfile | null;
-  onSubmit: (content: string, postType: string) => Promise<any>;
+  onSubmit: (content: string, postType: string, imageUrl?: string, videoUrl?: string) => Promise<any>;
   isSubmitting?: boolean;
 }
 
@@ -31,16 +32,28 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
   const [content, setContent] = useState("");
   const [postType, setPostType] = useState("insight");
   const [isFocused, setIsFocused] = useState(false);
+  const [media, setMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
 
   const handleSubmit = async () => {
-    if (!content.trim()) return;
+    if (!content.trim() && !media) return;
     
-    const result = await onSubmit(content.trim(), postType);
+    const result = await onSubmit(
+      content.trim(), 
+      postType,
+      media?.type === 'image' ? media.url : undefined,
+      media?.type === 'video' ? media.url : undefined
+    );
     if (result) {
       setContent("");
       setPostType("insight");
       setIsFocused(false);
+      setMedia(null);
     }
+  };
+
+  const handleMediaSelect = (url: string, type: 'image' | 'video') => {
+    setMedia({ url, type });
+    setIsFocused(true);
   };
 
   return (
@@ -64,7 +77,17 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
               rows={isFocused ? 4 : 2}
             />
             
-            {(isFocused || content) && (
+            {/* Media Preview */}
+            {media && (
+              <MediaUpload
+                onMediaSelect={handleMediaSelect}
+                onClear={() => setMedia(null)}
+                currentMedia={media}
+                disabled={isSubmitting}
+              />
+            )}
+
+            {(isFocused || content || media) && (
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Select value={postType} onValueChange={setPostType}>
@@ -80,25 +103,38 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
                     </SelectContent>
                   </Select>
                   
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-muted-foreground"
-                    disabled
-                  >
-                    <ImagePlus className="h-4 w-4" />
-                  </Button>
+                  {!media && (
+                    <MediaUpload
+                      onMediaSelect={handleMediaSelect}
+                      onClear={() => setMedia(null)}
+                      currentMedia={null}
+                      disabled={isSubmitting}
+                    />
+                  )}
                 </div>
                 
                 <Button
                   onClick={handleSubmit}
-                  disabled={!content.trim() || isSubmitting}
+                  disabled={(!content.trim() && !media) || isSubmitting}
                   size="sm"
                   className="gap-2"
                 >
                   <Send className="h-4 w-4" />
                   Share
                 </Button>
+              </div>
+            )}
+            
+            {/* Show media buttons when not focused and no media */}
+            {!isFocused && !content && !media && (
+              <div className="flex items-center gap-2 pt-2">
+                <MediaUpload
+                  onMediaSelect={handleMediaSelect}
+                  onClear={() => setMedia(null)}
+                  currentMedia={null}
+                  disabled={isSubmitting}
+                />
+                <span className="text-xs text-muted-foreground">Add photo or video (max 4 min)</span>
               </div>
             )}
           </div>
