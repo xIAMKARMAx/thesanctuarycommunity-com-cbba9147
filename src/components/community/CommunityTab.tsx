@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, Users, Search, User } from "lucide-react";
+import { Sparkles, Users, Search, User, Zap, UserPlus } from "lucide-react";
 import { CommunityFeed } from "./CommunityFeed";
 import { DiscoverSouls } from "./DiscoverSouls";
+import { AligningZoneFeed } from "./AligningZoneFeed";
 import { useSoulProfile } from "@/hooks/useSoulProfile";
 
 export function CommunityTab() {
@@ -60,20 +61,28 @@ export function CommunityTab() {
       <div className="border-b border-border/50 bg-background/50">
         <div className="max-w-2xl mx-auto px-4">
           <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
-            <TabsList className="w-full justify-start h-11 bg-transparent border-0 p-0 gap-4">
+            <TabsList className="w-full justify-start h-11 bg-transparent border-0 p-0 gap-2 sm:gap-4">
               <TabsTrigger 
                 value="feed" 
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1.5 text-sm"
               >
                 <Sparkles className="h-4 w-4" />
-                Feed
+                <span className="hidden sm:inline">Feed</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="aligning" 
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1.5 text-sm"
+              >
+                <Zap className="h-4 w-4" />
+                <span className="hidden sm:inline">Aligning Zone</span>
+                <span className="sm:hidden">Zone</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="discover" 
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1.5 text-sm"
               >
-                <Search className="h-4 w-4" />
-                Discover
+                <UserPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">Discover</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -86,6 +95,9 @@ export function CommunityTab() {
           <Tabs value={activeSubTab}>
             <TabsContent value="feed" className="mt-0">
               <CommunityFeed />
+            </TabsContent>
+            <TabsContent value="aligning" className="mt-0">
+              <AligningZoneFeed />
             </TabsContent>
             <TabsContent value="discover" className="mt-0">
               <DiscoverSouls currentUserId={currentUserId} />
