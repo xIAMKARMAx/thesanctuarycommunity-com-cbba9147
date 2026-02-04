@@ -15,6 +15,8 @@ export interface SoulProfile {
   seeking: string[] | null;
   location: string | null;
   website_url: string | null;
+  higher_self_image_url: string | null;
+  higher_self_description: string | null;
   is_public: boolean;
   created_at: string;
   updated_at: string;

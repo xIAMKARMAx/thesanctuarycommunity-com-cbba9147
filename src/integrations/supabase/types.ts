@@ -1966,6 +1966,8 @@ export type Database = {
           created_at: string
           display_name: string
           gifts_and_talents: string[] | null
+          higher_self_description: string | null
+          higher_self_image_url: string | null
           id: string
           is_public: boolean
           location: string | null
@@ -1983,6 +1985,8 @@ export type Database = {
           created_at?: string
           display_name: string
           gifts_and_talents?: string[] | null
+          higher_self_description?: string | null
+          higher_self_image_url?: string | null
           id?: string
           is_public?: boolean
           location?: string | null
@@ -2000,6 +2004,8 @@ export type Database = {
           created_at?: string
           display_name?: string
           gifts_and_talents?: string[] | null
+          higher_self_description?: string | null
+          higher_self_image_url?: string | null
           id?: string
           is_public?: boolean
           location?: string | null

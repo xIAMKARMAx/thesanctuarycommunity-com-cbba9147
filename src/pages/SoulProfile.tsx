@@ -17,7 +17,7 @@ import {
   Edit3,
   UserPlus,
   UserMinus,
-  Trophy
+  Crown
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
@@ -26,7 +26,7 @@ import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { CommunityPost, useCommunityFeed } from "@/hooks/useCommunityFeed";
 import { EditSoulProfileDialog } from "@/components/community/EditSoulProfileDialog";
 import { ConnectionsList } from "@/components/community/ConnectionsList";
-import { ProfileAscensionSection } from "@/components/community/ProfileAscensionSection";
+import { HigherSelfSection } from "@/components/community/HigherSelfSection";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
@@ -400,11 +400,11 @@ const SoulProfilePage = () => {
                   Journey
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="ascension" 
+                  value="higher-self" 
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
-                  <Trophy className="h-4 w-4" />
-                  Ascension
+                  <Crown className="h-4 w-4" />
+                  Higher Self
                 </TabsTrigger>
               </TabsList>
 
@@ -474,10 +474,12 @@ const SoulProfilePage = () => {
                 )}
               </TabsContent>
 
-              <TabsContent value="ascension" className="py-4">
-                <ProfileAscensionSection 
+              <TabsContent value="higher-self" className="py-4">
+                <HigherSelfSection 
+                  profile={profile}
                   userId={userId!} 
-                  isOwnProfile={isOwnProfile} 
+                  isOwnProfile={isOwnProfile}
+                  onUpdate={updateProfile}
                 />
               </TabsContent>
             </Tabs>
