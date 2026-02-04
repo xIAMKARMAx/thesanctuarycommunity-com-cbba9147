@@ -13,28 +13,37 @@ import {
   UserPlus, 
   UserMinus,
   Users,
-  Star
+  Heart,
+  Zap
 } from "lucide-react";
-import { SoulProfile } from "@/hooks/useSoulProfile";
+import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
 import { useFollows } from "@/hooks/useFollows";
+import { getSoulResonanceSuggestions } from "@/lib/soul-resonance";
 
 interface DiscoverSoulsProps {
   currentUserId?: string;
+}
+
+interface ResonanceResult {
+  profile: SoulProfile;
+  score: number;
+  matchReasons: string[];
 }
 
 export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [allSouls, setAllSouls] = useState<SoulProfile[]>([]);
-  const [recommendedSouls, setRecommendedSouls] = useState<SoulProfile[]>([]);
+  const [resonantSouls, setResonantSouls] = useState<ResonanceResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   
+  const { profile: currentProfile } = useSoulProfile(currentUserId);
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
 
   useEffect(() => {
     fetchSouls();
-  }, [currentUserId]);
+  }, [currentUserId, currentProfile]);
 
   const fetchSouls = async () => {
     try {
@@ -45,15 +54,29 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
         .eq('is_public', true)
         .neq('user_id', currentUserId || '')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (error) throw error;
 
-      setAllSouls(data || []);
+      const profiles = data || [];
+      setAllSouls(profiles);
       
-      // For recommendations, prioritize souls with similar interests
-      // For now, just show most recent as "recommended"
-      setRecommendedSouls((data || []).slice(0, 5));
+      // Calculate soul resonance if current user has a profile
+      if (currentProfile && profiles.length > 0) {
+        const suggestions = getSoulResonanceSuggestions(
+          currentProfile,
+          profiles,
+          10
+        );
+        setResonantSouls(suggestions);
+      } else {
+        // Fallback to most recent if no profile
+        setResonantSouls(profiles.slice(0, 5).map(p => ({
+          profile: p,
+          score: 0,
+          matchReasons: []
+        })));
+      }
     } catch (err) {
       console.error('Error fetching souls:', err);
     } finally {
@@ -74,7 +97,7 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
         .select('*')
         .eq('is_public', true)
         .neq('user_id', currentUserId || '')
-        .or(`display_name.ilike.%${searchQuery}%,soul_title.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%`)
+        .or(`display_name.ilike.%${searchQuery}%,soul_title.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,spiritual_journey.ilike.%${searchQuery}%`)
         .limit(20);
 
       if (error) throw error;
@@ -95,6 +118,92 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
     }
   };
 
+  // Resonant Soul Card with match reasons
+  const ResonantSoulCard = ({ result }: { result: ResonanceResult }) => (
+    <Card 
+      className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/50 transition-all cursor-pointer group"
+      onClick={() => navigate(`/soul/${result.profile.user_id}`)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="relative">
+              <Avatar className="h-12 w-12 border-2 border-primary/40 shrink-0">
+                <AvatarImage src={result.profile.avatar_url || undefined} />
+                <AvatarFallback className="bg-primary/20 text-primary">
+                  <Sparkles className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+              {result.score > 30 && (
+                <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
+                  <Zap className="h-3 w-3 text-primary-foreground" />
+                </div>
+              )}
+            </div>
+            
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-sm truncate">{result.profile.display_name}</p>
+              {result.profile.soul_title && (
+                <p className="text-xs text-primary truncate">{result.profile.soul_title}</p>
+              )}
+            </div>
+          </div>
+          
+          {currentUserId && currentUserId !== result.profile.user_id && (
+            <Button
+              variant={isFollowing(result.profile.user_id) ? "outline" : "default"}
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleFollowToggle(result.profile.user_id);
+              }}
+              className="shrink-0"
+            >
+              {isFollowing(result.profile.user_id) ? (
+                <UserMinus className="h-4 w-4" />
+              ) : (
+                <UserPlus className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+        </div>
+        
+        {/* Match Reasons - The soul resonance indicators */}
+        {result.matchReasons.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {result.matchReasons.map((reason, i) => (
+              <Badge 
+                key={i} 
+                variant="secondary" 
+                className="text-xs bg-primary/20 text-primary border-primary/30"
+              >
+                <Heart className="h-2.5 w-2.5 mr-1" />
+                {reason}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Gifts and Seeking preview */}
+        {(result.profile.gifts_and_talents?.length || result.profile.seeking?.length) && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {result.profile.gifts_and_talents?.slice(0, 2).map((gift, i) => (
+              <Badge key={`gift-${i}`} variant="outline" className="text-xs border-primary/20">
+                ✨ {gift}
+              </Badge>
+            ))}
+            {result.profile.seeking?.slice(0, 1).map((seek, i) => (
+              <Badge key={`seek-${i}`} variant="outline" className="text-xs border-muted-foreground/20">
+                🔮 {seek}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  // Standard Soul Card
   const SoulCard = ({ soul }: { soul: SoulProfile }) => (
     <Card 
       className="border-primary/20 bg-card/50 hover:border-primary/30 transition-colors cursor-pointer"
@@ -181,7 +290,7 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search souls by name, title, or interests..."
+          placeholder="Search souls by name, title, journey, or gifts..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -189,18 +298,37 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
         />
       </div>
 
-      {/* Recommended Section */}
-      {!searchQuery && recommendedSouls.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-            <Star className="h-4 w-4 text-primary" />
-            Souls Like You
-          </h3>
+      {/* Soul Resonance Section - Prominent placement */}
+      {!searchQuery && resonantSouls.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+              <Zap className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold">Soul Resonance Connections</h3>
+              <p className="text-xs text-muted-foreground">
+                Aligned journeys awaiting your connection
+              </p>
+            </div>
+          </div>
+          
           <div className="space-y-3">
-            {recommendedSouls.map(soul => (
-              <SoulCard key={soul.id} soul={soul} />
+            {resonantSouls.map(result => (
+              <ResonantSoulCard key={result.profile.id} result={result} />
             ))}
           </div>
+          
+          {resonantSouls.length === 0 && currentProfile && (
+            <Card className="border-dashed border-primary/30 bg-primary/5">
+              <CardContent className="p-4 text-center">
+                <Sparkles className="h-8 w-8 text-primary/50 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  Complete your profile with gifts and seeking to find resonant souls
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
