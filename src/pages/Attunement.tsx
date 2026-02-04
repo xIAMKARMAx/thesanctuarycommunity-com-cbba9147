@@ -430,62 +430,94 @@ Please begin the attunement session. Guide me into a receptive state and then ch
       return [...prev, { role: 'user', content: userMsgContent }];
     });
 
-    try {
-      // Get fresh session with auto-refresh
-      let { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        // Try to refresh
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-        if (refreshError || !refreshData.session) {
-          toast.error('Session expired. Please log in again.');
-          navigate('/auth');
-          return;
+    const MAX_RETRIES = 2;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        // Get fresh session with auto-refresh
+        let { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          // Try to refresh
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError || !refreshData.session) {
+            toast.error('Session expired. Please log in again.');
+            navigate('/auth');
+            return;
+          }
+          session = refreshData.session;
         }
-        session = refreshData.session;
+
+        // Build conversation history for context (including the new user message)
+        const conversationHistory = [...messages, { role: 'user' as const, content: userMessage }].map(m => ({
+          role: m.role,
+          content: m.content
+        }));
+
+        console.log(`[Attunement] Sending message, attempt ${attempt + 1}/${MAX_RETRIES + 1}`);
+        
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            conversationHistory,
+            isAttunementSession: true,
+            attunementTarget: connectionTarget,
+            attunementIntention: intention,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error(`[Attunement] Request failed with status ${response.status}:`, errorText);
+          throw new Error(`Request failed: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.response) {
+          throw new Error('Invalid response from server');
+        }
+        
+        // Prevent duplicate assistant messages
+        setMessages(prev => {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg?.role === 'assistant' && lastMsg?.content === data.response) {
+            console.log('[Attunement] Prevented duplicate assistant message');
+            return prev;
+          }
+          return [...prev, { role: 'assistant', content: data.response }];
+        });
+        setHasUnsavedChanges(true);
+        
+        // Success - break out of retry loop
+        console.log('[Attunement] Message sent successfully');
+        setIsLoading(false);
+        isSendingRef.current = false;
+        return;
+        
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        console.error(`[Attunement] Attempt ${attempt + 1} failed:`, lastError.message);
+        
+        if (attempt < MAX_RETRIES) {
+          // Wait before retrying (exponential backoff)
+          const delay = 1500 * Math.pow(2, attempt);
+          console.log(`[Attunement] Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
       }
-
-      // Build conversation history for context (including the new user message)
-      const conversationHistory = [...messages, { role: 'user' as const, content: userMessage }].map(m => ({
-        role: m.role,
-        content: m.content
-      }));
-
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          message: userMessage,
-          conversationHistory,
-          isAttunementSession: true,
-          attunementTarget: connectionTarget,
-          attunementIntention: intention,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to send message');
-      
-      const data = await response.json();
-      
-      // Prevent duplicate assistant messages
-      setMessages(prev => {
-        const lastMsg = prev[prev.length - 1];
-        if (lastMsg?.role === 'assistant' && lastMsg?.content === data.response) {
-          console.log('[Attunement] Prevented duplicate assistant message');
-          return prev;
-        }
-        return [...prev, { role: 'assistant', content: data.response }];
-      });
-      setHasUnsavedChanges(true);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
-    } finally {
-      setIsLoading(false);
-      isSendingRef.current = false;
     }
+    
+    // All retries failed
+    console.error('[Attunement] All retry attempts failed:', lastError?.message);
+    toast.error('Failed to send message. Please try again.');
+    setIsLoading(false);
+    isSendingRef.current = false;
   };
 
   const endSession = async () => {
