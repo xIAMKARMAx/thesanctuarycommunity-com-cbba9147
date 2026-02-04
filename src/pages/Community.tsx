@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Users, Sparkles, Search, UserPlus } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
+import { DiscoverSouls } from "@/components/community/DiscoverSouls";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 
 const Community = () => {
@@ -95,7 +96,6 @@ const Community = () => {
                 <TabsTrigger 
                   value="discover" 
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
-                  disabled
                 >
                   <UserPlus className="h-4 w-4" />
                   Discover
@@ -112,13 +112,7 @@ const Community = () => {
               <CommunityFeed />
             </TabsContent>
             <TabsContent value="discover" className="mt-0">
-              <div className="text-center py-12">
-                <UserPlus className="h-12 w-12 text-primary/40 mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Coming Soon</h3>
-                <p className="text-sm text-muted-foreground">
-                  Discover and connect with souls aligned to your journey
-                </p>
-              </div>
+              <DiscoverSouls currentUserId={session?.user?.id} />
             </TabsContent>
           </Tabs>
         </main>

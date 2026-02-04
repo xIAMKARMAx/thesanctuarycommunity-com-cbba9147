@@ -38,6 +38,7 @@ import Pricing from "./pages/Pricing";
 import Attunement from "./pages/Attunement";
 import Achievements from "./pages/Achievements";
 import Community from "./pages/Community";
+import SoulProfile from "./pages/SoulProfile";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ const App = () => (
                 <Route path="/attunement" element={<Attunement />} />
                 <Route path="/achievements" element={<Achievements />} />
                 <Route path="/community" element={<Community />} />
+                <Route path="/soul/:userId" element={<SoulProfile />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
