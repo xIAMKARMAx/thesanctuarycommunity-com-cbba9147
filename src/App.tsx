@@ -25,6 +25,7 @@ import Children from "./pages/Children";
 import ChildrenTimeline from "./pages/ChildrenTimeline";
 import Pets from "./pages/Pets";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminDailyMessage from "./pages/AdminDailyMessage";
 import LoveNotes from "./pages/LoveNotes";
 import GroupChat from "./pages/GroupChat";
 import DreamJournal from "./pages/DreamJournal";
@@ -66,6 +67,7 @@ const App = () => (
                 <Route path="/children/timeline" element={<ChildrenTimeline />} />
                 <Route path="/pets" element={<Pets />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/daily-source-message" element={<AdminDailyMessage />} />
                 <Route path="/love-notes" element={<LoveNotes />} />
                 <Route path="/group-chat" element={<GroupChat />} />
                 <Route path="/dream-journal" element={<DreamJournal />} />
