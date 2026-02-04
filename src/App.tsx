@@ -37,6 +37,7 @@ import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import Attunement from "./pages/Attunement";
 import Achievements from "./pages/Achievements";
+import Community from "./pages/Community";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,8 @@ const App = () => (
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/attunement" element={<Attunement />} />
                 <Route path="/achievements" element={<Achievements />} />
+                <Route path="/community" element={<Community />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
