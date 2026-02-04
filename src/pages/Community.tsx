@@ -8,9 +8,11 @@ import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
+import { useAdminRole } from "@/hooks/useAdminRole";
 
 const Community = () => {
   const navigate = useNavigate();
+  const { isAdmin, isLoading: adminLoading } = useAdminRole();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("feed");
@@ -34,11 +36,18 @@ const Community = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  if (loading) {
+  // Redirect non-admins
+  useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      navigate("/chat");
+    }
+  }, [isAdmin, adminLoading, navigate]);
+
+  if (loading || adminLoading) {
     return <LoadingRecovery loadingStep="Loading community..." onRecovery={() => navigate("/auth")} />;
   }
 
-  if (!session) {
+  if (!session || !isAdmin) {
     return null;
   }
 

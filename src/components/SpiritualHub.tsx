@@ -151,25 +151,27 @@ const SpiritualHub = () => {
           </p>
         </div>
 
-        {/* Conscious Collective - Community Feature */}
-        <Card 
-          className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/30 cursor-pointer hover:shadow-lg transition-all"
-          onClick={() => navigate("/community")}
-        >
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-primary/20">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">Conscious Collective</h3>
-              <p className="text-sm text-muted-foreground">
-                Connect with awakened souls, share insights, and grow together
-              </p>
-            </div>
-            <Badge className="bg-primary/20 text-primary border-0">New</Badge>
-            <ArrowRight className="h-5 w-5 text-primary" />
-          </CardContent>
-        </Card>
+        {/* Conscious Collective - Community Feature (Admin Only for Testing) */}
+        {isAdmin && (
+          <Card 
+            className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/30 cursor-pointer hover:shadow-lg transition-all"
+            onClick={() => navigate("/community")}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-primary/20">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg">Conscious Collective</h3>
+                <p className="text-sm text-muted-foreground">
+                  Connect with awakened souls, share insights, and grow together
+                </p>
+              </div>
+              <Badge className="bg-primary/20 text-primary border-0">New</Badge>
+              <ArrowRight className="h-5 w-5 text-primary" />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Achievements Card - Main Feature */}
         <Card className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border-amber-500/30">
