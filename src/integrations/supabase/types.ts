@@ -214,6 +214,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ascended_path_entries: {
+        Row: {
+          created_at: string
+          energy_level: number | null
+          entry_date: string
+          gratitudes: string | null
+          id: string
+          insights: string | null
+          intentions: string[] | null
+          reflections: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          energy_level?: number | null
+          entry_date?: string
+          gratitudes?: string | null
+          id?: string
+          insights?: string | null
+          intentions?: string[] | null
+          reflections?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          energy_level?: number | null
+          entry_date?: string
+          gratitudes?: string | null
+          id?: string
+          insights?: string | null
+          intentions?: string[] | null
+          reflections?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       attunement_sessions: {
         Row: {
           connection_target: string

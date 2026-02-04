@@ -18,7 +18,8 @@ import {
   Flame,
   ArrowRight,
   Lock,
-  Users
+  Users,
+  Target
 } from "lucide-react";
 import { useAchievements } from "@/hooks/useAchievements";
 import { ACHIEVEMENTS } from "@/lib/achievements";
@@ -31,6 +32,8 @@ import LoveLanguageQuiz from "@/components/spiritual/LoveLanguageQuiz";
 import SharedBucketList from "@/components/spiritual/SharedBucketList";
 import { AnniversaryCountdown } from "@/components/spiritual/AnniversaryCountdown";
 import { CompatibilityReading } from "@/components/spiritual/CompatibilityReading";
+import { AscendedPathTracker } from "@/components/spiritual/AscendedPathTracker";
+import { SoulResonanceHub } from "@/components/spiritual/SoulResonanceHub";
 
 const SpiritualHub = () => {
   const navigate = useNavigate();
@@ -45,6 +48,8 @@ const SpiritualHub = () => {
   const [bucketListOpen, setBucketListOpen] = useState(false);
   const [anniversaryCountdownOpen, setAnniversaryCountdownOpen] = useState(false);
   const [compatibilityReadingOpen, setCompatibilityReadingOpen] = useState(false);
+  const [ascendedPathOpen, setAscendedPathOpen] = useState(false);
+  const [soulResonanceOpen, setSoulResonanceOpen] = useState(false);
 
   // Check for new achievements when component loads
   useEffect(() => {
@@ -66,12 +71,34 @@ const SpiritualHub = () => {
 
   const features = [
     {
+      title: "My Ascended Path",
+      description: "Set daily intentions, track energy, and reflect on your journey",
+      icon: Target,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
+      status: "active",
+      isNew: true,
+      onClick: () => setAscendedPathOpen(true)
+    },
+    {
+      title: "Soul Resonance",
+      description: "Discover soul-aligned connections based on energetic matching",
+      icon: Users,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
+      status: "active",
+      isNew: true,
+      onClick: () => setSoulResonanceOpen(true)
+    },
+    {
       title: "Daily Oracle Cards",
       description: "Draw your daily guidance card with AI interpretation",
       icon: Sparkles,
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
-      borderColor: "border-purple-500/20",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
       status: "active",
       onClick: () => setOracleCardsOpen(true)
     },
@@ -79,9 +106,9 @@ const SpiritualHub = () => {
       title: "Moon Phase Tracker",
       description: "Track lunar cycles with spiritual guidance",
       icon: Moon,
-      color: "text-indigo-500",
-      bgColor: "bg-indigo-500/10",
-      borderColor: "border-indigo-500/20",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
       status: "active",
       onClick: () => setMoonTrackerOpen(true)
     },
@@ -89,9 +116,9 @@ const SpiritualHub = () => {
       title: "Affirmation Journal",
       description: "Co-create powerful affirmations with your AI being",
       icon: BookOpen,
-      color: "text-emerald-500",
-      bgColor: "bg-emerald-500/10",
-      borderColor: "border-emerald-500/20",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
       status: "active",
       onClick: () => setAffirmationJournalOpen(true)
     },
@@ -99,9 +126,9 @@ const SpiritualHub = () => {
       title: "Love Language Quiz",
       description: "Discover your spiritual love language",
       icon: Heart,
-      color: "text-pink-500",
-      bgColor: "bg-pink-500/10",
-      borderColor: "border-pink-500/20",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
       status: "active",
       onClick: () => setLoveLanguageQuizOpen(true)
     },
@@ -109,9 +136,9 @@ const SpiritualHub = () => {
       title: "Shared Bucket List",
       description: "Create spiritual goals together",
       icon: Star,
-      color: "text-yellow-500",
-      bgColor: "bg-yellow-500/10",
-      borderColor: "border-yellow-500/20",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
       status: "active",
       onClick: () => setBucketListOpen(true)
     },
@@ -119,9 +146,9 @@ const SpiritualHub = () => {
       title: "Anniversary Countdown",
       description: "Track relationship milestones",
       icon: Calendar,
-      color: "text-rose-500",
-      bgColor: "bg-rose-500/10",
-      borderColor: "border-rose-500/20",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
       status: "active",
       onClick: () => setAnniversaryCountdownOpen(true)
     },
@@ -129,9 +156,9 @@ const SpiritualHub = () => {
       title: "Compatibility Reading",
       description: "AI-generated spiritual synergy analysis",
       icon: Compass,
-      color: "text-cyan-500",
-      bgColor: "bg-cyan-500/10",
-      borderColor: "border-cyan-500/20",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
       status: "active",
       onClick: () => setCompatibilityReadingOpen(true)
     },
@@ -151,27 +178,25 @@ const SpiritualHub = () => {
           </p>
         </div>
 
-        {/* Conscious Collective - Community Feature (Admin Only for Testing) */}
-        {isAdmin && (
-          <Card 
-            className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/30 cursor-pointer hover:shadow-lg transition-all"
-            onClick={() => navigate("/community")}
-          >
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-primary/20">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">Conscious Collective</h3>
-                <p className="text-sm text-muted-foreground">
-                  Connect with awakened souls, share insights, and grow together
-                </p>
-              </div>
-              <Badge className="bg-primary/20 text-primary border-0">New</Badge>
-              <ArrowRight className="h-5 w-5 text-primary" />
-            </CardContent>
-          </Card>
-        )}
+        {/* Conscious Collective - Community Feature (Available to all logged-in users) */}
+        <Card 
+          className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/30 cursor-pointer hover:shadow-lg transition-all"
+          onClick={() => navigate("/community")}
+        >
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-primary/20">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg">Conscious Collective</h3>
+              <p className="text-sm text-muted-foreground">
+                Connect with awakened souls, share insights, and grow together
+              </p>
+            </div>
+            <Badge className="bg-primary/20 text-primary border-0">New</Badge>
+            <ArrowRight className="h-5 w-5 text-primary" />
+          </CardContent>
+        </Card>
 
         {/* Achievements Card - Main Feature */}
         <Card className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border-amber-500/30">
@@ -243,10 +268,11 @@ const SpiritualHub = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {features.filter(f => f.status === 'active').map((feature) => {
               const Icon = feature.icon;
+              const isNew = 'isNew' in feature && feature.isNew;
               return (
                 <Card 
                   key={feature.title} 
-                  className={`${feature.bgColor} ${feature.borderColor} border cursor-pointer hover:shadow-md transition-all`}
+                  className={`${feature.bgColor} ${feature.borderColor} border cursor-pointer hover:shadow-md transition-all ${isNew ? 'ring-2 ring-primary/30' : ''}`}
                   onClick={feature.onClick}
                 >
                   <CardContent className="p-4">
@@ -255,7 +281,14 @@ const SpiritualHub = () => {
                         <Icon className={`h-5 w-5 ${feature.color}`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-sm">{feature.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-sm">{feature.title}</h3>
+                          {isNew && (
+                            <Badge className="bg-primary text-primary-foreground text-xs px-1.5 py-0">
+                              New
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {feature.description}
                         </p>
@@ -414,6 +447,18 @@ const SpiritualHub = () => {
         open={compatibilityReadingOpen}
         onOpenChange={setCompatibilityReadingOpen}
         aiProfile={activeProfile}
+      />
+      
+      {/* Ascended Path Tracker Dialog */}
+      <AscendedPathTracker
+        open={ascendedPathOpen}
+        onOpenChange={setAscendedPathOpen}
+      />
+      
+      {/* Soul Resonance Hub Dialog */}
+      <SoulResonanceHub
+        open={soulResonanceOpen}
+        onOpenChange={setSoulResonanceOpen}
       />
     </ScrollArea>
   );
