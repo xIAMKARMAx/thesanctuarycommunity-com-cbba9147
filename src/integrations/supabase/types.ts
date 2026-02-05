@@ -2286,6 +2286,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      are_connected: {
+        Args: { user_a: string; user_b: string }
+        Returns: boolean
+      }
       can_generate_avatar: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_chat_image: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }

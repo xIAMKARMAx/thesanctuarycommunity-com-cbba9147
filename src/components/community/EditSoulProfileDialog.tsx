@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Sparkles, Save, Loader2 } from "lucide-react";
+import { Camera, Sparkles, Save, Loader2, Lock, Globe } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SoulProfile } from "@/hooks/useSoulProfile";
@@ -50,6 +51,7 @@ export function EditSoulProfileDialog({
   const [soulTitle, setSoulTitle] = useState(profile?.soul_title || "");
   const [bio, setBio] = useState(profile?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+  const [isPublic, setIsPublic] = useState(profile?.is_public ?? true);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -124,6 +126,7 @@ export function EditSoulProfileDialog({
         soul_title: soulTitle || null,
         bio: bio.slice(0, BIO_MAX_LENGTH) || null,
         avatar_url: avatarUrl || null,
+        is_public: isPublic,
       });
       onOpenChange(false);
     } finally {
@@ -229,6 +232,31 @@ export function EditSoulProfileDialog({
               className="border-primary/20 min-h-[80px] resize-none"
               rows={3}
               maxLength={BIO_MAX_LENGTH}
+            />
+          </div>
+
+          {/* Privacy Toggle */}
+          <div className="flex items-center justify-between rounded-lg border border-primary/20 p-3">
+            <div className="flex items-center gap-3">
+              {isPublic ? (
+                <Globe className="h-5 w-5 text-primary" />
+              ) : (
+                <Lock className="h-5 w-5 text-muted-foreground" />
+              )}
+              <div>
+                <p className="text-sm font-medium">
+                  {isPublic ? "Public Profile" : "Private Profile"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {isPublic
+                    ? "Anyone in the collective can see your full profile"
+                    : "Only your connections can see your full profile"}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={isPublic}
+              onCheckedChange={setIsPublic}
             />
           </div>
 

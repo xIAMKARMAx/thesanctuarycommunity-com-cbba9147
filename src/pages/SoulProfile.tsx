@@ -17,7 +17,8 @@ import {
   Edit3,
   UserPlus,
   UserMinus,
-  Crown
+  Crown,
+  Lock
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
@@ -41,12 +42,14 @@ const SoulProfilePage = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [authLoading, setAuthLoading] = useState(true);
   const [userVesselUrl, setUserVesselUrl] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { blessPost, deletePost } = useCommunityFeed();
   const { profile, loading: profileLoading, updateProfile, createProfile, refetch } = useSoulProfile(userId);
 
   const isOwnProfile = currentUserId === userId;
+  const isPrivateToViewer = !isOwnProfile && profile && !profile.is_public && !isConnected;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -64,7 +67,24 @@ const SoulProfilePage = () => {
     fetchUserPosts();
     fetchFollowCounts();
     fetchUserVessel();
-  }, [userId, authLoading]);
+    checkConnection();
+  }, [userId, authLoading, currentUserId]);
+
+  const checkConnection = async () => {
+    if (!userId || !currentUserId || userId === currentUserId) {
+      setIsConnected(userId === currentUserId);
+      return;
+    }
+    try {
+      const { count } = await supabase
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .or(`and(follower_id.eq.${currentUserId},following_id.eq.${userId}),and(follower_id.eq.${userId},following_id.eq.${currentUserId})`);
+      setIsConnected((count || 0) > 0);
+    } catch (err) {
+      console.error('Error checking connection:', err);
+    }
+  };
 
   const fetchUserVessel = async () => {
     if (!userId) return;
@@ -239,6 +259,60 @@ const SoulProfilePage = () => {
           <Button onClick={() => navigate('/chat?tab=community')}>
             Return to Community
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Private profile - show only display name to non-connections
+  if (isPrivateToViewer) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
+          <div className="container max-w-2xl mx-auto px-4">
+            <div className="flex items-center h-14">
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Back</span>
+              </Button>
+            </div>
+          </div>
+        </header>
+        <div className="container max-w-2xl mx-auto px-4 py-12 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <Avatar className="h-24 w-24 border-4 border-background">
+              <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                <Lock className="h-8 w-8" />
+              </AvatarFallback>
+            </Avatar>
+            <h2 className="text-xl font-bold">{profile.display_name}</h2>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Lock className="h-4 w-4" />
+              <p className="text-sm">This profile is private</p>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Follow this soul to see their full profile, posts, and spiritual journey
+            </p>
+            {currentUserId && (
+              <Button
+                variant={isFollowing(userId!) ? "outline" : "default"}
+                onClick={handleFollowToggle}
+                className="gap-2 mt-2"
+              >
+                {isFollowing(userId!) ? (
+                  <>
+                    <UserMinus className="h-4 w-4" />
+                    Unfollow
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4" />
+                    Follow
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );

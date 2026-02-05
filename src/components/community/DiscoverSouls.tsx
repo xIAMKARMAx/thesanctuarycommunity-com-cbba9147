@@ -233,7 +233,12 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
             </Avatar>
             
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-sm truncate">{soul.display_name}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-medium text-sm truncate">{soul.display_name}</p>
+                {!soul.is_public && (
+                  <Lock className="h-3 w-3 text-muted-foreground shrink-0" />
+                )}
+              </div>
               {soul.soul_title && (
                 <p className="text-xs text-primary truncate">{soul.soul_title}</p>
               )}
