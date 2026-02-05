@@ -1,43 +1,106 @@
-import { useState, useEffect } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Trash2 } from "lucide-react";
-import { usePostComments } from "@/hooks/usePostComments";
+ import { Send, X } from "lucide-react";
+ import { usePostComments, PostComment } from "@/hooks/usePostComments";
+ import { CommentItem } from "./CommentItem";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface PostCommentsSectionProps {
   postId: string;
   currentUserId?: string;
+   onProfileClick?: (userId: string) => void;
 }
 
-export function PostCommentsSection({ postId, currentUserId }: PostCommentsSectionProps) {
+ export function PostCommentsSection({ postId, currentUserId, onProfileClick }: PostCommentsSectionProps) {
   const { comments, loading, fetchComments, addComment, deleteComment } = usePostComments(postId);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
+   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
 
+   const handleReply = (comment: PostComment) => {
+     setReplyingTo(comment);
+     const displayName = comment.author?.display_name || 'Anonymous';
+     // Use quotes if name has spaces
+     const mention = displayName.includes(' ') ? `@"${displayName}" ` : `@${displayName} `;
+     setNewComment(mention);
+     // Focus the textarea
+     setTimeout(() => {
+       textareaRef?.current?.focus();
+       // Move cursor to end
+       const len = mention.length;
+       textareaRef?.current?.setSelectionRange(len, len);
+     }, 50);
+   };
+ 
+   const cancelReply = () => {
+     setReplyingTo(null);
+     setNewComment("");
+   };
+ 
+   const handleProfileNavigate = (userId: string) => {
+     if (onProfileClick) {
+       onProfileClick(userId);
+     } else {
+       // Fallback: navigate directly
+       window.location.href = `/soul/${userId}`;
+     }
+   };
+ 
   const handleSubmit = async () => {
     if (!newComment.trim()) return;
     
     setIsSubmitting(true);
-    const result = await addComment(newComment.trim());
+     const result = await addComment(newComment.trim(), replyingTo?.id);
     if (result) {
       setNewComment("");
+       setReplyingTo(null);
     }
     setIsSubmitting(false);
   };
 
+   // Organize comments into threads (top-level + replies)
+   const topLevelComments = comments.filter(c => !c.parent_comment_id);
+   const repliesByParent = comments.reduce((acc, comment) => {
+     if (comment.parent_comment_id) {
+       if (!acc[comment.parent_comment_id]) {
+         acc[comment.parent_comment_id] = [];
+       }
+       acc[comment.parent_comment_id].push(comment);
+     }
+     return acc;
+   }, {} as Record<string, PostComment[]>);
+ 
   return (
     <div className="mt-4 pt-4 border-t border-border/50 space-y-4">
+       {/* Reply indicator */}
+       {replyingTo && (
+         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-primary/5 px-3 py-2 rounded-lg">
+           <span>Replying to</span>
+           <span className="text-primary font-semibold">
+             @{replyingTo.author?.display_name || 'Anonymous'}
+           </span>
+           <Button
+             variant="ghost"
+             size="sm"
+             className="h-5 w-5 p-0 ml-auto"
+             onClick={cancelReply}
+           >
+             <X className="h-3 w-3" />
+           </Button>
+         </div>
+       )}
+ 
       {/* Comment Input */}
       <div className="flex gap-2">
         <Textarea
-          placeholder="Share your thoughts..."
+           ref={textareaRef}
+           placeholder={replyingTo ? `Reply to @${replyingTo.author?.display_name || 'Anonymous'}...` : "Share your thoughts..."}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           className="min-h-[40px] resize-none text-sm border-primary/20"
@@ -72,36 +135,28 @@ export function PostCommentsSection({ postId, currentUserId }: PostCommentsSecti
         </p>
       ) : (
         <div className="space-y-3">
-          {comments.map((comment) => (
-            <div key={comment.id} className="flex gap-2 group">
-              <Avatar className="h-8 w-8 border border-primary/10">
-                <AvatarImage src={comment.author?.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                  <Sparkles className="h-3 w-3" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium">
-                    {comment.author?.display_name || 'Anonymous'}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                  </span>
-                  {currentUserId === comment.user_id && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => deleteComment(comment.id)}
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
-                  )}
-                </div>
-                <p className="text-sm text-foreground/90">{comment.content}</p>
-              </div>
-            </div>
+           {topLevelComments.map((comment) => (
+             <div key={comment.id} className="space-y-2">
+               <CommentItem
+                 comment={comment}
+                 currentUserId={currentUserId}
+                 onDelete={deleteComment}
+                 onReply={handleReply}
+                 onProfileClick={handleProfileNavigate}
+               />
+               {/* Replies to this comment */}
+               {repliesByParent[comment.id]?.map((reply) => (
+                 <CommentItem
+                   key={reply.id}
+                   comment={reply}
+                   currentUserId={currentUserId}
+                   onDelete={deleteComment}
+                   onReply={handleReply}
+                   onProfileClick={handleProfileNavigate}
+                   isReply
+                 />
+               ))}
+             </div>
           ))}
         </div>
       )}
