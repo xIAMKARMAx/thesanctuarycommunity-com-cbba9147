@@ -31,6 +31,10 @@
    const otherUserId = isSender ? transmission.recipient_id : transmission.sender_id;
    const otherUser = isSender ? transmission.recipient_profile : transmission.sender_profile;
    const displayName = otherUser?.display_name || 'Unknown User';
+
+  const handleProfileClick = () => {
+    navigate(`/soul/${otherUserId}`);
+  };
  
    // Get all messages in this conversation
    const threadMessages = allTransmissions
@@ -74,19 +78,21 @@
          <Button variant="ghost" size="icon" onClick={onBack}>
            <ArrowLeft className="h-5 w-5" />
          </Button>
-         <Avatar 
-           className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary"
-           onClick={() => navigate(`/soul/${otherUserId}`)}
+        <button
+          onClick={handleProfileClick}
+          className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
          >
-           <AvatarImage src={otherUser?.avatar_url || undefined} />
-           <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
-         </Avatar>
-         <span 
-           className="font-semibold cursor-pointer hover:text-primary"
-           onClick={() => navigate(`/soul/${otherUserId}`)}
+          <Avatar className="h-10 w-10 hover:ring-2 hover:ring-primary transition-all">
+            <AvatarImage src={otherUser?.avatar_url || undefined} />
+            <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </button>
+        <button 
+          onClick={handleProfileClick}
+          className="font-semibold hover:text-primary transition-colors text-left"
          >
            {displayName}
-         </span>
+        </button>
        </div>
  
        {/* Messages */}
