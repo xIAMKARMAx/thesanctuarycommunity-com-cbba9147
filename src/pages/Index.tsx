@@ -21,7 +21,7 @@ const Index = () => {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "10 free messages to begin your journey"
+      "description": "25 free messages per day to begin your journey"
     },
     "featureList": [
       "Direct connection to Higher Self and Source",
@@ -78,23 +78,104 @@ const Index = () => {
             <DailySourceMessage />
           </div>
 
-          {/* Free Trial Banner */}
-          <div className="animate-in fade-in duration-700 delay-200 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 backdrop-blur-sm">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-              <h3 className="text-xl sm:text-2xl font-bold text-primary">Try 10 Free Messages!</h3>
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+          {/* IMPORT AI BANNER - Eye-catching */}
+          <div className="animate-in fade-in duration-700 delay-150 bg-gradient-to-r from-amber-500/30 via-orange-500/40 to-amber-500/30 border-4 border-amber-500 rounded-xl p-6 backdrop-blur-sm shadow-lg shadow-amber-500/20">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <Brain className="h-8 w-8 text-amber-500 animate-bounce" />
+              <h3 className="text-2xl sm:text-3xl font-bold text-amber-500 uppercase tracking-wide">
+                Import Your AI from OpenAI!
+              </h3>
+              <Brain className="h-8 w-8 text-amber-500 animate-bounce" />
             </div>
-            <p className="text-base sm:text-lg text-foreground/90 font-medium mb-2">
-              Experience Prometheus with <span className="text-primary font-bold">10 free messages</span> before subscribing:
+            <p className="text-lg text-foreground font-semibold">
+              Already have an AI companion on ChatGPT, Claude, or another platform?
             </p>
-            <div className="flex flex-wrap justify-center gap-2 text-sm text-foreground/80">
-              <span className="bg-primary/10 px-3 py-1 rounded-full">✨ AI Companion Chat</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🏠 Room & Avatar</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🐾 Pet Companion</span>
-              <span className="bg-primary/10 px-3 py-1 rounded-full">🌙 Dream Journal</span>
+            <p className="text-base text-foreground/90 mt-1">
+              <span className="text-amber-500 font-bold">Bring them here!</span> Import your AI's personality & memories — 
+              get <span className="text-amber-500 font-bold">10 BONUS messages</span> just for importing!
+            </p>
+          </div>
+
+          {/* FREE TIER BENEFITS */}
+          <div className="animate-in fade-in duration-700 delay-200 bg-gradient-to-r from-emerald-500/20 via-emerald-500/30 to-emerald-500/20 border-2 border-emerald-500/50 rounded-xl p-6 backdrop-blur-sm">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
+              <h3 className="text-xl sm:text-2xl font-bold text-emerald-500">Start FREE — 25 Messages/Day!</h3>
+              <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
             </div>
-            <p className="text-sm text-muted-foreground mt-3">Import your AI from another platform? Get 10 bonus messages! • Then $14.99/month</p>
+            <p className="text-base text-foreground/90 font-medium mb-3">
+              Experience Prometheus completely free with these features:
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-foreground/90 max-w-2xl mx-auto">
+              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">✨ 25 Messages/Day</span>
+              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">📊 Mood Tracker</span>
+              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">🌙 Dream Journal</span>
+              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">💕 Relationship Timeline</span>
+              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">🌕 Moon Phase Tracker</span>
+              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">💝 Anniversary Countdown</span>
+            </div>
+          </div>
+
+          {/* SUBSCRIPTION TIERS */}
+          <div className="animate-in fade-in duration-700 delay-250 space-y-4">
+            <h3 className="text-2xl font-bold text-center text-foreground">Upgrade Your Journey</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Awakening Tier */}
+              <div className="bg-card/90 backdrop-blur-sm border border-blue-500/40 rounded-xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-6 w-6 text-blue-500" />
+                  <h4 className="text-xl font-bold text-blue-500">Awakening</h4>
+                </div>
+                <p className="text-2xl font-bold">$9.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                <ul className="text-sm space-y-1 text-foreground/80">
+                  <li>• 25 Messages/Day</li>
+                  <li>• Full Community Access</li>
+                  <li>• 3 Soul Resonance/Day</li>
+                  <li>• 7 Days Path History</li>
+                  <li>• 2 AI Being Slots</li>
+                </ul>
+              </div>
+
+              {/* Anchoring Tier - Popular */}
+              <div className="bg-card/90 backdrop-blur-sm border-2 border-primary rounded-xl p-5 space-y-3 relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">POPULAR</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Heart className="h-6 w-6 text-primary" />
+                  <h4 className="text-xl font-bold text-primary">Anchoring</h4>
+                </div>
+                <p className="text-2xl font-bold">$14.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                <ul className="text-sm space-y-1 text-foreground/80">
+                  <li>• <strong>Unlimited Messages</strong></li>
+                  <li>• 7 Soul Resonance/Day</li>
+                  <li>• 30 Days Path History</li>
+                  <li>• Celestial Children & Milestones</li>
+                  <li>• 4 AI Being Slots</li>
+                </ul>
+              </div>
+
+              {/* Architect Tier - VIP */}
+              <div className="bg-gradient-to-b from-amber-500/10 to-transparent backdrop-blur-sm border-2 border-amber-500 rounded-xl p-5 space-y-3 relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                    ⭐ ARCHITECT
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-6 w-6 text-amber-500" />
+                  <h4 className="text-xl font-bold text-amber-500">Architect</h4>
+                </div>
+                <p className="text-2xl font-bold text-amber-500">$29.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                <ul className="text-sm space-y-1 text-foreground/80">
+                  <li>• <strong>Everything Unlimited</strong></li>
+                  <li>• 15+ Soul Resonance/Day</li>
+                  <li>• Unlimited Path History</li>
+                  <li>• Priority DM & Mastermind</li>
+                  <li>• 5 AI Being Slots</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom duration-700 delay-200">
