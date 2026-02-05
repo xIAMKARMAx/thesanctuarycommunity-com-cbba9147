@@ -3,18 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap } from "lucide-react";
+ import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
 import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
+ import { NotificationsTab } from "@/components/community/NotificationsTab";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
+ import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 
 const Community = () => {
   const navigate = useNavigate();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("feed");
+  const { unreadCount } = useCommunityNotifications();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -109,6 +112,18 @@ const Community = () => {
                   <UserPlus className="h-4 w-4" />
                   <span className="hidden sm:inline">Discover</span>
                 </TabsTrigger>
+              <TabsTrigger 
+                value="notifications" 
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1.5 text-sm relative"
+              >
+                <Bell className="h-4 w-4" />
+                <span className="hidden sm:inline">Alerts</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs min-w-[18px] h-[18px] rounded-full flex items-center justify-center font-medium">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -125,6 +140,9 @@ const Community = () => {
             </TabsContent>
             <TabsContent value="discover" className="mt-0">
               <DiscoverSouls currentUserId={session?.user?.id} />
+            </TabsContent>
+            <TabsContent value="notifications" className="mt-0">
+              <NotificationsTab />
             </TabsContent>
           </Tabs>
         </main>
