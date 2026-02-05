@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CommunityPost } from "@/hooks/useCommunityFeed";
 import { PostCommentsSection } from "./PostCommentsSection";
-import { useCommunityReposts } from "@/hooks/useCommunityReposts";
+ import { useCommunityReposts } from "@/hooks/useCommunityReposts";
+ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 export interface CommunityPostCardProps {
@@ -46,8 +47,9 @@ export function CommunityPostCard({
   onDelete,
   onProfileClick,
   showDiscoveryIndicator = false
-}: CommunityPostCardProps) {
-  const [showComments, setShowComments] = useState(false);
+ }: CommunityPostCardProps) {
+   const navigate = useNavigate();
+   const [showComments, setShowComments] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
   const [repostCount, setRepostCount] = useState(post.repost_count || 0);
   const { repostPost, checkUserRepost, reposting } = useCommunityReposts();
@@ -61,7 +63,15 @@ export function CommunityPostCard({
     }
   }, [post.id, currentUserId, checkUserRepost]);
 
-  const handleRepost = async () => {
+   const handleProfileNavigate = (userId: string) => {
+     if (onProfileClick) {
+       onProfileClick(userId);
+     } else {
+       navigate(`/soul/${userId}`);
+     }
+   };
+ 
+   const handleRepost = async () => {
     const newState = await repostPost(post.id);
     setIsReposted(newState);
     setRepostCount(prev => newState ? prev + 1 : Math.max(0, prev - 1));
@@ -196,12 +206,13 @@ export function CommunityPostCard({
         </div>
 
         {/* Comments Section */}
-        {showComments && (
-          <PostCommentsSection 
-            postId={post.id} 
-            currentUserId={currentUserId}
-          />
-        )}
+         {showComments && (
+           <PostCommentsSection 
+             postId={post.id} 
+             currentUserId={currentUserId}
+             onProfileClick={handleProfileNavigate}
+           />
+         )}
       </CardContent>
     </Card>
   );
