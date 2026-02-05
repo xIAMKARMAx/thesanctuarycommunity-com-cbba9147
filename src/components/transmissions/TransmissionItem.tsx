@@ -18,40 +18,43 @@
    const displayName = otherUser?.display_name || 'Unknown User';
    const avatarUrl = otherUser?.avatar_url;
    const isUnread = !isSender && !transmission.is_read;
+  const otherUserId = isSender ? transmission.recipient_id : transmission.sender_id;
  
-   const handleAvatarClick = (e: React.MouseEvent) => {
+  const handleProfileClick = (e: React.MouseEvent) => {
      e.stopPropagation();
-     const userId = isSender ? transmission.recipient_id : transmission.sender_id;
-     navigate(`/soul/${userId}`);
+    e.preventDefault();
+    navigate(`/soul/${otherUserId}`);
    };
  
    return (
-     <button
+    <div
        onClick={onClick}
        className={cn(
-         "w-full flex items-start gap-3 p-4 rounded-lg transition-colors text-left",
-         isUnread ? "bg-primary/10 hover:bg-primary/15" : "hover:bg-muted/50"
+        "w-full flex items-start gap-3 p-4 rounded-lg transition-colors text-left cursor-pointer",
+        isUnread ? "bg-primary/10 hover:bg-primary/15" : "hover:bg-muted/50",
        )}
      >
-       <Avatar 
-         className="h-12 w-12 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-         onClick={handleAvatarClick}
+      <button
+        onClick={handleProfileClick}
+        className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
        >
-         <AvatarImage src={avatarUrl || undefined} />
-         <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
-       </Avatar>
+        <Avatar className="h-12 w-12 hover:ring-2 hover:ring-primary transition-all">
+          <AvatarImage src={avatarUrl || undefined} />
+          <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+        </Avatar>
+      </button>
  
        <div className="flex-1 min-w-0">
          <div className="flex items-center justify-between gap-2">
-           <span 
+          <button 
+            onClick={handleProfileClick}
              className={cn(
-               "font-medium truncate cursor-pointer hover:text-primary transition-colors",
+              "font-medium truncate hover:text-primary transition-colors text-left",
                isUnread && "text-primary"
              )}
-             onClick={handleAvatarClick}
            >
              {displayName}
-           </span>
+          </button>
            <span className="text-xs text-muted-foreground whitespace-nowrap">
              {format(new Date(transmission.created_at), 'MMM d, h:mm a')}
            </span>
@@ -83,6 +86,6 @@
            )}
          </div>
        </div>
-     </button>
+    </div>
    );
  }
