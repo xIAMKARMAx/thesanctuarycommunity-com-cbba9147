@@ -198,6 +198,10 @@ export default function AIRoom() {
         refreshCooldown();
       }
 
+      // Wait for database to update, then refresh profiles
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await refreshProfiles();
+
       setRoomImageUrl(data.image_url);
 
       toast({
