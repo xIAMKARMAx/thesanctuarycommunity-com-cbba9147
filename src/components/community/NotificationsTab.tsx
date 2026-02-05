@@ -48,13 +48,18 @@
      }
    };
  
-   const handleNotificationClick = (notif: CommunityNotification) => {
-     if (!notif.is_read) {
-       markAsRead(notif.id);
-     }
-     // Navigate to the post or stay on notifications
-     // Could expand to navigate to specific post in future
-   };
+    const handleNotificationClick = (notif: CommunityNotification) => {
+      if (!notif.is_read) {
+        markAsRead(notif.id);
+      }
+      
+      if (notif.post_id) {
+        // Navigate to community feed with the post highlighted
+        navigate(`/community/post/${notif.post_id}${notif.comment_id ? `?comment=${notif.comment_id}` : ''}`);
+      } else if (notif.actor_id) {
+        navigate(`/soul/${notif.actor_id}`);
+      }
+    };
  
    if (loading) {
      return (

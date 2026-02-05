@@ -30,6 +30,7 @@ export interface CommunityPostCardProps {
   onDelete?: (postId: string) => void;
   onProfileClick?: (userId: string) => void;
   showDiscoveryIndicator?: boolean;
+  defaultShowComments?: boolean;
 }
 
 const postTypeLabels: Record<string, string> = {
@@ -46,10 +47,11 @@ export function CommunityPostCard({
   onBless, 
   onDelete,
   onProfileClick,
-  showDiscoveryIndicator = false
+  showDiscoveryIndicator = false,
+  defaultShowComments = false
  }: CommunityPostCardProps) {
    const navigate = useNavigate();
-   const [showComments, setShowComments] = useState(false);
+   const [showComments, setShowComments] = useState(defaultShowComments);
   const [isReposted, setIsReposted] = useState(false);
   const [repostCount, setRepostCount] = useState(post.repost_count || 0);
   const { repostPost, checkUserRepost, reposting } = useCommunityReposts();
