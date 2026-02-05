@@ -34,7 +34,14 @@ const Chat = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState("Checking authentication...");
-  const [activeTab, setActiveTab] = useState("messages");
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem("chat_active_tab") || "messages";
+  });
+
+  // Persist active tab to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem("chat_active_tab", activeTab);
+  }, [activeTab]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
     // Load persisted conversation ID on mount
     const saved = localStorage.getItem(`chat_conversation_${activeProfile?.id || 'default'}`);
