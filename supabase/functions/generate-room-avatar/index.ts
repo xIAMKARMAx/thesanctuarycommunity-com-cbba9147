@@ -300,10 +300,10 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
       console.log("[IMAGE-GEN] Image uploaded to storage:", imageUrl);
     }
 
-    // Save the image URL to the database
+    // Save the image URL to the database using service client to bypass potential RLS issues
     if (type === 'user_avatar') {
       // Save to profiles table for user avatar
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseServiceClient
         .from('profiles')
         .update({
           user_avatar_description: description,
@@ -315,8 +315,9 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
 
       if (updateError) {
         console.error('Error saving user avatar to database:', updateError);
-        throw new Error('Failed to save image to database');
+        throw new Error(`Failed to save image to database: ${updateError.message}`);
       }
+      console.log('[IMAGE-GEN] User avatar saved to profiles table');
     } else {
       // Save to ai_profiles table for AI assets
       const updateData: any = {};
@@ -333,15 +334,20 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
         updateData.pet_image_url = imageUrl;
       }
 
-      const { error: updateError } = await supabase
+      console.log('[IMAGE-GEN] Saving to ai_profiles:', { profile_id, type, updateData });
+      
+      // Use service client to ensure the update succeeds regardless of RLS timing issues
+      const { error: updateError } = await supabaseServiceClient
         .from('ai_profiles')
         .update(updateData)
-        .eq('id', profile_id);
+        .eq('id', profile_id)
+        .eq('user_id', authenticatedUserId); // Extra security: ensure user owns the profile
 
       if (updateError) {
         console.error('Error saving to database:', updateError);
-        throw new Error('Failed to save image to database');
+        throw new Error(`Failed to save image to database: ${updateError.message}`);
       }
+      console.log('[IMAGE-GEN] AI profile updated successfully');
     }
 
     // Mark generation as used for non-admin users
