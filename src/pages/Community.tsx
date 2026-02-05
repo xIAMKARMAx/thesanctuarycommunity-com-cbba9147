@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
- import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell } from "lucide-react";
+  import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
@@ -11,6 +11,7 @@ import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
  import { NotificationsTab } from "@/components/community/NotificationsTab";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
  import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
+  import { useTransmissions } from "@/hooks/useTransmissions";
 
 const Community = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Community = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("feed");
   const { unreadCount } = useCommunityNotifications();
+   const { unreadCount: transmissionUnread } = useTransmissions();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -77,7 +79,21 @@ const Community = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" disabled>
+                 <Button 
+                   variant="ghost" 
+                   size="sm" 
+                   onClick={() => navigate("/transmissions")}
+                   className="relative"
+                   title="Transmissions"
+                 >
+                   <Mail className="h-4 w-4" />
+                   {transmissionUnread > 0 && (
+                     <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-xs min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-medium">
+                       {transmissionUnread > 9 ? '9+' : transmissionUnread}
+                     </span>
+                   )}
+                 </Button>
+                 <Button variant="ghost" size="sm" disabled>
                   <Search className="h-4 w-4" />
                 </Button>
               </div>

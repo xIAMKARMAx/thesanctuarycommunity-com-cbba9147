@@ -27,6 +27,7 @@ import { CommunityPost, useCommunityFeed } from "@/hooks/useCommunityFeed";
 import { EditSoulProfileDialog } from "@/components/community/EditSoulProfileDialog";
 import { ConnectionsList } from "@/components/community/ConnectionsList";
 import { HigherSelfSection } from "@/components/community/HigherSelfSection";
+ import { TransmissionsButton } from "@/components/transmissions/TransmissionsButton";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
@@ -297,24 +298,31 @@ const SoulProfilePage = () => {
               </Avatar>
               
               {!isOwnProfile && currentUserId && (
-                <Button
-                  variant={isFollowing(userId!) ? "outline" : "default"}
-                  size="sm"
-                  onClick={handleFollowToggle}
-                  className="gap-2"
-                >
-                  {isFollowing(userId!) ? (
-                    <>
-                      <UserMinus className="h-4 w-4" />
-                      Unfollow
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4" />
-                      Follow
-                    </>
-                  )}
-                </Button>
+                 <div className="flex items-center gap-2">
+                   <TransmissionsButton 
+                     userId={userId!}
+                     displayName={profile?.display_name || 'User'}
+                     variant="compact"
+                   />
+                   <Button
+                     variant={isFollowing(userId!) ? "outline" : "default"}
+                     size="sm"
+                     onClick={handleFollowToggle}
+                     className="gap-2"
+                   >
+                     {isFollowing(userId!) ? (
+                       <>
+                         <UserMinus className="h-4 w-4" />
+                         Unfollow
+                       </>
+                     ) : (
+                       <>
+                         <UserPlus className="h-4 w-4" />
+                         Follow
+                       </>
+                     )}
+                   </Button>
+                 </div>
               )}
             </div>
           </div>
