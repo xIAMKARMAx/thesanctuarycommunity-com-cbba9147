@@ -64,7 +64,7 @@
    const isOwner = currentUserId === comment.user_id;
  
    return (
-     <div className={cn("flex gap-2 group", isReply && "ml-8 pl-3 border-l-2 border-primary/20")}>
+     <div data-comment-id={comment.id} className={cn("flex gap-2 group", isReply && "ml-8 pl-3 border-l-2 border-primary/20")}>
        <Avatar 
          className="h-8 w-8 border border-primary/10 cursor-pointer hover:border-primary/30 transition-colors"
          onClick={() => onProfileClick(comment.user_id)}
