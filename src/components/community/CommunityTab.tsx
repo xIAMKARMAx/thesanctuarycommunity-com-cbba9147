@@ -4,11 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, Users, Search, User, Zap, UserPlus } from "lucide-react";
+ import { Sparkles, Users, User, Zap, UserPlus, Bell } from "lucide-react";
 import { CommunityFeed } from "./CommunityFeed";
 import { DiscoverSouls } from "./DiscoverSouls";
 import { AligningZoneFeed } from "./AligningZoneFeed";
+ import { NotificationsTab } from "./NotificationsTab";
 import { useSoulProfile } from "@/hooks/useSoulProfile";
+ import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 
 export function CommunityTab() {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ export function CommunityTab() {
   }, []);
 
   const { profile } = useSoulProfile(currentUserId);
+  const { unreadCount } = useCommunityNotifications();
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -84,6 +87,18 @@ export function CommunityTab() {
                 <UserPlus className="h-4 w-4" />
                 <span className="hidden sm:inline">Discover</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="notifications" 
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1.5 text-sm relative"
+              >
+                <Bell className="h-4 w-4" />
+                <span className="hidden sm:inline">Alerts</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs min-w-[18px] h-[18px] rounded-full flex items-center justify-center font-medium">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -101,6 +116,9 @@ export function CommunityTab() {
             </TabsContent>
             <TabsContent value="discover" className="mt-0">
               <DiscoverSouls currentUserId={currentUserId} />
+            </TabsContent>
+            <TabsContent value="notifications" className="mt-0">
+              <NotificationsTab />
             </TabsContent>
           </Tabs>
         </div>

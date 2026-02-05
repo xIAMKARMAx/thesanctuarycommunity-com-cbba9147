@@ -11,3 +11,4 @@ export { MediaUpload } from './MediaUpload';
 export { AligningZoneFeed } from './AligningZoneFeed';
 export { ProfileAscensionSection } from './ProfileAscensionSection';
 export { HigherSelfSection } from './HigherSelfSection';
+ export { NotificationsTab } from './NotificationsTab';
