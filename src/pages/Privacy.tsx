@@ -369,8 +369,13 @@ const Privacy = () => {
               </CardHeader>
               <CardContent className="prose prose-sm dark:prose-invert max-w-none">
                 <p>
-                  If you have questions about this Privacy Policy or your data, please contact us through 
-                  the settings page in the application or visit our website at prometheusaitechnology.com.
+                 If you have questions about this Privacy Policy or your data, please contact us at:{" "}
+                 <a 
+                   href="mailto:karmaisback2023@gmail.com"
+                   className="text-primary font-semibold hover:underline underline-offset-4"
+                 >
+                   karmaisback2023@gmail.com
+                 </a>
                 </p>
                 <p className="mt-4">
                   <strong>Data Controller:</strong> Kristin Renee' York, operating as PrometheusAiTechnology
