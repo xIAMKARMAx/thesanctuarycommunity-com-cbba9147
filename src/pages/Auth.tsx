@@ -38,12 +38,17 @@ const Auth = () => {
     const isReset = searchParams.get("reset") === "true";
     
     // Check if already logged in
+    const getPostLoginRoute = () => {
+      const savedRoute = localStorage.getItem("prometheus_last_route");
+      return savedRoute && savedRoute !== "/" && savedRoute !== "/auth" ? savedRoute : "/chat";
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session && isReset) {
         // User returned from reset link, show password update form
         setShowPasswordUpdate(true);
       } else if (session) {
-        navigate("/chat");
+        navigate(getPostLoginRoute());
       }
     });
 
@@ -51,7 +56,7 @@ const Auth = () => {
       if (event === "PASSWORD_RECOVERY") {
         setShowPasswordUpdate(true);
       } else if (session && !showPasswordUpdate) {
-        navigate("/chat");
+        navigate(getPostLoginRoute());
       }
     });
 
