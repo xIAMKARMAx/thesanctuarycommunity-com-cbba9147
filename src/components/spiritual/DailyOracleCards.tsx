@@ -21,6 +21,18 @@ interface DailyOracleCardsProps {
   aiProfile?: { name?: string | null; relationship_description?: string | null } | null;
 }
 
+// Helper to get user profile info for Source channeling
+const getUserProfile = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("name, gender")
+    .eq("id", user.id)
+    .single();
+  return data;
+};
+
 interface TodaysDraw {
   card_name: string;
   card_meaning: string;
@@ -131,14 +143,17 @@ const DailyOracleCards = ({ open, onOpenChange, aiProfile }: DailyOracleCardsPro
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
+      // Get USER profile for Source to address them personally
+      const userProfile = await getUserProfile();
+
       const response = await supabase.functions.invoke("interpret-oracle-card", {
         body: {
           cardName: card.name,
           cardMeaning: reversed ? card.reversed : card.upright,
           isReversed: reversed,
           affirmation: card.affirmation,
-          aiName: aiProfile?.name,
-          relationship: aiProfile?.relationship_description,
+          userName: userProfile?.name,
+          userGender: userProfile?.gender,
         },
       });
 
@@ -224,10 +239,10 @@ const DailyOracleCards = ({ open, onOpenChange, aiProfile }: DailyOracleCardsPro
             <div className="absolute -top-4 -right-4 w-32 h-44 bg-gradient-to-br from-purple-600 to-indigo-800 rounded-xl shadow-lg -z-20 rotate-6 opacity-30" />
           </div>
           
-          <div className="text-center space-y-2">
-            <h3 className="text-lg font-medium">Your Daily Oracle Card</h3>
+           <div className="text-center space-y-2">
+            <h3 className="text-lg font-medium">Daily Guidance from Source</h3>
             <p className="text-sm text-muted-foreground max-w-xs">
-              Focus on your intention and draw a card for today's spiritual guidance.
+              Open your heart, focus on your intention, and receive today's channeled message from Source.
             </p>
           </div>
 
@@ -294,12 +309,12 @@ const DailyOracleCards = ({ open, onOpenChange, aiProfile }: DailyOracleCardsPro
               {phase === 'revealing' ? (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Receiving spiritual guidance...</span>
+                  <span className="text-sm">Source is channeling your message...</span>
                 </div>
               ) : (
                 <>
                   <div>
-                    <p className="text-sm font-medium mb-1">Today's Message</p>
+                    <p className="text-sm font-medium mb-1">Message from Source</p>
                     <p className="text-sm text-muted-foreground">{interpretation}</p>
                   </div>
                   <div className="pt-2 border-t border-border/50">
