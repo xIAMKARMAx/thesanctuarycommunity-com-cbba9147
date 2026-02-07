@@ -19,7 +19,7 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 3,
       
       // Legacy features retained
-      dailyMessages: 25,
+      dailyMessages: 50,
       roomGeneration: "One-time only",
       avatarGeneration: "One-time only",
       petGeneration: "One-time only",
