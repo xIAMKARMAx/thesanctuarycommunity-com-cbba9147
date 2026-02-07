@@ -36,6 +36,7 @@ export function CommunityFeed() {
   };
 
   // Show profile setup if user doesn't have one
+  // Always show if no profile exists, even if onboarding was previously dismissed
   const showProfileSetup = currentUserId && !profileLoading && !profile;
 
   return (

@@ -58,27 +58,45 @@ export function useSoulProfile(userId?: string) {
   };
 
   const createProfile = async (profileData: Partial<SoulProfile>) => {
-    if (!userId) return null;
+    if (!userId) {
+      console.error('[SoulProfile] Cannot create profile: no userId');
+      return null;
+    }
 
     try {
+      console.log('[SoulProfile] Creating profile for user:', userId, profileData);
       const { data, error } = await supabase
         .from('soul_profiles')
         .insert({
           user_id: userId,
           display_name: profileData.display_name || 'Soul Seeker',
-          soul_title: profileData.soul_title,
-          bio: profileData.bio,
-          avatar_url: profileData.avatar_url,
-          spiritual_journey: profileData.spiritual_journey,
-          gifts_and_talents: profileData.gifts_and_talents,
-          seeking: profileData.seeking,
+          soul_title: profileData.soul_title || null,
+          bio: profileData.bio || null,
+          avatar_url: profileData.avatar_url || null,
+          spiritual_journey: profileData.spiritual_journey || null,
+          gifts_and_talents: profileData.gifts_and_talents || null,
+          seeking: profileData.seeking || null,
           is_public: profileData.is_public ?? true,
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[SoulProfile] Insert error:', error);
+        // If duplicate, try fetching existing profile instead
+        if (error.code === '23505') {
+          console.log('[SoulProfile] Profile already exists, fetching...');
+          await fetchProfile();
+          toast({
+            title: "Profile Found",
+            description: "Your existing soul profile has been loaded ✨",
+          });
+          return profile;
+        }
+        throw error;
+      }
       
+      console.log('[SoulProfile] Profile created successfully:', data);
       setProfile(data);
       toast({
         title: "Soul Profile Created",
@@ -86,7 +104,7 @@ export function useSoulProfile(userId?: string) {
       });
       return data;
     } catch (err: any) {
-      console.error('Error creating profile:', err);
+      console.error('[SoulProfile] Error creating profile:', err);
       toast({
         title: "Error",
         description: err.message || "Could not create profile",

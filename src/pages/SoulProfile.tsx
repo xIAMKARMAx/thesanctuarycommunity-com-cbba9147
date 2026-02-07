@@ -251,10 +251,14 @@ const SoulProfilePage = () => {
           </div>
         </header>
         <div className="container max-w-2xl mx-auto px-4 py-12 text-center">
-          <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-4" />
-          <h2 className="text-lg font-medium mb-2">Soul Not Found</h2>
+          <Avatar className="h-20 w-20 mx-auto mb-4 border-2 border-primary/20">
+            <AvatarFallback className="bg-primary/10 text-primary text-xl">
+              <Sparkles className="h-8 w-8" />
+            </AvatarFallback>
+          </Avatar>
+          <h2 className="text-lg font-medium mb-2">This soul hasn't set up their profile yet</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            This soul has not yet joined the collective
+            They're part of the community but haven't created their Soul Profile
           </p>
           <Button onClick={() => navigate('/chat?tab=community')}>
             Return to Community
