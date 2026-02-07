@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { toast } from '@/hooks/use-toast';
+import { isArchitectTier } from '@/lib/subscription-tiers';
 
 interface CooldownStatus {
   canSend: boolean;
@@ -12,7 +13,8 @@ interface CooldownStatus {
 }
 
 export const useChatCooldown = () => {
-  const { isSubscribed, isAdmin } = useSubscription();
+  const { isSubscribed, isAdmin, productId } = useSubscription();
+  const isArchitect = isArchitectTier(productId);
   const [cooldownStatus, setCooldownStatus] = useState<CooldownStatus>({
     canSend: true,
     remaining: -1,
@@ -26,8 +28,8 @@ export const useChatCooldown = () => {
   const wasInCooldown = useRef<boolean>(false);
 
   const checkCooldown = useCallback(async () => {
-    // Admins bypass cooldown
-    if (isAdmin) {
+    // Admins and Architect tier bypass cooldown entirely
+    if (isAdmin || isArchitect) {
       setCooldownStatus({
         canSend: true,
         remaining: -1,
@@ -79,7 +81,7 @@ export const useChatCooldown = () => {
       console.error('Error in cooldown check:', error);
       setCooldownStatus(prev => ({ ...prev, loading: false }));
     }
-  }, [isSubscribed, isAdmin]);
+  }, [isSubscribed, isAdmin, isArchitect]);
 
   // Update from response
   const updateFromResponse = useCallback((cooldownData: any) => {

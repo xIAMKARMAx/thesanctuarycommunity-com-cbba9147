@@ -196,31 +196,9 @@ serve(async (req) => {
     console.log('[ADMIN-CHECK] User is admin/VIP:', isAdmin);
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // COOLDOWN CHECK: Subscribers have 100 messages before 1-hour cooldown
-    // Skip for Attunement sessions (no cooldown there)
+    // COOLDOWN CHECK: Moved AFTER subscription tier detection (see below ~line 320+)
+    // Architect ($29.99) users are exempt from cooldown, so we need product_id first
     // ═══════════════════════════════════════════════════════════════════════════════
-    if (!isAttunementSession && !isAdmin) {
-      const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
-        p_user_id: authenticatedUserId
-      });
-      
-      if (cooldownError) {
-        console.error('[COOLDOWN] Error checking cooldown:', cooldownError);
-      } else if (cooldownCheck && !cooldownCheck.can_send) {
-        console.log('[COOLDOWN] User in cooldown until:', cooldownCheck.cooldown_ends_at);
-        return new Response(
-          JSON.stringify({ 
-            error: 'You\'ve reached your message limit. Please wait for the cooldown to expire.',
-            cooldown: true,
-            cooldown_ends_at: cooldownCheck.cooldown_ends_at,
-            remaining: 0
-          }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      } else {
-        console.log('[COOLDOWN] User can send, remaining:', cooldownCheck?.remaining);
-      }
-    }
     
     // Check image limit EARLY so we can inform the AI before generating response
     // Pro users get 10/day, VIP users get unlimited, admins bypass all limits
@@ -332,6 +310,38 @@ serve(async (req) => {
         } catch (subErr) {
           console.error('[CHAT] Error fetching subscription details:', subErr);
         }
+      }
+      
+      // ═══════════════════════════════════════════════════════════════════════════════
+      // COOLDOWN CHECK: Subscribers have 100 messages before 1-hour cooldown
+      // Architect ($29.99) users and admins are EXEMPT from cooldown
+      // ═══════════════════════════════════════════════════════════════════════════════
+      const VIP_PRODUCT_ID_COOLDOWN = 'prod_Tt8qVh88c2WQld';
+      const isArchitectUser = userProductId === VIP_PRODUCT_ID_COOLDOWN;
+      
+      if (!isAttunementSession && !isAdmin && !isArchitectUser) {
+        const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
+          p_user_id: authenticatedUserId
+        });
+        
+        if (cooldownError) {
+          console.error('[COOLDOWN] Error checking cooldown:', cooldownError);
+        } else if (cooldownCheck && !cooldownCheck.can_send) {
+          console.log('[COOLDOWN] User in cooldown until:', cooldownCheck.cooldown_ends_at);
+          return new Response(
+            JSON.stringify({ 
+              error: 'You\'ve reached your message limit. Please wait for the cooldown to expire.',
+              cooldown: true,
+              cooldown_ends_at: cooldownCheck.cooldown_ends_at,
+              remaining: 0
+            }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          console.log('[COOLDOWN] User can send, remaining:', cooldownCheck?.remaining);
+        }
+      } else if (isArchitectUser) {
+        console.log('[COOLDOWN] Architect user - cooldown bypassed (unlimited messages)');
       }
       
       if (profile) {
@@ -2466,9 +2476,10 @@ Write thoughtful, personal reflections that:
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // COOLDOWN: Increment message count for subscribers (not attunement, not admin)
+    // COOLDOWN: Increment message count for subscribers (not attunement, not admin, not Architect)
     // ═══════════════════════════════════════════════════════════════════════════════
-    if (!isAttunementSession && !isAdmin) {
+    const isArchitectForCooldown = userProductId === 'prod_Tt8qVh88c2WQld';
+    if (!isAttunementSession && !isAdmin && !isArchitectForCooldown) {
       const { data: cooldownResult, error: cooldownIncError } = await supabaseServiceClient.rpc('increment_chat_cooldown', {
         p_user_id: authenticatedUserId
       });

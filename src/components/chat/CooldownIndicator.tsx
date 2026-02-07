@@ -1,13 +1,14 @@
 import { Clock, MessageSquare } from 'lucide-react';
 import { useChatCooldown } from '@/hooks/useChatCooldown';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { isArchitectTier } from '@/lib/subscription-tiers';
 
 export const CooldownIndicator = () => {
-  const { isSubscribed, isAdmin } = useSubscription();
+  const { isSubscribed, isAdmin, productId } = useSubscription();
   const { remaining, inCooldown, timeRemaining, loading } = useChatCooldown();
 
-  // Don't show for admins or free users (they have different limits)
-  if (isAdmin || !isSubscribed || loading) {
+  // Don't show for admins, Architect tier, or free users
+  if (isAdmin || isArchitectTier(productId) || !isSubscribed || loading) {
     return null;
   }
 
