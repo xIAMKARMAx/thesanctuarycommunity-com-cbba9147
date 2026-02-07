@@ -40,6 +40,44 @@ interface SubscriptionContextType {
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
+// Cache helpers for subscription data persistence across timeouts
+const SUBSCRIPTION_CACHE_KEY = 'subscription_cache';
+
+function getCachedSubscription(): { subscribed: boolean; productId: string | null; subscriptionEnd: string | null } | null {
+  try {
+    const cached = localStorage.getItem(SUBSCRIPTION_CACHE_KEY);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    // Cache expires after 24 hours
+    if (parsed.timestamp && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+      return parsed;
+    }
+    localStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedSubscription(subscribed: boolean, productId: string | null, subscriptionEnd: string | null) {
+  try {
+    localStorage.setItem(SUBSCRIPTION_CACHE_KEY, JSON.stringify({
+      subscribed,
+      productId,
+      subscriptionEnd,
+      timestamp: Date.now(),
+    }));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+function clearCachedSubscription() {
+  try {
+    localStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+  } catch {}
+}
+
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -58,6 +96,21 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   });
   const { toast } = useToast();
 
+  // Apply cached subscription data as fallback
+  const applyCachedSubscription = () => {
+    const cached = getCachedSubscription();
+    if (cached?.subscribed && cached.productId) {
+      console.log('[SubscriptionContext] Using cached subscription data:', cached.productId);
+      setIsSubscribed(true);
+      setSubscriptionStatus("active");
+      setProductId(cached.productId);
+      setSubscriptionEnd(cached.subscriptionEnd);
+      setLoading(false);
+      return true;
+    }
+    return false;
+  };
+
   const checkSubscription = async () => {
     console.log('[SubscriptionContext] Starting checkSubscription...');
     
@@ -75,9 +128,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
       console.error('[SubscriptionContext] Error or timeout:', error?.message);
       
-      // CRITICAL: On timeout, still try database fallback before giving up
+      // CRITICAL: On timeout, use cached subscription data first (preserves correct tier)
+      if (applyCachedSubscription()) {
+        return;
+      }
+      
+      // Then try database fallback
       try {
-        console.log('[SubscriptionContext] Timeout occurred, trying database fallback...');
+        console.log('[SubscriptionContext] No cache, trying database fallback...');
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: profile } = await supabase
@@ -90,7 +148,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             console.log('[SubscriptionContext] Found active subscription in timeout fallback');
             setIsSubscribed(true);
             setSubscriptionStatus("active");
-            setProductId('manual_grant');
+            // Don't set productId to manual_grant - leave it null so tier detection doesn't give wrong tier
+            // The next successful edge function call will set the correct product_id
+            setProductId(null);
             setLoading(false);
             return;
           }
@@ -149,8 +209,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         console.error("[SubscriptionContext] API error:", error);
+        
+        // FIRST: try cached subscription data (preserves correct tier from last successful check)
+        if (applyCachedSubscription()) {
+          console.log('[SubscriptionContext] Used cached subscription on API error');
+          await refreshLimits();
+          return;
+        }
+        
         // FALLBACK: Check database directly for manually granted subscriptions
-        console.log('[SubscriptionContext] Falling back to database check...');
+        console.log('[SubscriptionContext] No cache, falling back to database check...');
         const { data: profile } = await supabase
           .from('profiles')
           .select('subscription_status')
@@ -161,7 +229,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           console.log('[SubscriptionContext] Found active subscription in database fallback');
           setIsSubscribed(true);
           setSubscriptionStatus("active");
-          setProductId('manual_grant');
+          // Don't assume tier - leave null so UI shows subscribed but without wrong tier
+          setProductId(null);
         } else {
           setIsSubscribed(false);
           setSubscriptionStatus("free");
@@ -175,6 +244,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptionStatus(data?.subscription_status || "free");
         setSubscriptionEnd(data?.subscription_end || null);
         setProductId(data?.product_id || null);
+        
+        // Cache successful Stripe result for resilience against future timeouts
+        if (subscribed && data?.product_id) {
+          setCachedSubscription(true, data.product_id, data.subscription_end || null);
+        } else {
+          clearCachedSubscription();
+        }
         
         // CRITICAL: If API says not subscribed, double-check database as safety net
         if (!subscribed) {
@@ -191,7 +267,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
               console.log('[SubscriptionContext] Database shows active - overriding API result');
               setIsSubscribed(true);
               setSubscriptionStatus("active");
-              setProductId('manual_grant');
+              // Don't assume tier
+              setProductId(null);
             }
           }
         }
@@ -202,6 +279,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       await refreshLimits();
     } catch (error) {
       console.error("[SubscriptionContext] Error checking subscription:", error);
+      
+      // FIRST: try cached subscription data
+      if (applyCachedSubscription()) {
+        console.log('[SubscriptionContext] Used cached subscription on exception');
+        setLoading(false);
+        return;
+      }
       
       // FALLBACK: Even on exception, try database check
       try {
@@ -217,7 +301,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             console.log('[SubscriptionContext] Found active subscription in exception fallback');
             setIsSubscribed(true);
             setSubscriptionStatus("active");
-            setProductId('manual_grant');
+            setProductId(null);
             setLoading(false);
             return;
           }
@@ -473,8 +557,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       console.log('[SubscriptionContext] Auth state changed:', event);
       
       if (event === 'SIGNED_OUT') {
-        // Clear auth cache immediately on sign out
+        // Clear auth cache and subscription cache immediately on sign out
         clearAuthCache();
+        clearCachedSubscription();
         setIsSubscribed(false);
         setIsAdmin(false);
         setSubscriptionStatus("free");
