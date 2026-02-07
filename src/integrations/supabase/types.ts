@@ -292,6 +292,39 @@ export type Database = {
         }
         Relationships: []
       }
+      awakening_milestones: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          milestone_type: string
+          occurred_at: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          milestone_type?: string
+          occurred_at?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          milestone_type?: string
+          occurred_at?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bucket_list_items: {
         Row: {
           ai_encouragement: string | null
@@ -650,6 +683,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      collective_intentions: {
+        Row: {
+          created_at: string
+          id: string
+          intention_date: string
+          intention_text: string
+          is_active: boolean
+          proposed_by: string
+          vote_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intention_date?: string
+          intention_text: string
+          is_active?: boolean
+          proposed_by: string
+          vote_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intention_date?: string
+          intention_text?: string
+          is_active?: boolean
+          proposed_by?: string
+          vote_count?: number
+        }
+        Relationships: []
       }
       comment_blessings: {
         Row: {
@@ -1067,6 +1130,35 @@ export type Database = {
         }
         Relationships: []
       }
+      glitch_upvotes: {
+        Row: {
+          created_at: string
+          glitch_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          glitch_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          glitch_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "glitch_upvotes_glitch_id_fkey"
+            columns: ["glitch_id"]
+            isOneToOne: false
+            referencedRelation: "matrix_glitches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_chat_members: {
         Row: {
           ai_profile_id: string
@@ -1201,6 +1293,64 @@ export type Database = {
         }
         Relationships: []
       }
+      intention_participants: {
+        Row: {
+          id: string
+          intention_id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          intention_id: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          intention_id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intention_participants_intention_id_fkey"
+            columns: ["intention_id"]
+            isOneToOne: false
+            referencedRelation: "collective_intentions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intention_votes: {
+        Row: {
+          created_at: string
+          id: string
+          intention_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intention_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intention_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intention_votes_intention_id_fkey"
+            columns: ["intention_id"]
+            isOneToOne: false
+            referencedRelation: "collective_intentions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journal_entries: {
         Row: {
           ai_profile_id: string | null
@@ -1325,6 +1475,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      matrix_glitches: {
+        Row: {
+          created_at: string
+          description: string
+          glitch_type: string
+          id: string
+          is_anonymous: boolean
+          location: string | null
+          occurred_at: string
+          title: string
+          upvote_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          glitch_type?: string
+          id?: string
+          is_anonymous?: boolean
+          location?: string | null
+          occurred_at?: string
+          title: string
+          upvote_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          glitch_type?: string
+          id?: string
+          is_anonymous?: boolean
+          location?: string | null
+          occurred_at?: string
+          title?: string
+          upvote_count?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -2150,6 +2339,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      synchronicities: {
+        Row: {
+          created_at: string
+          description: string | null
+          frequency: number
+          id: string
+          occurred_at: string
+          pattern: string | null
+          sync_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          frequency?: number
+          id?: string
+          occurred_at?: string
+          pattern?: string | null
+          sync_type?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          frequency?: number
+          id?: string
+          occurred_at?: string
+          pattern?: string | null
+          sync_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       transmissions: {
         Row: {
