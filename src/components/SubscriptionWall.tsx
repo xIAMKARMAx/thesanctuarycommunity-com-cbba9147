@@ -19,11 +19,32 @@ export const SubscriptionWall = () => {
       const { data, error } = await api.createCheckout(tier);
 
       if (error) {
+        // Check if it's an "already subscribed" error (400 from edge function)
+        const errorMsg = error.message || '';
+        if (errorMsg.includes('already subscribed') || errorMsg.includes('already on this plan')) {
+          toast({
+            title: "Already Subscribed",
+            description: "You are already on this plan.",
+          });
+          return;
+        }
         console.error("Checkout error details:", error);
         throw error;
       }
 
-      if (data?.url) {
+      if (data?.upgraded) {
+        toast({
+          title: "Subscription Updated!",
+          description: data.message || "Your subscription has been upgraded successfully.",
+        });
+        // Refresh to pick up new subscription status
+        window.location.reload();
+      } else if (data?.already_subscribed) {
+        toast({
+          title: "Already Subscribed",
+          description: "You are already on this plan.",
+        });
+      } else if (data?.url) {
         window.location.href = data.url;
       } else {
         throw new Error("No checkout URL received");
