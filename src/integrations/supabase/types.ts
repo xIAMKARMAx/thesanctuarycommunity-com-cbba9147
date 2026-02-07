@@ -737,8 +737,11 @@ export type Database = {
           comment_count: number
           content: string
           created_at: string
+          energy_tag: string | null
           id: string
           image_url: string | null
+          intention: string | null
+          is_anonymous: boolean
           is_pinned: boolean
           post_type: string
           repost_count: number
@@ -753,8 +756,11 @@ export type Database = {
           comment_count?: number
           content: string
           created_at?: string
+          energy_tag?: string | null
           id?: string
           image_url?: string | null
+          intention?: string | null
+          is_anonymous?: boolean
           is_pinned?: boolean
           post_type?: string
           repost_count?: number
@@ -769,8 +775,11 @@ export type Database = {
           comment_count?: number
           content?: string
           created_at?: string
+          energy_tag?: string | null
           id?: string
           image_url?: string | null
+          intention?: string | null
+          is_anonymous?: boolean
           is_pinned?: boolean
           post_type?: string
           repost_count?: number

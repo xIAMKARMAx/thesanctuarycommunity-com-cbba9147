@@ -15,9 +15,11 @@ export interface CommunityPost {
   comment_count: number;
   share_count: number;
   repost_count: number;
+  energy_tag: string | null;
+  is_anonymous: boolean;
+  intention: string | null;
   created_at: string;
   updated_at: string;
-  // Joined data
   author?: {
     display_name: string;
     soul_title: string | null;
@@ -33,7 +35,7 @@ interface SoulProfileRow {
   avatar_url: string | null;
 }
 
-export function useCommunityFeed() {
+export function useCommunityFeed(energyFilter?: string | null) {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -46,14 +48,19 @@ export function useCommunityFeed() {
       const { data: session } = await supabase.auth.getSession();
       const currentUserId = session?.session?.user?.id;
 
-      // Fetch posts
-      const { data: postsData, error: postsError } = await supabase
+      let query = supabase
         .from('community_posts')
         .select('*')
         .eq('visibility', 'public')
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
+
+      if (energyFilter) {
+        query = query.eq('energy_tag', energyFilter);
+      }
+
+      const { data: postsData, error: postsError } = await query;
 
       if (postsError) throw postsError;
       if (!postsData?.length) {
@@ -63,19 +70,24 @@ export function useCommunityFeed() {
         return;
       }
 
-      // Get unique user IDs and fetch their profiles
-      const userIds = [...new Set(postsData.map(p => p.user_id))];
-      const { data: profilesData } = await supabase
-        .from('soul_profiles')
-        .select('user_id, display_name, soul_title, avatar_url')
-        .in('user_id', userIds);
+      // Get unique user IDs (exclude anonymous posts)
+      const nonAnonPosts = postsData.filter(p => !p.is_anonymous);
+      const userIds = [...new Set(nonAnonPosts.map(p => p.user_id))];
+      
+      let profilesMap: Record<string, SoulProfileRow> = {};
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('soul_profiles')
+          .select('user_id, display_name, soul_title, avatar_url')
+          .in('user_id', userIds);
 
-      const profilesMap = (profilesData || []).reduce((acc, p) => {
-        acc[p.user_id] = p;
-        return acc;
-      }, {} as Record<string, SoulProfileRow>);
+        profilesMap = (profilesData || []).reduce((acc, p) => {
+          acc[p.user_id] = p;
+          return acc;
+        }, {} as Record<string, SoulProfileRow>);
+      }
 
-      // Get user's blessings for these posts
+      // Get user's blessings
       let userBlessings: Record<string, string> = {};
       if (currentUserId) {
         const postIds = postsData.map(p => p.id);
@@ -95,11 +107,14 @@ export function useCommunityFeed() {
 
       const formattedPosts: CommunityPost[] = postsData.map(post => ({
         ...post,
-        author: profilesMap[post.user_id] ? {
+        energy_tag: post.energy_tag || null,
+        is_anonymous: post.is_anonymous || false,
+        intention: post.intention || null,
+        author: post.is_anonymous ? undefined : (profilesMap[post.user_id] ? {
           display_name: profilesMap[post.user_id].display_name,
           soul_title: profilesMap[post.user_id].soul_title,
           avatar_url: profilesMap[post.user_id].avatar_url,
-        } : undefined,
+        } : undefined),
         user_blessing: userBlessings[post.id] || null,
       }));
 
@@ -120,13 +135,13 @@ export function useCommunityFeed() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, energyFilter]);
 
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
 
-  const createPost = async (content: string, postType: string = 'insight', imageUrl?: string, videoUrl?: string) => {
+  const createPost = async (content: string, postType: string = 'insight', imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean) => {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
@@ -146,7 +161,9 @@ export function useCommunityFeed() {
           post_type: postType,
           image_url: imageUrl || null,
           video_url: videoUrl || null,
-        })
+          energy_tag: energyTag || null,
+          is_anonymous: isAnonymous || false,
+        } as any)
         .select()
         .single();
 
@@ -155,8 +172,10 @@ export function useCommunityFeed() {
       fetchPosts();
       
       toast({
-        title: "Shared with the Collective",
-        description: "Your message has been sent to the community ✨",
+        title: isAnonymous ? "Shared Anonymously" : "Shared with the Collective",
+        description: isAnonymous 
+          ? "Your truth has been shared anonymously ✨" 
+          : "Your message has been sent to the community ✨",
       });
       return data;
     } catch (err: any) {
