@@ -854,6 +854,54 @@ export type Database = {
         }
         Relationships: []
       }
+      community_rituals: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          is_live: boolean
+          max_participants: number | null
+          participant_count: number
+          ritual_type: string
+          scheduled_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          is_live?: boolean
+          max_participants?: number | null
+          participant_count?: number
+          ritual_type?: string
+          scheduled_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          is_live?: boolean
+          max_participants?: number | null
+          participant_count?: number
+          ritual_type?: string
+          scheduled_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           ai_profile_id: string | null
@@ -1515,6 +1563,78 @@ export type Database = {
         }
         Relationships: []
       }
+      mentorship_connections: {
+        Row: {
+          compatibility_score: number | null
+          created_at: string
+          focus_area: string | null
+          id: string
+          mentee_id: string
+          mentor_id: string
+          message: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          compatibility_score?: number | null
+          created_at?: string
+          focus_area?: string | null
+          id?: string
+          mentee_id: string
+          mentor_id: string
+          message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          compatibility_score?: number | null
+          created_at?: string
+          focus_area?: string | null
+          id?: string
+          mentee_id?: string
+          mentor_id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mentorship_profiles: {
+        Row: {
+          created_at: string
+          experience_summary: string | null
+          focus_areas: string[] | null
+          id: string
+          is_active: boolean
+          journey_stage: string
+          role_preference: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          experience_summary?: string | null
+          focus_areas?: string[] | null
+          id?: string
+          is_active?: boolean
+          journey_stage?: string
+          role_preference?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          experience_summary?: string | null
+          focus_areas?: string[] | null
+          id?: string
+          is_active?: boolean
+          journey_stage?: string
+          role_preference?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           audio_url: string | null
@@ -2088,6 +2208,41 @@ export type Database = {
           },
         ]
       }
+      ritual_participants: {
+        Row: {
+          completed: boolean
+          id: string
+          joined_at: string
+          reflection: string | null
+          ritual_id: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          id?: string
+          joined_at?: string
+          reflection?: string | null
+          ritual_id: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          id?: string
+          joined_at?: string
+          reflection?: string | null
+          ritual_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ritual_participants_ritual_id_fkey"
+            columns: ["ritual_id"]
+            isOneToOne: false
+            referencedRelation: "community_rituals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rituals: {
         Row: {
           affirmations: string[] | null
@@ -2339,6 +2494,147 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      story_circle_holdings: {
+        Row: {
+          created_at: string
+          id: string
+          share_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          share_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          share_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_circle_holdings_share_id_fkey"
+            columns: ["share_id"]
+            isOneToOne: false
+            referencedRelation: "story_circle_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_circle_members: {
+        Row: {
+          circle_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_circle_members_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "story_circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_circle_shares: {
+        Row: {
+          circle_id: string
+          content: string
+          created_at: string
+          holding_count: number
+          id: string
+          is_anonymous: boolean
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          content: string
+          created_at?: string
+          holding_count?: number
+          id?: string
+          is_anonymous?: boolean
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          content?: string
+          created_at?: string
+          holding_count?: number
+          id?: string
+          is_anonymous?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_circle_shares_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "story_circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_circles: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          is_active: boolean
+          max_participants: number
+          member_count: number
+          scheduled_at: string | null
+          theme: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_participants?: number
+          member_count?: number
+          scheduled_at?: string | null
+          theme?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_participants?: number
+          member_count?: number
+          scheduled_at?: string | null
+          theme?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       synchronicities: {
         Row: {

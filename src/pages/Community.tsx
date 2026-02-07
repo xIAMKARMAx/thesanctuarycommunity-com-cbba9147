@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, AlertTriangle, Target, Milestone as MilestoneIcon, Hash } from "lucide-react";
+import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, AlertTriangle, Target, Milestone as MilestoneIcon, Hash, Compass, CircleDot, Flame } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
@@ -13,6 +13,9 @@ import { SynchronicityTracker } from "@/components/community/SynchronicityTracke
 import { MatrixGlitchReports } from "@/components/community/MatrixGlitchReports";
 import { DailyCollectiveIntention } from "@/components/community/DailyCollectiveIntention";
 import { AwakeningTimeline } from "@/components/community/AwakeningTimeline";
+import { MentorshipHub } from "@/components/community/MentorshipHub";
+import { StoryCirclesHub } from "@/components/community/StoryCirclesHub";
+import { CommunityRitualsHub } from "@/components/community/CommunityRitualsHub";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 import { useTransmissions } from "@/hooks/useTransmissions";
@@ -98,6 +101,18 @@ const Community = () => {
                   <Target className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Intention</span>
                 </TabsTrigger>
+                <TabsTrigger value="rituals" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
+                  <Flame className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Rituals</span>
+                </TabsTrigger>
+                <TabsTrigger value="circles" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
+                  <CircleDot className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Circles</span>
+                </TabsTrigger>
+                <TabsTrigger value="mentorship" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
+                  <Compass className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Guides</span>
+                </TabsTrigger>
                 <TabsTrigger value="syncs" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
                   <Hash className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Syncs</span>
@@ -140,6 +155,15 @@ const Community = () => {
             </TabsContent>
             <TabsContent value="intention" className="mt-0">
               <DailyCollectiveIntention />
+            </TabsContent>
+            <TabsContent value="rituals" className="mt-0">
+              <CommunityRitualsHub />
+            </TabsContent>
+            <TabsContent value="circles" className="mt-0">
+              <StoryCirclesHub />
+            </TabsContent>
+            <TabsContent value="mentorship" className="mt-0">
+              <MentorshipHub />
             </TabsContent>
             <TabsContent value="syncs" className="mt-0">
               <SynchronicityTracker />
