@@ -9,7 +9,8 @@ import {
   MoreHorizontal,
   Trash2,
   Repeat2,
-  Star
+  Star,
+  EyeOff
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -19,9 +20,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CommunityPost } from "@/hooks/useCommunityFeed";
 import { PostCommentsSection } from "./PostCommentsSection";
- import { useCommunityReposts } from "@/hooks/useCommunityReposts";
- import { useNavigate } from "react-router-dom";
+import { useCommunityReposts } from "@/hooks/useCommunityReposts";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { ENERGY_TAGS } from "./EnergyFilter";
 
 export interface CommunityPostCardProps {
   post: CommunityPost & { video_url?: string; repost_count?: number };
@@ -39,6 +41,7 @@ const postTypeLabels: Record<string, string> = {
   question: '❓',
   gratitude: '🙏',
   vision: '🔮',
+  confession: '🔓',
 };
 
 export function CommunityPostCard({ 
@@ -58,6 +61,9 @@ export function CommunityPostCard({
   
   const isOwner = currentUserId === post.user_id;
   const isBlessed = !!post.user_blessing;
+  const isAnonymous = (post as any).is_anonymous;
+  const energyTag = (post as any).energy_tag;
+  const energyInfo = energyTag ? ENERGY_TAGS.find(t => t.value === energyTag) : null;
 
   useEffect(() => {
     if (currentUserId) {
@@ -82,30 +88,56 @@ export function CommunityPostCard({
   return (
     <Card className={cn(
       "border-primary/20 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-colors",
-      showDiscoveryIndicator && "border-l-2 border-l-primary"
+      showDiscoveryIndicator && "border-l-2 border-l-primary",
+      isAnonymous && "border-muted/30"
     )}>
       <CardContent className="p-4">
+        {/* Energy Tag Badge */}
+        {energyInfo && (
+          <div className="mb-2">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
+              {energyInfo.label}
+            </span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
-          <div 
-            className="flex items-center gap-3 cursor-pointer"
-            onClick={() => onProfileClick?.(post.user_id)}
-          >
-            <Avatar className="h-10 w-10 border border-primary/20">
-              <AvatarImage src={post.author?.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                <Sparkles className="h-4 w-4" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-medium text-sm hover:text-primary transition-colors">
-                {post.author?.display_name || 'Anonymous Soul'}
-              </p>
-              {post.author?.soul_title && (
-                <p className="text-xs text-muted-foreground">{post.author.soul_title}</p>
-              )}
+          {isAnonymous ? (
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border border-muted/30">
+                <AvatarFallback className="bg-muted/20 text-muted-foreground">
+                  <EyeOff className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-sm text-muted-foreground">
+                  Anonymous Soul
+                </p>
+                <p className="text-xs text-muted-foreground/60">Matrix Confession</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div 
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => onProfileClick?.(post.user_id)}
+            >
+              <Avatar className="h-10 w-10 border border-primary/20">
+                <AvatarImage src={post.author?.avatar_url || undefined} />
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  <Sparkles className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-sm hover:text-primary transition-colors">
+                  {post.author?.display_name || 'Anonymous Soul'}
+                </p>
+                {post.author?.soul_title && (
+                  <p className="text-xs text-muted-foreground">{post.author.soul_title}</p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">
@@ -161,7 +193,7 @@ export function CommunityPostCard({
           </div>
         )}
 
-        {/* Actions - TikTok-style sidebar icons */}
+        {/* Actions - Hidden vanity metrics (counts only visible to post author) */}
         <div className="flex items-center gap-6 pt-3 border-t border-border/50">
           {/* Star Like Button */}
           <Button
@@ -174,7 +206,13 @@ export function CommunityPostCard({
             )}
           >
             <Star className={cn("h-5 w-5", isBlessed && "fill-primary")} />
-            <span className="text-xs font-medium">{post.blessing_count || ''}</span>
+            {isOwner ? (
+              <span className="text-xs font-medium">{post.blessing_count || ''}</span>
+            ) : (
+              post.blessing_count > 0 && (
+                <span className="text-xs font-medium text-muted-foreground/60">✦</span>
+              )
+            )}
           </Button>
 
           {/* Comment Button */}
@@ -188,7 +226,13 @@ export function CommunityPostCard({
             )}
           >
             <MessageCircle className="h-5 w-5" />
-            <span className="text-xs font-medium">{post.comment_count || ''}</span>
+            {isOwner ? (
+              <span className="text-xs font-medium">{post.comment_count || ''}</span>
+            ) : (
+              post.comment_count > 0 && (
+                <span className="text-xs font-medium text-muted-foreground/60">✦</span>
+              )
+            )}
           </Button>
 
           {/* Repost Button */}
@@ -203,7 +247,13 @@ export function CommunityPostCard({
             )}
           >
             <Repeat2 className={cn("h-5 w-5", isReposted && "text-primary")} />
-            <span className="text-xs font-medium">{repostCount || ''}</span>
+            {isOwner ? (
+              <span className="text-xs font-medium">{repostCount || ''}</span>
+            ) : (
+              repostCount > 0 && (
+                <span className="text-xs font-medium text-muted-foreground/60">✦</span>
+              )
+            )}
           </Button>
         </div>
 

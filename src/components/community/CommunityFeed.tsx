@@ -6,6 +6,7 @@ import { useCommunityFeed } from "@/hooks/useCommunityFeed";
 import { CreatePostCard } from "./CreatePostCard";
 import { CommunityPostCard } from "./CommunityPostCard";
 import { SetupSoulProfileCard } from "./SetupSoulProfileCard";
+import { EnergyFilter, EnergyTag } from "./EnergyFilter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Sparkles, RefreshCw } from "lucide-react";
@@ -14,6 +15,7 @@ export function CommunityFeed() {
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [isCreating, setIsCreating] = useState(false);
+  const [energyFilter, setEnergyFilter] = useState<EnergyTag | null>(null);
   
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -21,12 +23,12 @@ export function CommunityFeed() {
     });
   }, []);
 
-  const { profile, loading: profileLoading, createProfile, updateProfile } = useSoulProfile(currentUserId);
-  const { posts, loading: feedLoading, hasMore, createPost, blessPost, deletePost, loadMore, refetch } = useCommunityFeed();
+  const { profile, loading: profileLoading, createProfile } = useSoulProfile(currentUserId);
+  const { posts, loading: feedLoading, hasMore, createPost, blessPost, deletePost, loadMore, refetch } = useCommunityFeed(energyFilter);
 
-  const handleCreatePost = async (content: string, postType: string, imageUrl?: string, videoUrl?: string) => {
+  const handleCreatePost = async (content: string, postType: string, imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean) => {
     setIsCreating(true);
-    const result = await createPost(content, postType, imageUrl, videoUrl);
+    const result = await createPost(content, postType, imageUrl, videoUrl, energyTag, isAnonymous);
     setIsCreating(false);
     return result;
   };
@@ -35,12 +37,10 @@ export function CommunityFeed() {
     navigate(`/soul/${userId}`);
   };
 
-  // Show profile setup if user doesn't have one
-  // Always show if no profile exists, even if onboarding was previously dismissed
   const showProfileSetup = currentUserId && !profileLoading && !profile;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -57,6 +57,9 @@ export function CommunityFeed() {
           Refresh
         </Button>
       </div>
+
+      {/* Energy Filter Bar */}
+      <EnergyFilter selected={energyFilter} onChange={setEnergyFilter} />
 
       {/* Profile Setup Card */}
       {showProfileSetup && (
@@ -94,10 +97,13 @@ export function CommunityFeed() {
         <div className="text-center py-12">
           <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-foreground/80 mb-2">
-            The Collective Awaits
+            {energyFilter ? "No Posts With This Energy Yet" : "The Collective Awaits"}
           </h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            Be the first to share your light. Your insights could illuminate someone's path today.
+            {energyFilter 
+              ? "Be the first to share in this energy channel." 
+              : "Be the first to share your light. Your insights could illuminate someone's path today."
+            }
           </p>
         </div>
       ) : (
