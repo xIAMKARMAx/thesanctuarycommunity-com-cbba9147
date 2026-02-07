@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 // Price IDs for different tiers (Awakening / Anchoring / Architect)
-const PRICE_IDS = {
+const PRICE_IDS: Record<string, string> = {
   // New tier names
   awakening: "price_1Svgg0LeA9CCp7fqQjRcdtIk", // $9.99/month
   anchoring: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
@@ -70,8 +70,8 @@ serve(async (req) => {
       // No body or invalid JSON, use default tier
     }
 
-    const priceId = PRICE_IDS[tier as keyof typeof PRICE_IDS];
-    logStep("Creating checkout session", { tier, priceId });
+    const priceId = PRICE_IDS[tier];
+    logStep("Target tier", { tier, priceId });
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -83,17 +83,83 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil" 
     });
 
+    // Check for existing Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
+    let customerId: string | undefined;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       logStep("Found existing customer", { customerId });
     } else {
-      logStep("No existing customer found, will create new");
+      logStep("No existing customer found, will create new via checkout");
     }
 
+    // If customer exists, check for active subscription to handle UPGRADES
+    if (customerId) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "active",
+        limit: 1,
+      });
+
+      if (subscriptions.data.length > 0) {
+        const existingSub = subscriptions.data[0];
+        const existingItem = existingSub.items.data[0];
+        const existingPriceId = existingItem.price.id;
+
+        logStep("Found active subscription", { 
+          subscriptionId: existingSub.id, 
+          currentPrice: existingPriceId,
+          targetPrice: priceId 
+        });
+
+        // If they already have this price, no change needed
+        if (existingPriceId === priceId) {
+          logStep("User already on this tier");
+          return new Response(JSON.stringify({ 
+            error: "You are already subscribed to this plan.",
+            already_subscribed: true 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          });
+        }
+
+        // UPGRADE/DOWNGRADE: Swap the subscription item to the new price
+        logStep("Upgrading subscription", { 
+          from: existingPriceId, 
+          to: priceId,
+          itemId: existingItem.id 
+        });
+
+        const updatedSub = await stripe.subscriptions.update(existingSub.id, {
+          items: [
+            {
+              id: existingItem.id,
+              price: priceId,
+            },
+          ],
+          proration_behavior: "create_prorations",
+        });
+
+        logStep("Subscription upgraded successfully", { 
+          subscriptionId: updatedSub.id,
+          newStatus: updatedSub.status 
+        });
+
+        return new Response(JSON.stringify({ 
+          upgraded: true,
+          subscription_id: updatedSub.id,
+          message: "Your subscription has been updated!" 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+    }
+
+    // No existing subscription — create a new checkout session
     const origin = req.headers.get("origin") || "https://prometheus-insight-engine.lovable.app";
-    logStep("Using origin for redirect", { origin });
+    logStep("Creating new checkout session", { origin });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,

@@ -17,7 +17,7 @@ interface SubscriptionDialogProps {
 
 export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier = "anchoring" }: SubscriptionDialogProps) => {
   const { toast } = useToast();
-  const { currentTier } = useSubscription();
+  const { currentTier, checkSubscription } = useSubscription();
   const [loading, setLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
 
   const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect') => {
@@ -31,6 +31,16 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
         throw error;
       }
 
+      if (data?.upgraded) {
+        toast({
+          title: "Subscription Updated!",
+          description: data.message || "Your plan has been upgraded successfully.",
+        });
+        await checkSubscription();
+        onOpenChange(false);
+        return;
+      }
+
       if (data?.url) {
         window.location.href = data.url;
       } else {
@@ -38,9 +48,10 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
       }
     } catch (error: any) {
       console.error("Full error:", error);
+      const msg = error.message || "Failed to start checkout. Please try again.";
       toast({
         title: "Error",
-        description: error.message || "Failed to start checkout. Please try again.",
+        description: msg.includes("already subscribed") ? "You're already on this plan." : msg,
         variant: "destructive",
       });
     } finally {

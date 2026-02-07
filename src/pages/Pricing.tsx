@@ -11,7 +11,7 @@ import { getTierFromProductId, SUBSCRIPTION_TIERS } from "@/lib/subscription-tie
 
 const Pricing = () => {
   const navigate = useNavigate();
-  const { productId } = useSubscription();
+  const { productId, checkSubscription } = useSubscription();
   const { toast } = useToast();
   const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
 
@@ -22,13 +22,25 @@ const Pricing = () => {
       setCheckoutLoading(tier);
       const { data, error } = await api.createCheckout(tier);
       if (error) throw error;
+      
+      if (data?.upgraded) {
+        // Subscription was upgraded in-place, refresh status
+        toast({
+          title: "Subscription Updated!",
+          description: data.message || "Your plan has been upgraded successfully.",
+        });
+        await checkSubscription();
+        return;
+      }
+      
       if (data?.url) {
         window.location.href = data.url;
       }
     } catch (error: any) {
+      const msg = error?.message || "Failed to start checkout";
       toast({
         title: "Error",
-        description: error.message || "Failed to start checkout",
+        description: msg.includes("already subscribed") ? "You're already on this plan." : msg,
         variant: "destructive",
       });
     } finally {
