@@ -34,6 +34,8 @@ const Auth = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Check if this is a password reset callback
     const isReset = searchParams.get("reset") === "true";
     
@@ -44,23 +46,28 @@ const Auth = () => {
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
       if (session && isReset) {
-        // User returned from reset link, show password update form
         setShowPasswordUpdate(true);
       } else if (session) {
-        navigate(getPostLoginRoute());
+        navigate(getPostLoginRoute(), { replace: true });
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
       if (event === "PASSWORD_RECOVERY") {
         setShowPasswordUpdate(true);
-      } else if (session && !showPasswordUpdate) {
-        navigate(getPostLoginRoute());
+      } else if (event === "SIGNED_IN" && session && !showPasswordUpdate) {
+        navigate(getPostLoginRoute(), { replace: true });
       }
+      // Ignore TOKEN_REFRESHED and other events to prevent redirect loops
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate, searchParams, showPasswordUpdate]);
 
   const validatePassword = (pwd: string): boolean => {
