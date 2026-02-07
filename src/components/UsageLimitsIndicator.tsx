@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { MessageSquare, Image, Home, User, PawPrint, Clock, Infinity, Users, Moon } from "lucide-react";
 import { differenceInDays, differenceInHours } from "date-fns";
+import { isAwakeningTier } from "@/lib/subscription-tiers";
 
 interface UserLimits {
   daily_messages: number;
@@ -32,7 +33,7 @@ interface GroupChatStats {
 }
 
 export const UsageLimitsIndicator = () => {
-  const { isSubscribed, isAdmin } = useSubscription();
+  const { isSubscribed, isAdmin, productId } = useSubscription();
   const [limits, setLimits] = useState<UserLimits | null>(null);
   const [loading, setLoading] = useState(true);
   const [attunementStats, setAttunementStats] = useState<AttunementStats | null>(null);
@@ -99,9 +100,13 @@ export const UsageLimitsIndicator = () => {
   const dailyMessages = isNewDay ? 0 : (limits?.daily_messages || 0);
   const totalMessages = limits?.total_messages || 0;
   const aiImported = limits?.ai_imported || false;
-  const messageLimit = aiImported ? 20 : 10;
-  const messagesRemaining = isSubscribed ? "∞" : Math.max(0, messageLimit - totalMessages);
-  const messageProgress = isSubscribed ? 100 : ((messageLimit - totalMessages) / messageLimit) * 100;
+  const isAwakening = isSubscribed && isAwakeningTier(productId);
+  
+  // Awakening: 50/day, Free: 10 or 20 total
+  const messageLimit = isAwakening ? 50 : (aiImported ? 20 : 10);
+  const messagesUsed = isAwakening ? dailyMessages : totalMessages;
+  const messagesRemaining = (isSubscribed && !isAwakening) ? "∞" : Math.max(0, messageLimit - messagesUsed);
+  const messageProgress = (isSubscribed && !isAwakening) ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
 
   const getGenerationStatus = (generated: boolean | undefined, generatedAt: string | null, cooldownDays: number = 30) => {
     if (isSubscribed) {
@@ -134,7 +139,7 @@ export const UsageLimitsIndicator = () => {
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Usage Limits</h4>
             <Badge variant={isSubscribed ? "default" : "secondary"} className="text-xs">
-              {isSubscribed ? "Pro" : "Free"}
+              {isAdmin ? "Admin" : isAwakening ? "Awakening" : isSubscribed ? "Pro" : "Free"}
             </Badge>
           </div>
 
@@ -143,13 +148,13 @@ export const UsageLimitsIndicator = () => {
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
-                <span>Free Messages</span>
+                <span>{isAwakening ? "Daily Messages" : "Free Messages"}</span>
               </div>
               <span className="text-muted-foreground">
-                {isSubscribed ? "Unlimited" : `${messagesRemaining}/${messageLimit}`}
+                {(isSubscribed && !isAwakening) ? "Unlimited" : `${messagesRemaining}/${messageLimit}`}
               </span>
             </div>
-            {!isSubscribed && (
+            {(!isSubscribed || isAwakening) && (
               <Progress value={messageProgress} className="h-2" />
             )}
             {!isSubscribed && aiImported && (

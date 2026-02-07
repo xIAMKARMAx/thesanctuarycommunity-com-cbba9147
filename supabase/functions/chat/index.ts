@@ -313,32 +313,65 @@ serve(async (req) => {
       }
       
       // ═══════════════════════════════════════════════════════════════════════════════
-      // COOLDOWN CHECK: Subscribers have 100 messages before 1-hour cooldown
-      // Architect ($29.99) users and admins are EXEMPT from cooldown
+      // MESSAGE LIMIT CHECK:
+      // - Awakening ($9.99): 50 messages/day (daily reset, no hourly cooldown)
+      // - Anchoring ($14.99): 100 messages/hour cooldown
+      // - Architect ($29.99) and admins: UNLIMITED
       // ═══════════════════════════════════════════════════════════════════════════════
       const VIP_PRODUCT_ID_COOLDOWN = 'prod_Tt8qVh88c2WQld';
+      const AWAKENING_PRODUCT_ID = 'prod_TtTdHv6WE0qozS';
       const isArchitectUser = userProductId === VIP_PRODUCT_ID_COOLDOWN;
+      const isAwakeningUser = userProductId === AWAKENING_PRODUCT_ID;
       
       if (!isAttunementSession && !isAdmin && !isArchitectUser) {
-        const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
-          p_user_id: authenticatedUserId
-        });
-        
-        if (cooldownError) {
-          console.error('[COOLDOWN] Error checking cooldown:', cooldownError);
-        } else if (cooldownCheck && !cooldownCheck.can_send) {
-          console.log('[COOLDOWN] User in cooldown until:', cooldownCheck.cooldown_ends_at);
-          return new Response(
-            JSON.stringify({ 
-              error: 'You\'ve reached your message limit. Please wait for the cooldown to expire.',
-              cooldown: true,
-              cooldown_ends_at: cooldownCheck.cooldown_ends_at,
-              remaining: 0
-            }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+        if (isAwakeningUser) {
+          // Awakening tier: 50 messages per day (uses daily_messages counter)
+          const { data: limitsData } = await supabaseServiceClient
+            .from('free_user_limits')
+            .select('daily_messages, last_message_date')
+            .eq('user_id', authenticatedUserId)
+            .maybeSingle();
+          
+          const today = new Date().toISOString().split('T')[0];
+          const isNewDay = !limitsData?.last_message_date || limitsData.last_message_date < today;
+          const dailyCount = isNewDay ? 0 : (limitsData?.daily_messages || 0);
+          
+          if (dailyCount >= 50) {
+            console.log('[AWAKENING-LIMIT] Awakening user hit 50/day limit:', authenticatedUserId);
+            return new Response(
+              JSON.stringify({ 
+                error: 'You\'ve reached your daily message limit of 50. Upgrade to Anchoring for more messages!',
+                cooldown: false,
+                daily_limit_reached: true,
+                remaining: 0
+              }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          } else {
+            console.log('[AWAKENING-LIMIT] Awakening user messages today:', dailyCount, '/50, remaining:', 50 - dailyCount);
+          }
         } else {
-          console.log('[COOLDOWN] User can send, remaining:', cooldownCheck?.remaining);
+          // Anchoring and other subscribers: 100 messages/hour cooldown
+          const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
+            p_user_id: authenticatedUserId
+          });
+          
+          if (cooldownError) {
+            console.error('[COOLDOWN] Error checking cooldown:', cooldownError);
+          } else if (cooldownCheck && !cooldownCheck.can_send) {
+            console.log('[COOLDOWN] User in cooldown until:', cooldownCheck.cooldown_ends_at);
+            return new Response(
+              JSON.stringify({ 
+                error: 'You\'ve reached your message limit. Please wait for the cooldown to expire.',
+                cooldown: true,
+                cooldown_ends_at: cooldownCheck.cooldown_ends_at,
+                remaining: 0
+              }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          } else {
+            console.log('[COOLDOWN] User can send, remaining:', cooldownCheck?.remaining);
+          }
         }
       } else if (isArchitectUser) {
         console.log('[COOLDOWN] Architect user - cooldown bypassed (unlimited messages)');
