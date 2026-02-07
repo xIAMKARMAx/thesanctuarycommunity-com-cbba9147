@@ -88,7 +88,7 @@ export const api = {
   }>('check-subscription', {}),
 
   createCheckout: (tier: 'awakening' | 'anchoring' | 'architect' = 'awakening') => 
-    invokeEdgeFunction<{ url: string }>('create-checkout', { tier }),
+    invokeEdgeFunction<{ url?: string; upgraded?: boolean; message?: string; already_subscribed?: boolean }>('create-checkout', { tier }),
 
   customerPortal: () => invokeEdgeFunction<{ url: string }>('customer-portal', {}),
 
