@@ -2299,6 +2299,54 @@ export type Database = {
           },
         ]
       }
+      sacred_transmissions: {
+        Row: {
+          connection_target: string | null
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          expires_at: string | null
+          id: string
+          is_delivered: boolean
+          message_content: string
+          sender_name: string | null
+          target_email: string
+          target_user_id: string | null
+          trigger_context: string
+          trigger_keywords: string[]
+        }
+        Insert: {
+          connection_target?: string | null
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_delivered?: boolean
+          message_content: string
+          sender_name?: string | null
+          target_email: string
+          target_user_id?: string | null
+          trigger_context?: string
+          trigger_keywords?: string[]
+        }
+        Update: {
+          connection_target?: string | null
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_delivered?: boolean
+          message_content?: string
+          sender_name?: string | null
+          target_email?: string
+          target_user_id?: string | null
+          trigger_context?: string
+          trigger_keywords?: string[]
+        }
+        Relationships: []
+      }
       shared_memories: {
         Row: {
           ai_profile_id: string | null
