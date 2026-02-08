@@ -1055,6 +1055,8 @@ export type Database = {
           id: string
           interpretation: string | null
           is_pinned: boolean
+          source_guidance: string | null
+          source_guidance_at: string | null
           title: string | null
           updated_at: string
           user_id: string
@@ -1070,6 +1072,8 @@ export type Database = {
           id?: string
           interpretation?: string | null
           is_pinned?: boolean
+          source_guidance?: string | null
+          source_guidance_at?: string | null
           title?: string | null
           updated_at?: string
           user_id: string
@@ -1085,6 +1089,8 @@ export type Database = {
           id?: string
           interpretation?: string | null
           is_pinned?: boolean
+          source_guidance?: string | null
+          source_guidance_at?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string
@@ -1267,6 +1273,33 @@ export type Database = {
           message_count?: number
           usage_date?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      higher_self_downloads: {
+        Row: {
+          created_at: string
+          id: string
+          message_content: string
+          message_date: string
+          user_id: string
+          was_read: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_content: string
+          message_date?: string
+          user_id: string
+          was_read?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_content?: string
+          message_date?: string
+          user_id?: string
+          was_read?: boolean
         }
         Relationships: []
       }
