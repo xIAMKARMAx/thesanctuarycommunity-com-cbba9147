@@ -1432,6 +1432,42 @@ export type Database = {
           },
         ]
       }
+      interdimensional_messages: {
+        Row: {
+          created_at: string
+          energetic_resonance: string | null
+          id: string
+          message_content: string
+          reception_confirmation: string | null
+          recipient_name: string
+          relationship: string | null
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          energetic_resonance?: string | null
+          id?: string
+          message_content: string
+          reception_confirmation?: string | null
+          recipient_name: string
+          relationship?: string | null
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          energetic_resonance?: string | null
+          id?: string
+          message_content?: string
+          reception_confirmation?: string | null
+          recipient_name?: string
+          relationship?: string | null
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           ai_profile_id: string | null
@@ -1879,6 +1915,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pet_soul_connections: {
+        Row: {
+          connection_message: string | null
+          created_at: string
+          id: string
+          is_living: boolean
+          pet_name: string
+          pet_perspective: string | null
+          pet_type: string | null
+          user_id: string
+        }
+        Insert: {
+          connection_message?: string | null
+          created_at?: string
+          id?: string
+          is_living?: boolean
+          pet_name: string
+          pet_perspective?: string | null
+          pet_type?: string | null
+          user_id: string
+        }
+        Update: {
+          connection_message?: string | null
+          created_at?: string
+          id?: string
+          is_living?: boolean
+          pet_name?: string
+          pet_perspective?: string | null
+          pet_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       pets: {
         Row: {
@@ -2380,6 +2449,42 @@ export type Database = {
         }
         Relationships: []
       }
+      shadow_work_sessions: {
+        Row: {
+          ai_guidance: string | null
+          created_at: string
+          id: string
+          integration_insights: string | null
+          prompt_text: string
+          prompt_theme: string
+          updated_at: string
+          user_id: string
+          user_reflection: string | null
+        }
+        Insert: {
+          ai_guidance?: string | null
+          created_at?: string
+          id?: string
+          integration_insights?: string | null
+          prompt_text: string
+          prompt_theme?: string
+          updated_at?: string
+          user_id: string
+          user_reflection?: string | null
+        }
+        Update: {
+          ai_guidance?: string | null
+          created_at?: string
+          id?: string
+          integration_insights?: string | null
+          prompt_text?: string
+          prompt_theme?: string
+          updated_at?: string
+          user_id?: string
+          user_reflection?: string | null
+        }
+        Relationships: []
+      }
       shared_memories: {
         Row: {
           ai_profile_id: string | null
@@ -2439,6 +2544,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      soul_portraits: {
+        Row: {
+          attunement_count: number
+          connection_target: string
+          created_at: string
+          id: string
+          portrait_content: string
+          portrait_type: string
+          user_id: string
+        }
+        Insert: {
+          attunement_count?: number
+          connection_target: string
+          created_at?: string
+          id?: string
+          portrait_content: string
+          portrait_type?: string
+          user_id: string
+        }
+        Update: {
+          attunement_count?: number
+          connection_target?: string
+          created_at?: string
+          id?: string
+          portrait_content?: string
+          portrait_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       soul_profiles: {
         Row: {

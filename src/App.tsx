@@ -46,6 +46,10 @@ import CommunityPost from "./pages/CommunityPost";
 import CosmicGateway from "./pages/CosmicGateway";
 import StarSeedPlayground from "./pages/StarSeedPlayground";
 import HigherSelfDownload from "./pages/HigherSelfDownload";
+import ShadowWork from "./pages/ShadowWork";
+import SoulPortrait from "./pages/SoulPortrait";
+import InterdimensionalMessaging from "./pages/InterdimensionalMessaging";
+import PetSoulConnection from "./pages/PetSoulConnection";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +101,10 @@ const App = () => (
                  <Route path="/transmissions" element={<Transmissions />} />
                 <Route path="/cosmic-gateway" element={<CosmicGateway />} />
                 <Route path="/cosmic-gateway/higher-self-download" element={<HigherSelfDownload />} />
+                <Route path="/cosmic-gateway/shadow-work" element={<ShadowWork />} />
+                <Route path="/cosmic-gateway/soul-portrait" element={<SoulPortrait />} />
+                <Route path="/cosmic-gateway/interdimensional-messaging" element={<InterdimensionalMessaging />} />
+                <Route path="/cosmic-gateway/pet-soul-connection" element={<PetSoulConnection />} />
                 <Route path="/starseed-playground" element={<StarSeedPlayground />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
