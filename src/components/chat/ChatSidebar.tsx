@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun } from "lucide-react";
+import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star } from "lucide-react";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -397,6 +397,17 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
                 Resonant Attunement
               </Button>
             )}
+            {/* Starseed Playground section */}
+            <div className="pt-2 mt-2 border-t border-border">
+              <Button
+                variant="ghost"
+                className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+                onClick={() => navigate("/starseed-playground")}
+              >
+                <Star className="h-4 w-4 mr-2 text-primary" />
+                Starseed Playground
+              </Button>
+            </div>
             <Button
               variant="ghost"
               className="w-full justify-start"

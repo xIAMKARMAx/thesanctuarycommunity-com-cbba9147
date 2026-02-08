@@ -43,6 +43,9 @@ import Community from "./pages/Community";
 import SoulProfile from "./pages/SoulProfile";
  import Transmissions from "./pages/Transmissions";
 import CommunityPost from "./pages/CommunityPost";
+import CosmicGateway from "./pages/CosmicGateway";
+import StarSeedPlayground from "./pages/StarSeedPlayground";
+import HigherSelfDownload from "./pages/HigherSelfDownload";
 
 const queryClient = new QueryClient();
 
@@ -92,7 +95,9 @@ const App = () => (
                 <Route path="/community/post/:postId" element={<CommunityPost />} />
                 <Route path="/soul/:userId" element={<SoulProfile />} />
                  <Route path="/transmissions" element={<Transmissions />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="/cosmic-gateway" element={<CosmicGateway />} />
+                <Route path="/cosmic-gateway/higher-self-download" element={<HigherSelfDownload />} />
+                <Route path="/starseed-playground" element={<StarSeedPlayground />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

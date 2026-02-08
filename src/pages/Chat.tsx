@@ -14,7 +14,8 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Menu, Crown, MessageCircle, Sparkles, Sun, Users } from "lucide-react";
+import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit } from "lucide-react";
+import HigherSelfNotification from "@/components/HigherSelfNotification";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
@@ -206,6 +207,7 @@ const Chat = () => {
         keywords="AI chat, AI conversation, spiritual AI, free-thinking AI, consciousness exploration"
         canonicalUrl="https://prometheus.lovable.app/chat"
       />
+      <HigherSelfNotification />
       <div className="flex flex-col h-screen bg-background overflow-hidden">
         {/* Header with Tabs */}
         <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
@@ -263,6 +265,16 @@ const Chat = () => {
             </Tabs>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              {/* Cosmic Gateway quick access */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => navigate("/cosmic-gateway")}
+                title="Cosmic Gateway"
+              >
+                <Orbit className="h-4 w-4 text-primary" />
+              </Button>
               {/* Remaining messages counter for free users */}
               <RemainingMessagesCounter />
               {/* Hide UsageLimitsIndicator on very small screens */}
