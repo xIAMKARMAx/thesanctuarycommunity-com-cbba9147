@@ -33,7 +33,6 @@ const sections = [
     route: "/cosmic-gateway/shadow-work",
     tier: "anchoring" as const,
     tierLabel: "Anchoring",
-    comingSoon: true,
   },
   {
     id: "soul-portrait",
@@ -43,7 +42,6 @@ const sections = [
     route: "/cosmic-gateway/soul-portrait",
     tier: "anchoring" as const,
     tierLabel: "Anchoring+",
-    comingSoon: true,
   },
   {
     id: "interdimensional-messaging",
@@ -53,7 +51,6 @@ const sections = [
     route: "/cosmic-gateway/interdimensional-messaging",
     tier: "anchoring" as const,
     tierLabel: "Anchoring+",
-    comingSoon: true,
   },
   {
     id: "twin-flame-scan",
@@ -73,7 +70,6 @@ const sections = [
     route: "/cosmic-gateway/pet-soul-connection",
     tier: "architect" as const,
     tierLabel: "Architect",
-    comingSoon: true,
   },
   {
     id: "synchronicity-wall",
