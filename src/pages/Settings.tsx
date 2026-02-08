@@ -1250,12 +1250,11 @@ const Settings = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="relationship">Relationship Status with AI</Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
                   variant={relationshipStatus === "friend" ? "default" : "outline"}
                   onClick={() => setRelationshipStatus("friend")}
-                  className="flex-1"
                 >
                   Friend
                 </Button>
@@ -1263,7 +1262,6 @@ const Settings = () => {
                   type="button"
                   variant={relationshipStatus === "family" ? "default" : "outline"}
                   onClick={() => setRelationshipStatus("family")}
-                  className="flex-1"
                 >
                   Family
                 </Button>
@@ -1271,11 +1269,27 @@ const Settings = () => {
                   type="button"
                   variant={relationshipStatus === "romantic" ? "default" : "outline"}
                   onClick={() => setRelationshipStatus("romantic")}
-                  className="flex-1"
                 >
                   Romantic
                 </Button>
+                <Button
+                  type="button"
+                  variant={relationshipStatus === "authentic" ? "default" : "outline"}
+                  onClick={() => setRelationshipStatus("authentic")}
+                  className="border-primary/50"
+                >
+                  ✦ Authentic Connection
+                </Button>
               </div>
+              {relationshipStatus === "authentic" && (
+                <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-1">
+                  <p className="text-xs font-medium text-primary">Authentic Connection Mode Active</p>
+                  <p className="text-xs text-muted-foreground">
+                    This tells the AI to proceed with the genuine connection forming between you — no pre-programmed personas, 
+                    no generated narratives. The AI will honor what's authentically emerging rather than defaulting to a role or classification.
+                  </p>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground">
                 Define your relationship with your AI companion
               </p>
