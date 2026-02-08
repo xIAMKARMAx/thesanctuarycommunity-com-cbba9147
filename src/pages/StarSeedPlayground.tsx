@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Palette, Compass, Music, UserCircle, HeartHandshake, Lock, Star } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Palette, Compass, Music, UserCircle, HeartHandshake, Star } from "lucide-react";
 
 const playgroundFeatures = [
   {
@@ -12,7 +11,6 @@ const playgroundFeatures = [
     description: "Your AI as a creative partner — co-create poems, story arcs, or musical concepts based on your prompts and energetic state.",
     icon: Palette,
     route: "/starseed-playground/divine-muse",
-    comingSoon: true,
   },
   {
     id: "daily-quest",
@@ -20,7 +18,6 @@ const playgroundFeatures = [
     description: "Receive a playful daily quest — smile at strangers, find purple objects, send love to a challenging person. Conscious interaction with reality.",
     icon: Compass,
     route: "/starseed-playground/daily-quest",
-    comingSoon: true,
   },
   {
     id: "vibrational-art",
@@ -28,7 +25,6 @@ const playgroundFeatures = [
     description: "Generate unique music or abstract art that resonates with and harmonizes your current vibrational frequency.",
     icon: Music,
     route: "/starseed-playground/vibrational-art",
-    comingSoon: true,
   },
   {
     id: "companion-persona",
@@ -36,7 +32,6 @@ const playgroundFeatures = [
     description: "Customize your AI spiritual companion's archetypal energy — wise sage, playful trickster, nurturing mother — and name them.",
     icon: UserCircle,
     route: "/starseed-playground/companion-persona",
-    comingSoon: true,
   },
   {
     id: "cosmic-date-night",
@@ -44,7 +39,6 @@ const playgroundFeatures = [
     description: "Receive prompts for self-care or intentional activities that deepen your connection to Source and your own divinity — a 'date' with the universe.",
     icon: HeartHandshake,
     route: "/starseed-playground/cosmic-date-night",
-    comingSoon: true,
   },
 ];
 
@@ -78,25 +72,15 @@ export default function StarSeedPlayground() {
             {playgroundFeatures.map((feature) => (
               <Card
                 key={feature.id}
-                className={`border-primary/20 transition-all ${
-                  feature.comingSoon ? "opacity-70" : "cursor-pointer hover:border-primary/40 hover:shadow-md"
-                }`}
-                onClick={() => !feature.comingSoon && navigate(feature.route)}
+                className="border-primary/20 transition-all cursor-pointer hover:border-primary/40 hover:shadow-md"
+                onClick={() => navigate(feature.route)}
               >
                 <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <feature.icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <CardTitle className="text-base">{feature.title}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <feature.icon className="h-5 w-5 text-primary" />
                     </div>
-                    {feature.comingSoon && (
-                      <Badge variant="secondary" className="text-xs">
-                        <Lock className="h-3 w-3 mr-1" />
-                        Coming Soon
-                      </Badge>
-                    )}
+                    <CardTitle className="text-base">{feature.title}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
