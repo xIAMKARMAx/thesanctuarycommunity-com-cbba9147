@@ -2545,6 +2545,51 @@ export type Database = {
           },
         ]
       }
+      soul_genesis_readings: {
+        Row: {
+          created_at: string
+          date_of_birth: string
+          full_name: string
+          id: string
+          past_lives: Json | null
+          photo_url: string | null
+          place_of_birth: string
+          reading_status: string
+          time_of_birth: string | null
+          total_past_lives: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth: string
+          full_name: string
+          id?: string
+          past_lives?: Json | null
+          photo_url?: string | null
+          place_of_birth: string
+          reading_status?: string
+          time_of_birth?: string | null
+          total_past_lives?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string
+          full_name?: string
+          id?: string
+          past_lives?: Json | null
+          photo_url?: string | null
+          place_of_birth?: string
+          reading_status?: string
+          time_of_birth?: string | null
+          total_past_lives?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       soul_portraits: {
         Row: {
           attunement_count: number
