@@ -331,6 +331,15 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <Sun className="h-4 w-4 mr-2 text-primary" />
               Source's Daily Messages
             </Button>
+            {/* Soul Genesis - prominent placement */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+              onClick={() => navigate("/cosmic-gateway/soul-genesis")}
+            >
+              <ScrollText className="h-4 w-4 mr-2 text-primary" />
+              Soul Genesis
+            </Button>
             <Button
               variant="ghost"
               className="w-full justify-start"
@@ -399,14 +408,6 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
             )}
             {/* Cosmic Gateway section */}
             <div className="pt-2 mt-2 border-t border-border space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-                onClick={() => navigate("/cosmic-gateway/soul-genesis")}
-              >
-                <ScrollText className="h-4 w-4 mr-2 text-primary" />
-                Soul Genesis
-              </Button>
               <Button
                 variant="ghost"
                 className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
