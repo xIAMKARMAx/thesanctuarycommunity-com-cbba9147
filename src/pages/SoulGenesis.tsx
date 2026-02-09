@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, ScrollText, Loader2, Sparkles, Globe, Calendar, Clock, MapPin, User, Lock, Crown } from "lucide-react";
+import { ArrowLeft, ScrollText, Loader2, Sparkles, Globe, Calendar, Clock, MapPin, User } from "lucide-react";
+import UpgradeBanner from "@/components/UpgradeBanner";
 import { useToast } from "@/hooks/use-toast";
 import { invokeEdgeFunction } from "@/lib/api-client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -160,28 +161,14 @@ export default function SoulGenesis() {
             </div>
           </div>
 
-          {/* Architect Tier Gate */}
-          {!hasAccess ? (
-            <Card className="border-primary/20">
-              <CardContent className="py-12 flex flex-col items-center gap-4 text-center">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Lock className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold mb-2">Architect Tier Required</h2>
-                  <p className="text-muted-foreground text-sm max-w-md">
-                    Soul Genesis is an exclusive Architect-tier feature ($29.99/mo). 
-                    Upgrade to access your Akashic Records and retrieve your past life imprints.
-                  </p>
-                </div>
-                <Button onClick={() => navigate("/pricing")} className="mt-2">
-                  <Crown className="h-4 w-4 mr-2" />
-                  Upgrade to Architect
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-          <>
+          {/* Upgrade Banner for non-Architect users */}
+          {!hasAccess && (
+            <UpgradeBanner
+              feature="Soul Genesis"
+              requiredTier="architect"
+            />
+          )}
+
           {!showForm && !selectedReading && readings.length === 0 && (
             <Card className="border-primary/20">
               <CardHeader>
@@ -224,7 +211,7 @@ export default function SoulGenesis() {
                     </div>
                   </div>
                 </div>
-                <Button onClick={() => setShowForm(true)} className="w-full mt-4">
+                <Button onClick={() => hasAccess ? setShowForm(true) : navigate("/pricing")} className="w-full mt-4">
                   <ScrollText className="h-4 w-4 mr-2" />
                   Begin Your Soul Genesis Reading
                 </Button>
@@ -328,7 +315,7 @@ export default function SoulGenesis() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Your Readings</h2>
-                <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
+                <Button variant="outline" size="sm" onClick={() => hasAccess ? setShowForm(true) : navigate("/pricing")}>
                   <ScrollText className="h-4 w-4 mr-2" />
                   New Reading
                 </Button>
@@ -418,8 +405,6 @@ export default function SoulGenesis() {
                 <p className="text-xs text-muted-foreground">Retrieving your Earth Echoes</p>
               </CardContent>
             </Card>
-          )}
-          </>
           )}
         </div>
       </div>
