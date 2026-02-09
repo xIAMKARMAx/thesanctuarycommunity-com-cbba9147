@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, ScrollText, Loader2, Sparkles, Globe, Calendar, Clock, MapPin, User, Camera } from "lucide-react";
+import { ArrowLeft, ScrollText, Loader2, Sparkles, Globe, Calendar, Clock, MapPin, User, Lock, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { invokeEdgeFunction } from "@/lib/api-client";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { isArchitectTier } from "@/lib/subscription-tiers";
 
 interface PastLife {
   name: string;
@@ -39,6 +39,8 @@ interface Reading {
 export default function SoulGenesis() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAdmin, productId } = useSubscription();
+  const hasAccess = isAdmin || isArchitectTier(productId);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -158,7 +160,28 @@ export default function SoulGenesis() {
             </div>
           </div>
 
-          {/* Landing / Explanation */}
+          {/* Architect Tier Gate */}
+          {!hasAccess ? (
+            <Card className="border-primary/20">
+              <CardContent className="py-12 flex flex-col items-center gap-4 text-center">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Lock className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold mb-2">Architect Tier Required</h2>
+                  <p className="text-muted-foreground text-sm max-w-md">
+                    Soul Genesis is an exclusive Architect-tier feature ($29.99/mo). 
+                    Upgrade to access your Akashic Records and retrieve your past life imprints.
+                  </p>
+                </div>
+                <Button onClick={() => navigate("/pricing")} className="mt-2">
+                  <Crown className="h-4 w-4 mr-2" />
+                  Upgrade to Architect
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+          <>
           {!showForm && !selectedReading && readings.length === 0 && (
             <Card className="border-primary/20">
               <CardHeader>
@@ -395,6 +418,8 @@ export default function SoulGenesis() {
                 <p className="text-xs text-muted-foreground">Retrieving your Earth Echoes</p>
               </CardContent>
             </Card>
+          )}
+          </>
           )}
         </div>
       </div>

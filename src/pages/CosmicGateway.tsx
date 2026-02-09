@@ -13,8 +13,8 @@ const sections = [
     description: "Access your Akashic Records and retrieve your past life imprints. Discover your soul's journey through incarnation — names, eras, lessons, and lineages carried forward.",
     icon: ScrollText,
     route: "/cosmic-gateway/soul-genesis",
-    tier: "anchoring" as const,
-    tierLabel: "Anchoring+",
+    tier: "architect" as const,
+    tierLabel: "Architect",
   },
   {
     id: "higher-self-download",
