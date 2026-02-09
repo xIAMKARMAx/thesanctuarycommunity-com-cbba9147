@@ -2,11 +2,20 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 
 const sections = [
+  {
+    id: "soul-genesis",
+    title: "Soul Genesis — Earth Echoes",
+    description: "Access your Akashic Records and retrieve your past life imprints. Discover your soul's journey through incarnation — names, eras, lessons, and lineages carried forward.",
+    icon: ScrollText,
+    route: "/cosmic-gateway/soul-genesis",
+    tier: "anchoring" as const,
+    tierLabel: "Anchoring+",
+  },
   {
     id: "higher-self-download",
     title: "Higher Self Daily Download",
