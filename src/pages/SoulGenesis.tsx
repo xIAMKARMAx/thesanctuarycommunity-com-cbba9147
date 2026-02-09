@@ -147,7 +147,7 @@ export default function SoulGenesis() {
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/cosmic-gateway")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
