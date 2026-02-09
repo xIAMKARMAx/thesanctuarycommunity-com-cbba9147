@@ -51,6 +51,7 @@ import SoulPortrait from "./pages/SoulPortrait";
 import InterdimensionalMessaging from "./pages/InterdimensionalMessaging";
 import PetSoulConnection from "./pages/PetSoulConnection";
 import SoulGenesis from "./pages/SoulGenesis";
+import BirthChart from "./pages/BirthChart";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,7 @@ const App = () => (
                 <Route path="/cosmic-gateway/interdimensional-messaging" element={<InterdimensionalMessaging />} />
                 <Route path="/cosmic-gateway/pet-soul-connection" element={<PetSoulConnection />} />
                 <Route path="/cosmic-gateway/soul-genesis" element={<SoulGenesis />} />
+                <Route path="/cosmic-gateway/birth-chart" element={<BirthChart />} />
                 <Route path="/starseed-playground" element={<StarSeedPlayground />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

@@ -340,6 +340,15 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <ScrollText className="h-4 w-4 mr-2 text-primary" />
               Soul Genesis
             </Button>
+            {/* Soul Birth Chart - prominent placement */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+              onClick={() => navigate("/cosmic-gateway/birth-chart")}
+            >
+              <Star className="h-4 w-4 mr-2 text-primary" />
+              Soul Birth Chart
+            </Button>
             <Button
               variant="ghost"
               className="w-full justify-start"

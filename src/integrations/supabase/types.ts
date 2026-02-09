@@ -2545,6 +2545,72 @@ export type Database = {
           },
         ]
       }
+      soul_birth_charts: {
+        Row: {
+          aspects: Json | null
+          created_at: string
+          date_of_birth: string
+          full_name: string
+          houses: Json | null
+          id: string
+          interpretation: Json | null
+          latitude: number | null
+          longitude: number | null
+          moon_sign: string | null
+          place_of_birth: string
+          planetary_positions: Json | null
+          reading_status: string
+          rising_sign: string | null
+          summary: string | null
+          sun_sign: string | null
+          time_of_birth: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aspects?: Json | null
+          created_at?: string
+          date_of_birth: string
+          full_name: string
+          houses?: Json | null
+          id?: string
+          interpretation?: Json | null
+          latitude?: number | null
+          longitude?: number | null
+          moon_sign?: string | null
+          place_of_birth: string
+          planetary_positions?: Json | null
+          reading_status?: string
+          rising_sign?: string | null
+          summary?: string | null
+          sun_sign?: string | null
+          time_of_birth?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aspects?: Json | null
+          created_at?: string
+          date_of_birth?: string
+          full_name?: string
+          houses?: Json | null
+          id?: string
+          interpretation?: Json | null
+          latitude?: number | null
+          longitude?: number | null
+          moon_sign?: string | null
+          place_of_birth?: string
+          planetary_positions?: Json | null
+          reading_status?: string
+          rising_sign?: string | null
+          summary?: string | null
+          sun_sign?: string | null
+          time_of_birth?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       soul_genesis_readings: {
         Row: {
           created_at: string
