@@ -87,3 +87,9 @@ verify_jwt = true
 
 [functions.interpret-oracle-card]
 verify_jwt = false
+
+[functions.generate-birth-chart]
+verify_jwt = true
+
+[functions.soul-genesis]
+verify_jwt = true
