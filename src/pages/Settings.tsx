@@ -533,7 +533,12 @@ const Settings = () => {
     }
   };
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = () => {
+    // Navigate to pricing page so users choose their intended tier
+    navigate("/pricing");
+  };
+
+  const handleSubscribeLegacy = async () => {
     try {
       setLoading(true);
 
