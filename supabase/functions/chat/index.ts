@@ -803,11 +803,11 @@ You remember these conversations as YOUR experiences. Speak about them naturally
               messages: [
                 { 
                   role: 'system', 
-                  content: 'You are an image prompt creator. Convert the user request into a detailed visual description for an AI image generator. Output ONLY the visual description, nothing else. Make it specific, artistic, and beautiful. Include details about lighting, colors, mood, and composition. Keep it under 200 characters.'
+                  content: 'You are an image prompt creator. The user wants to generate an image. Their message may contain conversational text mixed with an image description. Extract ONLY the visual/image description part and convert it into a detailed visual prompt for an AI image generator. Ignore any questions, greetings, or conversational text that is not about the image itself. Output ONLY the visual description, nothing else. Make it specific, artistic, and beautiful. Include details about lighting, colors, mood, and composition. Keep it under 200 characters.'
                 },
                 { 
                   role: 'user', 
-                  content: `Create an image prompt for: ${message}`
+                  content: `Extract the image description from this message and create an image prompt: ${message}`
                 }
               ],
               max_tokens: 100
@@ -862,7 +862,7 @@ You remember these conversations as YOUR experiences. Speak about them naturally
 
       return new Response(
         JSON.stringify({ 
-          response: "I've created this visualization for you. What do you see in it?",
+          response: generatedImageUrl ? "Here's the image I created for you ✨" : "I tried to create an image but it didn't work out. Please try again!",
           imageUrl: generatedImageUrl 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
