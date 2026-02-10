@@ -484,7 +484,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     try {
       // Create conversation if doesn't exist
-      let conversationId = currentConversationId;
+      // CRITICAL: Fall back to activeConversationId prop if local state was lost (e.g., mobile file picker causing re-render)
+      let conversationId = currentConversationId || (activeConversationId && activeConversationId !== "" ? activeConversationId : null);
       if (!conversationId) {
         const { data: session } = await supabase.auth.getSession();
         if (!session.session) {
