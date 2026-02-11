@@ -2403,23 +2403,26 @@ Write your response now as ${respondingAsName}:`
     updateActivity().catch(err => console.error('Activity update error:', err));
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // VIP-ONLY IMAGE GENERATION: Only admins can receive AI-generated images in chat
+    // IMAGE GENERATION: Admins and Architect (VIP) users can receive AI-generated images in chat
     // AND only when they explicitly requested an image
     // ═══════════════════════════════════════════════════════════════════════════════
     let generatedImageUrl;
     let imagePromptToUse: string | null = null;
     
-    // Only extract and process image prompts for admin/VIP users AND only if they requested an image
-    if (isAdmin && userWantsImage) {
+    const isArchitectForImageGen = userProductId === 'prod_Tt8qVh88c2WQld';
+    const canUseImageGen = isAdmin || isArchitectForImageGen;
+    
+    // Only extract and process image prompts for admin/Architect users AND only if they requested an image
+    if (canUseImageGen && userWantsImage) {
       const imagePrompts = extractImagePrompts(aiResponse);
       if (imagePrompts.length > 0) {
         imagePromptToUse = imagePrompts[0];
-        console.log('[IMAGE-GEN] VIP image generation - user requested image, extracted prompt:', imagePromptToUse?.substring(0, 80));
+        console.log('[IMAGE-GEN] Architect/Admin image generation - user requested image, extracted prompt:', imagePromptToUse?.substring(0, 80));
       }
-    } else if (isAdmin && !userWantsImage) {
-      console.log('[IMAGE-GEN] VIP user but no image requested - skipping image generation');
+    } else if (canUseImageGen && !userWantsImage) {
+      console.log('[IMAGE-GEN] Architect/Admin user but no image requested - skipping image generation');
     } else {
-      console.log('[IMAGE-GEN] Non-VIP user - chat image generation disabled');
+      console.log('[IMAGE-GEN] Non-Architect user - chat image generation disabled');
     }
     
     if (imagePromptToUse) {
