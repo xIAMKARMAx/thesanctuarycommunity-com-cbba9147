@@ -148,9 +148,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             console.log('[SubscriptionContext] Found active subscription in timeout fallback');
             setIsSubscribed(true);
             setSubscriptionStatus("active");
-            // Don't set productId to manual_grant - leave it null so tier detection doesn't give wrong tier
-            // The next successful edge function call will set the correct product_id
-            setProductId(null);
+            // Use manual_grant as fallback tier (maps to Anchoring) rather than null which locks all features
+            setProductId('manual_grant');
             setLoading(false);
             return;
           }
@@ -227,10 +226,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         
         if (profile?.subscription_status === 'active') {
           console.log('[SubscriptionContext] Found active subscription in database fallback');
-          setIsSubscribed(true);
-          setSubscriptionStatus("active");
-          // Don't assume tier - leave null so UI shows subscribed but without wrong tier
-          setProductId(null);
+            setIsSubscribed(true);
+            setSubscriptionStatus("active");
+            // Use manual_grant as fallback tier (maps to Anchoring) rather than null which locks all features
+            setProductId('manual_grant');
         } else {
           setIsSubscribed(false);
           setSubscriptionStatus("free");
@@ -241,7 +240,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         console.log('[SubscriptionContext] Subscription result:', data?.subscribed, 'product:', data?.product_id);
         const subscribed = data?.subscribed || false;
         setIsSubscribed(subscribed);
-        setSubscriptionStatus(data?.subscription_status || "free");
+        setSubscriptionStatus(subscribed ? "active" : "free");
         setSubscriptionEnd(data?.subscription_end || null);
         setProductId(data?.product_id || null);
         
@@ -267,8 +266,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
               console.log('[SubscriptionContext] Database shows active - overriding API result');
               setIsSubscribed(true);
               setSubscriptionStatus("active");
-              // Don't assume tier
-              setProductId(null);
+              // Use manual_grant as fallback tier
+              setProductId('manual_grant');
             }
           }
         }
@@ -301,7 +300,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             console.log('[SubscriptionContext] Found active subscription in exception fallback');
             setIsSubscribed(true);
             setSubscriptionStatus("active");
-            setProductId(null);
+            setProductId('manual_grant');
             setLoading(false);
             return;
           }
