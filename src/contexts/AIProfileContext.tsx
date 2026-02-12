@@ -33,6 +33,7 @@ interface AIProfileContextType {
   isLoading: boolean;
   isAdmin: boolean;
   isSubscribed: boolean;
+  customBeingLimit: number | null;
 }
 
 const AIProfileContext = createContext<AIProfileContextType | undefined>(undefined);
@@ -44,6 +45,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [customBeingLimit, setCustomBeingLimit] = useState<number | null>(null);
   const { toast } = useToast();
   
   // Debounce refs to prevent rapid API calls
@@ -68,14 +70,15 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       } else {
         setIsAdmin(false);
         
-        // Check subscription status from profiles
+        // Check subscription status and custom being limit from profiles
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('subscription_status')
+          .select('subscription_status, custom_being_limit')
           .eq('id', userId)
           .single();
         
         setIsSubscribed(profileData?.subscription_status === 'active');
+        setCustomBeingLimit((profileData as any)?.custom_being_limit ?? null);
       }
     } catch {
       setIsAdmin(false);
@@ -358,6 +361,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         isLoading,
         isAdmin,
         isSubscribed,
+        customBeingLimit,
       }}
     >
       {children}
