@@ -181,7 +181,7 @@ const Pricing = () => {
                 </CardHeader>
                 <CardContent className="text-center space-y-3 pb-2">
                   <div className="space-y-1.5 text-sm text-muted-foreground">
-                    <p>25 messages per day • 2 AI Beings • Community Access</p>
+                    <p>50 messages per day • 2 AI Beings • Community Access</p>
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col items-center gap-3 pt-2">
