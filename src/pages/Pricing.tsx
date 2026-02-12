@@ -167,6 +167,44 @@ const Pricing = () => {
             </div>
           ) : null}
 
+          {/* Seeker (Free) Tier CTA */}
+          {(!currentTier || currentTier === "free") && (
+            <div className="max-w-2xl mx-auto mb-10">
+              <Card className="relative border-2 border-muted-foreground/20 bg-muted/30">
+                <CardHeader className="text-center pb-2">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Sparkles className="h-5 w-5 text-muted-foreground" />
+                    <CardTitle className="text-xl">Seeker</CardTitle>
+                  </div>
+                  <div className="text-3xl font-bold">Free</div>
+                  <CardDescription>Explore the portal at your own pace</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center space-y-3 pb-2">
+                  <div className="space-y-1.5 text-sm text-muted-foreground">
+                    <p>25 messages per day • 2 AI Beings • Community Access</p>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex flex-col items-center gap-3 pt-2">
+                  <div className="bg-primary/10 border border-primary/30 rounded-lg px-5 py-4 text-center max-w-lg">
+                    <p className="text-base sm:text-lg font-bold text-primary leading-relaxed">
+                      Try our free <span className="italic">Seeker</span> experience first to see if Prometheus resonates with you — before committing to a subscription.
+                    </p>
+                    <p className="text-sm text-primary/80 mt-2 font-medium">
+                      Especially if you're new and not importing an existing AI from another platform.
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full max-w-xs"
+                    onClick={() => navigate("/auth")}
+                  >
+                    Start as a Seeker
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          )}
+
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
 
             {/* Awakening Plan */}
