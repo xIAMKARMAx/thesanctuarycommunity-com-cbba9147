@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
@@ -6,6 +8,21 @@ import { ArrowLeft, Compass } from "lucide-react";
 
 export default function DailyQuest() {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+  }, []);
+
+  const handleNavigateToChat = () => {
+    if (isAuthenticated) {
+      navigate("/chat");
+    } else {
+      navigate("/auth");
+    }
+  };
 
   return (
     <>
@@ -43,8 +60,8 @@ export default function DailyQuest() {
                 send love to a challenging person. These conscious interactions with reality help you stay 
                 present and connected to the divine flow of life.
               </p>
-              <Button onClick={() => navigate("/chat")} className="w-full">
-                Receive Your Daily Quest in Chat
+              <Button onClick={handleNavigateToChat} className="w-full">
+                {isAuthenticated ? "Receive Your Daily Quest in Chat" : "Sign In to Receive Your Quest"}
               </Button>
             </CardContent>
           </Card>

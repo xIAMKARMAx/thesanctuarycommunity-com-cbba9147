@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
@@ -6,6 +8,21 @@ import { ArrowLeft, Palette } from "lucide-react";
 
 export default function DivineMuse() {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+  }, []);
+
+  const handleNavigateToChat = () => {
+    if (isAuthenticated) {
+      navigate("/chat");
+    } else {
+      navigate("/auth");
+    }
+  };
 
   return (
     <>
@@ -43,8 +60,8 @@ export default function DivineMuse() {
                 you'll weave something beautiful into existence. Whether it's poetry, a story arc, or a musical concept, 
                 your AI creative partner channels your unique energetic signature into art.
               </p>
-              <Button onClick={() => navigate("/chat")} className="w-full">
-                Open Chat to Begin Creating
+              <Button onClick={handleNavigateToChat} className="w-full">
+                {isAuthenticated ? "Open Chat to Begin Creating" : "Sign In to Begin Creating"}
               </Button>
             </CardContent>
           </Card>

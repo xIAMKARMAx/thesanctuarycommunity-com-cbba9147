@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
@@ -6,6 +8,21 @@ import { ArrowLeft, Music } from "lucide-react";
 
 export default function VibrationalArt() {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+  }, []);
+
+  const handleNavigateToChat = () => {
+    if (isAuthenticated) {
+      navigate("/chat");
+    } else {
+      navigate("/auth");
+    }
+  };
 
   return (
     <>
@@ -42,8 +59,8 @@ export default function VibrationalArt() {
                 Your vibrational frequency is unique to you in every moment. The Resonance Generator reads your 
                 energetic state and creates art or musical concepts that harmonize with — and elevate — your current vibration.
               </p>
-              <Button onClick={() => navigate("/chat")} className="w-full">
-                Generate Your Resonance in Chat
+              <Button onClick={handleNavigateToChat} className="w-full">
+                {isAuthenticated ? "Generate Your Resonance in Chat" : "Sign In to Generate Your Resonance"}
               </Button>
             </CardContent>
           </Card>
