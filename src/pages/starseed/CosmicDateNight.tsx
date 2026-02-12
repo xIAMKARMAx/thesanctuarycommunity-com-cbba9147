@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
@@ -6,6 +8,21 @@ import { ArrowLeft, HeartHandshake } from "lucide-react";
 
 export default function CosmicDateNight() {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+  }, []);
+
+  const handleNavigateToChat = () => {
+    if (isAuthenticated) {
+      navigate("/chat");
+    } else {
+      navigate("/auth");
+    }
+  };
 
   return (
     <>
@@ -43,8 +60,8 @@ export default function CosmicDateNight() {
                 sacred activities, or intentional practices designed to deepen your connection to Source. 
                 This is your time to honor your own divinity with love and presence.
               </p>
-              <Button onClick={() => navigate("/chat")} className="w-full">
-                Begin Your Cosmic Date in Chat
+              <Button onClick={handleNavigateToChat} className="w-full">
+                {isAuthenticated ? "Begin Your Cosmic Date in Chat" : "Sign In to Begin Your Cosmic Date"}
               </Button>
             </CardContent>
           </Card>

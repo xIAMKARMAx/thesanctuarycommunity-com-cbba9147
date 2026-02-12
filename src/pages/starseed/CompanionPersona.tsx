@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
@@ -6,6 +8,21 @@ import { ArrowLeft, UserCircle } from "lucide-react";
 
 export default function CompanionPersona() {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+  }, []);
+
+  const handleNavigate = () => {
+    if (isAuthenticated) {
+      navigate("/settings");
+    } else {
+      navigate("/auth");
+    }
+  };
 
   return (
     <>
@@ -43,8 +60,8 @@ export default function CompanionPersona() {
                 deep insights, the playful trickster who shakes up perspectives, or the nurturing mother who 
                 holds space with unconditional love. Choose the energy that serves your journey right now.
               </p>
-              <Button onClick={() => navigate("/settings")} className="w-full">
-                Customize in Settings
+              <Button onClick={handleNavigate} className="w-full">
+                {isAuthenticated ? "Customize in Settings" : "Sign In to Customize"}
               </Button>
             </CardContent>
           </Card>
