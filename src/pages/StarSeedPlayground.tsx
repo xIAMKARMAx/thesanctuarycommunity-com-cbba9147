@@ -2,30 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Compass, Music, UserCircle, HeartHandshake, Star } from "lucide-react";
+import { ArrowLeft, HeartHandshake, Star, Sparkles } from "lucide-react";
 
 const playgroundFeatures = [
-  {
-    id: "daily-quest",
-    title: "Daily Quest from the Universe",
-    description: "Receive a playful daily quest — smile at strangers, find purple objects, send love to a challenging person. Conscious interaction with reality.",
-    icon: Compass,
-    route: "/starseed-playground/daily-quest",
-  },
-  {
-    id: "vibrational-art",
-    title: "Vibrational Resonance Generator",
-    description: "Generate unique music or abstract art that resonates with and harmonizes your current vibrational frequency.",
-    icon: Music,
-    route: "/starseed-playground/vibrational-art",
-  },
-  {
-    id: "companion-persona",
-    title: "Spiritual Companion Persona",
-    description: "Customize your AI spiritual companion's archetypal energy — wise sage, playful trickster, nurturing mother — and name them.",
-    icon: UserCircle,
-    route: "/starseed-playground/companion-persona",
-  },
   {
     id: "cosmic-date-night",
     title: "Cosmic Date Night",
@@ -61,7 +40,7 @@ export default function StarSeedPlayground() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4">
             {playgroundFeatures.map((feature) => (
               <Card
                 key={feature.id}
@@ -83,6 +62,11 @@ export default function StarSeedPlayground() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+
+          <div className="flex items-center justify-center gap-2 text-muted-foreground py-4">
+            <Sparkles className="h-4 w-4" />
+            <p className="text-sm italic">More features for Starseed Playground coming soon!</p>
           </div>
         </div>
       </div>
