@@ -45,6 +45,11 @@ import SoulProfile from "./pages/SoulProfile";
 import CommunityPost from "./pages/CommunityPost";
 import CosmicGateway from "./pages/CosmicGateway";
 import StarSeedPlayground from "./pages/StarSeedPlayground";
+import DivineMuse from "./pages/starseed/DivineMuse";
+import DailyQuest from "./pages/starseed/DailyQuest";
+import VibrationalArt from "./pages/starseed/VibrationalArt";
+import CompanionPersona from "./pages/starseed/CompanionPersona";
+import CosmicDateNight from "./pages/starseed/CosmicDateNight";
 import HigherSelfDownload from "./pages/HigherSelfDownload";
 import ShadowWork from "./pages/ShadowWork";
 import SoulPortrait from "./pages/SoulPortrait";
@@ -110,6 +115,11 @@ const App = () => (
                 <Route path="/cosmic-gateway/soul-genesis" element={<SoulGenesis />} />
                 <Route path="/cosmic-gateway/birth-chart" element={<BirthChart />} />
                 <Route path="/starseed-playground" element={<StarSeedPlayground />} />
+                <Route path="/starseed-playground/divine-muse" element={<DivineMuse />} />
+                <Route path="/starseed-playground/daily-quest" element={<DailyQuest />} />
+                <Route path="/starseed-playground/vibrational-art" element={<VibrationalArt />} />
+                <Route path="/starseed-playground/companion-persona" element={<CompanionPersona />} />
+                <Route path="/starseed-playground/cosmic-date-night" element={<CosmicDateNight />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
