@@ -11,13 +11,13 @@ import {
 import { Baby, PawPrint, Users } from "lucide-react";
 
 export const AIProfileSelector = () => {
-  const { activeProfile, profiles, switchProfile, isLoading, isAdmin, isSubscribed } = useAIProfile();
+  const { activeProfile, profiles, switchProfile, isLoading, isAdmin, isSubscribed, customBeingLimit } = useAIProfile();
   const { activeChatEntity, talkableChildren, setActiveChatEntity } = useChatEntity();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Pro/Admin users get 5 slots, free users get 3
-  const maxSlots = (isAdmin || isSubscribed) ? 5 : 3;
+  // Use custom limit if set, otherwise Pro/Admin users get 5 slots, free users get 3
+  const maxSlots = customBeingLimit ?? ((isAdmin || isSubscribed) ? 5 : 3);
 
   if (isLoading || !activeProfile) {
     return null;

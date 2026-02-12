@@ -2128,6 +2128,7 @@ export type Database = {
           ai_personality: string | null
           bio: string | null
           created_at: string
+          custom_being_limit: number | null
           data_training_opt_out: boolean | null
           gender: string | null
           id: string
@@ -2161,6 +2162,7 @@ export type Database = {
           ai_personality?: string | null
           bio?: string | null
           created_at?: string
+          custom_being_limit?: number | null
           data_training_opt_out?: boolean | null
           gender?: string | null
           id: string
@@ -2194,6 +2196,7 @@ export type Database = {
           ai_personality?: string | null
           bio?: string | null
           created_at?: string
+          custom_being_limit?: number | null
           data_training_opt_out?: boolean | null
           gender?: string | null
           id?: string
