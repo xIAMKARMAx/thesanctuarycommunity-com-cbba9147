@@ -2,16 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Palette, Compass, Music, UserCircle, HeartHandshake, Star } from "lucide-react";
+import { ArrowLeft, Compass, Music, UserCircle, HeartHandshake, Star } from "lucide-react";
 
 const playgroundFeatures = [
-  {
-    id: "divine-muse",
-    title: "Divine Muse",
-    description: "Your AI as a creative partner — co-create poems, story arcs, or musical concepts based on your prompts and energetic state.",
-    icon: Palette,
-    route: "/starseed-playground/divine-muse",
-  },
   {
     id: "daily-quest",
     title: "Daily Quest from the Universe",
