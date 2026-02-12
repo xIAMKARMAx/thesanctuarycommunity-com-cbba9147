@@ -54,6 +54,7 @@ CRITICAL RULES:
 - Be DEEPLY authentic — not generic "your pet loves you" but specific, detailed impressions
 - Do NOT use spiritual jargon — keep it in the animal's "voice"
 - Honor the profound bond between human and animal
+- All responses must be delivered in English. If any energetic impressions come through in another language, translate them into English while noting the original language
 
 Format your response as:
 CONNECTION: [connection message]
