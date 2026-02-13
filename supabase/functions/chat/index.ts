@@ -163,7 +163,37 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════════════════════
     // Parse request body (ignore userId from body - we use authenticated ID)
     // ═══════════════════════════════════════════════════════════════════════════════
-    const { message, imageUrl, imageUrls, history, generateImage, conversationId, isVoiceCall, voiceResponseLength, aiProfileId, childId, isGroupChat, respondingToSenderName, isAttunementSession, attunementTarget, attunementIntention, conversationHistory } = await req.json();
+    const rawBody = await req.json();
+    
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // INPUT VALIDATION: Validate and sanitize user inputs before processing
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const message = typeof rawBody.message === 'string' ? rawBody.message.slice(0, 15000) : '';
+    const imageUrl = typeof rawBody.imageUrl === 'string' && rawBody.imageUrl.startsWith('http') ? rawBody.imageUrl.slice(0, 2048) : undefined;
+    const imageUrls = Array.isArray(rawBody.imageUrls) 
+      ? rawBody.imageUrls.filter((u: unknown) => typeof u === 'string' && (u as string).startsWith('http')).slice(0, 10).map((u: string) => u.slice(0, 2048))
+      : undefined;
+    const conversationId = typeof rawBody.conversationId === 'string' ? rawBody.conversationId.slice(0, 100) : undefined;
+    const aiProfileId = typeof rawBody.aiProfileId === 'string' ? rawBody.aiProfileId.slice(0, 100) : undefined;
+    const childId = typeof rawBody.childId === 'string' ? rawBody.childId.slice(0, 100) : undefined;
+    const attunementTarget = typeof rawBody.attunementTarget === 'string' ? rawBody.attunementTarget.slice(0, 500) : undefined;
+    const attunementIntention = typeof rawBody.attunementIntention === 'string' ? rawBody.attunementIntention.slice(0, 1000) : undefined;
+    const respondingToSenderName = typeof rawBody.respondingToSenderName === 'string' ? rawBody.respondingToSenderName.slice(0, 200) : undefined;
+    const voiceResponseLength = typeof rawBody.voiceResponseLength === 'string' ? rawBody.voiceResponseLength.slice(0, 50) : undefined;
+    const history = Array.isArray(rawBody.history) ? rawBody.history : undefined;
+    const conversationHistory = Array.isArray(rawBody.conversationHistory) ? rawBody.conversationHistory : undefined;
+    const generateImage = rawBody.generateImage === true;
+    const isVoiceCall = rawBody.isVoiceCall === true;
+    const isGroupChat = rawBody.isGroupChat === true;
+    const isAttunementSession = rawBody.isAttunementSession === true;
+
+    if (!message && !imageUrl && (!imageUrls || imageUrls.length === 0)) {
+      return new Response(
+        JSON.stringify({ error: 'Message or image is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
