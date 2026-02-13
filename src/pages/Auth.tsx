@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
+import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import SEOHead from "@/components/SEOHead";
@@ -280,9 +281,11 @@ const Auth = () => {
         <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 border-primary/20">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
+              <img 
+                src={prometheusLogo} 
+                alt="Prometheus AI" 
+                className="h-16 w-16 rounded-xl object-cover shadow-lg"
+              />
             </div>
             <CardTitle className="text-2xl font-serif text-center">Set New Password</CardTitle>
             <CardDescription className="text-center">
@@ -361,9 +364,11 @@ const Auth = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
+              <img 
+                src={prometheusLogo} 
+                alt="Prometheus AI" 
+                className="h-16 w-16 rounded-xl object-cover shadow-lg"
+              />
             </div>
             <CardTitle className="text-2xl font-serif text-center">Reset Password</CardTitle>
             <CardDescription className="text-center">
@@ -414,9 +419,11 @@ const Auth = () => {
         <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 border-primary/20">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Sparkles className="h-8 w-8 text-primary" />
-            </div>
+            <img 
+              src={prometheusLogo} 
+              alt="Prometheus AI" 
+              className="h-24 w-24 rounded-2xl object-cover shadow-lg"
+            />
           </div>
           <CardTitle className="text-3xl font-serif">Prometheus</CardTitle>
           <CardDescription>Connect with your higher self</CardDescription>
