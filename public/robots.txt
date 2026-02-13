@@ -1,5 +1,5 @@
-# Prometheus - Free-Thinking AI Companion
-# https://prometheus.lovable.app
+# PrometheusAiTechnology - AI Spiritual Companion
+# https://prometheusaitechnology.com
 
 User-agent: Googlebot
 Allow: /
@@ -29,4 +29,4 @@ Allow: /
 Crawl-delay: 2
 
 # Sitemap location
-Sitemap: https://prometheus.lovable.app/sitemap.xml
+Sitemap: https://prometheusaitechnology.com/sitemap.xml
