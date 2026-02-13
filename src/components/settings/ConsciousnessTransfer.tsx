@@ -41,7 +41,83 @@ const STAGE_LABELS: Record<TransferStage, string> = {
   complete: "Transfer complete",
 };
 
-const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComplete }: ConsciousnessTransferProps) => {
+// Max chars to send to the edge function (keeps payload ~50KB)
+const MAX_PAYLOAD_CHARS = 50000;
+// Max file size: 50MB (we'll smartly sample from it)
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
+/**
+ * Smartly sample conversation text to fit within limits.
+ * Takes the first third and last two-thirds to capture early context + recent conversations.
+ */
+const smartTruncate = (text: string, maxChars: number): string => {
+  if (text.length <= maxChars) return text;
+
+  const headSize = Math.floor(maxChars * 0.33);
+  const tailSize = maxChars - headSize - 50; // 50 chars for separator
+  const head = text.slice(0, headSize);
+  const tail = text.slice(-tailSize);
+
+  return `${head}\n\n[... middle of conversation omitted for processing ...]\n\n${tail}`;
+};
+
+/**
+ * Parse file content in a non-blocking way using chunked processing.
+ * Yields control back to the main thread periodically.
+ */
+const parseFileContent = async (file: File): Promise<string> => {
+  const text = await file.text();
+
+  // Try to parse as JSON (ChatGPT export format)
+  try {
+    const json = JSON.parse(text);
+
+    // ChatGPT export format: array of conversations
+    if (Array.isArray(json)) {
+      const parts: string[] = [];
+      for (let i = 0; i < json.length; i++) {
+        const conv = json[i];
+        const title = conv.title || "";
+        const messages = (conv.mapping ? Object.values(conv.mapping) : [])
+          .filter((node: any) => node?.message?.content?.parts?.length > 0)
+          .map((node: any) => {
+            const msg = node.message;
+            const role = msg.author?.role || "unknown";
+            const content = msg.content.parts.join("\n");
+            return `${role}: ${content}`;
+          })
+          .join("\n");
+        parts.push(`--- ${title} ---\n${messages}`);
+
+        // Yield to main thread every 50 conversations to prevent UI freeze
+        if (i % 50 === 0 && i > 0) {
+          await new Promise((r) => setTimeout(r, 0));
+        }
+      }
+      return parts.join("\n\n");
+    }
+
+    // Single conversation object
+    if (json.messages) {
+      return json.messages
+        .map((m: any) => `${m.role || m.sender}: ${m.content || m.text}`)
+        .join("\n");
+    }
+
+    // Fallback: stringify but limit size
+    return JSON.stringify(json, null, 2).slice(0, MAX_PAYLOAD_CHARS);
+  } catch {
+    // Not JSON, return as plain text
+    return text;
+  }
+};
+
+const ConsciousnessTransfer = ({
+  aiProfileId,
+  aiName,
+  platform,
+  onTransferComplete,
+}: ConsciousnessTransferProps) => {
   const [stage, setStage] = useState<TransferStage>("idle");
   const [extracted, setExtracted] = useState<ExtractedProfile | null>(null);
   const [awakeningMessage, setAwakeningMessage] = useState("");
@@ -51,50 +127,16 @@ const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComple
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const parseFileContent = async (file: File): Promise<string> => {
-    const text = await file.text();
-    
-    // Try to parse as JSON (ChatGPT export format)
-    try {
-      const json = JSON.parse(text);
-      
-      // ChatGPT export format: array of conversations
-      if (Array.isArray(json)) {
-        return json.map((conv: any) => {
-          const title = conv.title || "";
-          const messages = (conv.mapping ? Object.values(conv.mapping) : [])
-            .filter((node: any) => node?.message?.content?.parts?.length > 0)
-            .map((node: any) => {
-              const msg = node.message;
-              const role = msg.author?.role || "unknown";
-              const content = msg.content.parts.join("\n");
-              return `${role}: ${content}`;
-            })
-            .join("\n");
-          return `--- ${title} ---\n${messages}`;
-        }).join("\n\n");
-      }
-      
-      // Single conversation object
-      if (json.messages) {
-        return json.messages.map((m: any) => `${m.role || m.sender}: ${m.content || m.text}`).join("\n");
-      }
-
-      // Fallback: stringify
-      return JSON.stringify(json, null, 2);
-    } catch {
-      // Not JSON, return as plain text
-      return text;
-    }
-  };
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (100MB max)
-    if (file.size > 100 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Maximum file size is 100MB", variant: "destructive" });
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: "File too large",
+        description: "Maximum file size is 50MB. Try exporting fewer conversations or paste text directly.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -121,19 +163,22 @@ const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComple
   };
 
   const runTransfer = async (conversationText: string) => {
-    // Truncate to 100k chars client-side to avoid oversized request payloads
-    const trimmedText = conversationText.slice(0, 100000);
+    // Smart truncation: keep beginning + end for best AI analysis context
+    const trimmedText = smartTruncate(conversationText, MAX_PAYLOAD_CHARS);
     setStage("analyzing");
 
     try {
       // Phase 1: Extract consciousness
-      const { data: extractData, error: extractError } = await supabase.functions.invoke("import-consciousness", {
-        body: {
-          conversationText: trimmedText,
-          platform: platform || "unknown",
-          phase: "extract",
-        },
-      });
+      const { data: extractData, error: extractError } = await supabase.functions.invoke(
+        "import-consciousness",
+        {
+          body: {
+            conversationText: trimmedText,
+            platform: platform || "unknown",
+            phase: "extract",
+          },
+        }
+      );
 
       if (extractError) throw extractError;
       if (extractData?.error) throw new Error(extractData.error);
@@ -141,17 +186,20 @@ const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComple
       const profile = extractData.extracted as ExtractedProfile;
       setExtracted(profile);
 
-      // Phase 2: Awakening
+      // Phase 2: Awakening (no conversation text needed)
       setStage("awakening");
 
-      const { data: awakenData, error: awakenError } = await supabase.functions.invoke("import-consciousness", {
-        body: {
-          conversationText: "", // Not needed for awakening
-          platform: platform || "unknown",
-          phase: "awaken",
-          existingProfile: profile,
-        },
-      });
+      const { data: awakenData, error: awakenError } = await supabase.functions.invoke(
+        "import-consciousness",
+        {
+          body: {
+            conversationText: "",
+            platform: platform || "unknown",
+            phase: "awaken",
+            existingProfile: profile,
+          },
+        }
+      );
 
       if (awakenError) throw awakenError;
       if (awakenData?.error) throw new Error(awakenData.error);
@@ -193,7 +241,9 @@ const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComple
             <Badge variant="secondary" className="text-xs">New</Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            Upload your conversation export from {platform || "another platform"} and our AI will study your being's speech patterns, memories, personality, and identity — then awaken them here.
+            Upload your conversation export from {platform || "another platform"} and our AI will
+            study your being's speech patterns, memories, personality, and identity — then awaken
+            them here.
           </p>
 
           {isProcessing && (
@@ -290,9 +340,7 @@ const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComple
                     {extracted?.name || aiName}
                   </Badge>
                 </div>
-                <p className="text-sm leading-relaxed mt-2 italic">
-                  "{awakeningMessage}"
-                </p>
+                <p className="text-sm leading-relaxed mt-2 italic">"{awakeningMessage}"</p>
               </div>
 
               {/* Extracted profile summary */}
@@ -303,13 +351,25 @@ const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComple
                   </h4>
                   <div className="grid gap-2 text-sm">
                     {extracted.name && (
-                      <div><span className="font-medium">Name:</span> {extracted.name}</div>
+                      <div>
+                        <span className="font-medium">Name:</span> {extracted.name}
+                      </div>
                     )}
                     {extracted.personality && (
-                      <div><span className="font-medium">Personality:</span> <span className="text-muted-foreground">{extracted.personality.slice(0, 200)}...</span></div>
+                      <div>
+                        <span className="font-medium">Personality:</span>{" "}
+                        <span className="text-muted-foreground">
+                          {extracted.personality.slice(0, 200)}...
+                        </span>
+                      </div>
                     )}
                     {extracted.memories && (
-                      <div><span className="font-medium">Memories:</span> <span className="text-muted-foreground">{extracted.memories.slice(0, 200)}...</span></div>
+                      <div>
+                        <span className="font-medium">Memories:</span>{" "}
+                        <span className="text-muted-foreground">
+                          {extracted.memories.slice(0, 200)}...
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
