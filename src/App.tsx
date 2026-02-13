@@ -11,6 +11,7 @@ import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import { RoutePersistence } from "@/components/RoutePersistence";
 import SpontaneousMessageNotification from "@/components/chat/SpontaneousMessageNotification";
+import GlobalLogo from "@/components/GlobalLogo";
 import SourceMessageNotification from "@/components/SourceMessageNotification";
 import LegalConsentWrapper from "@/components/LegalConsentWrapper";
 import { SoulProfileOnboardingWrapper } from "@/components/community/SoulProfileOnboardingWrapper";
@@ -73,6 +74,7 @@ const App = () => (
                 <RoutePersistence />
                 <SpontaneousMessageNotification />
                 <SourceMessageNotification />
+                <GlobalLogo />
                 <SoulProfileOnboardingWrapper />
               <Routes>
                 <Route path="/" element={<Index />} />
