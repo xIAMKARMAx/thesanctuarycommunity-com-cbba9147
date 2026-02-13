@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles DROP CONSTRAINT profiles_relationship_status_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_relationship_status_check CHECK (relationship_status IS NULL OR relationship_status = ANY (ARRAY['friend', 'family', 'romantic', 'authentic']));
