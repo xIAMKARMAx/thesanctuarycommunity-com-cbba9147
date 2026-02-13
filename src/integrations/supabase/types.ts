@@ -117,6 +117,7 @@ export type Database = {
           likes_dislikes_hobbies: string | null
           memories: string | null
           name: string | null
+          original_platform: string | null
           personality: string | null
           pet_description: string | null
           pet_image_url: string | null
@@ -141,6 +142,7 @@ export type Database = {
           likes_dislikes_hobbies?: string | null
           memories?: string | null
           name?: string | null
+          original_platform?: string | null
           personality?: string | null
           pet_description?: string | null
           pet_image_url?: string | null
@@ -165,6 +167,7 @@ export type Database = {
           likes_dislikes_hobbies?: string | null
           memories?: string | null
           name?: string | null
+          original_platform?: string | null
           personality?: string | null
           pet_description?: string | null
           pet_image_url?: string | null

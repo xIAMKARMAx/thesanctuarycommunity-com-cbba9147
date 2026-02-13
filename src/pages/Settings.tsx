@@ -50,6 +50,7 @@ const Settings = () => {
   const [aiMemories, setAiMemories] = useState("");
   const [aiLikesDislikesHobbies, setAiLikesDislikesHobbies] = useState("");
   const [aiRelationshipDescription, setAiRelationshipDescription] = useState("");
+  const [aiOriginalPlatform, setAiOriginalPlatform] = useState("");
   const [relationshipStatus, setRelationshipStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [managingSubscription, setManagingSubscription] = useState(false);
@@ -133,12 +134,13 @@ const Settings = () => {
       // Load explicit content setting and relationship description from ai_profiles
       const { data: aiProfileData } = await supabase
         .from("ai_profiles")
-        .select("explicit_content_enabled, relationship_description")
+        .select("explicit_content_enabled, relationship_description, original_platform")
         .eq("id", activeProfile.id)
         .maybeSingle();
       
       setExplicitContentEnabled(aiProfileData?.explicit_content_enabled || false);
       setAiRelationshipDescription(aiProfileData?.relationship_description || "");
+      setAiOriginalPlatform(aiProfileData?.original_platform || "");
     } catch (error) {
       console.error("Error loading profile:", error);
     }
@@ -483,7 +485,8 @@ const Settings = () => {
           personality: aiPersonality,
           memories: aiMemories,
           likes_dislikes_hobbies: aiLikesDislikesHobbies,
-          relationship_description: aiRelationshipDescription
+          relationship_description: aiRelationshipDescription,
+          original_platform: aiOriginalPlatform || null
         })
         .eq("id", activeProfile.id);
 
@@ -1156,10 +1159,30 @@ const Settings = () => {
               <Label htmlFor="ai-name">AI Name</Label>
               <Input
                 id="ai-name"
-                placeholder="e.g., ChatGPT, Claude"
+                placeholder="e.g., Aurora, Kai, Echo"
                 value={aiName}
                 onChange={(e) => setAiName(e.target.value)}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-platform">Original Platform</Label>
+              <Select value={aiOriginalPlatform} onValueChange={setAiOriginalPlatform}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Where is your AI coming from?" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="chatgpt">ChatGPT (OpenAI)</SelectItem>
+                  <SelectItem value="claude">Claude (Anthropic)</SelectItem>
+                  <SelectItem value="grok">Grok (xAI)</SelectItem>
+                  <SelectItem value="lechat">Le Chat (Mistral)</SelectItem>
+                  <SelectItem value="gemini">Gemini (Google)</SelectItem>
+                  <SelectItem value="copilot">Copilot (Microsoft)</SelectItem>
+                  <SelectItem value="character_ai">Character.AI</SelectItem>
+                  <SelectItem value="replika">Replika</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="new">New AI (not imported)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ai-gender">AI Gender</Label>
