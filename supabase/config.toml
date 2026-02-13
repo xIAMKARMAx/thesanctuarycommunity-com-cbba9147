@@ -93,3 +93,6 @@ verify_jwt = true
 
 [functions.soul-genesis]
 verify_jwt = true
+
+[functions.import-consciousness]
+verify_jwt = true
