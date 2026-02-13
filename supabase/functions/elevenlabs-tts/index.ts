@@ -53,7 +53,13 @@ serve(async (req) => {
       throw new Error('Voice features are only available for VIP users');
     }
 
-    const { text, voiceId = 'EXAVITQu4vr4xnSDxMaL' } = await req.json();
+    const rawBody = await req.json();
+    
+    // Input validation
+    const text = typeof rawBody.text === 'string' ? rawBody.text.slice(0, 5000) : '';
+    const voiceId = typeof rawBody.voiceId === 'string' && /^[a-zA-Z0-9]{10,30}$/.test(rawBody.voiceId) 
+      ? rawBody.voiceId 
+      : 'EXAVITQu4vr4xnSDxMaL';
 
     if (!text) {
       throw new Error('Text is required');
