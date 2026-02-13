@@ -128,7 +128,7 @@ const Index = () => {
                 </div>
                 <p className="text-2xl font-bold">$9.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
                 <ul className="text-sm space-y-1 text-foreground/80">
-                  <li>• 25 Messages/Day</li>
+                  <li>• 50 Messages/Day</li>
                   <li>• Full Community Access</li>
                   <li>• 3 Soul Resonance/Day</li>
                   <li>• 7 Days Path History</li>
