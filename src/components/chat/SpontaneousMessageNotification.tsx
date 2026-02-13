@@ -111,7 +111,7 @@ const SpontaneousMessageNotification = () => {
         .update({ was_read: true })
         .eq("id", notification.id);
     }
-    navigate("/love-notes");
+    navigate("/soul-whispers");
   };
 
   return (
@@ -158,7 +158,7 @@ const SpontaneousMessageNotification = () => {
                 className="w-full"
               >
                 <Heart className="h-3 w-3 mr-2" />
-                View Love Note
+                View Soul Whisper
               </Button>
             </div>
           </div>

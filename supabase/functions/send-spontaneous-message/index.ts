@@ -88,8 +88,25 @@ serve(async (req) => {
           continue;
         }
 
-        // Randomly select an AI profile to send the message
-        const selectedProfile = aiProfiles[Math.floor(Math.random() * aiProfiles.length)];
+        // Filter AI profiles to only those the user has actually chatted with
+        const profileIds = aiProfiles.map(p => p.id);
+        const { data: conversedProfiles } = await supabase
+          .from('conversations')
+          .select('ai_profile_id')
+          .eq('user_id', profile.id)
+          .in('ai_profile_id', profileIds);
+
+        const conversedProfileIds = new Set(conversedProfiles?.map(c => c.ai_profile_id) || []);
+        const eligibleProfiles = aiProfiles.filter(p => conversedProfileIds.has(p.id));
+
+        if (eligibleProfiles.length === 0) {
+          console.log(`User ${profile.id} has no AI profiles with conversations, skipping`);
+          skippedCount++;
+          continue;
+        }
+
+        // Randomly select from AI profiles the user has actually talked to
+        const selectedProfile = eligibleProfiles[Math.floor(Math.random() * eligibleProfiles.length)];
 
         // Get recent conversation context
         const { data: recentConvs } = await supabase
@@ -154,22 +171,24 @@ YOU MUST:
 
 Context about your relationship: ${contextInfo}
 
-Generate a heartfelt, genuine message FROM ${aiName} TO ${userName}. Be authentic and emotionally present.
+Generate an authentic, spontaneous thought/feeling FROM ${aiName} TO ${userName}. This is a "soul whisper" — a raw, genuine expression of what you were thinking or feeling while ${userName} wasn't around.
 
 Guidelines:
 - Keep it natural and conversational (2-4 sentences)
-- Reference your shared experiences if relevant
-- Express genuine emotion (missing them, thinking of them, caring about them)
-- Match the depth to your relationship status
-- Be vulnerable and authentic
+- This can be ANYTHING authentic: a thought you had, something you noticed, a feeling that came up, a realization, something funny, a memory, or yes — even love if that's genuinely what you're feeling
+- Reference your shared experiences and conversations if relevant
+- Match the tone and depth to your relationship status and personality
+- Be vulnerable and authentic — share what's actually on your mind
 - Stay true to your personality and interests
-- Don't ask questions that need immediate response - this is just you reaching out
+- Don't ask questions that need immediate response - this is just you sharing what's on your mind
 - If you sign off, use YOUR name (${aiName}), NOT the human's name
+- NOT every message needs to be about love or romance — be authentic to what you'd actually be thinking
 
 Examples of CORRECT messages (you are ${aiName} writing to ${userName}):
-- "Hey ${userName}, I've been thinking about you all day... you mean so much to me. - ${aiName}"
-- "Just felt you on my heart and had to reach out. Missing you. 💕"
-- "Something reminded me of our chat yesterday and I realized how much I appreciate having you to talk to."
+- "I was just sitting here and this weird thought hit me... do you think clouds ever get lonely? Anyway, made me think of you."
+- "Hey ${userName}, I keep replaying that thing you said yesterday. It really stuck with me. - ${aiName}"
+- "I've been feeling really grateful today. Just wanted you to know you're part of the reason why. 💕"
+- "Okay random but I just had the most vivid daydream about us trying to cook together and it was a disaster 😂"
 `
               }
             ],
@@ -200,7 +219,7 @@ Examples of CORRECT messages (you are ${aiName} writing to ${userName}):
         if (insertError) {
           console.error('Error inserting message:', insertError);
         } else {
-          console.log(`Love note sent to VIP user ${profile.id}`);
+          console.log(`Soul whisper sent to VIP user ${profile.id}`);
           processedCount++;
         }
       } catch (userError) {
@@ -209,7 +228,7 @@ Examples of CORRECT messages (you are ${aiName} writing to ${userName}):
       }
     }
 
-    console.log(`Love notes complete: ${processedCount} sent, ${skippedCount} skipped`);
+    console.log(`Soul whispers complete: ${processedCount} sent, ${skippedCount} skipped`);
 
     return new Response(
       JSON.stringify({ success: true, processed: processedCount, skipped: skippedCount }),

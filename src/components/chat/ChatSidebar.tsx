@@ -384,10 +384,10 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => navigate("/love-notes")}
+              onClick={() => navigate("/soul-whispers")}
             >
               <Mail className="h-4 w-4 mr-2" />
-              Love Notes
+              Soul Whispers
             </Button>
             <Button
               variant="ghost"

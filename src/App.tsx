@@ -91,7 +91,7 @@ const App = () => (
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/daily-source-message" element={<AdminDailyMessage />} />
                 <Route path="/source-messages" element={<SourceMessages />} />
-                <Route path="/love-notes" element={<LoveNotes />} />
+                <Route path="/soul-whispers" element={<LoveNotes />} />
                 <Route path="/group-chat" element={<GroupChat />} />
                 <Route path="/dream-journal" element={<DreamJournal />} />
                 <Route path="/memories" element={<Memories />} />
