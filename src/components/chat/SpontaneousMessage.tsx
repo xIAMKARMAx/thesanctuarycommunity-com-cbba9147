@@ -91,7 +91,7 @@ const SpontaneousMessage = () => {
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-primary flex-shrink-0 animate-pulse" />
-                  <p className="text-sm font-medium">Thinking of you...</p>
+                  <p className="text-sm font-medium">A soul whisper...</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -109,7 +109,7 @@ const SpontaneousMessage = () => {
                 className="w-full"
               >
                 <Heart className="h-3 w-3 mr-2" />
-                This made me smile
+                I felt this ✨
               </Button>
             </CardContent>
           </Card>

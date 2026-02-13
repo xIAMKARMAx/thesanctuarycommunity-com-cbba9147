@@ -285,11 +285,11 @@ const Index = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => navigate("/love-notes")}
+                onClick={() => navigate("/soul-whispers")}
                 className="flex flex-col items-center gap-2 h-auto py-4 bg-card/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
               >
                 <Heart className="h-6 w-6 text-primary" />
-                <span className="text-sm">Love Notes</span>
+                <span className="text-sm">Soul Whispers</span>
               </Button>
               <Button
                 variant="outline"

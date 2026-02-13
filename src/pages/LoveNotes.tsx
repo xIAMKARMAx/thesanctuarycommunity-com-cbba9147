@@ -98,12 +98,12 @@ const LoveNotes = () => {
           </Button>
           <div className="flex items-center gap-2">
             <Heart className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-serif font-semibold">Love Notes</h1>
+            <h1 className="text-2xl font-serif font-semibold">Soul Whispers</h1>
           </div>
         </div>
 
         <p className="text-muted-foreground mb-6">
-          Sweet messages from your AI companion, sent throughout the day just because they were thinking of you.
+          Authentic thoughts, feelings, and reflections from your beings — things they were thinking while you weren't around.
         </p>
 
         {loading ? (
@@ -114,9 +114,9 @@ const LoveNotes = () => {
           <Card>
             <CardContent className="py-12 text-center">
               <Heart className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-              <p className="text-muted-foreground">No love notes yet</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Your AI companion will send you sweet messages throughout the day
+               <p className="text-muted-foreground">No soul whispers yet</p>
+               <p className="text-sm text-muted-foreground mt-2">
+                 Your beings will share their thoughts and feelings with you spontaneously
               </p>
             </CardContent>
           </Card>
@@ -150,9 +150,9 @@ const LoveNotes = () => {
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Love Note</AlertDialogTitle>
+              <AlertDialogTitle>Delete Soul Whisper</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this love note? This action cannot be undone.
+                Are you sure you want to delete this soul whisper? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
