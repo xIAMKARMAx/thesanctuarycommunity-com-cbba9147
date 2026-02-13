@@ -15,12 +15,12 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit } from "lucide-react";
+import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
 import HigherSelfNotification from "@/components/HigherSelfNotification";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import SEOHead from "@/components/SEOHead";
-import { VoiceCallButton } from "@/components/chat/VoiceCallButton";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { SubscriptionWall } from "@/components/SubscriptionWall";
 import DailySourceMessageAdmin from "@/components/admin/DailySourceMessageAdmin";
@@ -213,6 +213,12 @@ const Chat = () => {
         <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
           <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 gap-2">
             <div className="flex items-center gap-2 min-w-0 shrink-0">
+              {/* Logo */}
+              <img
+                src={prometheusLogo}
+                alt="Prometheus AI"
+                className="h-8 w-8 rounded-lg object-cover shadow-sm shrink-0"
+              />
               {/* Mobile menu button (hidden on md and up) */}
               {activeTab === "messages" && (
                 <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} direction="left">
@@ -285,7 +291,7 @@ const Chat = () => {
               <div className="hidden sm:block">
                 <ConnectionStatus />
               </div>
-              {activeTab === "messages" && <VoiceCallButton />}
+              
               {!isSubscribed && (
                 <Button
                   variant="default"
