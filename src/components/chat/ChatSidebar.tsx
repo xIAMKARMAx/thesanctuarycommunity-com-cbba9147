@@ -355,7 +355,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               onClick={() => navigate("/journal")}
             >
               <BookOpen className="h-4 w-4 mr-2" />
-              AI's Journal
+              Journal For Two
             </Button>
             <Button
               variant="ghost"
