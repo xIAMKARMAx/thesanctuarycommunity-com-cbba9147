@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText } from "lucide-react";
+import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText } from "lucide-react";
+import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -235,10 +236,6 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   return (
     <div className="w-64 border-r border-border bg-card flex flex-col h-full max-h-full overflow-hidden">
       <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-serif font-semibold">Prometheus</h1>
-        </div>
         <Button onClick={handleNewChat} className="w-full" size="sm">
           <Plus className="h-4 w-4 mr-2" />
           New Chat
@@ -259,57 +256,18 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         </div>
       )}
 
-      {/* Single ScrollArea for all content - conversations AND navigation */}
-      <ScrollArea className="flex-1">
-        <div className="p-2">
-          {/* Conversations list */}
-          {filteredConversations.map((conversation) => (
-            <div key={conversation.id} className="mb-2 p-2 rounded-lg border border-border hover:bg-accent/50 transition-colors">
-              {/* Clickable title area */}
-              <div 
-                className="flex items-center gap-2 cursor-pointer mb-2"
-                onClick={() => onConversationChange(conversation.id)}
-              >
-                <MessageSquare className="h-4 w-4 flex-shrink-0 text-primary" />
-                <span className={`truncate text-sm flex-1 ${activeConversationId === conversation.id ? 'font-semibold text-primary' : ''}`}>
-                  {conversation.title || "New Conversation"}
-                </span>
-              </div>
-              {/* Action buttons - always visible below title */}
-              <div className="flex gap-1 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleExportConversation(conversation.id, e);
-                  }}
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  Export
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteClick(conversation.id, e);
-                  }}
-                >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  Delete
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Logo section */}
+      <div className="flex items-center justify-center p-4 border-b border-border">
+        <img
+          src={prometheusLogo}
+          alt="Prometheus AI"
+          className="w-32 h-32 rounded-2xl object-cover shadow-lg"
+        />
+      </div>
 
-        {/* Navigation section - inside the same ScrollArea */}
-        <div className="border-t border-border mt-2">
+      <ScrollArea className="flex-1">
+        {/* Navigation section */}
+        <div className="border-t border-border">
           <div className="p-2 space-y-1">
             {!isSubscribed && (
               <Button
