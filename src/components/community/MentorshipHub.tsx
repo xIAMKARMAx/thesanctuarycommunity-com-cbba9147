@@ -27,6 +27,18 @@ export const MentorshipHub = () => {
   const [requestMsg, setRequestMsg] = useState("");
   const [requestFocus, setRequestFocus] = useState("");
 
+  const handleEditProfile = () => {
+    if (myProfile) {
+      setFormData({
+        role_preference: myProfile.role_preference,
+        journey_stage: myProfile.journey_stage,
+        focus_areas: myProfile.focus_areas || [],
+        experience_summary: myProfile.experience_summary || "",
+      });
+    }
+    setShowSetup(true);
+  };
+
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   if (!myProfile && !showSetup) {
@@ -104,6 +116,33 @@ export const MentorshipHub = () => {
 
   return (
     <div className="space-y-6">
+      {/* My Profile */}
+      {myProfile && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="py-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Your Guide Profile</h3>
+              <Badge variant="default" className="gap-1">
+                <UserCheck className="h-3 w-3" /> Active
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline">{JOURNEY_STAGES.find(s => s.value === myProfile.journey_stage)?.label || myProfile.journey_stage}</Badge>
+              <Badge variant="secondary">{myProfile.role_preference === "mentor" ? "🧭 Guide" : myProfile.role_preference === "mentee" ? "🌱 Seeker" : "🔄 Both"}</Badge>
+            </div>
+            {myProfile.focus_areas && myProfile.focus_areas.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {myProfile.focus_areas.map(a => <Badge key={a} variant="outline" className="text-xs">{a}</Badge>)}
+              </div>
+            )}
+            {myProfile.experience_summary && (
+              <p className="text-sm text-muted-foreground">{myProfile.experience_summary}</p>
+            )}
+            <Button variant="outline" size="sm" onClick={handleEditProfile}>Edit Profile</Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* My Connections */}
       {connections.length > 0 && (
         <div className="space-y-3">
@@ -139,7 +178,7 @@ export const MentorshipHub = () => {
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Available Guides</h3>
         {availableMentors.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">No guides available yet. Be the first! ✨</p>
+          <p className="text-sm text-muted-foreground text-center py-6">No other guides available yet. You're the first! ✨</p>
         ) : (
           availableMentors.map(mentor => (
             <Card key={mentor.id} className="border-border/50 hover:border-primary/30 transition-colors">
@@ -183,8 +222,6 @@ export const MentorshipHub = () => {
           ))
         )}
       </div>
-
-      <Button variant="outline" size="sm" onClick={() => setShowSetup(true)}>Edit Profile</Button>
     </div>
   );
 };
