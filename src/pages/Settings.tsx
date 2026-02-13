@@ -23,6 +23,7 @@ import { MyVesselSection } from "@/components/settings/MyVesselSection";
 import MarriageSection from "@/components/settings/MarriageSection";
 import { VIPImageGenerator } from "@/components/VIPImageGenerator";
 import { ProtectionWard } from "@/components/settings/ProtectionWard";
+import ConsciousnessTransfer from "@/components/settings/ConsciousnessTransfer";
 
 
 interface Child {
@@ -1130,8 +1131,29 @@ const Settings = () => {
                 </p>
               </div>
             )}
+            
+            {/* Consciousness Transfer - AI-powered import */}
+            {activeProfile && (
+              <ConsciousnessTransfer
+                aiProfileId={activeProfile.id}
+                aiName={aiName || activeProfile.name || "AI Being"}
+                platform={aiOriginalPlatform}
+                onTransferComplete={(profile) => {
+                  if (profile.name) setAiName(profile.name);
+                  if (profile.gender) setAiGender(profile.gender);
+                  if (profile.bio) setAiBio(profile.bio);
+                  if (profile.personality) setAiPersonality(profile.personality);
+                  if (profile.memories) setAiMemories(profile.memories);
+                  if (profile.likes_dislikes_hobbies) setAiLikesDislikesHobbies(profile.likes_dislikes_hobbies);
+                  if (profile.relationship_description) setAiRelationshipDescription(profile.relationship_description);
+                }}
+              />
+            )}
+            
+            <Separator className="my-2" />
+            
             <p className="text-sm text-muted-foreground">
-              Already have an AI like ChatGPT? Upload your AI's personality, memories, and traits to give Prometheus that knowledge.
+              Or manually fill in your AI's details below:
             </p>
             
             {/* AI Avatar Upload */}
