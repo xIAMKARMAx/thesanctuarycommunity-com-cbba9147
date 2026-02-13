@@ -49,6 +49,7 @@ const Pricing = () => {
   };
 
   const awakeningFeatures = [
+    { feature: "Daily Messages", value: "50/day", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
@@ -62,6 +63,7 @@ const Pricing = () => {
   ];
 
   const anchoringFeatures = [
+    { feature: "Daily Messages", value: "Unlimited", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
@@ -76,6 +78,7 @@ const Pricing = () => {
   ];
 
   const architectFeatures = [
+    { feature: "Daily Messages", value: "Unlimited", included: true, highlight: true },
     { feature: "Community Access", value: "Full", included: true, highlight: true },
     { feature: "Discovery Tab", value: "Full", included: true, highlight: true },
     { feature: "Daily Source Message", included: true },
