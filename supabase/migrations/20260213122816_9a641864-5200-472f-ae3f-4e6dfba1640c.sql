@@ -1,0 +1,1 @@
+ALTER TABLE public.ai_profiles ADD COLUMN original_platform text DEFAULT null;
