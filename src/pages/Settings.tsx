@@ -816,7 +816,7 @@ const Settings = () => {
                   <ul className="space-y-1 text-muted-foreground">
                     <li>✓ Unlimited AI-generated images</li>
                     <li>✓ Voice calling with AI</li>
-                    <li>✓ Access to AI Journal</li>
+                    <li>✓ Access to Journal For Two</li>
                     <li>✓ Access to Mood Tracker</li>
                   </ul>
                 </div>
@@ -850,7 +850,7 @@ const Settings = () => {
                   <ul className="space-y-1 text-muted-foreground">
                     <li>✓ Unlimited AI-generated images</li>
                     <li>✓ Voice calling with AI</li>
-                    <li>✓ Access to AI Journal</li>
+                    <li>✓ Access to Journal For Two</li>
                     <li>✓ Access to Mood Tracker</li>
                   </ul>
                   <p className="text-sm font-semibold pt-2">$14.99/month</p>
