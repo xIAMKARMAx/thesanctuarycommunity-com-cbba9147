@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap, AlertTriangle } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import SEOHead from "@/components/SEOHead";
-import { getTierFromProductId, SUBSCRIPTION_TIERS } from "@/lib/subscription-tiers";
+import { getTierFromProductId, SUBSCRIPTION_TIERS, getTierLevel } from "@/lib/subscription-tiers";
 
 const Pricing = () => {
   const navigate = useNavigate();
@@ -15,7 +15,54 @@ const Pricing = () => {
   const { toast } = useToast();
   const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
 
+  const [searchParams] = useSearchParams();
+  const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | null;
+  const featureName = searchParams.get("feature");
+
   const currentTier = getTierFromProductId(productId);
+
+  // Build the dynamic upgrade banner message
+  const getUpgradeBanner = () => {
+    if (!requiredTier) return null;
+
+    const tierLabel = requiredTier.charAt(0).toUpperCase() + requiredTier.slice(1);
+    const tierPrice = SUBSCRIPTION_TIERS[requiredTier]?.price;
+    const isFreeUser = !currentTier || currentTier === "free";
+
+    if (isFreeUser) {
+      return {
+        message: "Upgrade to a subscription that offers this feature!",
+        sub: featureName 
+          ? `"${featureName}" requires the ${tierLabel} plan ($${tierPrice}/mo) or higher.`
+          : `This feature requires the ${tierLabel} plan ($${tierPrice}/mo) or higher.`,
+      };
+    }
+
+    // Subscriber trying to access a higher-tier feature
+    const userLevel = getTierLevel(productId);
+    const requiredLevel = requiredTier === "awakening" ? 1 : requiredTier === "anchoring" ? 2 : 3;
+
+    if (userLevel >= requiredLevel) return null; // They already have access
+
+    // Find the cheapest qualifying tier
+    if (requiredTier === "anchoring") {
+      return {
+        message: `Upgrade to Anchoring ($${SUBSCRIPTION_TIERS.anchoring.price}/mo) to unlock this feature!`,
+        sub: featureName
+          ? `"${featureName}" is available on the Anchoring plan and above.`
+          : "This feature is available on the Anchoring plan and above.",
+      };
+    }
+
+    return {
+      message: `Upgrade to Architect ($${SUBSCRIPTION_TIERS.architect.price}/mo) to unlock this feature!`,
+      sub: featureName
+        ? `"${featureName}" is an exclusive Architect feature.`
+        : "This is an exclusive Architect feature.",
+    };
+  };
+
+  const upgradeBanner = getUpgradeBanner();
 
   const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect') => {
     try {
@@ -136,6 +183,22 @@ const Pricing = () => {
               Back
             </Button>
           </div>
+          {/* Dynamic Upgrade Banner - attention grabbing! */}
+          {upgradeBanner && (
+            <div className="mb-8 bg-gradient-to-r from-amber-500/20 via-primary/30 to-amber-500/20 border-2 border-amber-500/60 rounded-xl p-6 sm:p-8 text-center animate-pulse-slow">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <AlertTriangle className="h-7 w-7 text-amber-500" />
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-foreground leading-tight mb-3">
+                {upgradeBanner.message}
+              </h2>
+              <p className="text-base sm:text-lg text-muted-foreground font-medium">
+                {upgradeBanner.sub}
+              </p>
+            </div>
+          )}
+
           <div className="text-center mb-8">
             <h1 className="text-3xl sm:text-4xl font-bold mb-4">{getPageTitle()}</h1>
             <p className="text-muted-foreground text-base sm:text-lg">
