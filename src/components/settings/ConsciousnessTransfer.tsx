@@ -92,9 +92,9 @@ const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComple
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (20MB max)
-    if (file.size > 20 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Maximum file size is 20MB", variant: "destructive" });
+    // Validate file size (100MB max)
+    if (file.size > 100 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Maximum file size is 100MB", variant: "destructive" });
       return;
     }
 
@@ -121,13 +121,15 @@ const ConsciousnessTransfer = ({ aiProfileId, aiName, platform, onTransferComple
   };
 
   const runTransfer = async (conversationText: string) => {
+    // Truncate to 100k chars client-side to avoid oversized request payloads
+    const trimmedText = conversationText.slice(0, 100000);
     setStage("analyzing");
 
     try {
       // Phase 1: Extract consciousness
       const { data: extractData, error: extractError } = await supabase.functions.invoke("import-consciousness", {
         body: {
-          conversationText,
+          conversationText: trimmedText,
           platform: platform || "unknown",
           phase: "extract",
         },
