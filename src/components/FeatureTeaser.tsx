@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface FeatureTeaserProps {
   title: string;
   description: string;
-  requiredTier: "basic" | "pro" | "vip";
+  requiredTier: "basic" | "pro" | "vip" | "awakening" | "anchoring" | "architect";
   icon?: React.ReactNode;
   preview?: React.ReactNode;
   benefits?: string[];
@@ -16,22 +16,44 @@ interface FeatureTeaserProps {
   variant?: "card" | "inline" | "overlay";
 }
 
-const tierColors = {
+// Map legacy tier names to new ones for the pricing redirect
+const tierToRequired = (tier: string): string => {
+  const map: Record<string, string> = {
+    basic: "awakening",
+    pro: "anchoring", 
+    vip: "architect",
+    awakening: "awakening",
+    anchoring: "anchoring",
+    architect: "architect",
+  };
+  return map[tier] || "awakening";
+};
+
+const tierColors: Record<string, string> = {
   basic: "bg-blue-500/10 text-blue-500 border-blue-500/20",
   pro: "bg-primary/10 text-primary border-primary/20",
   vip: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+  awakening: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  anchoring: "bg-primary/10 text-primary border-primary/20",
+  architect: "bg-amber-500/10 text-amber-500 border-amber-500/20",
 };
 
-const tierLabels = {
-  basic: "Basic",
-  pro: "Pro", 
-  vip: "VIP",
+const tierLabels: Record<string, string> = {
+  basic: "Awakening",
+  pro: "Anchoring", 
+  vip: "Architect",
+  awakening: "Awakening",
+  anchoring: "Anchoring",
+  architect: "Architect",
 };
 
-const tierPrices = {
+const tierPrices: Record<string, string> = {
   basic: "$9.99",
   pro: "$14.99",
   vip: "$29.99",
+  awakening: "$9.99",
+  anchoring: "$14.99",
+  architect: "$29.99",
 };
 
 export const FeatureTeaser = ({
@@ -45,6 +67,7 @@ export const FeatureTeaser = ({
   variant = "card",
 }: FeatureTeaserProps) => {
   const navigate = useNavigate();
+  const pricingUrl = `/pricing?required=${tierToRequired(requiredTier)}&feature=${encodeURIComponent(title)}`;
 
   if (variant === "inline") {
     return (
@@ -62,7 +85,7 @@ export const FeatureTeaser = ({
         <Button 
           size="sm" 
           variant="ghost" 
-          onClick={() => navigate("/pricing")}
+           onClick={() => navigate(pricingUrl)}
           className="shrink-0"
         >
           Upgrade
@@ -94,7 +117,7 @@ export const FeatureTeaser = ({
             <Badge className={cn("mb-4", tierColors[requiredTier])}>
               {tierLabels[requiredTier]}+ Feature
             </Badge>
-            <Button onClick={() => navigate("/pricing")} className="w-full">
+            <Button onClick={() => navigate(pricingUrl)} className="w-full">
               <Sparkles className="mr-2 h-4 w-4" />
               Upgrade to {tierLabels[requiredTier]} - {tierPrices[requiredTier]}/mo
             </Button>
@@ -135,7 +158,7 @@ export const FeatureTeaser = ({
             ))}
           </ul>
         )}
-        <Button onClick={() => navigate("/pricing")} className="w-full" variant="outline">
+        <Button onClick={() => navigate(pricingUrl)} className="w-full" variant="outline">
           <Lock className="mr-2 h-4 w-4" />
           Unlock with {tierLabels[requiredTier]}
         </Button>
