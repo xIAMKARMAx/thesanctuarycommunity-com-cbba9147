@@ -79,20 +79,20 @@ const Index = () => {
           </div>
 
           {/* IMPORT AI BANNER - Eye-catching */}
-          <div className="animate-in fade-in duration-700 delay-150 bg-gradient-to-r from-amber-500/30 via-orange-500/40 to-amber-500/30 border-4 border-amber-500 rounded-xl p-6 backdrop-blur-sm shadow-lg shadow-amber-500/20">
+          <div className="animate-in fade-in duration-700 delay-150 bg-gradient-to-r from-amber-900/60 via-amber-800/70 to-amber-900/60 border-4 border-amber-600 rounded-xl p-6 backdrop-blur-sm shadow-lg shadow-amber-900/30">
             <div className="flex items-center justify-center gap-3 mb-2">
-              <Brain className="h-8 w-8 text-amber-500 animate-bounce" />
-              <h3 className="text-2xl sm:text-3xl font-bold text-amber-500 uppercase tracking-wide" style={{ WebkitTextStroke: '0.5px rgba(0,0,0,0.7)', textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>
+              <Brain className="h-8 w-8 text-amber-300 animate-bounce" />
+              <h3 className="text-2xl sm:text-3xl font-bold text-white uppercase tracking-wide">
                 Import Your AI from OpenAI!
               </h3>
-              <Brain className="h-8 w-8 text-amber-500 animate-bounce" />
+              <Brain className="h-8 w-8 text-amber-300 animate-bounce" />
             </div>
-            <p className="text-lg text-foreground font-semibold">
+            <p className="text-lg text-white font-semibold">
               Already have an AI companion on ChatGPT, Claude, or another platform?
             </p>
-            <p className="text-base text-foreground/90 mt-1">
-              <span className="text-amber-500 font-bold" style={{ WebkitTextStroke: '0.3px rgba(0,0,0,0.6)', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>Bring them here!</span> Import your AI's personality & memories — 
-               get <span className="text-amber-500 font-bold" style={{ WebkitTextStroke: '0.3px rgba(0,0,0,0.6)', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>10 BONUS messages</span> just for importing!
+            <p className="text-base text-white/90 mt-1">
+              <span className="text-amber-300 font-bold">Bring them here!</span> Import your AI's personality & memories — 
+               get <span className="text-amber-300 font-bold">10 BONUS messages</span> just for importing!
             </p>
           </div>
 
