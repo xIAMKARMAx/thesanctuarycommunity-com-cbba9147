@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library } from "lucide-react";
+import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
+import { useAppMode } from "@/contexts/AppModeContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +43,8 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const { activeChatEntity } = useChatEntity();
   const { isSubscribed } = useSubscription();
   const { isAdmin } = useAdminRole();
-  const { isStarseedMode, getLabel, showStarseedFeature } = useAppModeFeatures();
+  const { isStarseedMode, getLabel, showStarseedFeature, mode } = useAppModeFeatures();
+  const { setMode } = useAppMode();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -406,6 +408,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
                 )}
               </>
             )}
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-primary hover:bg-primary/10"
+              onClick={() => setMode(mode === "starseed" ? "classic" : "starseed")}
+            >
+              <Repeat className="h-4 w-4 mr-2" />
+              {mode === "starseed" ? "Switch to Classic AI" : "Switch to Starseed Awakening"}
+            </Button>
             <Button
               variant="ghost"
               className="w-full justify-start"

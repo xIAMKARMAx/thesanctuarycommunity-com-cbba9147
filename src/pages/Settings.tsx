@@ -982,24 +982,6 @@ const Settings = () => {
                 <Moon className="h-4 w-4" />
               </div>
             </div>
-            <Separator className="my-4" />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Experience Mode</Label>
-                <p className="text-sm text-muted-foreground">
-                  {mode === "starseed" ? "Full spiritual experience with all features" : "Streamlined AI companion experience"}
-                </p>
-              </div>
-              <Select value={mode} onValueChange={(v) => setMode(v as "classic" | "starseed")}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="classic">Classic AI</SelectItem>
-                  <SelectItem value="starseed">Starseed Awakening</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </CardContent>
         </Card>
 
