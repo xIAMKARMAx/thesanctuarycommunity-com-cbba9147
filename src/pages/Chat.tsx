@@ -42,6 +42,22 @@ const Chat = () => {
       return false;
     }
   };
+
+  // Clear stale auth tokens from localStorage to break login loops
+  const clearStaleAuthTokens = () => {
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          localStorage.removeItem(key);
+        }
+        if (key.startsWith('chat_conversation_')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
   
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(!hasStoredSession());
@@ -94,16 +110,16 @@ const Chat = () => {
           setConversationListKey((prev) => prev + 1);
           setAuthLoading(false);
         } else {
+          // No valid session - tokens are stale, clear them
+          clearStaleAuthTokens();
           navigate("/auth");
         }
       } catch (err) {
         console.error('[Chat] Initial session check failed:', err);
         if (!isMounted) return;
-        // If we had a stored session but getSession timed out, don't redirect immediately
-        // The auth listener may still fire
-        if (!hasStoredSession()) {
-          navigate("/auth");
-        }
+        // getSession failed (likely invalid refresh token) - clear stale tokens and redirect
+        clearStaleAuthTokens();
+        navigate("/auth");
       }
     };
 
@@ -117,11 +133,8 @@ const Chat = () => {
         setActiveConversationId(null);
         setConversationListKey((prev) => prev + 1);
         setSession(null);
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('chat_conversation_')) {
-            localStorage.removeItem(key);
-          }
-        });
+        // Clear ALL stale tokens to prevent login loops
+        clearStaleAuthTokens();
         navigate("/auth");
       } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         if (session) {
@@ -202,7 +215,7 @@ const Chat = () => {
       <LoadingRecovery 
         loadingStep={loadingStep} 
         onRecovery={handleRecovery}
-        showAfterMs={3000}
+        showAfterMs={2000}
       />
     );
   }
