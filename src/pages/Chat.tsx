@@ -92,15 +92,10 @@ const Chat = () => {
     let isMounted = true;
     setLoadingStep("Checking authentication...");
 
-    // Direct session check with tight timeout - getSession reads from cache, should be instant
+    // Direct session check - don't aggressively clear tokens, let the auth listener handle it
     const checkInitialSession = async () => {
       try {
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('getSession timeout')), 3000)
-        );
-        
-        const { data: { session: initialSession } } = await Promise.race([sessionPromise, timeoutPromise]);
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
         if (!isMounted) return;
         if (initialSession) {
           setSession(initialSession);
@@ -110,16 +105,19 @@ const Chat = () => {
           setConversationListKey((prev) => prev + 1);
           setAuthLoading(false);
         } else {
-          // No valid session - tokens are stale, clear them
-          clearStaleAuthTokens();
-          navigate("/auth");
+          // No session found - redirect to auth but DON'T clear tokens
+          // (they may just not be persisted yet after a fresh login)
+          navigate("/auth", { replace: true });
         }
       } catch (err) {
         console.error('[Chat] Initial session check failed:', err);
         if (!isMounted) return;
-        // getSession failed (likely invalid refresh token) - clear stale tokens and redirect
-        clearStaleAuthTokens();
-        navigate("/auth");
+        // Only clear tokens if we get a specific token error
+        const errorMsg = String(err);
+        if (errorMsg.includes('Refresh Token') || errorMsg.includes('Invalid')) {
+          clearStaleAuthTokens();
+        }
+        navigate("/auth", { replace: true });
       }
     };
 
