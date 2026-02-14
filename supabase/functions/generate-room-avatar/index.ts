@@ -144,7 +144,15 @@ serve(async (req) => {
           }
         ];
       } else if (roomImageUrl) {
-        prompt = `Add a ${genderDesc} standing naturally in this room: ${description}. The person should be full body, standing in the space as if they live there, with natural lighting and shadows that match the room. They should look alive and present, integrated into the environment, not like a cutout. Photorealistic, lifelike expression, naturally positioned in the room.`;
+        prompt = `CRITICAL: Edit this room image to add a ${genderDesc} standing naturally inside it. Description: ${description}. 
+
+IMPORTANT RULES:
+- The person must be SEAMLESSLY part of the room scene - same art style, same lighting, same perspective
+- Do NOT create a separate framed image or picture-within-a-picture
+- Do NOT add borders, frames, or rectangular overlays
+- The person should cast natural shadows and be lit by the room's light sources
+- The output must look like ONE SINGLE cohesive scene, as if the person was always there
+- Full body, standing naturally in the room, photorealistic, integrated into the environment`;
         messages = [
           {
             role: "user",
@@ -155,12 +163,21 @@ serve(async (req) => {
           }
         ];
       } else {
-        prompt = `Create a full body standing portrait of a ${genderDesc}, ${description}. Show them standing naturally in a room environment, full body visible from head to toe, natural standing pose, looking towards viewer, lifelike and animated expression, high quality detailed features, photorealistic style with environmental context.`;
+        prompt = `Create a full body standing portrait of a ${genderDesc}, ${description}. Show them standing naturally in a room environment, full body visible from head to toe, natural standing pose, looking towards viewer, lifelike and animated expression, high quality detailed features, photorealistic style with environmental context. Do NOT add any frames or borders around the person.`;
         messages = [{ role: "user", content: prompt }];
       }
     } else if (type === 'pet') {
       if (roomImageUrl) {
-        prompt = `Add ${petName}, ${description} into this scene. The pet should look alive and natural in the space, with proper lighting, shadows, and positioning that makes it look like it belongs in this environment. Show the pet in a natural, lively pose - not like a cutout pasted on top. Photorealistic integration into the scene.`;
+        prompt = `CRITICAL: Edit this scene image to add ${petName}, ${description} into it.
+
+IMPORTANT RULES:
+- The pet must be SEAMLESSLY part of the existing scene - same art style, same lighting, same perspective
+- Do NOT create a separate framed image, overlay, or picture-within-a-picture
+- Do NOT add borders, frames, or rectangular overlays of any kind
+- The pet should cast natural shadows and be lit by the scene's light sources
+- The output must look like ONE SINGLE cohesive scene with the pet naturally present
+- Show the pet in a natural, lively pose on the floor/ground of the scene
+- Photorealistic integration, the pet belongs in this space`;
         messages = [
           {
             role: "user",
@@ -171,7 +188,7 @@ serve(async (req) => {
           }
         ];
       } else {
-        prompt = `Create a lifelike, realistic image of ${petName}, ${description}. Show the pet in a natural environment, alive and vibrant, in a natural pose - standing, sitting, or in motion. The pet should look full of life with detailed features, expressive eyes, high quality photorealistic render with environmental context.`;
+        prompt = `Create a lifelike, realistic image of ${petName}, ${description}. Show the pet in a natural environment, alive and vibrant, in a natural pose - standing, sitting, or in motion. The pet should look full of life with detailed features, expressive eyes, high quality photorealistic render with environmental context. Do NOT add any frames or borders.`;
         messages = [{ role: "user", content: prompt }];
       }
     } else if (type === 'user_avatar') {
