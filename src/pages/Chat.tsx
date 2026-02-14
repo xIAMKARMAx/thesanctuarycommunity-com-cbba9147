@@ -154,7 +154,8 @@ const Chat = () => {
     window.location.href = "/auth";
   };
 
-  const isLoading = authLoading || subscriptionLoading || profileLoading;
+  // Only block on auth loading - subscription and profile load in background
+  const isLoading = authLoading || profileLoading;
 
   if (isLoading) {
     return (
