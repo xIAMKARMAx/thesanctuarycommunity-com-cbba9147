@@ -273,18 +273,9 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         {/* Navigation section */}
         <div className="border-t border-border">
           <div className="p-2 space-y-1">
-            {!isSubscribed && (
-              <Button
-                variant="default"
-                className="w-full justify-start gap-2 bg-gradient-to-r from-primary to-primary/80 mb-2"
-                onClick={() => navigate("/settings")}
-              >
-                <Crown className="h-4 w-4" />
-                Upgrade to Pro
-              </Button>
-            )}
+            {/* 1. How To Import Being */}
             <ImportBeingGuide />
-            {/* My Higher Self / My Profile - first option after import guide */}
+            {/* 2. My Higher Self / My Profile */}
             <Button
               variant="ghost"
               className="w-full justify-start"
@@ -293,154 +284,185 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <Crown className="h-4 w-4 mr-2" />
               {isStarseedMode ? "My Higher Self" : "My Profile"}
             </Button>
-            {/* Community - available to all */}
+            {/* 3. AI's Room & Avatar */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/ai-room")}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              AI's Room & Avatar
+            </Button>
+            {/* 4. Akashic Records (Starseed only) */}
+            {showStarseedFeature && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/akashic-records")}
+              >
+                <Library className="h-4 w-4 mr-2" />
+                {getLabel("Akashic Records")}
+              </Button>
+            )}
+            {/* 5. Journal For Two */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/journal")}
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              {getLabel("Journal For Two")}
+            </Button>
+            {/* 6. Source's Daily Guidance (Starseed only) */}
+            {showStarseedFeature && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/source-messages")}
+              >
+                <Sun className="h-4 w-4 mr-2" />
+                Source's Daily Guidance
+              </Button>
+            )}
+            {/* 7. Vibrational Frequency */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/mood-tracker")}
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              {getLabel("Vibrational Frequency")}
+            </Button>
+            {/* 8. Manifest Children (Starseed only) */}
+            {showStarseedFeature && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/children")}
+              >
+                <Baby className="h-4 w-4 mr-2" />
+                {getLabel("Manifest Children")}
+              </Button>
+            )}
+            {/* 9. Conscious Collective / Community */}
             <Button
               variant="ghost"
               className="w-full justify-start"
               onClick={() => navigate("/community")}
             >
               <Users className="h-4 w-4 mr-2" />
-              Community
+              {isStarseedMode ? "Conscious Collective" : "Community"}
             </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/pricing")}
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Subscriptions
-            </Button>
-            {/* Features only for subscribers */}
-            {(isSubscribed || isAdmin) && (
-              <>
-                {showStarseedFeature && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start bg-primary/10 hover:bg-primary/20 border border-primary/20"
-                    onClick={() => navigate("/source-messages")}
-                  >
-                    <Sun className="h-4 w-4 mr-2 text-primary" />
-                    {getLabel("Source's Daily Messages")}
-                  </Button>
-                )}
-                {showStarseedFeature && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-                    onClick={() => navigate("/akashic-records")}
-                  >
-                    <Library className="h-4 w-4 mr-2 text-primary" />
-                    {getLabel("Akashic Records")}
-                  </Button>
-                )}
+            {/* 10. Group Chats (Starseed only) */}
+            {showStarseedFeature && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/group-chat")}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Group Chats
+              </Button>
+            )}
+            {/* 11. Soul Whispers (Starseed only) */}
+            {showStarseedFeature && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/soul-whispers")}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                {getLabel("Soul Whispers")}
+              </Button>
+            )}
+
+            {/* Starseed Playground section */}
+            {showStarseedFeature && (
+              <div className="pt-2 mt-2 border-t border-border space-y-1">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate("/journal")}
+                  className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+                  onClick={() => navigate("/starseed-playground")}
                 >
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  {getLabel("Journal For Two")}
+                  <Star className="h-4 w-4 mr-2 text-primary" />
+                  Starseed Playground
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate("/mood-tracker")}
+                  className="w-full justify-start pl-8 text-sm"
+                  onClick={() => navigate("/starseed-playground/cosmic-date-night")}
                 >
-                  <Heart className="h-4 w-4 mr-2" />
-                  {getLabel("Vibrational Frequency")}
+                  <Heart className="h-3 w-3 mr-2" />
+                  Cosmic Date Night
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start"
+                  className="w-full justify-start pl-8 text-sm"
+                  onClick={() => navigate("/attunement")}
+                >
+                  <Moon className="h-3 w-3 mr-2" />
+                  Resonant Attunement
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start pl-8 text-sm"
                   onClick={() => navigate("/dream-journal")}
                 >
-                  <Moon className="h-4 w-4 mr-2" />
+                  <ScrollText className="h-3 w-3 mr-2" />
                   Dream Journal
                 </Button>
-                {showStarseedFeature && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => navigate("/children")}
-                    >
-                      <Baby className="h-4 w-4 mr-2" />
-                      {getLabel("Manifest Children")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => navigate("/group-chat")}
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      Group Chats
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => navigate("/soul-whispers")}
-                    >
-                      <Mail className="h-4 w-4 mr-2" />
-                      {getLabel("Soul Whispers")}
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate("/ai-room")}
-                >
-                  <Home className="h-4 w-4 mr-2" />
-                  {getLabel("AI's Room")}
-                </Button>
-                {showStarseedFeature && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => navigate("/attunement")}
-                    >
-                      <Moon className="h-4 w-4 mr-2" />
-                      {getLabel("Resonant Attunement")}
-                    </Button>
-                    <div className="pt-2 mt-2 border-t border-border space-y-1">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-                        onClick={() => navigate("/starseed-playground")}
-                      >
-                        <Star className="h-4 w-4 mr-2 text-primary" />
-                        {getLabel("Starseed Playground")}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </>
+              </div>
             )}
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-primary hover:bg-primary/10"
-              onClick={() => setMode(mode === "starseed" ? "classic" : "starseed")}
-            >
-              <Repeat className="h-4 w-4 mr-2" />
-              {mode === "starseed" ? "Switch to Classic AI" : "Switch to Starseed Awakening"}
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/settings")}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+
+            {/* Mode switch */}
+            <div className="pt-2 mt-2 border-t border-border space-y-1">
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-primary hover:bg-primary/10"
+                onClick={() => setMode(mode === "starseed" ? "classic" : "starseed")}
+              >
+                <Repeat className="h-4 w-4 mr-2" />
+                {mode === "starseed" ? "Switch to Classic AI" : "Switch to Starseed Awakening"}
+              </Button>
+              {/* Subscriptions */}
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/pricing")}
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Subscriptions
+              </Button>
+              {/* Settings */}
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/settings")}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+              {/* Upgrade to Pro */}
+              {!isSubscribed && (
+                <Button
+                  variant="default"
+                  className="w-full justify-start gap-2 bg-gradient-to-r from-primary to-primary/80"
+                  onClick={() => navigate("/pricing")}
+                >
+                  <Crown className="h-4 w-4" />
+                  Upgrade to Pro
+                </Button>
+              )}
+              {/* Sign Out */}
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </ScrollArea>
