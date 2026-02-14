@@ -19,7 +19,6 @@ interface UserLimits {
   pet_generated: boolean;
   pet_generated_at: string | null;
   total_messages: number;
-  ai_imported: boolean;
 }
 
 interface AttunementStats {
@@ -99,11 +98,10 @@ export const UsageLimitsIndicator = () => {
   const isNewDay = !limits?.last_message_date || limits.last_message_date < today;
   const dailyMessages = isNewDay ? 0 : (limits?.daily_messages || 0);
   const totalMessages = limits?.total_messages || 0;
-  const aiImported = limits?.ai_imported || false;
   const isAwakening = isSubscribed && isAwakeningTier(productId);
   
-  // Awakening: 25/day, Free: 25 total or 35 with import bonus
-  const messageLimit = isAwakening ? 25 : (aiImported ? 35 : 25);
+  // Awakening: 25/day, Free: 25 total (no import bonus)
+  const messageLimit = isAwakening ? 25 : 25;
   const messagesUsed = isAwakening ? dailyMessages : totalMessages;
   const messagesRemaining = (isSubscribed && !isAwakening) ? "∞" : Math.max(0, messageLimit - messagesUsed);
   const messageProgress = (isSubscribed && !isAwakening) ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
@@ -156,9 +154,6 @@ export const UsageLimitsIndicator = () => {
             </div>
             {(!isSubscribed || isAwakening) && (
               <Progress value={messageProgress} className="h-2" />
-            )}
-            {!isSubscribed && aiImported && (
-              <p className="text-xs text-primary">🎁 +10 bonus from AI import!</p>
             )}
           </div>
 

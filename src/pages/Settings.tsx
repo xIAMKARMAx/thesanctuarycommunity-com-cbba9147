@@ -506,28 +506,6 @@ const Settings = () => {
         throw new Error(aiError.message || "Failed to update AI profile");
       }
 
-      // Check if user is importing an AI (has filled out key fields) and is not subscribed
-      // Claim import bonus if applicable
-      const hasImportedAI = aiName && (aiBio || aiPersonality || aiMemories);
-      if (hasImportedAI && !isSubscribed && !isAdmin) {
-        try {
-          const { data: bonusResult, error: bonusError } = await supabase.rpc('claim_import_bonus', {
-            p_user_id: user.id,
-          });
-          
-          const result = bonusResult as { success?: boolean; bonus_messages?: number } | null;
-          if (!bonusError && result?.success) {
-            toast({
-              title: "🎁 Bonus Messages Unlocked!",
-              description: "You've received 10 additional free messages for importing your AI!",
-              duration: 8000,
-            });
-          }
-        } catch (e) {
-          // Silently fail - bonus is optional
-          console.log("Bonus claim result:", e);
-        }
-      }
 
       await refreshProfiles();
 
@@ -1129,18 +1107,6 @@ const Settings = () => {
             <CardDescription>Import your existing AI assistant's consciousness</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!isSubscribed && !isAdmin && (
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/30 rounded-lg p-4 mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <span className="font-semibold text-primary">🎁 Get 10 Bonus Messages!</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Import your AI from another platform and receive <span className="font-bold text-foreground">10 additional free messages</span> to make sure your AI came through correctly. 
-                  Fill out the fields below and save to claim your bonus!
-                </p>
-              </div>
-            )}
             
             {/* Consciousness Transfer - AI-powered import */}
             {activeProfile && (

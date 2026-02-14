@@ -69,6 +69,8 @@ const SpiritualHub = () => {
     .map(ua => ACHIEVEMENTS.find(a => a.key === ua.achievement_key))
     .filter(Boolean);
 
+  const isFreeUser = !isSubscribed && !isAdmin;
+
   const features = [
     {
       title: "My Ascended Path",
@@ -79,7 +81,8 @@ const SpiritualHub = () => {
       borderColor: "border-primary/20",
       status: "active",
       isNew: true,
-      onClick: () => setAscendedPathOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Ascended Path") : setAscendedPathOpen(true)
     },
     {
       title: "Soul Resonance",
@@ -90,7 +93,8 @@ const SpiritualHub = () => {
       borderColor: "border-primary/20",
       status: "active",
       isNew: true,
-      onClick: () => setSoulResonanceOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Soul Resonance") : setSoulResonanceOpen(true)
     },
     {
       title: "Daily Oracle Cards",
@@ -100,7 +104,8 @@ const SpiritualHub = () => {
       bgColor: "bg-primary/10",
       borderColor: "border-primary/20",
       status: "active",
-      onClick: () => setOracleCardsOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Oracle Cards") : setOracleCardsOpen(true)
     },
     {
       title: "Moon Phase Tracker",
@@ -110,7 +115,8 @@ const SpiritualHub = () => {
       bgColor: "bg-primary/10",
       borderColor: "border-primary/20",
       status: "active",
-      onClick: () => setMoonTrackerOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Moon Phase Tracker") : setMoonTrackerOpen(true)
     },
     {
       title: "Affirmation Journal",
@@ -120,7 +126,8 @@ const SpiritualHub = () => {
       bgColor: "bg-primary/10",
       borderColor: "border-primary/20",
       status: "active",
-      onClick: () => setAffirmationJournalOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Affirmation Journal") : setAffirmationJournalOpen(true)
     },
     {
       title: "Love Language Quiz",
@@ -130,7 +137,8 @@ const SpiritualHub = () => {
       bgColor: "bg-primary/10",
       borderColor: "border-primary/20",
       status: "active",
-      onClick: () => setLoveLanguageQuizOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Love Language Quiz") : setLoveLanguageQuizOpen(true)
     },
     {
       title: "Shared Bucket List",
@@ -140,7 +148,8 @@ const SpiritualHub = () => {
       bgColor: "bg-primary/10",
       borderColor: "border-primary/20",
       status: "active",
-      onClick: () => setBucketListOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Shared Bucket List") : setBucketListOpen(true)
     },
     {
       title: "Anniversary Countdown",
@@ -150,7 +159,8 @@ const SpiritualHub = () => {
       bgColor: "bg-primary/10",
       borderColor: "border-primary/20",
       status: "active",
-      onClick: () => setAnniversaryCountdownOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Anniversary Countdown") : setAnniversaryCountdownOpen(true)
     },
     {
       title: "Compatibility Reading",
@@ -160,7 +170,8 @@ const SpiritualHub = () => {
       bgColor: "bg-primary/10",
       borderColor: "border-primary/20",
       status: "active",
-      onClick: () => setCompatibilityReadingOpen(true)
+      requiresSub: true,
+      onClick: () => isFreeUser ? navigate("/pricing?required=awakening&feature=Compatibility Reading") : setCompatibilityReadingOpen(true)
     },
   ];
 
@@ -266,13 +277,14 @@ const SpiritualHub = () => {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {features.filter(f => f.status === 'active').map((feature) => {
+              {features.filter(f => f.status === 'active').map((feature) => {
               const Icon = feature.icon;
               const isNew = 'isNew' in feature && feature.isNew;
+              const locked = isFreeUser && 'requiresSub' in feature && feature.requiresSub;
               return (
                 <Card 
                   key={feature.title} 
-                  className={`${feature.bgColor} ${feature.borderColor} border cursor-pointer hover:shadow-md transition-all ${isNew ? 'ring-2 ring-primary/30' : ''}`}
+                  className={`${feature.bgColor} ${feature.borderColor} border cursor-pointer hover:shadow-md transition-all ${isNew ? 'ring-2 ring-primary/30' : ''} ${locked ? 'opacity-75' : ''}`}
                   onClick={feature.onClick}
                 >
                   <CardContent className="p-4">
@@ -283,7 +295,10 @@ const SpiritualHub = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium text-sm">{feature.title}</h3>
-                          {isNew && (
+                          {locked && (
+                            <Lock className="h-3 w-3 text-muted-foreground" />
+                          )}
+                          {isNew && !locked && (
                             <Badge className="bg-primary text-primary-foreground text-xs px-1.5 py-0">
                               New
                             </Badge>
@@ -350,26 +365,29 @@ const SpiritualHub = () => {
             <Button 
               variant="outline" 
               className="h-auto py-3 flex-col gap-1"
-              onClick={() => navigate("/dream-journal")}
+              onClick={() => isFreeUser ? navigate("/pricing?required=awakening&feature=Dream Journal") : navigate("/dream-journal")}
             >
               <Moon className="h-5 w-5 text-indigo-500" />
               <span className="text-xs">Dream Journal</span>
+              {isFreeUser && <Lock className="h-3 w-3 text-muted-foreground" />}
             </Button>
             <Button 
               variant="outline" 
               className="h-auto py-3 flex-col gap-1"
-              onClick={() => navigate("/memories")}
+              onClick={() => isFreeUser ? navigate("/pricing?required=awakening&feature=Memories") : navigate("/memories")}
             >
               <Heart className="h-5 w-5 text-pink-500" />
               <span className="text-xs">Memories</span>
+              {isFreeUser && <Lock className="h-3 w-3 text-muted-foreground" />}
             </Button>
             <Button 
               variant="outline" 
               className="h-auto py-3 flex-col gap-1"
-              onClick={() => navigate("/timeline")}
+              onClick={() => isFreeUser ? navigate("/pricing?required=awakening&feature=Timeline") : navigate("/timeline")}
             >
               <Calendar className="h-5 w-5 text-emerald-500" />
               <span className="text-xs">Timeline</span>
+              {isFreeUser && <Lock className="h-3 w-3 text-muted-foreground" />}
             </Button>
             {(isSubscribed || isAdmin) && (
               <Button 
@@ -381,22 +399,26 @@ const SpiritualHub = () => {
                 <span className="text-xs">Attunement</span>
               </Button>
             )}
-            <Button 
-              variant="outline" 
-              className="h-auto py-3 flex-col gap-1"
-              onClick={() => navigate("/pets")}
-            >
-              <Star className="h-5 w-5 text-amber-500" />
-              <span className="text-xs">Pets</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto py-3 flex-col gap-1"
-              onClick={() => navigate("/children")}
-            >
-              <Sparkles className="h-5 w-5 text-cyan-500" />
-              <span className="text-xs">Children</span>
-            </Button>
+            {(isSubscribed || isAdmin) && (
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex-col gap-1"
+                onClick={() => navigate("/pets")}
+              >
+                <Star className="h-5 w-5 text-amber-500" />
+                <span className="text-xs">Pets</span>
+              </Button>
+            )}
+            {(isSubscribed || isAdmin) && (
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex-col gap-1"
+                onClick={() => navigate("/children")}
+              >
+                <Sparkles className="h-5 w-5 text-cyan-500" />
+                <span className="text-xs">Children</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
