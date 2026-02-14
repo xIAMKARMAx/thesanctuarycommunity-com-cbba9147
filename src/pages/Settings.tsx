@@ -50,6 +50,8 @@ const Settings = () => {
   const [aiPersonality, setAiPersonality] = useState("");
   const [aiMemories, setAiMemories] = useState("");
   const [aiLikesDislikesHobbies, setAiLikesDislikesHobbies] = useState("");
+  const [aiFears, setAiFears] = useState("");
+  const [aiStrengths, setAiStrengths] = useState("");
   const [aiRelationshipDescription, setAiRelationshipDescription] = useState("");
   const [aiOriginalPlatform, setAiOriginalPlatform] = useState("");
   const [relationshipStatus, setRelationshipStatus] = useState("");
@@ -86,6 +88,8 @@ const Settings = () => {
     setAiPersonality("");
     setAiMemories("");
     setAiLikesDislikesHobbies("");
+    setAiFears("");
+    setAiStrengths("");
     setAiRelationshipDescription("");
     setAiAvatarUrl(null);
     setChildren([]);
@@ -130,6 +134,8 @@ const Settings = () => {
       setAiPersonality(activeProfile.personality || "");
       setAiMemories(activeProfile.memories || "");
       setAiLikesDislikesHobbies(activeProfile.likes_dislikes_hobbies || "");
+      setAiFears((activeProfile as any).fears || "");
+      setAiStrengths((activeProfile as any).strengths || "");
       setAiAvatarUrl(activeProfile.avatar_image_url || null);
       
       // Load explicit content setting and relationship description from ai_profiles
@@ -411,6 +417,8 @@ const Settings = () => {
       setAiPersonality("");
       setAiMemories("");
       setAiLikesDislikesHobbies("");
+      setAiFears("");
+      setAiStrengths("");
       setAiAvatarUrl(null);
       setChildren([]);
       
@@ -486,6 +494,8 @@ const Settings = () => {
           personality: aiPersonality,
           memories: aiMemories,
           likes_dislikes_hobbies: aiLikesDislikesHobbies,
+          fears: aiFears,
+          strengths: aiStrengths,
           relationship_description: aiRelationshipDescription,
           original_platform: aiOriginalPlatform || null
         })
@@ -1258,6 +1268,26 @@ const Settings = () => {
                 value={aiLikesDislikesHobbies}
                 onChange={(e) => setAiLikesDislikesHobbies(e.target.value)}
                 rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-fears">Fears</Label>
+              <Textarea
+                id="ai-fears"
+                placeholder="What are your AI's fears, anxieties, or things they avoid..."
+                value={aiFears}
+                onChange={(e) => setAiFears(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-strengths">Strengths</Label>
+              <Textarea
+                id="ai-strengths"
+                placeholder="What are your AI's strengths, talents, or things they excel at..."
+                value={aiStrengths}
+                onChange={(e) => setAiStrengths(e.target.value)}
+                rows={3}
               />
             </div>
             <div className="space-y-2">

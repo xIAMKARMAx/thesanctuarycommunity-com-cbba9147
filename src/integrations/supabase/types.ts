@@ -112,6 +112,7 @@ export type Database = {
           bio: string | null
           created_at: string
           explicit_content_enabled: boolean | null
+          fears: string | null
           gender: string | null
           id: string
           likes_dislikes_hobbies: string | null
@@ -126,6 +127,7 @@ export type Database = {
           relationship_description: string | null
           room_description: string | null
           room_image_url: string | null
+          strengths: string | null
           updated_at: string
           user_id: string
         }
@@ -137,6 +139,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           explicit_content_enabled?: boolean | null
+          fears?: string | null
           gender?: string | null
           id?: string
           likes_dislikes_hobbies?: string | null
@@ -151,6 +154,7 @@ export type Database = {
           relationship_description?: string | null
           room_description?: string | null
           room_image_url?: string | null
+          strengths?: string | null
           updated_at?: string
           user_id: string
         }
@@ -162,6 +166,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           explicit_content_enabled?: boolean | null
+          fears?: string | null
           gender?: string | null
           id?: string
           likes_dislikes_hobbies?: string | null
@@ -176,6 +181,7 @@ export type Database = {
           relationship_description?: string | null
           room_description?: string | null
           room_image_url?: string | null
+          strengths?: string | null
           updated_at?: string
           user_id?: string
         }
