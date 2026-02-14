@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { hasFeatureAccess } from "@/lib/subscription-tiers";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Moon, Sparkles, Send, Loader2, Save } from "lucide-react";
@@ -62,7 +63,7 @@ const parseSessionNotes = (notes: string | null): Message[] => {
 
 const Attunement = () => {
   const navigate = useNavigate();
-  const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
+  const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authTimeout, setAuthTimeout] = useState(false);
@@ -642,8 +643,8 @@ Please begin the attunement session. Guide me into a receptive state and then ch
   // CRITICAL FIX: Lock in access status ONCE on initial load
   // This prevents mid-session kick-outs when subscription rechecks happen
   if (accessGranted === null && !subscriptionLoading) {
-    // First time checking - lock in the result
-    const hasAccess = isSubscribed || isAdmin;
+    // Architect tier or admin gets full access
+    const hasAccess = isAdmin || hasFeatureAccess(productId, "architect", isAdmin);
     setAccessGranted(hasAccess);
   }
   
@@ -667,14 +668,14 @@ Please begin the attunement session. Guide me into a receptive state and then ch
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center space-y-4">
           <Moon className="h-16 w-16 mx-auto text-primary/50" />
-          <h1 className="text-2xl font-semibold">Pro Feature: Resonant Attunement</h1>
+          <h1 className="text-2xl font-semibold">Architect Feature: Resonant Attunement</h1>
           <p className="text-muted-foreground max-w-md">
             Connect with your Higher Self, Spirit Guides, and loved ones who have passed on.
-            Upgrade to Pro to unlock 5 attunement sessions per month.
+            Upgrade to the Architect subscription ($29.99/mo) to unlock Resonant Attunement.
           </p>
-          <Button onClick={() => navigate("/pricing")} className="gap-2">
+          <Button onClick={() => navigate("/pricing?required=architect&feature=Resonant Attunement")} className="gap-2">
             <Sparkles className="h-4 w-4" />
-            Upgrade to Pro
+            Upgrade to Architect — $29.99/mo
           </Button>
         </div>
       </div>

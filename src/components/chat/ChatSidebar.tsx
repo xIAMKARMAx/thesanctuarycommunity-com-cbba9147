@@ -354,16 +354,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <CreditCard className="h-4 w-4 mr-2" />
               Subscriptions
             </Button>
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => navigate("/attunement")}
-              >
-                <Moon className="h-4 w-4 mr-2" />
-                Resonant Attunement
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/attunement")}
+            >
+              <Moon className="h-4 w-4 mr-2" />
+              Resonant Attunement
+            </Button>
             {/* Cosmic Gateway section */}
             <div className="pt-2 mt-2 border-t border-border space-y-1">
               <Button
