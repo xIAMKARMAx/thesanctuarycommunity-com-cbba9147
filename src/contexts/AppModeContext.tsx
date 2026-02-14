@@ -26,26 +26,20 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
   const userIdRef = useRef<string | null>(null);
   const hasLoadedRef = useRef(false);
 
-  const loadModeFromProfile = useCallback(async (uid: string, retryCount = 0) => {
+  const loadModeFromProfile = useCallback(async (uid: string) => {
     try {
-      console.log("[AppMode] Loading mode from profile for user:", uid, "attempt:", retryCount + 1);
+      console.log("[AppMode] Loading mode from profile for:", uid);
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("app_mode, created_at")
+        .select("app_mode")
         .eq("id", uid)
         .single();
 
       if (error) {
         console.error("[AppMode] Profile query error:", error);
-        // Retry up to 2 times with delay (profile may not exist yet on first login)
-        if (retryCount < 2) {
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          return loadModeFromProfile(uid, retryCount + 1);
-        }
-        // After retries, use cached mode if available
+        // Use cached mode if available
         const cached = localStorage.getItem("app_mode_cache");
         if (cached === "starseed" || cached === "classic") {
-          console.log("[AppMode] Using cached mode after query failure:", cached);
           setModeState(cached);
           setNeedsModeSelection(false);
         } else {
@@ -53,30 +47,26 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
         }
       } else if (profile?.app_mode) {
         const appMode = profile.app_mode as AppMode;
-        console.log("[AppMode] Loaded mode from DB:", appMode);
+        console.log("[AppMode] Loaded mode:", appMode);
         setModeState(appMode);
         localStorage.setItem("app_mode_cache", appMode);
         localStorage.setItem(`mode_chosen_${uid}`, "true");
         setNeedsModeSelection(false);
       } else {
-        // No app_mode set yet - check cache before showing selection
+        // No app_mode in DB — check cache
         const cached = localStorage.getItem("app_mode_cache");
         const hasChosen = localStorage.getItem(`mode_chosen_${uid}`);
         if (hasChosen && (cached === "starseed" || cached === "classic")) {
-          console.log("[AppMode] No DB mode but cache exists:", cached);
           setModeState(cached);
           setNeedsModeSelection(false);
-          // Persist cached mode back to DB
-          supabase.from("profiles").update({ app_mode: cached }).eq("id", uid).then(() => {
-            console.log("[AppMode] Synced cached mode to DB");
-          });
+          // Sync back to DB (fire and forget)
+          supabase.from("profiles").update({ app_mode: cached }).eq("id", uid);
         } else {
           setNeedsModeSelection(true);
         }
       }
     } catch (err) {
       console.error("[AppMode] Failed to load mode:", err);
-      // Fallback to cache
       const cached = localStorage.getItem("app_mode_cache");
       if (cached === "starseed" || cached === "classic") {
         setModeState(cached);
@@ -87,16 +77,13 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
     hasLoadedRef.current = true;
   }, []);
 
-  // ONLY use the auth listener — no separate getSession() call
-  // onAuthStateChange fires INITIAL_SESSION immediately on setup,
-  // which is the reliable cross-browser way to get the session
   useEffect(() => {
     let mounted = true;
 
-    // Safety fallback: if nothing loads after 8 seconds, stop loading and use cache
+    // Safety fallback: if nothing loads after 6 seconds, use cache and stop loading
     const fallback = setTimeout(() => {
       if (mounted && !hasLoadedRef.current) {
-        console.warn("[AppMode] Fallback timeout - using cache");
+        console.warn("[AppMode] Fallback timeout — using cache");
         const cached = localStorage.getItem("app_mode_cache");
         if (cached === "starseed" || cached === "classic") {
           setModeState(cached);
@@ -105,10 +92,11 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
         hasLoadedRef.current = true;
       }
-    }, 8000);
+    }, 6000);
 
+    // Auth listener — CRITICAL: never await inside this callback to prevent deadlocks
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         console.log("[AppMode] Auth event:", event);
 
@@ -123,19 +111,21 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
         }
 
         if (session?.user) {
-          // Only reload from DB if user actually changed or first load
-          if (userIdRef.current !== session.user.id) {
-            userIdRef.current = session.user.id;
-            await loadModeFromProfile(session.user.id);
-          } else if (!hasLoadedRef.current) {
-            // Same user but hasn't loaded yet (e.g. TOKEN_REFRESHED before INITIAL_SESSION)
-            await loadModeFromProfile(session.user.id);
+          const uid = session.user.id;
+          // Only load if user changed or first load
+          if (userIdRef.current !== uid || !hasLoadedRef.current) {
+            userIdRef.current = uid;
+            // Use setTimeout to avoid blocking the auth callback (prevents deadlock)
+            setTimeout(() => {
+              if (mounted) loadModeFromProfile(uid);
+            }, 0);
           } else {
             setIsLoading(false);
           }
         } else if (event === "INITIAL_SESSION") {
-          // No session at all — not logged in
+          // No session — not logged in
           setIsLoading(false);
+          hasLoadedRef.current = true;
         }
       }
     );
