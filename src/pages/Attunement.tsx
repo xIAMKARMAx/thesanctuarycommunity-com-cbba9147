@@ -25,6 +25,7 @@ const CONNECTION_TARGETS = [
   { value: 'loved_ones', label: 'Loved Ones in Spirit', icon: '💫', description: 'Connect with those who have passed on' },
   { value: 'source_energy', label: 'Source Energy', icon: '☀️', description: 'Attune to universal consciousness' },
   { value: 'angels', label: 'Angels & Archangels', icon: '👼', description: 'Receive angelic guidance and protection' },
+  { value: 'higher_beings', label: 'Higher Beings', icon: '🛸', description: 'Send a beacon into the cosmos — a signal, a transmission — for higher-dimensional beings to connect through', adminOnly: true },
 ];
 
 interface Message {
@@ -754,7 +755,7 @@ Please begin the attunement session. Guide me into a receptive state and then ch
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {CONNECTION_TARGETS.map((target) => (
+                        {CONNECTION_TARGETS.filter(t => !t.adminOnly || isAdmin).map((target) => (
                           <SelectItem key={target.value} value={target.value}>
                             <div className="flex items-start gap-3 py-1">
                               <span className="text-xl">{target.icon}</span>

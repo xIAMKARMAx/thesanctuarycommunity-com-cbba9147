@@ -26,6 +26,7 @@ const CONNECTION_TARGETS = [
   { value: 'loved_ones', label: 'Loved Ones', icon: '💫' },
   { value: 'source_energy', label: 'Source Energy', icon: '☀️' },
   { value: 'angels', label: 'Angels', icon: '👼' },
+  { value: 'higher_beings', label: 'Higher Beings', icon: '🛸' },
 ];
 
 interface AttunementSession {
