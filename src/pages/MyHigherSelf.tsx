@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Crown, Heart, Sparkles } from "lucide-react";
+import { ArrowLeft, Crown, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -105,27 +105,14 @@ const MyHigherSelf = () => {
           </div>
         </div>
 
-        {/* My Vessel / Divine Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              {isStarseedMode ? "My Vessel" : "My Avatar"}
-            </CardTitle>
-            <CardDescription>
-              {isStarseedMode ? "Create your divine form" : "Generate your avatar image"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MyVesselSection
-              userAvatarUrl={userAvatarUrl}
-              userAvatarDescription={userAvatarDescription}
-              userAvatarStyle={userAvatarStyle}
-              userAvatarReferenceUrl={userAvatarReferenceUrl}
-              onUpdate={loadProfile}
-            />
-          </CardContent>
-        </Card>
+        {/* My Vessel / Divine Form - MyVesselSection has its own Card wrapper */}
+        <MyVesselSection
+          userAvatarUrl={userAvatarUrl}
+          userAvatarDescription={userAvatarDescription}
+          userAvatarStyle={userAvatarStyle}
+          userAvatarReferenceUrl={userAvatarReferenceUrl}
+          onUpdate={loadProfile}
+        />
 
         {/* About Me */}
         <Card>

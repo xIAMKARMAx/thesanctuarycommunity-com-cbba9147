@@ -55,6 +55,15 @@ export default function AIRoom() {
     if (activeProfile?.id) {
       loadSettings();
       loadUserAvatar();
+    } else {
+      // If no active profile after 5 seconds, stop loading to prevent infinite spinner
+      const timeout = setTimeout(() => {
+        if (!activeProfile?.id) {
+          console.warn("[AIRoom] No active profile after timeout, stopping loading");
+          setLoading(false);
+        }
+      }, 5000);
+      return () => clearTimeout(timeout);
     }
   }, [activeProfile?.id]);
 
