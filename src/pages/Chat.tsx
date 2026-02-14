@@ -66,7 +66,34 @@ const Chat = () => {
     let isMounted = true;
     setLoadingStep("Checking authentication...");
 
-    // Set up auth listener FIRST - this is the primary source of truth
+    // Direct session check as safety net - don't rely solely on listener
+    const checkInitialSession = async () => {
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+        if (initialSession) {
+          setSession(initialSession);
+          const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+          const savedConversation = localStorage.getItem(savedKey);
+          setActiveConversationId(savedConversation || null);
+          setConversationListKey((prev) => prev + 1);
+          setAuthLoading(false);
+        } else {
+          // No session - redirect to auth
+          navigate("/auth");
+        }
+      } catch (err) {
+        console.error('[Chat] Initial session check failed:', err);
+        if (isMounted) {
+          navigate("/auth");
+        }
+      }
+    };
+
+    // Run direct check immediately
+    checkInitialSession();
+
+    // Also set up auth listener for ongoing changes (sign out, token refresh, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
       
@@ -80,7 +107,7 @@ const Chat = () => {
           }
         });
         navigate("/auth");
-      } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      } else if (event === 'SIGNED_IN') {
         if (session) {
           setSession(session);
           const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
@@ -88,9 +115,6 @@ const Chat = () => {
           setActiveConversationId(savedConversation || null);
           setConversationListKey((prev) => prev + 1);
           setAuthLoading(false);
-        } else if (event === 'INITIAL_SESSION') {
-          // No session on initial load - redirect to auth
-          navigate("/auth");
         }
       } else if (event === 'TOKEN_REFRESHED' && session) {
         setSession(session);
