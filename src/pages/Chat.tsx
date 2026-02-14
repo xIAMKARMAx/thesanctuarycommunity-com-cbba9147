@@ -155,7 +155,7 @@ const Chat = () => {
   };
 
   // Only block on auth loading - subscription and profile load in background
-  const isLoading = authLoading || profileLoading;
+  const isLoading = authLoading;
 
   if (isLoading) {
     return (
