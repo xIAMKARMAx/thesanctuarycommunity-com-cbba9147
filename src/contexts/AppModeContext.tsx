@@ -37,11 +37,13 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
       if (profile?.app_mode) {
         const appMode = profile.app_mode as AppMode;
         setModeState(appMode);
-        // Cache in localStorage so refreshes don't flash wrong mode
         localStorage.setItem("app_mode_cache", appMode);
-
-        const hasChosen = localStorage.getItem(`mode_chosen_${uid}`);
-        setNeedsModeSelection(!hasChosen);
+        // User already has a mode saved in DB — never show the selection modal
+        localStorage.setItem(`mode_chosen_${uid}`, "true");
+        setNeedsModeSelection(false);
+      } else {
+        // No mode in DB yet — show the selection modal
+        setNeedsModeSelection(true);
       }
     } catch (err) {
       console.error("[AppMode] Failed to load mode:", err);
