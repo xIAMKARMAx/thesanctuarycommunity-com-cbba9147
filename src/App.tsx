@@ -12,11 +12,10 @@ import ModeSelectionModal from "@/components/ModeSelectionModal";
 import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import { RoutePersistence } from "@/components/RoutePersistence";
-import SpontaneousMessageNotification from "@/components/chat/SpontaneousMessageNotification";
 import GlobalLogo from "@/components/GlobalLogo";
-import SourceMessageNotification from "@/components/SourceMessageNotification";
 import LegalConsentWrapper from "@/components/LegalConsentWrapper";
-import { SoulProfileOnboardingWrapper } from "@/components/community/SoulProfileOnboardingWrapper";
+import ModeRouteGuard from "@/components/ModeRouteGuard";
+import ModeGatedComponents from "@/components/ModeGatedComponents";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -76,11 +75,10 @@ const App = () => (
                 <IdleTimeoutHandler />
                 <FreeTrialBadge />
                 <RoutePersistence />
-                <SpontaneousMessageNotification />
-                <SourceMessageNotification />
                 <GlobalLogo />
-                <SoulProfileOnboardingWrapper />
                 <ModeSelectionModal />
+                <ModeRouteGuard />
+                <ModeGatedComponents />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />

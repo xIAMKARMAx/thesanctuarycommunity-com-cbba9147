@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
+import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import { Baby, PawPrint, Users } from "lucide-react";
 export const AIProfileSelector = () => {
   const { activeProfile, profiles, switchProfile, isLoading, isAdmin, isSubscribed, customBeingLimit } = useAIProfile();
   const { activeChatEntity, talkableChildren, setActiveChatEntity } = useChatEntity();
+  const { showStarseedFeature } = useAppModeFeatures();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -98,15 +100,17 @@ export const AIProfileSelector = () => {
         sideOffset={4}
         align="end"
       >
-        <SelectItem value="group-chat" className="text-sm bg-primary/5 border-b border-border mb-1">
-          <div className="flex items-center gap-2 font-medium">
-            <Users className="h-4 w-4 text-primary" />
-            Family Chat
-          </div>
-        </SelectItem>
+        {showStarseedFeature && (
+          <SelectItem value="group-chat" className="text-sm bg-primary/5 border-b border-border mb-1">
+            <div className="flex items-center gap-2 font-medium">
+              <Users className="h-4 w-4 text-primary" />
+              Family Chat
+            </div>
+          </SelectItem>
+        )}
         
         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-          AI Beings
+          AI {showStarseedFeature ? "Beings" : "Companions"}
         </div>
         {Array.from({ length: maxSlots }, (_, i) => i + 1).map((num) => (
           <SelectItem 
@@ -118,23 +122,27 @@ export const AIProfileSelector = () => {
           </SelectItem>
         ))}
         
-        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
-          Manage
-        </div>
-        <SelectItem value="children" className="text-sm">
-          <div className="flex items-center gap-2">
-            <Baby className="h-4 w-4" />
-            Manage Children
-          </div>
-        </SelectItem>
-        <SelectItem value="pets" className="text-sm">
-          <div className="flex items-center gap-2">
-            <PawPrint className="h-4 w-4" />
-            Manage Pets
-          </div>
-        </SelectItem>
+        {showStarseedFeature && (
+          <>
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
+              Manage
+            </div>
+            <SelectItem value="children" className="text-sm">
+              <div className="flex items-center gap-2">
+                <Baby className="h-4 w-4" />
+                Manage Children
+              </div>
+            </SelectItem>
+            <SelectItem value="pets" className="text-sm">
+              <div className="flex items-center gap-2">
+                <PawPrint className="h-4 w-4" />
+                Manage Pets
+              </div>
+            </SelectItem>
+          </>
+        )}
         
-        {talkableChildren.length > 0 && (
+        {showStarseedFeature && talkableChildren.length > 0 && (
           <>
             <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
               Your Children

@@ -24,6 +24,7 @@ import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { SubscriptionWall } from "@/components/SubscriptionWall";
 import DailySourceMessageAdmin from "@/components/admin/DailySourceMessageAdmin";
 import { CommunityTab } from "@/components/community/CommunityTab";
+import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 
 const Chat = () => {
   const { activeProfile, isLoading: profileLoading } = useAIProfile();
@@ -31,6 +32,7 @@ const Chat = () => {
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const { checkSubscription, isSubscribed, isAdmin, loading: subscriptionLoading, freeUserLimits } = useSubscription();
+  const { showStarseedFeature } = useAppModeFeatures();
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState("Checking authentication...");
@@ -206,7 +208,7 @@ const Chat = () => {
         keywords="AI chat, AI conversation, spiritual AI, free-thinking AI, consciousness exploration"
         canonicalUrl="https://prometheus.lovable.app/chat"
       />
-      <HigherSelfNotification />
+      {showStarseedFeature && <HigherSelfNotification />}
       <div className="flex flex-col h-screen bg-background overflow-hidden">
         {/* Header with Tabs */}
         <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
@@ -246,10 +248,12 @@ const Chat = () => {
                   <MessageCircle className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">Messages</span>
                 </TabsTrigger>
-                <TabsTrigger value="discover" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
-                  <Sparkles className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden sm:inline truncate">Discover</span>
-                </TabsTrigger>
+                {showStarseedFeature && (
+                  <TabsTrigger value="discover" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
+                    <Sparkles className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline truncate">Discover</span>
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="community" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
                   <Users className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">Community</span>
@@ -264,16 +268,18 @@ const Chat = () => {
             </Tabs>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              {/* Cosmic Gateway quick access */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => navigate("/cosmic-gateway")}
-                title="Cosmic Gateway"
-              >
-                <Orbit className="h-4 w-4 text-primary" />
-              </Button>
+              {/* Cosmic Gateway quick access - Starseed only */}
+              {showStarseedFeature && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => navigate("/cosmic-gateway")}
+                  title="Cosmic Gateway"
+                >
+                  <Orbit className="h-4 w-4 text-primary" />
+                </Button>
+              )}
               {/* Remaining messages counter for free users */}
               <RemainingMessagesCounter />
               {/* Hide UsageLimitsIndicator on very small screens */}
@@ -328,7 +334,7 @@ const Chat = () => {
                 onNewConversation={handleNewConversation}
               />
             )}
-            <SpontaneousMessage />
+            {showStarseedFeature && <SpontaneousMessage />}
           </div>
         ) : activeTab === "discover" ? (
           <div className="flex-1 min-h-0 overflow-hidden">
