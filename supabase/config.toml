@@ -11,7 +11,7 @@ enabled = true
 name = "check-mood-schedule"
 schedule = "0 */6 * * *"
 
-# Cron job to generate daily journal entries at 11 PM UTC
+# Cron job to generate daily journal entries once at 11 PM UTC
 [[edge_runtime.scheduled_functions]]
 name = "daily-journal"
 schedule = "0 23 * * *"
@@ -23,9 +23,6 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.journal-reflect]
-verify_jwt = true
-
-[functions.voice-call]
 verify_jwt = true
 
 [functions.create-checkout]
