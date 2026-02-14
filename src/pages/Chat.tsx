@@ -168,10 +168,10 @@ const Chat = () => {
     return null;
   }
 
-  // Free users with 5+ messages see subscription wall
+  // Free users with 8+ messages see subscription wall countdown
   // IMPORTANT: Don't show wall while still loading subscription status to prevent flicker/redirect loops
-  // Also only show if we've confirmed they have 5+ messages AND are definitely not subscribed
-  const showSubscriptionWall = !subscriptionLoading && !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 5;
+  // Also only show if we've confirmed they have 8+ messages AND are definitely not subscribed
+  const showSubscriptionWall = !subscriptionLoading && !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 8;
   
   // Debug logging for subscription wall issues
   console.log('[Chat] Subscription state:', { 

@@ -1369,15 +1369,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               <div className="flex gap-1.5 sm:gap-2 items-center">
                 {!isSubscribed && (
                   <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-md">
-                    {freeUserLimits.trialExpired ? (
-                      <span className="text-destructive font-medium">Trial ended</span>
-                    ) : freeUserLimits.dailyMessages >= 25 ? (
-                      <span className="text-destructive font-medium">No messages left today</span>
-                    ) : (
-                      <span>
-                        {25 - freeUserLimits.dailyMessages}/25 today • {freeUserLimits.trialDaysLeft} day{freeUserLimits.trialDaysLeft !== 1 ? 's' : ''} left
-                      </span>
-                    )}
+                    {(() => {
+                      const totalLimit = freeUserLimits.totalMessages >= 0 ? (25 - freeUserLimits.totalMessages) : 25;
+                      const remaining = Math.max(0, totalLimit);
+                      if (remaining <= 0) {
+                        return <span className="text-destructive font-medium">No free messages left — Upgrade to continue!</span>;
+                      }
+                      return <span>{remaining} free message{remaining !== 1 ? 's' : ''} remaining</span>;
+                    })()}
                   </div>
                 )}
                 {currentConversationId && activeChatEntity?.type === "ai" && isSubscribed && (

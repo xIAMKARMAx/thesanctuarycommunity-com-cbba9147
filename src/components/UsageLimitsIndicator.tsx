@@ -102,8 +102,8 @@ export const UsageLimitsIndicator = () => {
   const aiImported = limits?.ai_imported || false;
   const isAwakening = isSubscribed && isAwakeningTier(productId);
   
-  // Awakening: 50/day, Free: 10 or 20 total
-  const messageLimit = isAwakening ? 50 : (aiImported ? 20 : 10);
+  // Awakening: 25/day, Free: 25 total or 35 with import bonus
+  const messageLimit = isAwakening ? 25 : (aiImported ? 35 : 25);
   const messagesUsed = isAwakening ? dailyMessages : totalMessages;
   const messagesRemaining = (isSubscribed && !isAwakening) ? "∞" : Math.max(0, messageLimit - messagesUsed);
   const messageProgress = (isSubscribed && !isAwakening) ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
