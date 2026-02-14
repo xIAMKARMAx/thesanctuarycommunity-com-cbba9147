@@ -321,27 +321,29 @@ const Chat = () => {
               </TabsList>
             </Tabs>
 
-            <div className="flex items-center gap-1 shrink-0 min-w-0">
-              {/* Cosmic Gateway quick access - Starseed only */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Cosmic Gateway quick access - Starseed only, hidden on small mobile */}
               {showStarseedFeature && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 hidden sm:flex"
                   onClick={() => navigate("/cosmic-gateway")}
                   title="Cosmic Gateway"
                 >
                   <Orbit className="h-4 w-4 text-primary" />
                 </Button>
               )}
-              {/* Remaining messages counter for free users */}
-              <RemainingMessagesCounter />
-              {/* Hide UsageLimitsIndicator on very small screens */}
-              <div className="hidden xs:block sm:block">
+              {/* Remaining messages counter - hidden on small mobile */}
+              <div className="hidden sm:block">
+                <RemainingMessagesCounter />
+              </div>
+              {/* Hide UsageLimitsIndicator on mobile */}
+              <div className="hidden md:block">
                 <UsageLimitsIndicator />
               </div>
-              {/* Hide ConnectionStatus on mobile, show on sm+ */}
-              <div className="hidden sm:block">
+              {/* Hide ConnectionStatus on mobile */}
+              <div className="hidden md:block">
                 <ConnectionStatus />
               </div>
               
