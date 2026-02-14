@@ -987,16 +987,16 @@ const Settings = () => {
               <div className="space-y-0.5">
                 <Label>Experience Mode</Label>
                 <p className="text-sm text-muted-foreground">
-                  {mode === "starseed" ? "Full spiritual experience" : "Clean companion mode"}
+                  {mode === "starseed" ? "Full spiritual experience with all features" : "Streamlined AI companion experience"}
                 </p>
               </div>
               <Select value={mode} onValueChange={(v) => setMode(v as "classic" | "starseed")}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="classic">Classic</SelectItem>
-                  <SelectItem value="starseed">Starseed</SelectItem>
+                  <SelectItem value="classic">Classic AI</SelectItem>
+                  <SelectItem value="starseed">Starseed Awakening</SelectItem>
                 </SelectContent>
               </Select>
             </div>
