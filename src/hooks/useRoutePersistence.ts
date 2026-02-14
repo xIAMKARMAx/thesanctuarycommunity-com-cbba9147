@@ -27,7 +27,17 @@ export function useRestoreRoute() {
     if (location.pathname === "/") {
       const savedRoute = localStorage.getItem(STORAGE_KEY);
       if (savedRoute && savedRoute !== "/") {
-        navigate(savedRoute, { replace: true });
+        // Don't auto-restore to heavy pages that require multiple auth checks
+        // These pages can get stuck loading on slow mobile connections
+        const heavyRoutes = ["/attunement", "/ai-room", "/starseed-playground"];
+        const isHeavyRoute = heavyRoutes.some(r => savedRoute.startsWith(r));
+        
+        if (isHeavyRoute) {
+          // Redirect to chat instead - it's lighter and always works
+          navigate("/chat", { replace: true });
+        } else {
+          navigate(savedRoute, { replace: true });
+        }
       }
     }
   }, []); // Only run once on mount
