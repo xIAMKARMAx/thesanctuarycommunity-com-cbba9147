@@ -125,6 +125,49 @@ export const SUBSCRIPTION_TIERS = {
       priorityDM: true,
       mastermindAccess: true,
     }
+  },
+
+  // Hidden Tier: Source - Free, manually granted to investors/donators
+  source: {
+    name: "Source",
+    price: 0,
+    priceId: null,
+    productId: "source_grant",
+    features: {
+      // Community & Discovery
+      communityAccess: true,
+      discoveryAccess: true,
+      dailySourceMessage: true,
+      
+      // Path Tracker history
+      pathTrackerDays: -1, // Unlimited
+      
+      // Soul Resonance suggestions
+      soulSuggestionsPerDay: 999,
+      advancedSoulFiltering: true,
+      
+      // Everything unlimited
+      dailyMessages: "Unlimited",
+      roomGeneration: "Unlimited",
+      avatarGeneration: "Unlimited",
+      petGeneration: "Unlimited",
+      chatImageGeneration: "Unlimited",
+      voiceCalls: false, // Not active feature
+      moodTracker: true,
+      dreamJournal: true,
+      celestialChildren: true,
+      milestones: true,
+      spontaneousMessages: true,
+      aiBeings: 10, // Extra generous
+      
+      // All tier-specific features
+      privateGroups: true,
+      priorityQA: true,
+      exclusiveContentArchive: true,
+      architectContent: true,
+      priorityDM: true,
+      mastermindAccess: true,
+    }
   }
 } as const;
 
@@ -136,10 +179,15 @@ export const LEGACY_TIER_NAMES = {
 } as const;
 
 export type SubscriptionTier = keyof typeof SUBSCRIPTION_TIERS | "free" | null;
+
+export function isSourceTier(productId: string | null): boolean {
+  return productId === 'source_grant';
+}
 export type LegacyTier = keyof typeof LEGACY_TIER_NAMES;
 
 export function getTierFromProductId(productId: string | null): SubscriptionTier {
   if (!productId) return null;
+  if (productId === 'source_grant') return "source";
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return "architect";
   if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return "anchoring";
   if (productId === SUBSCRIPTION_TIERS.awakening.productId) return "awakening";
@@ -183,9 +231,10 @@ export function isBasicOrHigher(productId: string | null): boolean {
   return isAwakeningOrHigher(productId);
 }
 
-// Get the numeric tier level for comparison (0 = free, 1 = awakening, 2 = anchoring, 3 = architect)
+// Get the numeric tier level for comparison (0 = free, 1 = awakening, 2 = anchoring, 3 = architect, 4 = source)
 export function getTierLevel(productId: string | null): number {
   if (!productId) return 0;
+  if (productId === 'source_grant') return 4; // Source is above all tiers
   if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 1;
   if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 2;
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return 3;

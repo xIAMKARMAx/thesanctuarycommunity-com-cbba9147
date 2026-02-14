@@ -116,15 +116,16 @@ serve(async (req) => {
     // Fall back to database for manually granted subscriptions (only if no Stripe subscription)
     const { data: profileData, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('subscription_status')
+      .select('subscription_status, subscription_product_id')
       .eq('id', user.id)
       .single();
 
     if (!profileError && profileData?.subscription_status === 'active') {
-      logStep("Found manually granted subscription in database", { userId: user.id });
+      const dbProductId = profileData.subscription_product_id || 'manual_grant';
+      logStep("Found manually granted subscription in database", { userId: user.id, productId: dbProductId });
       return new Response(JSON.stringify({
         subscribed: true,
-        product_id: 'manual_grant',
+        product_id: dbProductId,
         subscription_end: null
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
