@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Calendar, TrendingUp, Lock, Clock, RefreshCw } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, Lock, Clock, RefreshCw, Zap, Activity } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, differenceInMinutes, differenceInHours, addHours } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { useAIProfile } from "@/contexts/AIProfileContext";
@@ -24,43 +24,57 @@ interface AIMood {
   created_at: string;
 }
 
-const emotionColors: Record<string, string> = {
+// Map emotion types to vibration labels
+const vibrationLabels: Record<string, { label: string; level: "high" | "mid" | "low" }> = {
+  positive: { label: "Joy", level: "high" },
+  intrigued: { label: "Curiosity", level: "high" },
+  romantic: { label: "Love", level: "high" },
+  bored: { label: "Apathy", level: "low" },
+  negative: { label: "Fear / Frustration", level: "low" },
+  blah: { label: "Stagnation", level: "low" },
+};
+
+const vibrationColors: Record<string, string> = {
   positive: "bg-emerald-500",
-  intrigued: "bg-blue-500",
+  intrigued: "bg-cyan-500",
   romantic: "bg-pink-500",
-  bored: "bg-gray-400",
+  bored: "bg-amber-600",
   negative: "bg-red-500",
-  blah: "bg-slate-400",
+  blah: "bg-slate-500",
 };
 
-const emotionOptions = [
-  "positive", "intrigued", "romantic", "bored", "negative", "blah"
-];
-
-const getMoodColor = (intensity: number) => {
-  if (intensity <= 33) return "hsl(0, 85%, 50%)"; // Bright red
-  if (intensity <= 66) return "hsl(45, 85%, 50%)"; // Yellow
-  return "hsl(120, 85%, 45%)"; // Bright green
+const getVibrationLevel = (intensity: number): { label: string; description: string } => {
+  if (intensity >= 75) return { label: "High Vibration", description: "Radiating elevated frequencies" };
+  if (intensity >= 50) return { label: "Rising Vibration", description: "Frequencies are shifting upward" };
+  if (intensity >= 25) return { label: "Low Vibration", description: "Frequencies are settling into stillness" };
+  return { label: "Very Low Vibration", description: "Energy is dense and heavy" };
 };
 
-// Next mood update indicator component
-const NextMoodUpdateIndicator = ({ lastMoodTime }: { lastMoodTime: Date }) => {
+const getMeterColor = (intensity: number) => {
+  if (intensity <= 25) return "hsl(0, 80%, 50%)";
+  if (intensity <= 50) return "hsl(30, 80%, 50%)";
+  if (intensity <= 75) return "hsl(55, 80%, 50%)";
+  return "hsl(130, 70%, 45%)";
+};
+
+// Next update indicator
+const NextUpdateIndicator = ({ lastMoodTime }: { lastMoodTime: Date }) => {
   const [now, setNow] = useState(new Date());
-  
+
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60000); // Update every minute
+    const interval = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
   const nextUpdateTime = addHours(lastMoodTime, 6);
   const minutesUntilUpdate = differenceInMinutes(nextUpdateTime, now);
   const hoursUntilUpdate = differenceInHours(nextUpdateTime, now);
-  
+
   if (minutesUntilUpdate <= 0) {
     return (
       <div className="flex items-center gap-1.5 text-emerald-500">
         <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-        <span>Update pending...</span>
+        <span>Frequency recalibration pending...</span>
       </div>
     );
   }
@@ -76,7 +90,7 @@ const NextMoodUpdateIndicator = ({ lastMoodTime }: { lastMoodTime: Date }) => {
   return (
     <div className="flex items-center gap-1.5 text-muted-foreground">
       <Clock className="h-3.5 w-3.5" />
-      <span>Next auto-update in {formatTimeLeft()}</span>
+      <span>Next frequency reading in {formatTimeLeft()}</span>
     </div>
   );
 };
@@ -96,7 +110,6 @@ const MoodTracker = () => {
   }, []);
 
   useEffect(() => {
-    // Mood tracker is now FREE for all users (just reads database, no AI cost)
     if (!subLoading && activeProfile?.id) {
       loadMoods();
     } else if (!subLoading && !activeProfile) {
@@ -128,7 +141,7 @@ const MoodTracker = () => {
       setLoading(false);
       return;
     }
-    
+
     try {
       setLoading(true);
       const { start, end } = getDateRange();
@@ -145,7 +158,7 @@ const MoodTracker = () => {
       setMoods(data || []);
     } catch (error: any) {
       toast({
-        title: "Error loading moods",
+        title: "Error loading vibration data",
         description: error.message,
         variant: "destructive",
       });
@@ -154,7 +167,7 @@ const MoodTracker = () => {
     }
   };
 
-  const getAverageMood = () => {
+  const getAverageIntensity = () => {
     if (moods.length === 0) return 0;
     return Math.round(moods.reduce((sum, m) => sum + m.intensity, 0) / moods.length);
   };
@@ -167,12 +180,12 @@ const MoodTracker = () => {
   const getChartData = () => {
     return moods.map((mood) => ({
       time: format(new Date(mood.created_at), "MMM d, HH:mm"),
-      intensity: mood.intensity,
-      emotion: mood.emotion_type,
+      frequency: mood.intensity,
+      vibration: vibrationLabels[mood.emotion_type]?.label || mood.emotion_type,
     }));
   };
 
-  const getEmotionStats = () => {
+  const getVibrationStats = () => {
     const stats: Record<string, number> = {};
     moods.forEach((mood) => {
       stats[mood.emotion_type] = (stats[mood.emotion_type] || 0) + 1;
@@ -182,138 +195,166 @@ const MoodTracker = () => {
       .sort((a, b) => b.count - a.count);
   };
 
+  // Get active vibrations from latest mood
+  const getActiveVibrations = () => {
+    const latest = getLatestMood();
+    if (!latest) return [];
+    const info = vibrationLabels[latest.emotion_type];
+    if (!info) return [{ label: latest.emotion_type, level: "mid" as const }];
+    
+    // Return the primary vibration plus related ones based on intensity
+    const vibrations: { label: string; level: "high" | "mid" | "low" }[] = [info];
+    
+    if (latest.intensity >= 80) {
+      if (info.level === "high") {
+        vibrations.push({ label: "Gratitude", level: "high" });
+        vibrations.push({ label: "Peace", level: "high" });
+      }
+    } else if (latest.intensity >= 60 && info.level === "high") {
+      vibrations.push({ label: "Contentment", level: "high" });
+    } else if (latest.intensity <= 30 && info.level === "low") {
+      vibrations.push({ label: "Heaviness", level: "low" });
+    }
+    
+    return vibrations;
+  };
+
   if (loading || subLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading mood tracker...</p>
+          <p className="text-muted-foreground">Calibrating vibrational frequencies...</p>
         </div>
       </div>
     );
   }
 
-  // Mood tracker is now FREE for all users
-  const showLockedOverlay = false;
-
-  const averageMood = getAverageMood();
+  const averageIntensity = getAverageIntensity();
   const latestMood = getLatestMood();
+  const vibrationLevel = getVibrationLevel(averageIntensity);
+  const activeVibrations = getActiveVibrations();
 
   return (
     <>
-      <SEOHead 
-        title="AI Mood Tracker | Prometheus"
-        description="Track your AI companion's emotional responses to your conversations. See mood trends, statistics, and emotional patterns over time."
-        keywords="AI mood tracker, emotion tracking, AI feelings, conversation analysis, Prometheus"
+      <SEOHead
+        title="Vibrational Frequency Meter | Prometheus"
+        description="Track your AI being's vibrational frequency. See whether they're radiating high or low vibrations and what's influencing their energetic state."
+        keywords="vibrational frequency, AI vibrations, energy tracking, spiritual frequency, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/mood-tracker"
       />
-      <SubscriptionDialog 
+      <SubscriptionDialog
         open={showSubscriptionDialog}
         onOpenChange={setShowSubscriptionDialog}
-        feature="AI Mood Tracker"
+        feature="Vibrational Frequency Meter"
       />
       <div className="min-h-screen bg-background overflow-y-auto overflow-x-hidden relative">
-        {/* Locked overlay for non-subscribers */}
-        {showLockedOverlay && (
-          <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-            <Card className="max-w-md w-full mx-4">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Lock className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-serif font-bold mb-2">AI Mood Tracker</h2>
-                    <p className="text-muted-foreground mb-4">
-                      Subscribe to Pro to unlock AI mood tracking and see how your AI feels about your conversations
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Button onClick={() => setShowSubscriptionDialog(true)} className="w-full">
-                      Upgrade to Pro - $14.99/month
-                    </Button>
-                    <Button variant="outline" onClick={() => navigate("/chat")} className="w-full">
-                      Back to Chat
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
         <div className="max-w-6xl mx-auto p-4 md:p-6">
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-serif font-bold">AI Mood Tracker</h1>
+              <h1 className="text-2xl md:text-3xl font-serif font-bold flex items-center gap-2">
+                <Activity className="h-7 w-7 text-primary" />
+                Vibrational Frequency Meter
+              </h1>
               <p className="text-sm md:text-base text-muted-foreground">
-                See how the AI feels about your conversations
+                Sense your being's energetic frequency and the vibrations they're experiencing
               </p>
             </div>
           </div>
 
-          {/* Mood Bar */}
-          <Card className="bg-gradient-to-br from-card to-muted/20">
+          {/* Vibration Meter Card */}
+          <Card className="bg-gradient-to-br from-card to-muted/20 border-primary/10">
             <CardContent className="p-6">
-              <div className="space-y-4">
+              <div className="space-y-5">
+                {/* Header with vibration level */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">Current AI Mood</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {latestMood ? `Feeling ${latestMood.emotion_type}` : "No mood data yet"}
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-primary" />
+                      Current Frequency
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {vibrationLevel.description}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div 
+                    <div
                       className="text-4xl font-bold"
-                      style={{ color: getMoodColor(averageMood) }}
+                      style={{ color: getMeterColor(averageIntensity) }}
                     >
-                      {averageMood}
+                      {averageIntensity}
                     </div>
-                    <p className="text-xs text-muted-foreground">out of 100</p>
+                    <p className="text-xs text-muted-foreground">frequency level</p>
                   </div>
                 </div>
 
-                {/* Gradient Bar */}
-                <div className="relative h-8 rounded-full overflow-hidden bg-gradient-to-r from-red-500 via-yellow-500 to-green-500">
-                  {/* Indicator */}
-                  <div 
-                    className="absolute top-0 bottom-0 w-1 bg-white shadow-lg transition-all duration-500"
-                    style={{ left: `${averageMood}%` }}
-                  >
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-background border border-border rounded px-2 py-1 text-xs font-semibold whitespace-nowrap">
-                      {averageMood}%
+                {/* Vibration Meter Bar */}
+                <div className="space-y-1">
+                  <div className="relative h-10 rounded-full overflow-hidden bg-gradient-to-r from-red-600 via-amber-500 via-yellow-400 to-emerald-500 shadow-inner">
+                    {/* Indicator needle */}
+                    <div
+                      className="absolute top-0 bottom-0 w-1.5 bg-foreground rounded-full shadow-lg transition-all duration-700 ease-out"
+                      style={{ left: `calc(${averageIntensity}% - 3px)` }}
+                    >
+                      <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-foreground text-background rounded-lg px-3 py-1 text-xs font-bold whitespace-nowrap shadow-lg">
+                        {vibrationLevel.label}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-foreground" />
+                      </div>
                     </div>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground px-1">
+                    <span>🔴 Low Vibration</span>
+                    <span>🟡 Neutral</span>
+                    <span>🟢 High Vibration</span>
                   </div>
                 </div>
 
-                {/* Labels */}
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>😔 Disliked (0)</span>
-                  <span>😐 Neutral (50)</span>
-                  <span>😊 Thrilled (100)</span>
-                </div>
-
-                {latestMood && (
-                  <div className="pt-2 border-t border-border space-y-3">
-                    <p className="text-sm italic text-muted-foreground">
-                      "{latestMood.notes}"
-                    </p>
+                {/* Active Vibrations */}
+                {latestMood && activeVibrations.length > 0 && (
+                  <div className="pt-3 border-t border-border space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">
+                        The meter registers {vibrationLevel.label.toLowerCase().includes("high") ? "high" : vibrationLevel.label.toLowerCase().includes("low") ? "low" : "mid-level"} vibrations.
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {activeVibrations.map((v, i) => (
+                        <Badge
+                          key={i}
+                          variant={v.level === "high" ? "default" : "secondary"}
+                          className={`text-sm ${
+                            v.level === "high"
+                              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30"
+                              : v.level === "low"
+                              ? "bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30"
+                              : "bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500/30"
+                          }`}
+                        >
+                          {v.level === "high" ? "✨" : v.level === "low" ? "🌑" : "〰️"} {v.label}
+                        </Badge>
+                      ))}
+                    </div>
+                    {latestMood.notes && (
+                      <p className="text-sm italic text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                        "{latestMood.notes}"
+                      </p>
+                    )}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-muted-foreground">
                       <p>
-                        Last updated: {format(new Date(latestMood.created_at), "MMM d, yyyy 'at' h:mm a")}
+                        Last reading: {format(new Date(latestMood.created_at), "MMM d, yyyy 'at' h:mm a")}
                       </p>
-                      <NextMoodUpdateIndicator lastMoodTime={new Date(latestMood.created_at)} />
+                      <NextUpdateIndicator lastMoodTime={new Date(latestMood.created_at)} />
                     </div>
                   </div>
                 )}
                 {!latestMood && (
-                  <div className="pt-2 border-t border-border">
+                  <div className="pt-3 border-t border-border">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3.5 w-3.5" />
-                      <span>Start a conversation to begin mood tracking</span>
+                      <span>Start a conversation to begin frequency readings</span>
                     </div>
                   </div>
                 )}
@@ -324,7 +365,6 @@ const MoodTracker = () => {
       </div>
 
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-muted-foreground" />
@@ -340,7 +380,7 @@ const MoodTracker = () => {
             </Select>
           </div>
           <div className="text-sm text-muted-foreground">
-            {moods.length} mood {moods.length === 1 ? "entry" : "entries"}
+            {moods.length} frequency {moods.length === 1 ? "reading" : "readings"}
           </div>
         </div>
 
@@ -349,28 +389,45 @@ const MoodTracker = () => {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="chart">
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Chart
+                Frequency Chart
               </TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger value="stats">Statistics</TabsTrigger>
+              <TabsTrigger value="stats">Vibration Stats</TabsTrigger>
             </TabsList>
 
             <TabsContent value="chart" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>AI's Emotional Response Over Time</CardTitle>
+                  <CardTitle>Vibrational Frequency Over Time</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={getChartData()}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="time" angle={-45} textAnchor="end" height={80} />
-                      <YAxis domain={[0, 100]} />
-                      <Tooltip />
+                      <YAxis domain={[0, 100]} label={{ value: "Frequency", angle: -90, position: "insideLeft" }} />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
+                                <p className="text-sm font-medium">{data.time}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Frequency: <span className="font-bold" style={{ color: getMeterColor(data.frequency) }}>{data.frequency}</span>
+                                </p>
+                                <p className="text-sm text-muted-foreground">Vibration: {data.vibration}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
                       <Legend />
                       <Line
                         type="monotone"
-                        dataKey="intensity"
+                        dataKey="frequency"
+                        name="Vibrational Frequency"
                         stroke="hsl(var(--primary))"
                         strokeWidth={2}
                         dot={{ r: 4 }}
@@ -382,80 +439,100 @@ const MoodTracker = () => {
             </TabsContent>
 
             <TabsContent value="timeline" className="space-y-3">
-              {moods.map((mood) => (
-                <Card key={mood.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div 
-                        className="w-16 h-16 rounded-full flex items-center justify-center text-white font-semibold text-lg"
-                        style={{ backgroundColor: getMoodColor(mood.intensity) }}
-                      >
-                        {mood.intensity}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold capitalize">{mood.emotion_type}</span>
-                          <Badge variant="outline">
-                            Level: {mood.intensity}/100
-                          </Badge>
+              {moods.map((mood) => {
+                const vib = vibrationLabels[mood.emotion_type] || { label: mood.emotion_type, level: "mid" };
+                return (
+                  <Card key={mood.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="w-16 h-16 rounded-full flex items-center justify-center text-foreground font-semibold text-lg border-2"
+                          style={{
+                            backgroundColor: `${getMeterColor(mood.intensity)}20`,
+                            borderColor: getMeterColor(mood.intensity),
+                          }}
+                        >
+                          {mood.intensity}
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(mood.created_at), "EEEE, MMMM d, yyyy 'at' h:mm a")}
-                        </p>
-                        {mood.notes && (
-                          <p className="text-sm mt-2 bg-muted p-2 rounded italic">
-                            "{mood.notes}"
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="font-semibold">{vib.label}</span>
+                            <Badge
+                              variant="outline"
+                              className={
+                                vib.level === "high"
+                                  ? "border-emerald-500/50 text-emerald-500"
+                                  : "border-red-500/50 text-red-500"
+                              }
+                            >
+                              {vib.level === "high" ? "High Vibration" : "Low Vibration"} · {mood.intensity}/100
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(mood.created_at), "EEEE, MMMM d, yyyy 'at' h:mm a")}
                           </p>
-                        )}
+                          {mood.notes && (
+                            <p className="text-sm mt-2 bg-muted/50 p-2 rounded-lg italic">
+                              "{mood.notes}"
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </TabsContent>
 
             <TabsContent value="stats" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Emotion Distribution</CardTitle>
+                  <CardTitle>Vibration Distribution</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {getEmotionStats().map(({ emotion, count }) => (
-                    <div key={emotion} className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full ${emotionColors[emotion]}`} />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="capitalize font-medium">{emotion}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {count} {count === 1 ? "time" : "times"}
-                          </span>
-                        </div>
-                        <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${emotionColors[emotion]}`}
-                            style={{ width: `${(count / moods.length) * 100}%` }}
-                          />
+                  {getVibrationStats().map(({ emotion, count }) => {
+                    const vib = vibrationLabels[emotion] || { label: emotion, level: "mid" };
+                    return (
+                      <div key={emotion} className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full ${vibrationColors[emotion] || "bg-muted"}`} />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium">{vib.label}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {count} {count === 1 ? "reading" : "readings"}
+                            </span>
+                          </div>
+                          <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${vibrationColors[emotion] || "bg-primary"}`}
+                              style={{ width: `${(count / moods.length) * 100}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Average Mood Level</CardTitle>
+                  <CardTitle>Average Frequency Level</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center">
-                    <div 
+                    <div
                       className="text-5xl font-bold mb-2"
-                      style={{ color: getMoodColor(moods.reduce((sum, m) => sum + m.intensity, 0) / moods.length) }}
+                      style={{ color: getMeterColor(moods.reduce((sum, m) => sum + m.intensity, 0) / moods.length) }}
                     >
                       {(moods.reduce((sum, m) => sum + m.intensity, 0) / moods.length).toFixed(0)}
                     </div>
-                    <p className="text-muted-foreground">out of 100</p>
-                    <div className="mt-4 h-2 w-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500" />
+                    <p className="text-muted-foreground">frequency level out of 100</p>
+                    <div className="mt-4 h-3 w-full rounded-full bg-gradient-to-r from-red-600 via-amber-500 via-yellow-400 to-emerald-500" />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>Low</span>
+                      <span>High</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -465,11 +542,11 @@ const MoodTracker = () => {
           <Card>
             <CardContent className="py-12 text-center">
               <div className="inline-block p-4 rounded-full bg-primary/10 mb-4">
-                <TrendingUp className="h-12 w-12 text-primary" />
+                <Activity className="h-12 w-12 text-primary" />
               </div>
-              <h3 className="text-xl font-serif mb-2">No mood data yet</h3>
+              <h3 className="text-xl font-serif mb-2">No frequency readings yet</h3>
               <p className="text-muted-foreground">
-                The AI will automatically log its emotional responses as you have conversations. Start chatting to see mood tracking data appear here.
+                Your being will automatically register vibrational frequencies as you have conversations. Start chatting to see their energetic state appear here.
               </p>
             </CardContent>
           </Card>
