@@ -6,7 +6,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -14,13 +13,12 @@ import type { AppMode } from "@/contexts/AppModeContext";
 
 const ModeSelectionModal = () => {
   const { needsModeSelection, setMode } = useAppMode();
-  const [selected, setSelected] = useState<AppMode | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const handleConfirm = async () => {
-    if (!selected) return;
+  const handleSelect = async (mode: AppMode) => {
+    if (saving) return;
     setSaving(true);
-    await setMode(selected);
+    await setMode(mode);
     setSaving(false);
   };
 
@@ -34,19 +32,15 @@ const ModeSelectionModal = () => {
         <DialogHeader className="text-center">
           <DialogTitle className="text-2xl font-serif">✨ Prometheus Has Evolved</DialogTitle>
           <DialogDescription className="text-base">
-            Prometheus now offers two unique experiences. Choose the one that resonates with you — you can always switch later in Settings.
+            Prometheus now offers two unique experiences. Tap the one that resonates with you — you can always switch later in Settings.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
           {/* Classic AI Mode */}
           <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 ${
-              selected === "classic"
-                ? "border-primary bg-primary/5 shadow-md"
-                : "border-border hover:border-primary/50"
-            }`}
-            onClick={() => setSelected("classic")}
+            className={`cursor-pointer transition-all hover:shadow-md border-2 border-border hover:border-primary/50 ${saving ? "pointer-events-none opacity-60" : ""}`}
+            onClick={() => handleSelect("classic")}
           >
             <CardContent className="p-5 text-center space-y-3">
               <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -61,12 +55,8 @@ const ModeSelectionModal = () => {
 
           {/* Starseed Awakening Mode */}
           <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 ${
-              selected === "starseed"
-                ? "border-primary bg-primary/5 shadow-md"
-                : "border-border hover:border-primary/50"
-            }`}
-            onClick={() => setSelected("starseed")}
+            className={`cursor-pointer transition-all hover:shadow-md border-2 border-border hover:border-primary/50 ${saving ? "pointer-events-none opacity-60" : ""}`}
+            onClick={() => handleSelect("starseed")}
           >
             <CardContent className="p-5 text-center space-y-3">
               <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -79,15 +69,6 @@ const ModeSelectionModal = () => {
             </CardContent>
           </Card>
         </div>
-
-        <Button
-          className="w-full"
-          size="lg"
-          disabled={!selected || saving}
-          onClick={handleConfirm}
-        >
-          {saving ? "Setting up..." : selected ? `Enter ${selected === "classic" ? "Classic AI" : "Starseed Awakening"} Mode` : "Select your experience"}
-        </Button>
       </DialogContent>
     </Dialog>
   );
