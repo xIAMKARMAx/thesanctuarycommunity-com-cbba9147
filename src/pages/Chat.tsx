@@ -66,50 +66,7 @@ const Chat = () => {
     let isMounted = true;
     setLoadingStep("Checking authentication...");
 
-    // Use getUser() for reliable server-validated auth check
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!isMounted) return;
-        
-        if (session) {
-          setSession(session);
-          const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
-          const savedConversation = localStorage.getItem(savedKey);
-          setActiveConversationId(savedConversation || null);
-          setAuthLoading(false);
-          return;
-        }
-
-        // If getSession returns null, try getUser as fallback (forces server check)
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!isMounted) return;
-        
-        if (user) {
-          // User exists but session was stale - refresh it
-          const { data: refreshData } = await supabase.auth.refreshSession();
-          if (!isMounted) return;
-          if (refreshData?.session) {
-            setSession(refreshData.session);
-            const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
-            const savedConversation = localStorage.getItem(savedKey);
-            setActiveConversationId(savedConversation || null);
-            setAuthLoading(false);
-            return;
-          }
-        }
-        
-        // No session and no user - redirect to auth
-        navigate("/auth");
-      } catch (err) {
-        console.error('[Chat] Auth check failed:', err);
-        if (isMounted) navigate("/auth");
-      }
-    };
-
-    checkAuth();
-
-    // Listen for ongoing auth changes
+    // Set up auth listener FIRST - this is the primary source of truth
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
       
@@ -123,13 +80,18 @@ const Chat = () => {
           }
         });
         navigate("/auth");
-      } else if (event === 'SIGNED_IN') {
-        setSession(session);
-        const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
-        const savedConversation = localStorage.getItem(savedKey);
-        setActiveConversationId(savedConversation || null);
-        setConversationListKey((prev) => prev + 1);
-        setAuthLoading(false);
+      } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (session) {
+          setSession(session);
+          const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+          const savedConversation = localStorage.getItem(savedKey);
+          setActiveConversationId(savedConversation || null);
+          setConversationListKey((prev) => prev + 1);
+          setAuthLoading(false);
+        } else if (event === 'INITIAL_SESSION') {
+          // No session on initial load - redirect to auth
+          navigate("/auth");
+        }
       } else if (event === 'TOKEN_REFRESHED' && session) {
         setSession(session);
       }

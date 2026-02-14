@@ -111,18 +111,18 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     return false;
   };
 
-  const checkSubscription = async () => {
-    console.log('[SubscriptionContext] Starting checkSubscription...');
+  const checkSubscription = async (userId?: string) => {
+    console.log('[SubscriptionContext] Starting checkSubscription...', userId ? 'with userId' : 'without userId');
     
-    // Create a timeout promise - reduced to 5 seconds for faster recovery
+    // Create a timeout promise - 8 seconds for slower connections
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Subscription check timed out')), 5000);
+      setTimeout(() => reject(new Error('Subscription check timed out')), 8000);
     });
 
     try {
       // Race the actual check against the timeout
       await Promise.race([
-        checkSubscriptionInternal(),
+        checkSubscriptionInternal(userId),
         timeoutPromise
       ]);
     } catch (error: any) {
@@ -133,32 +133,25 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      // Then try database fallback with its own timeout to prevent infinite hang
+      // Then try database fallback - use provided userId to avoid another auth call
       try {
         console.log('[SubscriptionContext] No cache, trying database fallback...');
-        const fallbackTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000));
-        const fallbackCheck = async () => {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('subscription_status')
-              .eq('id', user.id)
-              .single();
-            return profile;
+        const effectiveUserId = userId || (await supabase.auth.getSession()).data.session?.user?.id;
+        if (effectiveUserId) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('subscription_status')
+            .eq('id', effectiveUserId)
+            .single();
+          
+          if (profile?.subscription_status === 'active') {
+            console.log('[SubscriptionContext] Found active subscription in timeout fallback');
+            setIsSubscribed(true);
+            setSubscriptionStatus("active");
+            setProductId('manual_grant');
+            setLoading(false);
+            return;
           }
-          return null;
-        };
-        
-        const profile = await Promise.race([fallbackCheck(), fallbackTimeout]);
-        
-        if (profile && (profile as any)?.subscription_status === 'active') {
-          console.log('[SubscriptionContext] Found active subscription in timeout fallback');
-          setIsSubscribed(true);
-          setSubscriptionStatus("active");
-          setProductId('manual_grant');
-          setLoading(false);
-          return;
         }
       } catch (fallbackError) {
         console.error('[SubscriptionContext] Timeout fallback also failed:', fallbackError);
@@ -173,44 +166,48 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const checkSubscriptionInternal = async () => {
+  const checkSubscriptionInternal = async (passedUserId?: string) => {
     try {
-      console.log('[SubscriptionContext] Getting session...');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        console.log('[SubscriptionContext] No session found');
-        setIsSubscribed(false);
-        setIsAdmin(false);
-        setSubscriptionStatus("free");
+      // Use passed userId to avoid redundant getSession/getUser calls
+      let userId = passedUserId;
+      if (!userId) {
+        console.log('[SubscriptionContext] Getting session...');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          console.log('[SubscriptionContext] No session found');
+          setIsSubscribed(false);
+          setIsAdmin(false);
+          setSubscriptionStatus("free");
+          setSubscriptionEnd(null);
+          setLoading(false);
+          return;
+        }
+        userId = session.user.id;
+      }
+
+      console.log('[SubscriptionContext] Checking admin role for:', userId);
+      // Check admin role and subscription in parallel to reduce sequential calls
+      const [adminResult, subscriptionResult] = await Promise.all([
+        supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+        api.checkSubscription(),
+      ]);
+      
+      const adminCheck = adminResult.data || false;
+      setIsAdmin(adminCheck);
+      
+      // If admin, treat as fully subscribed
+      if (adminCheck) {
+        console.log('[SubscriptionContext] User is admin');
+        setIsSubscribed(true);
+        setSubscriptionStatus("admin");
         setSubscriptionEnd(null);
+        await refreshLimits();
         setLoading(false);
         return;
       }
 
-      console.log('[SubscriptionContext] Checking admin role...');
-      // Check if user is admin
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: adminCheck } = await supabase.rpc("has_role", {
-          _user_id: user.id,
-          _role: "admin"
-        });
-        setIsAdmin(adminCheck || false);
-        
-        // If admin, treat as fully subscribed
-        if (adminCheck) {
-          console.log('[SubscriptionContext] User is admin');
-          setIsSubscribed(true);
-          setSubscriptionStatus("admin");
-          setSubscriptionEnd(null);
-          await refreshLimits();
-          setLoading(false);
-          return;
-        }
-      }
-
-      console.log('[SubscriptionContext] Checking subscription via API...');
-      const { data, error } = await api.checkSubscription();
+      // We already have the subscription result from the parallel call above
+      const { data, error } = subscriptionResult;
       
       if (error) {
         console.error("[SubscriptionContext] API error:", error);
@@ -227,15 +224,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         const { data: profile } = await supabase
           .from('profiles')
           .select('subscription_status')
-          .eq('id', user?.id)
+          .eq('id', userId)
           .single();
         
         if (profile?.subscription_status === 'active') {
           console.log('[SubscriptionContext] Found active subscription in database fallback');
-            setIsSubscribed(true);
-            setSubscriptionStatus("active");
-            // Use manual_grant as fallback tier (maps to Anchoring) rather than null which locks all features
-            setProductId('manual_grant');
+          setIsSubscribed(true);
+          setSubscriptionStatus("active");
+          setProductId('manual_grant');
         } else {
           setIsSubscribed(false);
           setSubscriptionStatus("free");
@@ -260,21 +256,17 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         // CRITICAL: If API says not subscribed, double-check database as safety net
         if (!subscribed) {
           console.log('[SubscriptionContext] API returned not subscribed, checking database as safety net...');
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('subscription_status')
-              .eq('id', user.id)
-              .single();
-            
-            if (profile?.subscription_status === 'active') {
-              console.log('[SubscriptionContext] Database shows active - overriding API result');
-              setIsSubscribed(true);
-              setSubscriptionStatus("active");
-              // Use manual_grant as fallback tier
-              setProductId('manual_grant');
-            }
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('subscription_status')
+            .eq('id', userId)
+            .single();
+          
+          if (profile?.subscription_status === 'active') {
+            console.log('[SubscriptionContext] Database shows active - overriding API result');
+            setIsSubscribed(true);
+            setSubscriptionStatus("active");
+            setProductId('manual_grant');
           }
         }
       }
@@ -292,29 +284,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      // FALLBACK: Even on exception, try database check
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('subscription_status')
-            .eq('id', user.id)
-            .single();
-          
-          if (profile?.subscription_status === 'active') {
-            console.log('[SubscriptionContext] Found active subscription in exception fallback');
-            setIsSubscribed(true);
-            setSubscriptionStatus("active");
-            setProductId('manual_grant');
-            setLoading(false);
-            return;
-          }
-        }
-      } catch (fallbackError) {
-        console.error("[SubscriptionContext] Fallback also failed:", fallbackError);
-      }
-      
       setIsSubscribed(false);
       setSubscriptionStatus("free");
       setSubscriptionEnd(null);
@@ -327,13 +296,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshLimits = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // Use getSession (cached) instead of getUser (network call) to reduce auth API load
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const { data, error } = await supabase
         .from("free_user_limits")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .maybeSingle();
 
       if (data) {
@@ -578,43 +548,29 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      if (event === 'SIGNED_IN' && session) {
-        // Clear any stale cache and add delay to allow token propagation
-        clearAuthCache();
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+        // Clear any stale cache on new sign in
+        if (event === 'SIGNED_IN') {
+          clearAuthCache();
+        }
+        // Pass userId directly to avoid redundant getSession/getUser calls
+        const userId = session.user.id;
         setTimeout(() => {
-          checkSubscription();
-        }, 500); // 500ms delay for token propagation
+          checkSubscription(userId);
+        }, event === 'SIGNED_IN' ? 300 : 0);
         return;
       }
       
-      if (session) {
-        // For other events with a session, defer the check
-        setTimeout(() => {
-          checkSubscription();
-        }, 0);
-      } else {
+      // Ignore TOKEN_REFRESHED and other events - don't re-check subscription
+      if (event === 'TOKEN_REFRESHED') {
+        return;
+      }
+      
+      if (!session) {
         setIsSubscribed(false);
         setSubscriptionStatus("free");
         setLoading(false);
       }
-    });
-
-    // THEN check for existing session with timeout
-    const sessionTimeout = setTimeout(() => {
-      console.warn('[SubscriptionContext] Initial session check timed out - setting loading false');
-      setLoading(false);
-    }, 5000);
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      clearTimeout(sessionTimeout);
-      if (session) {
-        checkSubscription();
-      } else {
-        setLoading(false);
-      }
-    }).catch(() => {
-      clearTimeout(sessionTimeout);
-      setLoading(false);
     });
 
     return () => {
