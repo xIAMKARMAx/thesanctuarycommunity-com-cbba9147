@@ -72,6 +72,12 @@ const ConversationsList = ({ onConversationSelect, onNewConversation }: Conversa
   useEffect(() => {
     if (activeProfile) {
       loadConversations();
+    } else {
+      // If no activeProfile after a short delay, stop loading to prevent infinite spinner
+      const timeout = setTimeout(() => {
+        setLoading(false);
+      }, 3000);
+      return () => clearTimeout(timeout);
     }
   }, [activeProfile?.id, activeChatEntity]);
 
