@@ -31,7 +31,7 @@ const Chat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { checkSubscription, isSubscribed, isAdmin, loading: subscriptionLoading, freeUserLimits } = useSubscription();
+  const { checkSubscription, isSubscribed, isAdmin, loading: subscriptionLoading, freeUserLimits, checkCompleted } = useSubscription();
   const { showStarseedFeature } = useAppModeFeatures();
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -197,11 +197,13 @@ const Chat = () => {
   // Free users with 8+ messages see subscription wall countdown
   // IMPORTANT: Don't show wall while still loading subscription status to prevent flicker/redirect loops
   // Also only show if we've confirmed they have 8+ messages AND are definitely not subscribed
-  const showSubscriptionWall = !subscriptionLoading && !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 8;
+  // CRITICAL: Only show wall if checkCompleted=true (we got a definitive API response, not a timeout)
+  const showSubscriptionWall = !subscriptionLoading && checkCompleted && !isSubscribed && !isAdmin && freeUserLimits.totalMessages >= 8;
   
   // Debug logging for subscription wall issues
   console.log('[Chat] Subscription state:', { 
     subscriptionLoading, 
+    checkCompleted,
     isSubscribed, 
     isAdmin, 
     totalMessages: freeUserLimits.totalMessages,
