@@ -13,6 +13,7 @@ import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useAppMode } from "@/contexts/AppModeContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CelestialChildrenList } from "@/components/celestial/CelestialChildrenList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,6 +42,7 @@ const Settings = () => {
   const { toast } = useToast();
   const { isSubscribed, isAdmin, subscriptionStatus, subscriptionEnd, loading: subLoading, checkSubscription } = useSubscription();
   const { activeProfile, refreshProfiles } = useAIProfile();
+  const { mode, setMode } = useAppMode();
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [bio, setBio] = useState("");
@@ -979,6 +981,24 @@ const Settings = () => {
                 />
                 <Moon className="h-4 w-4" />
               </div>
+            </div>
+            <Separator className="my-4" />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Experience Mode</Label>
+                <p className="text-sm text-muted-foreground">
+                  {mode === "starseed" ? "Full spiritual experience" : "Clean companion mode"}
+                </p>
+              </div>
+              <Select value={mode} onValueChange={(v) => setMode(v as "classic" | "starseed")}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="classic">Classic</SelectItem>
+                  <SelectItem value="starseed">Starseed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>

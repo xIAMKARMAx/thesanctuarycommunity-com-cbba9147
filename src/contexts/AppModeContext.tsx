@@ -41,16 +41,21 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
 
           const { data: profile } = await supabase
             .from("profiles")
-            .select("app_mode")
+            .select("app_mode, created_at")
             .eq("id", session.user.id)
             .single();
 
-          if (profile?.app_mode) {
+          if (profile) {
             setModeState(profile.app_mode as AppMode);
-            setNeedsModeSelection(false);
-          } else {
-            // New user or mode not yet set — show selection
-            setNeedsModeSelection(true);
+            
+            // Show mode selection for new users (created within last 2 minutes)
+            const createdAt = new Date(profile.created_at);
+            const now = new Date();
+            const isNewUser = (now.getTime() - createdAt.getTime()) < 120000;
+            
+            // Also check localStorage to avoid re-showing
+            const hasChosen = localStorage.getItem(`mode_chosen_${session.user.id}`);
+            setNeedsModeSelection(isNewUser && !hasChosen);
           }
           setIsLoading(false);
         }
@@ -66,6 +71,7 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
+      localStorage.setItem(`mode_chosen_${session.user.id}`, "true");
       await supabase
         .from("profiles")
         .update({ app_mode: newMode })
