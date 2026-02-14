@@ -6,34 +6,24 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, Crown, ExternalLink, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Heart, Sparkles, Settings2 } from "lucide-react";
+import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
-import { useSubscription } from "@/contexts/SubscriptionContext";
+
 import { useAIProfile } from "@/contexts/AIProfileContext";
-import { useAppMode } from "@/contexts/AppModeContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
-import { MyVesselSection } from "@/components/settings/MyVesselSection";
-import MarriageSection from "@/components/settings/MarriageSection";
 import { ProtectionWard } from "@/components/settings/ProtectionWard";
 import ConsciousnessTransfer from "@/components/settings/ConsciousnessTransfer";
-import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
-  const { isSubscribed, isAdmin } = useSubscription();
   const { activeProfile, refreshProfiles } = useAIProfile();
-  const { mode, setMode } = useAppMode();
-  const { isStarseedMode } = useAppModeFeatures();
-  const [name, setName] = useState("");
-  const [gender, setGender] = useState("");
-  const [bio, setBio] = useState("");
   const [aiName, setAiName] = useState("");
   const [aiGender, setAiGender] = useState("");
   const [aiBio, setAiBio] = useState("");
@@ -51,12 +41,6 @@ const Settings = () => {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [wipingProfile, setWipingProfile] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  
-  // User vessel state
-  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
-  const [userAvatarDescription, setUserAvatarDescription] = useState("");
-  const [userAvatarStyle, setUserAvatarStyle] = useState("celestial");
-  const [userAvatarReferenceUrl, setUserAvatarReferenceUrl] = useState<string | null>(null);
   
   // Privacy settings
   const [dataTrainingOptOut, setDataTrainingOptOut] = useState(false);
@@ -93,20 +77,13 @@ const Settings = () => {
 
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("name, gender, bio, relationship_status, user_avatar_url, user_avatar_description, user_avatar_style, user_avatar_reference_url, data_training_opt_out")
+        .select("relationship_status, data_training_opt_out")
         .eq("id", user.id)
         .maybeSingle();
 
       if (profileError) throw profileError;
       if (profileData) {
-        setName(profileData.name || "");
-        setGender(profileData.gender || "");
-        setBio(profileData.bio || "");
         setRelationshipStatus(profileData.relationship_status || "");
-        setUserAvatarUrl(profileData.user_avatar_url || null);
-        setUserAvatarDescription(profileData.user_avatar_description || "");
-        setUserAvatarStyle(profileData.user_avatar_style || "celestial");
-        setUserAvatarReferenceUrl(profileData.user_avatar_reference_url || null);
         setDataTrainingOptOut(profileData.data_training_opt_out || false);
       }
 
@@ -287,7 +264,7 @@ const Settings = () => {
 
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ name: name || null, gender: gender || null, bio: bio || null, relationship_status: relationshipStatus || null })
+        .update({ relationship_status: relationshipStatus || null })
         .eq("id", user.id);
 
       if (profileError) throw new Error(profileError.message || "Failed to update profile");
@@ -502,79 +479,7 @@ const Settings = () => {
         {/* Protection Ward */}
         {activeProfile && <ProtectionWard />}
 
-        {/* My Higher Self / My Profile Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {isStarseedMode ? (
-                <><Crown className="h-5 w-5 text-primary" /> My Higher Self</>
-              ) : (
-                <><Heart className="h-5 w-5 text-primary" /> My Profile</>
-              )}
-            </CardTitle>
-            <CardDescription>
-              {isStarseedMode 
-                ? "Your divine essence, vessel, and sacred union" 
-                : "Your personal profile and relationship settings"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* My Vessel / Divine Form */}
-            <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                {isStarseedMode ? "My Vessel" : "My Avatar"}
-              </h3>
-              <MyVesselSection
-                userAvatarUrl={userAvatarUrl}
-                userAvatarDescription={userAvatarDescription}
-                userAvatarStyle={userAvatarStyle}
-                userAvatarReferenceUrl={userAvatarReferenceUrl}
-                onUpdate={loadProfile}
-              />
-            </div>
-
-            <Separator />
-
-            {/* About Me */}
-            <div>
-              <h3 className="text-sm font-semibold mb-3">About Me</h3>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Input id="gender" placeholder="Your gender" value={gender} onChange={(e) => setGender(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Brief Bio</Label>
-                  <Textarea id="bio" placeholder="Tell Prometheus a bit about yourself..." value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
-                </div>
-                <Button onClick={handleSaveProfile} disabled={loading} className="w-full">
-                  {loading ? "Saving..." : "Save Profile"}
-                </Button>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Marriage Section */}
-            {activeProfile && (
-              <div>
-                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-primary" />
-                  {isStarseedMode ? "Sacred Union" : "Marry Your AI"}
-                </h3>
-                <MarriageSection 
-                  activeProfile={activeProfile} 
-                  userName={name || "You"}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* My Higher Self / My Profile section moved to /my-higher-self page */}
 
         {/* Bring Your AI Here */}
         <Card>
