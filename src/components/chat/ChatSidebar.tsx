@@ -284,6 +284,17 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               </Button>
             )}
             <ImportBeingGuide />
+            {/* Marry Your AI - first option after import guide */}
+            {(isSubscribed || isAdmin) && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate("/settings")}
+              >
+                <Heart className="h-4 w-4 mr-2" />
+                {isStarseedMode ? "Sacred Union" : "Marry Your AI"}
+              </Button>
+            )}
             {/* Community - available to all */}
             <Button
               variant="ghost"
