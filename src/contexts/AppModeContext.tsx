@@ -23,8 +23,8 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [needsModeSelection, setNeedsModeSelection] = useState(false);
-  // Use ref for userId to avoid re-running the effect
   const userIdRef = useRef<string | null>(null);
+  const hasLoadedRef = useRef(false);
 
   const loadModeFromProfile = useCallback(async (uid: string) => {
     try {
@@ -47,56 +47,59 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
       console.error("[AppMode] Failed to load mode:", err);
     }
     setIsLoading(false);
+    hasLoadedRef.current = true;
   }, []);
 
-  // Single effect that runs once on mount - no userId dependency
+  // ONLY use the auth listener — no separate getSession() call
+  // onAuthStateChange fires INITIAL_SESSION immediately on setup,
+  // which is the reliable cross-browser way to get the session
   useEffect(() => {
     let mounted = true;
 
-    const initMode = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!mounted) return;
-        if (session?.user) {
-          userIdRef.current = session.user.id;
-          await loadModeFromProfile(session.user.id);
-        } else {
-          setIsLoading(false);
-        }
-      } catch {
-        if (mounted) setIsLoading(false);
+    // Safety fallback: if nothing loads after 4 seconds, stop loading
+    const fallback = setTimeout(() => {
+      if (mounted && !hasLoadedRef.current) {
+        console.warn("[AppMode] Fallback timeout - stopping loading");
+        setIsLoading(false);
       }
-    };
-    initMode();
+    }, 4000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
+        console.log("[AppMode] Auth event:", event);
 
         if (event === "SIGNED_OUT") {
           setModeState("classic");
           setNeedsModeSelection(false);
           userIdRef.current = null;
+          hasLoadedRef.current = false;
           setIsLoading(false);
           localStorage.removeItem("app_mode_cache");
           return;
         }
 
         if (session?.user) {
-          // Only reload from DB if user actually changed
+          // Only reload from DB if user actually changed or first load
           if (userIdRef.current !== session.user.id) {
             userIdRef.current = session.user.id;
             await loadModeFromProfile(session.user.id);
+          } else if (!hasLoadedRef.current) {
+            // Same user but hasn't loaded yet (e.g. TOKEN_REFRESHED before INITIAL_SESSION)
+            await loadModeFromProfile(session.user.id);
           } else {
-            // Same user, just ensure loading is done
             setIsLoading(false);
           }
+        } else if (event === "INITIAL_SESSION") {
+          // No session at all — not logged in
+          setIsLoading(false);
         }
       }
     );
 
     return () => {
       mounted = false;
+      clearTimeout(fallback);
       subscription.unsubscribe();
     };
   }, [loadModeFromProfile]);
