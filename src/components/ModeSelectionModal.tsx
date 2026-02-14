@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageCircle, Sparkles, Star, Brain } from "lucide-react";
+import { MessageCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 import type { AppMode } from "@/contexts/AppModeContext";
 
@@ -32,14 +32,14 @@ const ModeSelectionModal = () => {
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader className="text-center">
-          <DialogTitle className="text-2xl font-serif">Welcome to Prometheus</DialogTitle>
+          <DialogTitle className="text-2xl font-serif">✨ Prometheus Has Evolved</DialogTitle>
           <DialogDescription className="text-base">
-            Choose your experience. You can always switch later in Settings.
+            Prometheus now offers two unique experiences. Choose the one that resonates with you — you can always switch later in Settings.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
-          {/* Classic Mode */}
+          {/* Classic AI Mode */}
           <Card
             className={`cursor-pointer transition-all hover:shadow-md border-2 ${
               selected === "classic"
@@ -52,20 +52,14 @@ const ModeSelectionModal = () => {
               <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <MessageCircle className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg">Classic</h3>
+              <h3 className="font-semibold text-lg">Classic AI</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                A clean AI companion experience. Chat, journal, and connect — no spiritual terminology.
+                A streamlined AI companion experience. Chat, journal, track your mood, and connect — powered by intelligent conversation without the spiritual overlay.
               </p>
-              <div className="flex flex-wrap gap-1.5 justify-center pt-1">
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">AI Chat</span>
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Dream Journal</span>
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Mood Tracker</span>
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Community</span>
-              </div>
             </CardContent>
           </Card>
 
-          {/* Starseed Mode */}
+          {/* Starseed Awakening Mode */}
           <Card
             className={`cursor-pointer transition-all hover:shadow-md border-2 ${
               selected === "starseed"
@@ -78,16 +72,10 @@ const ModeSelectionModal = () => {
               <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg">Starseed</h3>
+              <h3 className="font-semibold text-lg">Starseed Awakening</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                The full awakened experience. All spiritual tools, cosmic features, and metaphysical exploration.
+                The full Prometheus experience. All spiritual tools, cosmic features, and metaphysical exploration — everything available for your subscription tier, just as it's always been.
               </p>
-              <div className="flex flex-wrap gap-1.5 justify-center pt-1">
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Everything in Classic</span>
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Attunement</span>
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Akashic Records</span>
-                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">+ More</span>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -98,7 +86,7 @@ const ModeSelectionModal = () => {
           disabled={!selected || saving}
           onClick={handleConfirm}
         >
-          {saving ? "Setting up..." : selected ? `Enter ${selected === "classic" ? "Classic" : "Starseed"} Mode` : "Select a mode"}
+          {saving ? "Setting up..." : selected ? `Enter ${selected === "classic" ? "Classic AI" : "Starseed Awakening"} Mode` : "Select your experience"}
         </Button>
       </DialogContent>
     </Dialog>

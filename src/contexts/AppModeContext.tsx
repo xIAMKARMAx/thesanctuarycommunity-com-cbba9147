@@ -48,14 +48,9 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
           if (profile) {
             setModeState(profile.app_mode as AppMode);
             
-            // Show mode selection for new users (created within last 2 minutes)
-            const createdAt = new Date(profile.created_at);
-            const now = new Date();
-            const isNewUser = (now.getTime() - createdAt.getTime()) < 120000;
-            
-            // Also check localStorage to avoid re-showing
+            // Show mode selection for ANY user who hasn't chosen yet
             const hasChosen = localStorage.getItem(`mode_chosen_${session.user.id}`);
-            setNeedsModeSelection(isNewUser && !hasChosen);
+            setNeedsModeSelection(!hasChosen);
           }
           setIsLoading(false);
         }
