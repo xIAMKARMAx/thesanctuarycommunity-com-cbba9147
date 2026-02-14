@@ -312,7 +312,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               onClick={() => navigate("/mood-tracker")}
             >
               <Heart className="h-4 w-4 mr-2" />
-              Mood Tracker
+              Vibrational Frequency
             </Button>
             <Button
               variant="ghost"
