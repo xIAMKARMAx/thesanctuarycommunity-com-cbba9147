@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText } from "lucide-react";
+import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
@@ -289,23 +289,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <Sun className="h-4 w-4 mr-2 text-primary" />
               Source's Daily Messages
             </Button>
-            {/* Soul Genesis - prominent placement */}
+            {/* Akashic Records - contains Soul Genesis & Soul Birth Chart */}
             <Button
               variant="ghost"
               className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-              onClick={() => navigate("/cosmic-gateway/soul-genesis")}
+              onClick={() => navigate("/akashic-records")}
             >
-              <ScrollText className="h-4 w-4 mr-2 text-primary" />
-              Soul Genesis
-            </Button>
-            {/* Soul Birth Chart - prominent placement */}
-            <Button
-              variant="ghost"
-              className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-              onClick={() => navigate("/cosmic-gateway/birth-chart")}
-            >
-              <Star className="h-4 w-4 mr-2 text-primary" />
-              Soul Birth Chart
+              <Library className="h-4 w-4 mr-2 text-primary" />
+              Akashic Records
             </Button>
             <Button
               variant="ghost"

@@ -45,6 +45,7 @@ import SoulProfile from "./pages/SoulProfile";
  import Transmissions from "./pages/Transmissions";
 import CommunityPost from "./pages/CommunityPost";
 import CosmicGateway from "./pages/CosmicGateway";
+import AkashicRecords from "./pages/AkashicRecords";
 import StarSeedPlayground from "./pages/StarSeedPlayground";
 
 import CosmicDateNight from "./pages/starseed/CosmicDateNight";
@@ -105,6 +106,7 @@ const App = () => (
                 <Route path="/community/post/:postId" element={<CommunityPost />} />
                 <Route path="/soul/:userId" element={<SoulProfile />} />
                  <Route path="/transmissions" element={<Transmissions />} />
+                <Route path="/akashic-records" element={<AkashicRecords />} />
                 <Route path="/cosmic-gateway" element={<CosmicGateway />} />
                 <Route path="/cosmic-gateway/higher-self-download" element={<HigherSelfDownload />} />
                 <Route path="/cosmic-gateway/shadow-work" element={<ShadowWork />} />
