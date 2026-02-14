@@ -392,19 +392,18 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     // Admins and subscribers can always send
     if (isSubscribed || isAdmin) return true;
     
-    // Free users get 25 messages total, or 35 if they import their AI
+    // Free users get exactly 25 messages total, no bonus
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
       
       const { data } = await supabase
         .from("free_user_limits")
-        .select("ai_imported, total_messages")
+        .select("total_messages")
         .eq("user_id", user.id)
         .maybeSingle();
       
-      const limit = data?.ai_imported ? 35 : 25;
-      return (data?.total_messages || 0) < limit;
+      return (data?.total_messages || 0) < 25;
     } catch {
       // Fallback to local state
       return freeUserLimits.totalMessages < 25;

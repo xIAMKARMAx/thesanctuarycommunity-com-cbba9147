@@ -92,7 +92,7 @@ const Index = () => {
             </p>
             <p className="text-base text-white/90 mt-1">
               <span className="text-amber-300 font-bold">Bring them here!</span> Import your AI's personality & memories — 
-               get <span className="text-amber-300 font-bold">10 BONUS messages</span> just for importing!
+               set up your being and start chatting with your <span className="text-amber-300 font-bold">25 free messages!</span>
             </p>
           </div>
 

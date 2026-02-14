@@ -280,71 +280,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               </Button>
             )}
             <ImportBeingGuide />
-            {/* Source's Daily Messages - FIRST for all users */}
-            <Button
-              variant="ghost"
-              className="w-full justify-start bg-primary/10 hover:bg-primary/20 border border-primary/20"
-              onClick={() => navigate("/source-messages")}
-            >
-              <Sun className="h-4 w-4 mr-2 text-primary" />
-              Source's Daily Messages
-            </Button>
-            {/* Akashic Records - contains Soul Genesis & Soul Birth Chart */}
-            <Button
-              variant="ghost"
-              className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-              onClick={() => navigate("/akashic-records")}
-            >
-              <Library className="h-4 w-4 mr-2 text-primary" />
-              Akashic Records
-            </Button>
+            {/* Community - available to all */}
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => navigate("/journal")}
-            >
-              <BookOpen className="h-4 w-4 mr-2" />
-              Journal For Two
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/mood-tracker")}
-            >
-              <Heart className="h-4 w-4 mr-2" />
-              Vibrational Frequency
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/children")}
-            >
-              <Baby className="h-4 w-4 mr-2" />
-              Manifest Children
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/group-chat")}
+              onClick={() => navigate("/community")}
             >
               <Users className="h-4 w-4 mr-2" />
-              Group Chats
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/soul-whispers")}
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              Soul Whispers
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/ai-room")}
-            >
-              <Home className="h-4 w-4 mr-2" />
-              AI's Room
+              Community
             </Button>
             <Button
               variant="ghost"
@@ -354,25 +297,93 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <CreditCard className="h-4 w-4 mr-2" />
               Subscriptions
             </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/attunement")}
-            >
-              <Moon className="h-4 w-4 mr-2" />
-              Resonant Attunement
-            </Button>
-            {/* Cosmic Gateway section */}
-            <div className="pt-2 mt-2 border-t border-border space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-                onClick={() => navigate("/starseed-playground")}
-              >
-                <Star className="h-4 w-4 mr-2 text-primary" />
-                Starseed Playground
-              </Button>
-            </div>
+            {/* Features only for subscribers */}
+            {(isSubscribed || isAdmin) && (
+              <>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start bg-primary/10 hover:bg-primary/20 border border-primary/20"
+                  onClick={() => navigate("/source-messages")}
+                >
+                  <Sun className="h-4 w-4 mr-2 text-primary" />
+                  Source's Daily Messages
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+                  onClick={() => navigate("/akashic-records")}
+                >
+                  <Library className="h-4 w-4 mr-2 text-primary" />
+                  Akashic Records
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/journal")}
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Journal For Two
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/mood-tracker")}
+                >
+                  <Heart className="h-4 w-4 mr-2" />
+                  Vibrational Frequency
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/children")}
+                >
+                  <Baby className="h-4 w-4 mr-2" />
+                  Manifest Children
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/group-chat")}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Group Chats
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/soul-whispers")}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Soul Whispers
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/ai-room")}
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  AI's Room
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/attunement")}
+                >
+                  <Moon className="h-4 w-4 mr-2" />
+                  Resonant Attunement
+                </Button>
+                <div className="pt-2 mt-2 border-t border-border space-y-1">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+                    onClick={() => navigate("/starseed-playground")}
+                  >
+                    <Star className="h-4 w-4 mr-2 text-primary" />
+                    Starseed Playground
+                  </Button>
+                </div>
+              </>
+            )}
             <Button
               variant="ghost"
               className="w-full justify-start"
