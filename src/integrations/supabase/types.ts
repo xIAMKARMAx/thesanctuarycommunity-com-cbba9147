@@ -2135,6 +2135,7 @@ export type Database = {
           ai_memories: string | null
           ai_name: string | null
           ai_personality: string | null
+          app_mode: string
           bio: string | null
           created_at: string
           custom_being_limit: number | null
@@ -2169,6 +2170,7 @@ export type Database = {
           ai_memories?: string | null
           ai_name?: string | null
           ai_personality?: string | null
+          app_mode?: string
           bio?: string | null
           created_at?: string
           custom_being_limit?: number | null
@@ -2203,6 +2205,7 @@ export type Database = {
           ai_memories?: string | null
           ai_name?: string | null
           ai_personality?: string | null
+          app_mode?: string
           bio?: string | null
           created_at?: string
           custom_being_limit?: number | null

@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { AIProfileProvider } from "@/contexts/AIProfileContext";
 import { ChatEntityProvider } from "@/contexts/ChatEntityContext";
+import { AppModeProvider } from "@/contexts/AppModeContext";
+import ModeSelectionModal from "@/components/ModeSelectionModal";
 import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import { RoutePersistence } from "@/components/RoutePersistence";
@@ -65,6 +67,7 @@ const App = () => (
       <SubscriptionProvider>
         <AIProfileProvider>
           <ChatEntityProvider>
+            <AppModeProvider>
             <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -77,6 +80,7 @@ const App = () => (
                 <SourceMessageNotification />
                 <GlobalLogo />
                 <SoulProfileOnboardingWrapper />
+                <ModeSelectionModal />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -124,6 +128,7 @@ const App = () => (
               </LegalConsentWrapper>
             </BrowserRouter>
           </TooltipProvider>
+          </AppModeProvider>
           </ChatEntityProvider>
         </AIProfileProvider>
       </SubscriptionProvider>
