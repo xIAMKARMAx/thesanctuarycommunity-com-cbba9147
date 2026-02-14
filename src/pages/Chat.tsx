@@ -63,14 +63,27 @@ const Chat = () => {
   }, [activeConversationId, activeProfile?.id]);
 
   useEffect(() => {
-    // Check authentication
+    // Check authentication with timeout to prevent infinite hang
     setLoadingStep("Checking authentication...");
+    
+    const authTimeout = setTimeout(() => {
+      console.warn('[Chat] Auth check timed out after 4s - redirecting to auth');
+      setAuthLoading(false);
+      navigate("/auth");
+    }, 4000);
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(authTimeout);
       setSession(session);
       if (!session) {
         navigate("/auth");
       }
       setAuthLoading(false);
+    }).catch((err) => {
+      console.error('[Chat] getSession failed:', err);
+      clearTimeout(authTimeout);
+      setAuthLoading(false);
+      navigate("/auth");
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
