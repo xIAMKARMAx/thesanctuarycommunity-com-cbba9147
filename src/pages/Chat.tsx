@@ -64,15 +64,25 @@ const Chat = () => {
 
   useEffect(() => {
     let isMounted = true;
-    // Check authentication with timeout to prevent infinite hang
+    let hasResolved = false;
     setLoadingStep("Checking authentication...");
     
+    const resolveAuth = (session: any) => {
+      if (hasResolved || !isMounted) return;
+      hasResolved = true;
+      clearTimeout(authTimeout);
+      setSession(session);
+      if (!session) {
+        navigate("/auth");
+      }
+      setAuthLoading(false);
+    };
+
     // Set up auth listener FIRST to catch the session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
       
       if (event === 'SIGNED_OUT') {
-        // Clear all conversation state and localStorage on logout
         setActiveConversationId(null);
         setConversationListKey((prev) => prev + 1);
         setSession(null);
@@ -82,48 +92,43 @@ const Chat = () => {
           }
         });
         navigate("/auth");
-      } else if (event === 'SIGNED_IN') {
-        // Load saved conversation for the new session
-        const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
-        const savedConversation = localStorage.getItem(savedKey);
-        setActiveConversationId(savedConversation || null);
-        setConversationListKey((prev) => prev + 1);
-        setSession(session);
-        setAuthLoading(false);
-      } else if (session) {
-        // TOKEN_REFRESHED or other events with a valid session - just update
+      } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (session) {
+          const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+          const savedConversation = localStorage.getItem(savedKey);
+          setActiveConversationId(savedConversation || null);
+          setConversationListKey((prev) => prev + 1);
+          resolveAuth(session);
+        }
+        // If INITIAL_SESSION with no session, let the timeout handle redirect
+      } else if (event === 'TOKEN_REFRESHED' && session) {
         setSession(session);
       }
-      // Ignore events without session that aren't SIGNED_OUT (e.g. INITIAL_SESSION with null)
-      // The initial getSession check below handles the no-session case
     });
 
-    // THEN check for existing session
+    // Fallback: check for existing session (but don't redirect immediately if null)
     const authTimeout = setTimeout(() => {
-      if (!isMounted) return;
-      console.warn('[Chat] Auth check timed out after 6s - redirecting to auth');
-      setAuthLoading(false);
-      navigate("/auth");
-    }, 6000);
+      if (!isMounted || hasResolved) return;
+      // Only redirect after timeout if we never got a session
+      console.warn('[Chat] Auth check timed out after 8s - redirecting to auth');
+      resolveAuth(null);
+    }, 8000);
     
     supabase.auth.getSession().then(({ data: { session } }) => {
-      clearTimeout(authTimeout);
       if (!isMounted) return;
-      setSession(session);
-      if (!session) {
-        navigate("/auth");
+      if (session) {
+        resolveAuth(session);
       }
-      setAuthLoading(false);
+      // If no session from getSession, DON'T redirect immediately
+      // Wait for auth listener or timeout - prevents race condition after login
     }).catch((err) => {
       console.error('[Chat] getSession failed:', err);
-      clearTimeout(authTimeout);
-      if (!isMounted) return;
-      setAuthLoading(false);
-      navigate("/auth");
+      // Still don't redirect immediately - wait for listener
     });
 
     return () => {
       isMounted = false;
+      clearTimeout(authTimeout);
       subscription.unsubscribe();
     };
   }, [navigate]);
