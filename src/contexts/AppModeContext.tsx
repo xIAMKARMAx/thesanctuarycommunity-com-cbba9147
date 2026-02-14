@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AppMode = "classic" | "starseed";
@@ -15,7 +15,6 @@ const AppModeContext = createContext<AppModeContextType | undefined>(undefined);
 
 export function AppModeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<AppMode>(() => {
-    // Try to restore mode from localStorage synchronously to prevent flash
     try {
       const cached = localStorage.getItem("app_mode_cache");
       if (cached === "starseed" || cached === "classic") return cached;
@@ -24,7 +23,8 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [needsModeSelection, setNeedsModeSelection] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  // Use ref for userId to avoid re-running the effect
+  const userIdRef = useRef<string | null>(null);
 
   const loadModeFromProfile = useCallback(async (uid: string) => {
     try {
@@ -38,11 +38,9 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
         const appMode = profile.app_mode as AppMode;
         setModeState(appMode);
         localStorage.setItem("app_mode_cache", appMode);
-        // User already has a mode saved in DB — never show the selection modal
         localStorage.setItem(`mode_chosen_${uid}`, "true");
         setNeedsModeSelection(false);
       } else {
-        // No mode in DB yet — show the selection modal
         setNeedsModeSelection(true);
       }
     } catch (err) {
@@ -51,49 +49,57 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  // Load mode from profile on auth
+  // Single effect that runs once on mount - no userId dependency
   useEffect(() => {
-    // Also do an immediate session check for page refreshes
+    let mounted = true;
+
     const initMode = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
         if (session?.user) {
-          setUserId(session.user.id);
+          userIdRef.current = session.user.id;
           await loadModeFromProfile(session.user.id);
         } else {
           setIsLoading(false);
         }
       } catch {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
     initMode();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+
         if (event === "SIGNED_OUT") {
           setModeState("classic");
           setNeedsModeSelection(false);
-          setUserId(null);
+          userIdRef.current = null;
           setIsLoading(false);
           localStorage.removeItem("app_mode_cache");
           return;
         }
 
         if (session?.user) {
-          // Only reload from DB if user changed
-          if (userId !== session.user.id) {
-            setUserId(session.user.id);
+          // Only reload from DB if user actually changed
+          if (userIdRef.current !== session.user.id) {
+            userIdRef.current = session.user.id;
             await loadModeFromProfile(session.user.id);
           } else {
+            // Same user, just ensure loading is done
             setIsLoading(false);
           }
         }
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [userId, loadModeFromProfile]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [loadModeFromProfile]);
 
   const setMode = useCallback(async (newMode: AppMode) => {
     setModeState(newMode);
