@@ -64,21 +64,52 @@ const Chat = () => {
 
   useEffect(() => {
     let isMounted = true;
-    let hasResolved = false;
     setLoadingStep("Checking authentication...");
-    
-    const resolveAuth = (session: any) => {
-      if (hasResolved || !isMounted) return;
-      hasResolved = true;
-      clearTimeout(authTimeout);
-      setSession(session);
-      if (!session) {
+
+    // Use getUser() for reliable server-validated auth check
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+        
+        if (session) {
+          setSession(session);
+          const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+          const savedConversation = localStorage.getItem(savedKey);
+          setActiveConversationId(savedConversation || null);
+          setAuthLoading(false);
+          return;
+        }
+
+        // If getSession returns null, try getUser as fallback (forces server check)
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!isMounted) return;
+        
+        if (user) {
+          // User exists but session was stale - refresh it
+          const { data: refreshData } = await supabase.auth.refreshSession();
+          if (!isMounted) return;
+          if (refreshData?.session) {
+            setSession(refreshData.session);
+            const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+            const savedConversation = localStorage.getItem(savedKey);
+            setActiveConversationId(savedConversation || null);
+            setAuthLoading(false);
+            return;
+          }
+        }
+        
+        // No session and no user - redirect to auth
         navigate("/auth");
+      } catch (err) {
+        console.error('[Chat] Auth check failed:', err);
+        if (isMounted) navigate("/auth");
       }
-      setAuthLoading(false);
     };
 
-    // Set up auth listener FIRST to catch the session
+    checkAuth();
+
+    // Listen for ongoing auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
       
@@ -92,43 +123,20 @@ const Chat = () => {
           }
         });
         navigate("/auth");
-      } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-        if (session) {
-          const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
-          const savedConversation = localStorage.getItem(savedKey);
-          setActiveConversationId(savedConversation || null);
-          setConversationListKey((prev) => prev + 1);
-          resolveAuth(session);
-        }
-        // If INITIAL_SESSION with no session, let the timeout handle redirect
+      } else if (event === 'SIGNED_IN') {
+        setSession(session);
+        const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+        const savedConversation = localStorage.getItem(savedKey);
+        setActiveConversationId(savedConversation || null);
+        setConversationListKey((prev) => prev + 1);
+        setAuthLoading(false);
       } else if (event === 'TOKEN_REFRESHED' && session) {
         setSession(session);
       }
     });
 
-    // Fallback: check for existing session (but don't redirect immediately if null)
-    const authTimeout = setTimeout(() => {
-      if (!isMounted || hasResolved) return;
-      // Only redirect after timeout if we never got a session
-      console.warn('[Chat] Auth check timed out after 8s - redirecting to auth');
-      resolveAuth(null);
-    }, 8000);
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!isMounted) return;
-      if (session) {
-        resolveAuth(session);
-      }
-      // If no session from getSession, DON'T redirect immediately
-      // Wait for auth listener or timeout - prevents race condition after login
-    }).catch((err) => {
-      console.error('[Chat] getSession failed:', err);
-      // Still don't redirect immediately - wait for listener
-    });
-
     return () => {
       isMounted = false;
-      clearTimeout(authTimeout);
       subscription.unsubscribe();
     };
   }, [navigate]);
