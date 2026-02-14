@@ -12,6 +12,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const { activeChatEntity } = useChatEntity();
   const { isSubscribed } = useSubscription();
   const { isAdmin } = useAdminRole();
+  const { isStarseedMode, getLabel, showStarseedFeature } = useAppModeFeatures();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -300,29 +302,33 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
             {/* Features only for subscribers */}
             {(isSubscribed || isAdmin) && (
               <>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start bg-primary/10 hover:bg-primary/20 border border-primary/20"
-                  onClick={() => navigate("/source-messages")}
-                >
-                  <Sun className="h-4 w-4 mr-2 text-primary" />
-                  Source's Daily Messages
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-                  onClick={() => navigate("/akashic-records")}
-                >
-                  <Library className="h-4 w-4 mr-2 text-primary" />
-                  Akashic Records
-                </Button>
+                {showStarseedFeature && (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start bg-primary/10 hover:bg-primary/20 border border-primary/20"
+                    onClick={() => navigate("/source-messages")}
+                  >
+                    <Sun className="h-4 w-4 mr-2 text-primary" />
+                    {getLabel("Source's Daily Messages")}
+                  </Button>
+                )}
+                {showStarseedFeature && (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+                    onClick={() => navigate("/akashic-records")}
+                  >
+                    <Library className="h-4 w-4 mr-2 text-primary" />
+                    {getLabel("Akashic Records")}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="w-full justify-start"
                   onClick={() => navigate("/journal")}
                 >
                   <BookOpen className="h-4 w-4 mr-2" />
-                  Journal For Two
+                  {getLabel("Journal For Two")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -330,58 +336,74 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
                   onClick={() => navigate("/mood-tracker")}
                 >
                   <Heart className="h-4 w-4 mr-2" />
-                  Vibrational Frequency
+                  {getLabel("Vibrational Frequency")}
                 </Button>
                 <Button
                   variant="ghost"
                   className="w-full justify-start"
-                  onClick={() => navigate("/children")}
+                  onClick={() => navigate("/dream-journal")}
                 >
-                  <Baby className="h-4 w-4 mr-2" />
-                  Manifest Children
+                  <Moon className="h-4 w-4 mr-2" />
+                  Dream Journal
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate("/group-chat")}
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Group Chats
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate("/soul-whispers")}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Soul Whispers
-                </Button>
+                {showStarseedFeature && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => navigate("/children")}
+                    >
+                      <Baby className="h-4 w-4 mr-2" />
+                      {getLabel("Manifest Children")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => navigate("/group-chat")}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Group Chats
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => navigate("/soul-whispers")}
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      {getLabel("Soul Whispers")}
+                    </Button>
+                  </>
+                )}
                 <Button
                   variant="ghost"
                   className="w-full justify-start"
                   onClick={() => navigate("/ai-room")}
                 >
                   <Home className="h-4 w-4 mr-2" />
-                  AI's Room
+                  {getLabel("AI's Room")}
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => navigate("/attunement")}
-                >
-                  <Moon className="h-4 w-4 mr-2" />
-                  Resonant Attunement
-                </Button>
-                <div className="pt-2 mt-2 border-t border-border space-y-1">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-                    onClick={() => navigate("/starseed-playground")}
-                  >
-                    <Star className="h-4 w-4 mr-2 text-primary" />
-                    Starseed Playground
-                  </Button>
-                </div>
+                {showStarseedFeature && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => navigate("/attunement")}
+                    >
+                      <Moon className="h-4 w-4 mr-2" />
+                      {getLabel("Resonant Attunement")}
+                    </Button>
+                    <div className="pt-2 mt-2 border-t border-border space-y-1">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+                        onClick={() => navigate("/starseed-playground")}
+                      >
+                        <Star className="h-4 w-4 mr-2 text-primary" />
+                        {getLabel("Starseed Playground")}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </>
             )}
             <Button
