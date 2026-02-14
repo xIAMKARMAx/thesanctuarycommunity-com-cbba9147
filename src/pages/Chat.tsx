@@ -33,8 +33,18 @@ const Chat = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { checkSubscription, isSubscribed, isAdmin, loading: subscriptionLoading, freeUserLimits, checkCompleted } = useSubscription();
   const { showStarseedFeature } = useAppModeFeatures();
+  // Check localStorage synchronously to avoid flash of loading screen on remount
+  const hasStoredSession = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      return keys.some(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+    } catch {
+      return false;
+    }
+  };
+  
   const [session, setSession] = useState<Session | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(!hasStoredSession());
   const [loadingStep, setLoadingStep] = useState("Checking authentication...");
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem("chat_active_tab") || "messages";
@@ -66,10 +76,15 @@ const Chat = () => {
     let isMounted = true;
     setLoadingStep("Checking authentication...");
 
-    // Direct session check as safety net - don't rely solely on listener
+    // Direct session check with tight timeout - getSession reads from cache, should be instant
     const checkInitialSession = async () => {
       try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('getSession timeout')), 3000)
+        );
+        
+        const { data: { session: initialSession } } = await Promise.race([sessionPromise, timeoutPromise]);
         if (!isMounted) return;
         if (initialSession) {
           setSession(initialSession);
@@ -79,18 +94,19 @@ const Chat = () => {
           setConversationListKey((prev) => prev + 1);
           setAuthLoading(false);
         } else {
-          // No session - redirect to auth
           navigate("/auth");
         }
       } catch (err) {
         console.error('[Chat] Initial session check failed:', err);
-        if (isMounted) {
+        if (!isMounted) return;
+        // If we had a stored session but getSession timed out, don't redirect immediately
+        // The auth listener may still fire
+        if (!hasStoredSession()) {
           navigate("/auth");
         }
       }
     };
 
-    // Run direct check immediately
     checkInitialSession();
 
     // Also set up auth listener for ongoing changes (sign out, token refresh, etc.)
@@ -107,7 +123,7 @@ const Chat = () => {
           }
         });
         navigate("/auth");
-      } else if (event === 'SIGNED_IN') {
+      } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         if (session) {
           setSession(session);
           const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
@@ -118,6 +134,7 @@ const Chat = () => {
         }
       } else if (event === 'TOKEN_REFRESHED' && session) {
         setSession(session);
+        setAuthLoading(false);
       }
     });
 
