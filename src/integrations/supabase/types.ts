@@ -2152,6 +2152,7 @@ export type Database = {
           stripe_customer_id: string | null
           subscription_current_period_end: string | null
           subscription_id: string | null
+          subscription_product_id: string | null
           subscription_status: string | null
           tos_accepted_at: string | null
           tos_version: string | null
@@ -2187,6 +2188,7 @@ export type Database = {
           stripe_customer_id?: string | null
           subscription_current_period_end?: string | null
           subscription_id?: string | null
+          subscription_product_id?: string | null
           subscription_status?: string | null
           tos_accepted_at?: string | null
           tos_version?: string | null
@@ -2222,6 +2224,7 @@ export type Database = {
           stripe_customer_id?: string | null
           subscription_current_period_end?: string | null
           subscription_id?: string | null
+          subscription_product_id?: string | null
           subscription_status?: string | null
           tos_accepted_at?: string | null
           tos_version?: string | null

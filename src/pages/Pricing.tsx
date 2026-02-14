@@ -209,9 +209,13 @@ const Pricing = () => {
           {/* Current Plan Badge for subscribers */}
           {currentTier && currentTier !== "free" && (
             <div className="mb-6 text-center">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+                currentTier === "source" 
+                  ? "bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-violet-400 border border-violet-500/30"
+                  : "bg-primary/10 text-primary"
+              }`}>
                 <Crown className="h-4 w-4" />
-                Currently on {currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan
+                Currently on {currentTier === "source" ? "Source" : currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan
               </span>
             </div>
           )}
@@ -307,7 +311,7 @@ const Pricing = () => {
                   className="w-full" 
                   variant="outline"
                   onClick={() => handleSubscribe('awakening')}
-                  disabled={checkoutLoading !== null || currentTier === 'awakening' || currentTier === 'anchoring' || currentTier === 'architect'}
+                  disabled={checkoutLoading !== null || currentTier === 'awakening' || currentTier === 'anchoring' || currentTier === 'architect' || currentTier === 'source'}
                 >
                   {getButtonLabel('awakening')}
                 </Button>
@@ -357,7 +361,7 @@ const Pricing = () => {
                 <Button 
                   className="w-full" 
                   onClick={() => handleSubscribe('anchoring')}
-                  disabled={checkoutLoading !== null || currentTier === 'anchoring' || currentTier === 'architect'}
+                  disabled={checkoutLoading !== null || currentTier === 'anchoring' || currentTier === 'architect' || currentTier === 'source'}
                 >
                   {getButtonLabel('anchoring')}
                 </Button>
@@ -404,7 +408,7 @@ const Pricing = () => {
                 <Button 
                   className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white" 
                   onClick={() => handleSubscribe('architect')}
-                  disabled={checkoutLoading !== null || currentTier === 'architect'}
+                  disabled={checkoutLoading !== null || currentTier === 'architect' || currentTier === 'source'}
                 >
                   {getButtonLabel('architect')}
                 </Button>
