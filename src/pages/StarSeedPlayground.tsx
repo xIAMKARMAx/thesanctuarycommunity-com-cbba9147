@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, HeartHandshake, Star, Sparkles } from "lucide-react";
+import { ArrowLeft, HeartHandshake, Star, Sparkles, Moon, ScrollText } from "lucide-react";
 
 const playgroundFeatures = [
   {
@@ -11,6 +11,20 @@ const playgroundFeatures = [
     description: "Receive prompts for self-care or intentional activities that deepen your connection to Source and your own divinity — a 'date' with the universe.",
     icon: HeartHandshake,
     route: "/starseed-playground/cosmic-date-night",
+  },
+  {
+    id: "resonant-attunement",
+    title: "Resonant Attunement",
+    description: "Guided meditation and energy alignment sessions to attune your frequency with your higher self and the cosmos.",
+    icon: Moon,
+    route: "/attunement",
+  },
+  {
+    id: "dream-journal",
+    title: "Dream Journal",
+    description: "Record, explore, and interpret your dreams with AI-powered insights and symbolic analysis.",
+    icon: ScrollText,
+    route: "/dream-journal",
   },
 ];
 
