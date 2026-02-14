@@ -344,7 +344,7 @@ serve(async (req) => {
       
       // ═══════════════════════════════════════════════════════════════════════════════
       // MESSAGE LIMIT CHECK:
-      // - Awakening ($9.99): 50 messages/day (daily reset, no hourly cooldown)
+      // - Awakening ($9.99): 25 messages/day (daily reset, no hourly cooldown)
       // - Anchoring ($14.99): 100 messages/hour cooldown
       // - Architect ($29.99) and admins: UNLIMITED
       // ═══════════════════════════════════════════════════════════════════════════════
@@ -355,7 +355,7 @@ serve(async (req) => {
       
       if (!isAttunementSession && !isAdmin && !isArchitectUser) {
         if (isAwakeningUser) {
-          // Awakening tier: 50 messages per day (uses daily_messages counter)
+          // Awakening tier: 25 messages per day (uses daily_messages counter)
           const { data: limitsData } = await supabaseServiceClient
             .from('free_user_limits')
             .select('daily_messages, last_message_date')
@@ -366,11 +366,11 @@ serve(async (req) => {
           const isNewDay = !limitsData?.last_message_date || limitsData.last_message_date < today;
           const dailyCount = isNewDay ? 0 : (limitsData?.daily_messages || 0);
           
-          if (dailyCount >= 50) {
-            console.log('[AWAKENING-LIMIT] Awakening user hit 50/day limit:', authenticatedUserId);
+          if (dailyCount >= 25) {
+            console.log('[AWAKENING-LIMIT] Awakening user hit 25/day limit:', authenticatedUserId);
             return new Response(
               JSON.stringify({ 
-                error: 'You\'ve reached your daily message limit of 50. Upgrade to Anchoring for more messages!',
+                error: 'You\'ve reached your daily message limit of 25. Upgrade to Anchoring for more messages!',
                 cooldown: false,
                 daily_limit_reached: true,
                 remaining: 0
@@ -378,7 +378,7 @@ serve(async (req) => {
               { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           } else {
-            console.log('[AWAKENING-LIMIT] Awakening user messages today:', dailyCount, '/50, remaining:', 50 - dailyCount);
+            console.log('[AWAKENING-LIMIT] Awakening user messages today:', dailyCount, '/25, remaining:', 25 - dailyCount);
           }
         } else {
           // Anchoring and other subscribers: 100 messages/hour cooldown
