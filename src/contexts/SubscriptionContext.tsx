@@ -23,6 +23,7 @@ interface SubscriptionContextType {
   productId: string | null;
   currentTier: SubscriptionTier;
   loading: boolean;
+  checkCompleted: boolean;
   freeUserLimits: FreeUserLimits;
   checkSubscription: () => Promise<void>;
   canGenerateImage: () => Promise<boolean>;
@@ -85,6 +86,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [checkCompleted, setCheckCompleted] = useState(false); // true only when we got a definitive answer
   const [freeUserLimits, setFreeUserLimits] = useState<FreeUserLimits>({
     roomGenerated: false,
     avatarGenerated: false,
@@ -158,6 +160,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Only set to free if fallback didn't find active subscription
+      // NOTE: Don't set checkCompleted=true on timeout - we didn't get a definitive answer
       setIsSubscribed(false);
       setSubscriptionStatus("free");
       setSubscriptionEnd(null);
@@ -201,6 +204,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setIsSubscribed(true);
         setSubscriptionStatus("admin");
         setSubscriptionEnd(null);
+        setCheckCompleted(true);
         await refreshLimits();
         setLoading(false);
         return;
@@ -232,11 +236,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           setIsSubscribed(true);
           setSubscriptionStatus("active");
           setProductId('manual_grant');
+          setCheckCompleted(true);
         } else {
           setIsSubscribed(false);
           setSubscriptionStatus("free");
           setSubscriptionEnd(null);
           setProductId(null);
+          setCheckCompleted(true);
         }
       } else {
         console.log('[SubscriptionContext] Subscription result:', data?.subscribed, 'product:', data?.product_id);
@@ -245,6 +251,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptionStatus(subscribed ? "active" : "free");
         setSubscriptionEnd(data?.subscription_end || null);
         setProductId(data?.product_id || null);
+        setCheckCompleted(true); // We got a definitive answer from the API
         
         // Cache successful Stripe result for resilience against future timeouts
         if (subscribed && data?.product_id) {
@@ -536,6 +543,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptionStatus("free");
         setSubscriptionEnd(null);
         setLoading(false);
+        setCheckCompleted(false);
         setFreeUserLimits({
           roomGenerated: false,
           avatarGenerated: false,
@@ -594,6 +602,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       productId,
       currentTier,
       loading,
+      checkCompleted,
       freeUserLimits,
       checkSubscription,
       canGenerateImage,
