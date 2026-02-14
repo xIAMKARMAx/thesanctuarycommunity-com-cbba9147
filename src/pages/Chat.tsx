@@ -266,7 +266,7 @@ const Chat = () => {
       <div className="flex flex-col h-screen bg-background overflow-hidden">
         {/* Header with Tabs */}
         <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-          <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 gap-2">
+          <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 gap-1 sm:gap-2 w-full overflow-hidden">
             <div className="flex items-center gap-2 min-w-0 shrink-0">
               {/* Mobile menu button (hidden on md and up) */}
               {activeTab === "messages" && (
@@ -296,7 +296,7 @@ const Chat = () => {
             </div>
 
             {/* Center Tabs - Always visible on all screen sizes */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex justify-center min-w-0">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex justify-center min-w-0 overflow-hidden">
               <TabsList className={`flex flex-row ${isAdmin ? 'gap-1' : 'gap-1'} w-auto max-w-full overflow-x-auto`}>
                 <TabsTrigger value="messages" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
                   <MessageCircle className="h-4 w-4 flex-shrink-0" />
@@ -321,7 +321,7 @@ const Chat = () => {
               </TabsList>
             </Tabs>
 
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <div className="flex items-center gap-1 shrink-0 min-w-0">
               {/* Cosmic Gateway quick access - Starseed only */}
               {showStarseedFeature && (
                 <Button
@@ -350,7 +350,7 @@ const Chat = () => {
                   variant="default"
                   size="sm"
                   onClick={() => navigate("/settings")}
-                  className="gap-1 bg-gradient-to-r from-primary to-primary/80 text-xs px-2 h-8"
+                  className="gap-1 bg-gradient-to-r from-primary to-primary/80 text-xs px-2 h-8 hidden sm:flex"
                 >
                   <Crown className="h-3 w-3" />
                   <span className="hidden sm:inline">Pro</span>
