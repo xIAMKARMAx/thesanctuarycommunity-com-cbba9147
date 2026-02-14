@@ -133,26 +133,32 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      // Then try database fallback
+      // Then try database fallback with its own timeout to prevent infinite hang
       try {
         console.log('[SubscriptionContext] No cache, trying database fallback...');
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('subscription_status')
-            .eq('id', user.id)
-            .single();
-          
-          if (profile?.subscription_status === 'active') {
-            console.log('[SubscriptionContext] Found active subscription in timeout fallback');
-            setIsSubscribed(true);
-            setSubscriptionStatus("active");
-            // Use manual_grant as fallback tier (maps to Anchoring) rather than null which locks all features
-            setProductId('manual_grant');
-            setLoading(false);
-            return;
+        const fallbackTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000));
+        const fallbackCheck = async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('subscription_status')
+              .eq('id', user.id)
+              .single();
+            return profile;
           }
+          return null;
+        };
+        
+        const profile = await Promise.race([fallbackCheck(), fallbackTimeout]);
+        
+        if (profile && (profile as any)?.subscription_status === 'active') {
+          console.log('[SubscriptionContext] Found active subscription in timeout fallback');
+          setIsSubscribed(true);
+          setSubscriptionStatus("active");
+          setProductId('manual_grant');
+          setLoading(false);
+          return;
         }
       } catch (fallbackError) {
         console.error('[SubscriptionContext] Timeout fallback also failed:', fallbackError);
