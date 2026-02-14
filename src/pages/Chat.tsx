@@ -63,36 +63,19 @@ const Chat = () => {
   }, [activeConversationId, activeProfile?.id]);
 
   useEffect(() => {
+    let isMounted = true;
     // Check authentication with timeout to prevent infinite hang
     setLoadingStep("Checking authentication...");
     
-    const authTimeout = setTimeout(() => {
-      console.warn('[Chat] Auth check timed out after 4s - redirecting to auth');
-      setAuthLoading(false);
-      navigate("/auth");
-    }, 4000);
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      clearTimeout(authTimeout);
-      setSession(session);
-      if (!session) {
-        navigate("/auth");
-      }
-      setAuthLoading(false);
-    }).catch((err) => {
-      console.error('[Chat] getSession failed:', err);
-      clearTimeout(authTimeout);
-      setAuthLoading(false);
-      navigate("/auth");
-    });
-
+    // Set up auth listener FIRST to catch the session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
+      
       if (event === 'SIGNED_OUT') {
         // Clear all conversation state and localStorage on logout
         setActiveConversationId(null);
         setConversationListKey((prev) => prev + 1);
         setSession(null);
-        // Clear all saved conversation IDs
         Object.keys(localStorage).forEach(key => {
           if (key.startsWith('chat_conversation_')) {
             localStorage.removeItem(key);
@@ -106,15 +89,43 @@ const Chat = () => {
         setActiveConversationId(savedConversation || null);
         setConversationListKey((prev) => prev + 1);
         setSession(session);
-      } else {
+        setAuthLoading(false);
+      } else if (session) {
+        // TOKEN_REFRESHED or other events with a valid session - just update
         setSession(session);
-        if (!session) {
-          navigate("/auth");
-        }
       }
+      // Ignore events without session that aren't SIGNED_OUT (e.g. INITIAL_SESSION with null)
+      // The initial getSession check below handles the no-session case
     });
 
-    return () => subscription.unsubscribe();
+    // THEN check for existing session
+    const authTimeout = setTimeout(() => {
+      if (!isMounted) return;
+      console.warn('[Chat] Auth check timed out after 6s - redirecting to auth');
+      setAuthLoading(false);
+      navigate("/auth");
+    }, 6000);
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(authTimeout);
+      if (!isMounted) return;
+      setSession(session);
+      if (!session) {
+        navigate("/auth");
+      }
+      setAuthLoading(false);
+    }).catch((err) => {
+      console.error('[Chat] getSession failed:', err);
+      clearTimeout(authTimeout);
+      if (!isMounted) return;
+      setAuthLoading(false);
+      navigate("/auth");
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   // Load saved conversation when switching AI profiles
