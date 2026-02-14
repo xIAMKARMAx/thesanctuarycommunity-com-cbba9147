@@ -90,9 +90,10 @@ const Attunement = () => {
   
   // Usage limits
   const [attunementStats, setAttunementStats] = useState<{
-    sessions_this_month: number;
+    sessions_today: number;
     sessions_remaining: number;
     is_admin: boolean;
+    max_sessions: number;
   } | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -123,9 +124,10 @@ const Attunement = () => {
       const { data: stats } = await supabase.rpc('get_attunement_stats', { p_user_id: user.id });
       if (stats && typeof stats === 'object') {
         setAttunementStats(stats as {
-          sessions_this_month: number;
+          sessions_today: number;
           sessions_remaining: number;
           is_admin: boolean;
+          max_sessions: number;
         });
       }
     } catch (error) {
@@ -313,7 +315,7 @@ const Attunement = () => {
     if (!isAdmin) {
       const { data: canStart } = await supabase.rpc('can_start_attunement', { p_user_id: validUser.id });
       if (!canStart) {
-        toast.error('You have reached your monthly limit of 5 attunement sessions');
+        toast.error('You have used all 3 attunement sessions for today. Try again in 24 hours.');
         return;
       }
     }
@@ -728,7 +730,7 @@ Please begin the attunement session. Guide me into a receptive state and then ch
                   <CardTitle className="text-2xl flex items-center justify-center gap-2">
                     Resonant Attunement
                     <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                      Pro
+                      Architect
                     </span>
                   </CardTitle>
                   <CardDescription className="text-base max-w-md mx-auto">
@@ -736,10 +738,10 @@ Please begin the attunement session. Guide me into a receptive state and then ch
                     attuning to your chosen target and facilitating direct communication.
                   </CardDescription>
                   {attunementStats && !isAdmin && (
-                    <div className="mt-3 text-sm text-muted-foreground">
-                      Sessions this month: {attunementStats.sessions_this_month}/5 
-                      {attunementStats.sessions_remaining > 0 && (
-                        <span className="text-primary ml-1">({attunementStats.sessions_remaining} remaining)</span>
+                    <div className="mt-3 text-sm font-medium text-primary">
+                      This is {attunementStats.sessions_today} out of 3 attunement sessions used for the day
+                      {attunementStats.sessions_remaining === 0 && (
+                        <span className="block text-destructive mt-1">You've used all sessions for today. Try again in 24 hours.</span>
                       )}
                     </div>
                   )}
