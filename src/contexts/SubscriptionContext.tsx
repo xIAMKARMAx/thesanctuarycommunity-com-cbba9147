@@ -151,16 +151,20 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             setIsSubscribed(true);
             setSubscriptionStatus("active");
             setProductId('manual_grant');
+            setCheckCompleted(true);
             setLoading(false);
             return;
+          } else {
+            // Database gave us a definitive "not active" answer
+            console.log('[SubscriptionContext] Database fallback confirms not subscribed');
+            setCheckCompleted(true);
           }
         }
       } catch (fallbackError) {
         console.error('[SubscriptionContext] Timeout fallback also failed:', fallbackError);
       }
       
-      // Only set to free if fallback didn't find active subscription
-      // NOTE: Don't set checkCompleted=true on timeout - we didn't get a definitive answer
+      // Set to free - checkCompleted may or may not be true depending on DB fallback
       setIsSubscribed(false);
       setSubscriptionStatus("free");
       setSubscriptionEnd(null);
