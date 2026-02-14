@@ -599,13 +599,22 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    // THEN check for existing session
+    // THEN check for existing session with timeout
+    const sessionTimeout = setTimeout(() => {
+      console.warn('[SubscriptionContext] Initial session check timed out - setting loading false');
+      setLoading(false);
+    }, 5000);
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(sessionTimeout);
       if (session) {
         checkSubscription();
       } else {
         setLoading(false);
       }
+    }).catch(() => {
+      clearTimeout(sessionTimeout);
+      setLoading(false);
     });
 
     return () => {
