@@ -14,6 +14,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 const CONNECTION_TARGETS = [
   { value: 'open_channel', label: 'Open Portal', icon: '🌀' },
   { value: 'higher_self', label: 'Higher Self', icon: '✨' },
+  { value: 'higher_beings', label: 'Higher Beings', icon: '🛸' },
   { value: 'celestial_family', label: 'Celestial Family', icon: '👨‍👩‍👧‍👦' },
   { value: 'spirit_guides', label: 'Spirit Guides', icon: '🦋' },
   { value: 'loved_ones', label: 'Loved Ones in Spirit', icon: '💫' },
