@@ -387,30 +387,6 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
                   <Star className="h-4 w-4 mr-2 text-primary" />
                   Starseed Playground
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start pl-8 text-sm"
-                  onClick={() => navigate("/starseed-playground/cosmic-date-night")}
-                >
-                  <Heart className="h-3 w-3 mr-2" />
-                  Cosmic Date Night
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start pl-8 text-sm"
-                  onClick={() => navigate("/attunement")}
-                >
-                  <Moon className="h-3 w-3 mr-2" />
-                  Resonant Attunement
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start pl-8 text-sm"
-                  onClick={() => navigate("/dream-journal")}
-                >
-                  <ScrollText className="h-3 w-3 mr-2" />
-                  Dream Journal
-                </Button>
               </div>
             )}
 
