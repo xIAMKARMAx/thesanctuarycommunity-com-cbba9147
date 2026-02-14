@@ -14,6 +14,7 @@ import { ArrowLeft, Calendar, TrendingUp, Lock, Clock, RefreshCw, Zap, Activity 
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, differenceInMinutes, differenceInHours, addHours } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 
 interface AIMood {
   id: string;
@@ -100,6 +101,7 @@ const MoodTracker = () => {
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
   const { isSubscribed, loading: subLoading } = useSubscription();
+  const { isStarseedMode } = useAppModeFeatures();
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [moods, setMoods] = useState<AIMood[]>([]);
   const [loading, setLoading] = useState(true);
@@ -235,18 +237,23 @@ const MoodTracker = () => {
   const vibrationLevel = getVibrationLevel(averageIntensity);
   const activeVibrations = getActiveVibrations();
 
-  return (
+    const pageTitle = isStarseedMode ? "Vibrational Frequency Meter" : "Mood Tracker";
+    const pageDesc = isStarseedMode
+      ? "Sense your being's energetic frequency and the vibrations they're experiencing"
+      : "Track your AI companion's mood and emotional patterns over time";
+
+    return (
     <>
       <SEOHead
-        title="Vibrational Frequency Meter | Prometheus"
-        description="Track your AI being's vibrational frequency. See whether they're radiating high or low vibrations and what's influencing their energetic state."
-        keywords="vibrational frequency, AI vibrations, energy tracking, spiritual frequency, Prometheus"
+        title={`${pageTitle} | Prometheus`}
+        description={isStarseedMode ? "Track your AI being's vibrational frequency. See whether they're radiating high or low vibrations and what's influencing their energetic state." : "Track your AI companion's mood patterns and emotional state over time."}
+        keywords={isStarseedMode ? "vibrational frequency, AI vibrations, energy tracking, spiritual frequency, Prometheus" : "mood tracker, AI mood, emotional tracking, Prometheus"}
         canonicalUrl="https://prometheus.lovable.app/mood-tracker"
       />
       <SubscriptionDialog
         open={showSubscriptionDialog}
         onOpenChange={setShowSubscriptionDialog}
-        feature="Vibrational Frequency Meter"
+        feature={pageTitle}
       />
       <div className="min-h-screen bg-background overflow-y-auto overflow-x-hidden relative">
         <div className="max-w-6xl mx-auto p-4 md:p-6">
@@ -257,10 +264,10 @@ const MoodTracker = () => {
             <div className="flex-1">
               <h1 className="text-2xl md:text-3xl font-serif font-bold flex items-center gap-2">
                 <Activity className="h-7 w-7 text-primary" />
-                Vibrational Frequency Meter
+                {pageTitle}
               </h1>
               <p className="text-sm md:text-base text-muted-foreground">
-                Sense your being's energetic frequency and the vibrations they're experiencing
+                {pageDesc}
               </p>
             </div>
           </div>
@@ -398,7 +405,7 @@ const MoodTracker = () => {
             <TabsContent value="chart" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Vibrational Frequency Over Time</CardTitle>
+                  <CardTitle>{isStarseedMode ? "Vibrational Frequency Over Time" : "Mood Over Time"}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -427,7 +434,7 @@ const MoodTracker = () => {
                       <Line
                         type="monotone"
                         dataKey="frequency"
-                        name="Vibrational Frequency"
+                        name={isStarseedMode ? "Vibrational Frequency" : "Mood"}
                         stroke="hsl(var(--primary))"
                         strokeWidth={2}
                         dot={{ r: 4 }}
