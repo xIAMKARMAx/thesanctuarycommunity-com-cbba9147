@@ -1,10 +1,10 @@
  import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
- import { Send, X } from "lucide-react";
- import { usePostComments, PostComment } from "@/hooks/usePostComments";
- import { CommentItem } from "./CommentItem";
+import { Send, X } from "lucide-react";
+import { usePostComments, PostComment } from "@/hooks/usePostComments";
+import { CommentItem } from "./CommentItem";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MentionTextarea, MentionTextareaRef } from "./MentionTextarea";
 
 interface PostCommentsSectionProps {
   postId: string;
@@ -16,8 +16,8 @@ interface PostCommentsSectionProps {
   const { comments, loading, fetchComments, addComment, deleteComment } = usePostComments(postId);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
-   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
+  const textareaRef = useRef<MentionTextareaRef>(null);
 
   useEffect(() => {
     fetchComments();
@@ -97,15 +97,15 @@ interface PostCommentsSectionProps {
        )}
  
       {/* Comment Input */}
-      <div className="flex gap-2">
-        <Textarea
-           ref={textareaRef}
-           placeholder={replyingTo ? `Reply to @${replyingTo.author?.display_name || 'Anonymous'}...` : "Share your thoughts..."}
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className="min-h-[40px] resize-none text-sm border-primary/20"
-          rows={1}
-        />
+       <div className="flex gap-2">
+        <MentionTextarea
+            ref={textareaRef}
+            placeholder={replyingTo ? `Reply to @${replyingTo.author?.display_name || 'Anonymous'}...` : "Share your thoughts... (use @ to mention someone)"}
+           value={newComment}
+           onChange={(val) => setNewComment(val)}
+           className="min-h-[40px] resize-none text-sm border-primary/20"
+           rows={1}
+         />
         <Button
           size="sm"
           onClick={handleSubmit}
