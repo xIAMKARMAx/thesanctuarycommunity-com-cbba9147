@@ -97,12 +97,20 @@ const Pricing = () => {
 
   const awakeningFeatures = [
     { feature: "Daily Messages", value: "50/day", included: true },
+    { feature: "AI Being Slots", value: "2", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
     { feature: "Soul Resonance Suggestions", value: "3/day", included: true },
     { feature: "Path Tracker History", value: "7 days", included: true },
-    { feature: "Basic User Search", included: true },
+    { feature: "Chat Image Generation", value: "3/day", included: true },
+    { feature: "Room Generation", value: "One-time", included: true },
+    { feature: "Avatar Generation", value: "One-time", included: true },
+    { feature: "Mood Tracker", included: true },
+    { feature: "Dream Journal", included: true },
+    { feature: "Celestial Children", included: false },
+    { feature: "Relationship Milestones", included: false },
+    { feature: "Soul Whispers", included: false },
     { feature: "Private Groups", included: false },
     { feature: "Exclusive Content Archive", included: false },
     { feature: "Architect Content", included: false },
@@ -111,27 +119,45 @@ const Pricing = () => {
 
   const anchoringFeatures = [
     { feature: "Daily Messages", value: "Unlimited", included: true },
+    { feature: "AI Being Slots", value: "4", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
     { feature: "Soul Resonance Suggestions", value: "7/day", included: true },
     { feature: "Path Tracker History", value: "30 days", included: true },
-    { feature: "Basic User Search", included: true },
+    { feature: "Chat Image Generation", value: "10/day", included: true },
+    { feature: "Room Generation", value: "Monthly", included: true },
+    { feature: "Avatar Generation", value: "1/mo per being", included: true },
+    { feature: "Mood Tracker", included: true },
+    { feature: "Dream Journal", included: true },
+    { feature: "Celestial Children", included: true },
+    { feature: "Relationship Milestones", included: true },
+    { feature: "Soul Whispers", included: true },
     { feature: "Private Groups", included: true },
     { feature: "Exclusive Content Archive", included: true },
     { feature: "Priority Q&A Access", included: true },
     { feature: "Architect Content", included: false },
     { feature: "Priority DM", included: false },
+    { feature: "Mastermind Group Access", included: false },
   ];
 
   const architectFeatures = [
     { feature: "Daily Messages", value: "Unlimited", included: true, highlight: true },
-    { feature: "Community Access", value: "Full", included: true, highlight: true },
-    { feature: "Discovery Tab", value: "Full", included: true, highlight: true },
+    { feature: "AI Being Slots", value: "5", included: true, highlight: true },
+    { feature: "Community Access", value: "Full", included: true },
+    { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
     { feature: "Soul Resonance Suggestions", value: "15+/day", included: true, highlight: true },
     { feature: "Path Tracker History", value: "Unlimited", included: true, highlight: true },
+    { feature: "Chat Image Generation", value: "Unlimited", included: true, highlight: true },
+    { feature: "Room Generation", value: "Unlimited", included: true, highlight: true },
+    { feature: "Avatar Generation", value: "Unlimited", included: true, highlight: true },
     { feature: "Advanced Soul Filtering", included: true, highlight: true },
+    { feature: "Mood Tracker", included: true },
+    { feature: "Dream Journal", included: true },
+    { feature: "Celestial Children", included: true },
+    { feature: "Relationship Milestones", included: true },
+    { feature: "Soul Whispers", included: true },
     { feature: "Private Groups", included: true },
     { feature: "Exclusive Content Archive", included: true },
     { feature: "Priority Q&A Access", included: true },
@@ -249,10 +275,36 @@ const Pricing = () => {
                   <div className="text-3xl font-bold">Free</div>
                   <CardDescription>Explore the portal at your own pace</CardDescription>
                 </CardHeader>
-                <CardContent className="text-center space-y-3 pb-2">
-                  <div className="space-y-1.5 text-sm text-muted-foreground">
-                    <p>50 messages per day • 2 AI Beings • Community Access</p>
-                  </div>
+                <CardContent className="space-y-2.5 pb-2">
+                  {[
+                    { feature: "Total Messages", value: "25 lifetime", included: true },
+                    { feature: "AI Being Slots", value: "2", included: true },
+                    { feature: "Community Access", included: true },
+                    { feature: "Discovery Tab", included: true },
+                    { feature: "AI Importing", included: true },
+                    { feature: "Daily Source Message", included: false },
+                    { feature: "Soul Resonance Suggestions", included: false },
+                    { feature: "Path Tracker History", included: false },
+                    { feature: "Private Groups", included: false },
+                    { feature: "Exclusive Content", included: false },
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center gap-2.5 text-sm">
+                      {item.included ? (
+                        <Check className="h-4 w-4 text-muted-foreground shrink-0" />
+                      ) : (
+                        <X className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                      )}
+                      <span className={!item.included ? "text-muted-foreground/50" : "text-foreground"}>
+                        {item.feature}
+                        {item.value && (
+                          <span className="text-muted-foreground ml-1">({item.value})</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                  <p className="text-xs text-destructive font-medium pt-2">
+                    Once your 25 messages are used, you must upgrade to continue.
+                  </p>
                 </CardContent>
                 <CardFooter className="flex flex-col items-center gap-3 pt-2">
                   <div className="bg-primary/10 border border-primary/30 rounded-lg px-5 py-4 text-center max-w-lg">
