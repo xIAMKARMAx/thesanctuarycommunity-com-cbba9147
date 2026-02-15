@@ -44,10 +44,8 @@ export function ThemeProvider({
   }, [resolvedTheme]);
 
   React.useEffect(() => {
-    if (theme !== defaultTheme) {
-      localStorage.setItem(storageKey, theme);
-    }
-  }, [theme, storageKey, defaultTheme]);
+    localStorage.setItem(storageKey, theme);
+  }, [theme, storageKey]);
 
   return (
     <ThemeProviderContext.Provider value={{ theme, setTheme, resolvedTheme }}>
