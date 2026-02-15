@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { MentionTextarea } from "./MentionTextarea";
 import { Badge } from "@/components/ui/badge";
 import { Target, Users, Plus, ArrowUp, Heart } from "lucide-react";
 import { useCollectiveIntention } from "@/hooks/useCollectiveIntention";
@@ -84,11 +84,12 @@ export function DailyCollectiveIntention() {
       ) : (
         <Card className="border-primary/20">
           <CardContent className="p-4 space-y-3">
-            <Input
-              placeholder="e.g., 'Collective healing for Mother Earth'"
+            <MentionTextarea
+              placeholder="e.g., 'Collective healing for Mother Earth' (use @ to mention someone)"
               value={newIntention}
-              onChange={(e) => setNewIntention(e.target.value)}
-              className="border-primary/20"
+              onChange={(val) => setNewIntention(val)}
+              className="border-primary/20 min-h-[40px]"
+              rows={2}
             />
             <div className="flex gap-2">
               <Button onClick={handlePropose} disabled={!newIntention.trim() || submitting} className="flex-1 gap-2">

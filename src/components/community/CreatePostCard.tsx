@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles, Send, EyeOff } from "lucide-react";
 import { SoulProfile } from "@/hooks/useSoulProfile";
 import { MediaUpload } from "./MediaUpload";
+import { MentionTextarea } from "./MentionTextarea";
 import { ENERGY_TAGS, EnergyTag } from "./EnergyFilter";
 import { IntentionalPostingGate } from "./IntentionalPostingGate";
 import { cn } from "@/lib/utils";
@@ -114,13 +114,13 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
             </Avatar>
             
             <div className="flex-1 space-y-3">
-              <Textarea
+              <MentionTextarea
                 placeholder={isAnonymous 
                   ? "Share your truth anonymously with the collective..." 
-                  : "Share your light with the collective..."
+                  : "Share your light with the collective... (use @ to mention someone)"
                 }
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={(val) => setContent(val)}
                 onFocus={() => setIsFocused(true)}
                 className="min-h-[60px] resize-none border-primary/20 bg-background/50 focus:border-primary/40"
                 rows={isFocused ? 4 : 2}
