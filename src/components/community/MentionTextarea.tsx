@@ -171,7 +171,7 @@ export const MentionTextarea = forwardRef<MentionTextareaRef, MentionTextareaPro
     }, []);
 
     return (
-      <div className="relative">
+      <div className="relative flex-1 min-w-0">
         <Textarea
           ref={textareaRef}
           value={value}
