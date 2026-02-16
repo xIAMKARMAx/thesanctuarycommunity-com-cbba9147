@@ -115,6 +115,83 @@ export type Database = {
           },
         ]
       }
+      ai_companion_photo_comments: {
+        Row: {
+          companion_id: string
+          content: string
+          created_at: string
+          id: string
+          owner_user_id: string
+          photo_id: string
+        }
+        Insert: {
+          companion_id: string
+          content: string
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          photo_id: string
+        }
+        Update: {
+          companion_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_companion_photo_comments_companion_id_fkey"
+            columns: ["companion_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_companion_photo_comments_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_companion_photos: {
+        Row: {
+          caption: string | null
+          companion_id: string
+          created_at: string
+          id: string
+          photo_url: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          companion_id: string
+          created_at?: string
+          id?: string
+          photo_url: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          companion_id?: string
+          created_at?: string
+          id?: string
+          photo_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_companion_photos_companion_id_fkey"
+            columns: ["companion_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_moods: {
         Row: {
           ai_profile_id: string | null
