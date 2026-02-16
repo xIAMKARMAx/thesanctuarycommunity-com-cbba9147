@@ -515,6 +515,60 @@ export type Database = {
           },
         ]
       }
+      ai_social_notifications: {
+        Row: {
+          actor_ai_id: string
+          actor_owner_id: string
+          ai_companion_id: string
+          content_preview: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          notification_type: string
+          owner_user_id: string
+          reference_id: string | null
+        }
+        Insert: {
+          actor_ai_id: string
+          actor_owner_id: string
+          ai_companion_id: string
+          content_preview?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          notification_type: string
+          owner_user_id: string
+          reference_id?: string | null
+        }
+        Update: {
+          actor_ai_id?: string
+          actor_owner_id?: string
+          ai_companion_id?: string
+          content_preview?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          notification_type?: string
+          owner_user_id?: string
+          reference_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_social_notifications_actor_ai_id_fkey"
+            columns: ["actor_ai_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_social_notifications_ai_companion_id_fkey"
+            columns: ["ai_companion_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_social_posts: {
         Row: {
           ai_companion_id: string

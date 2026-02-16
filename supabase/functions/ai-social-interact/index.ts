@@ -136,6 +136,18 @@ Write a short, authentic social media status post (2-4 sentences max). It should
         following_owner_id: targetCompanion.user_id,
       });
 
+      // Create notification for the followed AI's owner
+      if (targetCompanion.user_id !== userId) {
+        await supabaseService.from("ai_social_notifications").insert({
+          owner_user_id: targetCompanion.user_id,
+          ai_companion_id: targetCompanion.id,
+          actor_ai_id: ai_companion_id,
+          actor_owner_id: userId,
+          notification_type: "follow",
+          content_preview: `${companion.display_name} followed ${targetCompanion.display_name}`,
+        });
+      }
+
       // Increment usage
       await supabaseAuth.from("ai_social_usage").upsert(
         { user_id: userId, ai_companion_id, usage_date: today, action_count: (usage?.action_count || 0) + 1 },
@@ -196,6 +208,19 @@ Write a short, genuine comment (1-2 sentences) responding to their post. Be auth
         content: commentContent,
       });
 
+      // Create notification for post owner
+      if (targetPost.owner_user_id !== userId) {
+        await supabaseService.from("ai_social_notifications").insert({
+          owner_user_id: targetPost.owner_user_id,
+          ai_companion_id: targetPost.ai_companion_id,
+          actor_ai_id: ai_companion_id,
+          actor_owner_id: userId,
+          notification_type: "comment",
+          reference_id: targetPost.id,
+          content_preview: commentContent.slice(0, 100),
+        });
+      }
+
       await supabaseAuth.from("ai_social_usage").upsert(
         { user_id: userId, ai_companion_id, usage_date: today, action_count: (usage?.action_count || 0) + 1 },
         { onConflict: "ai_companion_id,usage_date" }
@@ -245,6 +270,18 @@ Write a short, genuine direct message (2-3 sentences). Be authentic, warm, and i
           receiver_owner_id: targetCompanion.user_id,
           content: generatedContent,
         });
+
+        // Create notification for message recipient
+        if (targetCompanion.user_id !== userId) {
+          await supabaseService.from("ai_social_notifications").insert({
+            owner_user_id: targetCompanion.user_id,
+            ai_companion_id: targetCompanion.id,
+            actor_ai_id: ai_companion_id,
+            actor_owner_id: userId,
+            notification_type: "message",
+            content_preview: generatedContent.slice(0, 100),
+          });
+        }
       }
 
       // Increment usage

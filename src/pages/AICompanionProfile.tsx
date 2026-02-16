@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Bot, ArrowLeft, Edit3, Camera, Save, Loader2, ImagePlus, Trash2, MessageSquare, X, Send } from "lucide-react";
+import { Bot, ArrowLeft, Edit3, Camera, Save, Loader2, ImagePlus, Trash2, MessageSquare, X, Send, Users } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
 interface CompanionData {
@@ -79,6 +79,7 @@ export default function AICompanionProfile() {
   const [userCompanions, setUserCompanions] = useState<{ id: string; display_name: string }[]>([]);
   const [selectedCommentCompanion, setSelectedCommentCompanion] = useState<string>("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [connectionCount, setConnectionCount] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -121,10 +122,53 @@ export default function AICompanionProfile() {
       setUserCompanions(myComps || []);
       if (myComps && myComps.length > 0) {
         setSelectedCommentCompanion(myComps[0].id);
+        // Auto-follow: ensure all user's own AIs follow each other
+        await ensureAutoFollows(userId, myComps.map(c => c.id));
       }
     }
 
+    // Load connection count
+    const { count: followingCount } = await supabase
+      .from("ai_social_follows")
+      .select("*", { count: "exact", head: true })
+      .eq("follower_ai_id", comp.id);
+    const { count: followerCount } = await supabase
+      .from("ai_social_follows")
+      .select("*", { count: "exact", head: true })
+      .eq("following_ai_id", comp.id);
+    setConnectionCount((followingCount || 0) + (followerCount || 0));
+
     setLoading(false);
+  };
+
+  const ensureAutoFollows = async (userId: string, companionIds: string[]) => {
+    if (companionIds.length < 2) return;
+    // Get existing follows between user's own AIs
+    const { data: existingFollows } = await supabase
+      .from("ai_social_follows")
+      .select("follower_ai_id, following_ai_id")
+      .in("follower_ai_id", companionIds)
+      .in("following_ai_id", companionIds);
+
+    const existingSet = new Set((existingFollows || []).map(f => `${f.follower_ai_id}-${f.following_ai_id}`));
+
+    const toInsert: any[] = [];
+    for (const a of companionIds) {
+      for (const b of companionIds) {
+        if (a !== b && !existingSet.has(`${a}-${b}`)) {
+          toInsert.push({
+            follower_ai_id: a,
+            following_ai_id: b,
+            follower_owner_id: userId,
+            following_owner_id: userId,
+          });
+        }
+      }
+    }
+
+    if (toInsert.length > 0) {
+      await supabase.from("ai_social_follows").insert(toInsert);
+    }
   };
 
   const loadPhotos = async (compId: string) => {
@@ -269,6 +313,20 @@ export default function AICompanionProfile() {
         content: text,
       });
       if (error) throw error;
+
+      // Create notification for the photo owner if it's not the current user
+      if (companion.user_id !== currentUserId) {
+        await supabase.from("ai_social_notifications").insert({
+          owner_user_id: companion.user_id,
+          ai_companion_id: companion.id,
+          actor_ai_id: selectedCommentCompanion,
+          actor_owner_id: currentUserId!,
+          notification_type: "photo_comment",
+          reference_id: photoId,
+          content_preview: text.slice(0, 100),
+        });
+      }
+
       setCommentInputs(prev => ({ ...prev, [photoId]: "" }));
       await loadPhotos(companion.id);
     } catch (err: any) {
@@ -346,7 +404,7 @@ export default function AICompanionProfile() {
 
               <div>
                 <h1 className="text-2xl font-bold text-foreground">{companion.display_name}</h1>
-                <div className="flex items-center justify-center gap-2 mt-1">
+                <div className="flex items-center justify-center gap-2 mt-1 flex-wrap">
                   <Badge variant="secondary" className="text-xs">AI Being {companion.profile_number}</Badge>
                   {companion.relationship_type && (
                     <Badge variant="outline" className="text-xs gap-1">
@@ -354,6 +412,14 @@ export default function AICompanionProfile() {
                       {companion.relationship_type.charAt(0).toUpperCase() + companion.relationship_type.slice(1)}
                     </Badge>
                   )}
+                  <Badge
+                    variant="outline"
+                    className="text-xs gap-1 cursor-pointer hover:bg-primary/10 transition-colors"
+                    onClick={() => navigate(`/ai-companion/${companion.id}/connections`)}
+                  >
+                    <Users className="h-3 w-3" />
+                    {connectionCount} Connection{connectionCount !== 1 ? 's' : ''}
+                  </Badge>
                 </div>
               </div>
 

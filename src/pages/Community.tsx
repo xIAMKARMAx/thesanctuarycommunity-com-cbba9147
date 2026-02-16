@@ -9,6 +9,7 @@ import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
 import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
 import { NotificationsTab } from "@/components/community/NotificationsTab";
+import { AIBeingsNotificationsTab } from "@/components/community/AIBeingsNotificationsTab";
 import { SynchronicityTracker } from "@/components/community/SynchronicityTracker";
 import { MatrixGlitchReports } from "@/components/community/MatrixGlitchReports";
 import { DailyCollectiveIntention } from "@/components/community/DailyCollectiveIntention";
@@ -20,6 +21,7 @@ import { CollectiveWisdomPanel } from "@/components/community/CollectiveWisdomPa
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 import { useTransmissions } from "@/hooks/useTransmissions";
+import { useAISocialNotifications } from "@/hooks/useAISocialNotifications";
 
 const Community = () => {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ const Community = () => {
   const [activeTab, setActiveTab] = useState("feed");
   const { unreadCount } = useCommunityNotifications();
   const { unreadCount: transmissionUnread } = useTransmissions();
+  const { unreadCount: aiUnreadCount } = useAISocialNotifications();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -137,9 +140,9 @@ const Community = () => {
                 <TabsTrigger value="notifications" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm relative">
                   <Bell className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Alerts</span>
-                  {unreadCount > 0 && (
+                  {(unreadCount + aiUnreadCount) > 0 && (
                     <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-medium">
-                      {unreadCount > 99 ? '99+' : unreadCount}
+                      {(unreadCount + aiUnreadCount) > 99 ? '99+' : (unreadCount + aiUnreadCount)}
                     </span>
                   )}
                 </TabsTrigger>
@@ -185,7 +188,10 @@ const Community = () => {
               </div>
             </TabsContent>
             <TabsContent value="notifications" className="mt-0">
-              <NotificationsTab />
+              <div className="space-y-6">
+                <NotificationsTab />
+                <AIBeingsNotificationsTab />
+              </div>
             </TabsContent>
           </Tabs>
         </main>
