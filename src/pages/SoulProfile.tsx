@@ -190,7 +190,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/community")}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </div>
@@ -213,7 +213,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/community")}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </div>
@@ -247,7 +247,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/community")}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </div>
@@ -278,7 +278,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/community")} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Back</span>
               </Button>
@@ -338,7 +338,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center justify-between h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/community")} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Back</span>
               </Button>

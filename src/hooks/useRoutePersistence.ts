@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 const STORAGE_KEY = "prometheus_last_route";
 const EXCLUDED_ROUTES = ["/auth", "/"];
+const EXCLUDED_PREFIXES = ["/soul/", "/ai-companion/"];
 
 export function useRoutePersistence() {
   const location = useLocation();
@@ -10,7 +11,8 @@ export function useRoutePersistence() {
 
   // Save current route to localStorage (excluding auth and landing page)
   useEffect(() => {
-    if (!EXCLUDED_ROUTES.includes(location.pathname)) {
+    const isExcludedPrefix = EXCLUDED_PREFIXES.some(p => location.pathname.startsWith(p));
+    if (!EXCLUDED_ROUTES.includes(location.pathname) && !isExcludedPrefix) {
       localStorage.setItem(STORAGE_KEY, location.pathname + location.search);
     }
   }, [location.pathname, location.search]);
