@@ -8,38 +8,26 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  Search, 
-  Sparkles, 
-  UserPlus, 
-  UserMinus,
-  Users,
-  Heart,
-  Zap,
-  Lock,
-  Crown
+  Search, Sparkles, UserPlus, UserMinus, Users, Heart, Zap,
+  Lock, Crown, TrendingUp, TrendingDown, Minus
 } from "lucide-react";
 import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
 import { useFollows } from "@/hooks/useFollows";
-import { getSoulResonanceSuggestions } from "@/lib/soul-resonance";
+import { getSoulResonanceSuggestions, ResonanceScore } from "@/lib/soul-resonance";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getSoulSuggestionLimit, getTierFromProductId } from "@/lib/subscription-tiers";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { useResonanceEvents } from "@/hooks/useResonanceEvents";
 
 interface DiscoverSoulsProps {
   currentUserId?: string;
-}
-
-interface ResonanceResult {
-  profile: SoulProfile;
-  score: number;
-  matchReasons: string[];
 }
 
 export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [allSouls, setAllSouls] = useState<SoulProfile[]>([]);
-  const [resonantSouls, setResonantSouls] = useState<ResonanceResult[]>([]);
+  const [resonantSouls, setResonantSouls] = useState<ResonanceScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   
@@ -47,8 +35,8 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { productId } = useSubscription();
   const { isAdmin } = useAdminRole();
+  const { logEvent, getDynamicScores } = useResonanceEvents(currentUserId);
   
-  // Get tier-based suggestion limit
   const suggestionLimit = getSoulSuggestionLimit(productId, isAdmin);
   const currentTier = getTierFromProductId(productId);
 
@@ -58,7 +46,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
 
   const fetchSouls = async () => {
     try {
-      // Get all public souls except current user
       const { data, error } = await supabase
         .from('soul_profiles')
         .select('*')
@@ -72,21 +59,24 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
       const profiles = data || [];
       setAllSouls(profiles);
       
-      // Calculate soul resonance if current user has a profile
-      // Apply tier-based limit to suggestions
       if (currentProfile && profiles.length > 0) {
+        // Fetch dynamic scores to blend with static
+        const dynamicScores = await getDynamicScores();
         const suggestions = getSoulResonanceSuggestions(
           currentProfile,
           profiles,
-          suggestionLimit // Use tier-based limit
+          suggestionLimit,
+          dynamicScores as any[]
         );
         setResonantSouls(suggestions);
       } else {
-        // Fallback to most recent if no profile, still apply limit
         const limitedProfiles = profiles.slice(0, Math.min(suggestionLimit, 5));
         setResonantSouls(limitedProfiles.map(p => ({
           profile: p,
           score: 0,
+          staticScore: 0,
+          dynamicScore: 0,
+          trend: 'stable' as const,
           matchReasons: []
         })));
       }
@@ -102,7 +92,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
       fetchSouls();
       return;
     }
-
     setSearchLoading(true);
     try {
       const { data, error } = await supabase
@@ -112,9 +101,7 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
         .neq('user_id', currentUserId || '')
         .or(`display_name.ilike.%${searchQuery}%,soul_title.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,spiritual_journey.ilike.%${searchQuery}%`)
         .limit(20);
-
       if (error) throw error;
-
       setAllSouls(data || []);
     } catch (err) {
       console.error('Error searching souls:', err);
@@ -128,14 +115,27 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
       await unfollowUser(userId);
     } else {
       await followUser(userId);
+      // Log resonance event for follow
+      logEvent(userId, 'follow');
     }
   };
 
-  // Resonant Soul Card with match reasons
-  const ResonantSoulCard = ({ result }: { result: ResonanceResult }) => (
+  const handleProfileClick = (userId: string) => {
+    // Log profile view as resonance event
+    logEvent(userId, 'profile_view');
+    navigate(`/soul/${userId}`);
+  };
+
+  const TrendIcon = ({ trend }: { trend: string }) => {
+    if (trend === 'rising') return <TrendingUp className="h-3 w-3 text-primary" />;
+    if (trend === 'fading') return <TrendingDown className="h-3 w-3 text-muted-foreground" />;
+    return <Minus className="h-3 w-3 text-muted-foreground" />;
+  };
+
+  const ResonantSoulCard = ({ result }: { result: ResonanceScore }) => (
     <Card 
       className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/50 transition-all cursor-pointer group"
-      onClick={() => navigate(`/soul/${result.profile.user_id}`)}
+      onClick={() => handleProfileClick(result.profile.user_id)}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
@@ -155,7 +155,12 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
             </div>
             
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-sm truncate">{result.profile.display_name}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-medium text-sm truncate">{result.profile.display_name}</p>
+                {result.dynamicScore > 0 && (
+                  <TrendIcon trend={result.trend} />
+                )}
+              </div>
               {result.profile.soul_title && (
                 <p className="text-xs text-primary truncate">{result.profile.soul_title}</p>
               )}
@@ -181,7 +186,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
           )}
         </div>
         
-        {/* Match Reasons - The soul resonance indicators */}
         {result.matchReasons.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {result.matchReasons.map((reason, i) => (
@@ -197,7 +201,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
           </div>
         )}
 
-        {/* Gifts and Seeking preview */}
         {(result.profile.gifts_and_talents?.length || result.profile.seeking?.length) && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {result.profile.gifts_and_talents?.slice(0, 2).map((gift, i) => (
@@ -216,11 +219,10 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
     </Card>
   );
 
-  // Standard Soul Card
   const SoulCard = ({ soul }: { soul: SoulProfile }) => (
     <Card 
       className="border-primary/20 bg-card/50 hover:border-primary/30 transition-colors cursor-pointer"
-      onClick={() => navigate(`/soul/${soul.user_id}`)}
+      onClick={() => handleProfileClick(soul.user_id)}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
@@ -231,7 +233,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
                 <Sparkles className="h-5 w-5" />
               </AvatarFallback>
             </Avatar>
-            
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <p className="font-medium text-sm truncate">{soul.display_name}</p>
@@ -243,13 +244,10 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
                 <p className="text-xs text-primary truncate">{soul.soul_title}</p>
               )}
               {soul.bio && (
-                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                  {soul.bio}
-                </p>
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{soul.bio}</p>
               )}
             </div>
           </div>
-          
           {currentUserId && currentUserId !== soul.user_id && (
             <Button
               variant={isFollowing(soul.user_id) ? "outline" : "default"}
@@ -268,7 +266,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
             </Button>
           )}
         </div>
-        
         {(soul.gifts_and_talents?.length || soul.seeking?.length) && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {soul.gifts_and_talents?.slice(0, 2).map((gift, i) => (
@@ -290,9 +287,7 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="relative">
-          <Skeleton className="h-10 w-full" />
-        </div>
+        <Skeleton className="h-10 w-full" />
         <div className="space-y-4">
           {[1, 2, 3].map(i => (
             <Skeleton key={i} className="h-24 w-full rounded-lg" />
@@ -304,7 +299,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -316,7 +310,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
         />
       </div>
 
-      {/* Soul Resonance Section - Prominent placement */}
       {!searchQuery && resonantSouls.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -327,12 +320,10 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
               <div>
                 <h3 className="text-sm font-semibold">Soul Resonance Connections</h3>
                 <p className="text-xs text-muted-foreground">
-                  Aligned journeys awaiting your connection
+                  Dynamic alignment based on energy & interaction
                 </p>
               </div>
             </div>
-            
-            {/* Tier indicator */}
             <Badge variant="outline" className="text-xs gap-1">
               <Crown className="h-3 w-3" />
               {suggestionLimit}/day
@@ -345,7 +336,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
             ))}
           </div>
           
-          {/* Upgrade prompt for non-Architect users */}
           {currentTier !== 'architect' && !isAdmin && (
             <Card className="border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
               <CardContent className="p-4">
@@ -364,11 +354,7 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
                       }
                     </p>
                   </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => navigate('/pricing')}
-                    className="shrink-0"
-                  >
+                  <Button size="sm" onClick={() => navigate('/pricing')} className="shrink-0">
                     Upgrade
                   </Button>
                 </div>
@@ -389,7 +375,6 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
         </div>
       )}
 
-      {/* All Souls / Search Results */}
       <div>
         <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
           <Users className="h-4 w-4 text-primary" />
