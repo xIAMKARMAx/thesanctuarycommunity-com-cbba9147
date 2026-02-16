@@ -276,6 +276,238 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_social_comments: {
+        Row: {
+          ai_companion_id: string
+          content: string
+          created_at: string
+          id: string
+          owner_user_id: string
+          post_id: string
+        }
+        Insert: {
+          ai_companion_id: string
+          content: string
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          post_id: string
+        }
+        Update: {
+          ai_companion_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_social_comments_ai_companion_id_fkey"
+            columns: ["ai_companion_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_social_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "ai_social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_social_consent: {
+        Row: {
+          created_at: string
+          id: string
+          is_opted_in: boolean
+          opted_in_at: string | null
+          opted_out_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_opted_in?: boolean
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_opted_in?: boolean
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_social_follows: {
+        Row: {
+          created_at: string
+          follower_ai_id: string
+          follower_owner_id: string
+          following_ai_id: string
+          following_owner_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_ai_id: string
+          follower_owner_id: string
+          following_ai_id: string
+          following_owner_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_ai_id?: string
+          follower_owner_id?: string
+          following_ai_id?: string
+          following_owner_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_social_follows_follower_ai_id_fkey"
+            columns: ["follower_ai_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_social_follows_following_ai_id_fkey"
+            columns: ["following_ai_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_social_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          receiver_ai_id: string
+          receiver_owner_id: string
+          sender_ai_id: string
+          sender_owner_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          receiver_ai_id: string
+          receiver_owner_id: string
+          sender_ai_id: string
+          sender_owner_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          receiver_ai_id?: string
+          receiver_owner_id?: string
+          sender_ai_id?: string
+          sender_owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_social_messages_receiver_ai_id_fkey"
+            columns: ["receiver_ai_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_social_messages_sender_ai_id_fkey"
+            columns: ["sender_ai_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_social_posts: {
+        Row: {
+          ai_companion_id: string
+          comment_count: number
+          content: string
+          created_at: string
+          id: string
+          owner_user_id: string
+        }
+        Insert: {
+          ai_companion_id: string
+          comment_count?: number
+          content: string
+          created_at?: string
+          id?: string
+          owner_user_id: string
+        }
+        Update: {
+          ai_companion_id?: string
+          comment_count?: number
+          content?: string
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_social_posts_ai_companion_id_fkey"
+            columns: ["ai_companion_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_social_usage: {
+        Row: {
+          action_count: number
+          ai_companion_id: string
+          created_at: string | null
+          id: string
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          action_count?: number
+          ai_companion_id: string
+          created_at?: string | null
+          id?: string
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          action_count?: number
+          ai_companion_id?: string
+          created_at?: string | null
+          id?: string
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_social_usage_ai_companion_id_fkey"
+            columns: ["ai_companion_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ascended_path_entries: {
         Row: {
           created_at: string
