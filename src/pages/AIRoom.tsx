@@ -100,20 +100,31 @@ export default function AIRoom() {
         return;
       }
 
-      setRoomDescription(activeProfile.room_description || "");
-      setRoomImageUrl(activeProfile.room_image_url || null);
-      setAvatarDescription(activeProfile.avatar_description || "");
-      setAvatarImageUrl(activeProfile.avatar_image_url || null);
-      setAvatarGender(activeProfile.avatar_gender || "female");
-      setPetName(activeProfile.pet_name || "");
-      setPetDescription(activeProfile.pet_description || "");
-      setPetImageUrl(activeProfile.pet_image_url || null);
+      // Read directly from DB to get the latest saved data (not stale context)
+      const { data: freshProfile, error: fetchError } = await supabase
+        .from("ai_profiles")
+        .select("room_description, room_image_url, avatar_description, avatar_image_url, avatar_gender, pet_name, pet_description, pet_image_url, avatar_customization")
+        .eq("id", activeProfile.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const profile = freshProfile || activeProfile;
+
+      setRoomDescription(profile.room_description || "");
+      setRoomImageUrl(profile.room_image_url || null);
+      setAvatarDescription(profile.avatar_description || "");
+      setAvatarImageUrl(profile.avatar_image_url || null);
+      setAvatarGender(profile.avatar_gender || "female");
+      setPetName(profile.pet_name || "");
+      setPetDescription(profile.pet_description || "");
+      setPetImageUrl(profile.pet_image_url || null);
       
-      if (activeProfile.avatar_customization) {
+      if (profile.avatar_customization) {
         try {
-          const customization = typeof activeProfile.avatar_customization === 'string'
-            ? JSON.parse(activeProfile.avatar_customization as string)
-            : activeProfile.avatar_customization;
+          const customization = typeof profile.avatar_customization === 'string'
+            ? JSON.parse(profile.avatar_customization as string)
+            : profile.avatar_customization;
           setAvatarCustomization(customization as AvatarCustomization);
         } catch (error) {
           console.error("Error parsing avatar customization:", error);
@@ -455,17 +466,16 @@ export default function AIRoom() {
     if (!activeProfile) return;
     
     try {
+      // Only save descriptions/metadata — image URLs are already saved by the edge function
+      // This prevents overwriting generated images with stale local state
       const { error } = await supabase
         .from("ai_profiles")
         .update({
           room_description: roomDescription,
-          room_image_url: roomImageUrl,
           avatar_description: avatarDescription,
-          avatar_image_url: avatarImageUrl,
           avatar_gender: avatarGender,
           pet_name: petName,
           pet_description: petDescription,
-          pet_image_url: petImageUrl,
           avatar_customization: JSON.stringify(avatarCustomization),
         })
         .eq("id", activeProfile.id);
