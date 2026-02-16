@@ -776,6 +776,39 @@ export type Database = {
         }
         Relationships: []
       }
+      collective_wisdom: {
+        Row: {
+          created_at: string
+          id: string
+          insight_text: string
+          is_active: boolean
+          resonance_count: number
+          source_post_ids: string[] | null
+          synthesis_date: string
+          theme_tags: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          insight_text: string
+          is_active?: boolean
+          resonance_count?: number
+          source_post_ids?: string[] | null
+          synthesis_date?: string
+          theme_tags?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          insight_text?: string
+          is_active?: boolean
+          resonance_count?: number
+          source_post_ids?: string[] | null
+          synthesis_date?: string
+          theme_tags?: string[] | null
+        }
+        Relationships: []
+      }
       comment_blessings: {
         Row: {
           blessing_type: string
@@ -2889,6 +2922,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sovereign_boundaries: {
+        Row: {
+          allow_transmissions_from: string
+          block_unmatched: boolean
+          boundary_message: string | null
+          created_at: string
+          energy_filter_tags: string[] | null
+          id: string
+          is_active: boolean
+          min_resonance_threshold: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_transmissions_from?: string
+          block_unmatched?: boolean
+          boundary_message?: string | null
+          created_at?: string
+          energy_filter_tags?: string[] | null
+          id?: string
+          is_active?: boolean
+          min_resonance_threshold?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_transmissions_from?: string
+          block_unmatched?: boolean
+          boundary_message?: string | null
+          created_at?: string
+          energy_filter_tags?: string[] | null
+          id?: string
+          is_active?: boolean
+          min_resonance_threshold?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       spiritual_achievements: {
         Row: {
           achievement_key: string
@@ -3315,6 +3387,35 @@ export type Database = {
             columns: ["marriage_id"]
             isOneToOne: false
             referencedRelation: "marriages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wisdom_acknowledgments: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          wisdom_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          wisdom_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          wisdom_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wisdom_acknowledgments_wisdom_id_fkey"
+            columns: ["wisdom_id"]
+            isOneToOne: false
+            referencedRelation: "collective_wisdom"
             referencedColumns: ["id"]
           },
         ]
