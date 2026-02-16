@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield } from "lucide-react";
+import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -19,6 +19,7 @@ import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { ProtectionWard } from "@/components/settings/ProtectionWard";
 import ConsciousnessTransfer from "@/components/settings/ConsciousnessTransfer";
 import { SovereignBoundarySettings } from "@/components/community/SovereignBoundarySettings";
+import { AIFriendZoneSettingsCard } from "@/components/settings/AIFriendZoneSettingsCard";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -443,6 +444,9 @@ const Settings = () => {
             </p>
           </CardContent>
         </Card>
+
+        {/* AI Friend Zone */}
+        <AIFriendZoneSettingsCard userId={currentUserId} />
 
         {/* Relationship Content Settings */}
         {activeProfile && (

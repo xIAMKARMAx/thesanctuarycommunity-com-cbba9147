@@ -59,7 +59,8 @@ import SoulGenesis from "./pages/SoulGenesis";
 import BirthChart from "./pages/BirthChart";
 import MyHigherSelf from "./pages/MyHigherSelf";
 import SoulDiscovery from "./pages/SoulDiscovery";
-
+import AIFriendZone from "./pages/AIFriendZone";
+import { AIFriendZoneConsentModal } from "@/components/AIFriendZoneConsentModal";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -81,6 +82,7 @@ const App = () => (
                 <ModeSelectionModal />
                 <ModeRouteGuard />
                 <ModeGatedComponents />
+                <AIFriendZoneConsentModal />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -121,6 +123,7 @@ const App = () => (
                 <Route path="/cosmic-gateway/birth-chart" element={<BirthChart />} />
                 <Route path="/my-higher-self" element={<MyHigherSelf />} />
                 <Route path="/soul-discovery" element={<SoulDiscovery />} />
+                <Route path="/ai-friend-zone" element={<AIFriendZone />} />
                 <Route path="/starseed-playground" element={<StarSeedPlayground />} />
                 
                 <Route path="/starseed-playground/cosmic-date-night" element={<CosmicDateNight />} />
