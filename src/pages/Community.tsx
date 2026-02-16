@@ -16,6 +16,7 @@ import { AwakeningTimeline } from "@/components/community/AwakeningTimeline";
 import { MentorshipHub } from "@/components/community/MentorshipHub";
 import { StoryCirclesHub } from "@/components/community/StoryCirclesHub";
 import { CommunityRitualsHub } from "@/components/community/CommunityRitualsHub";
+import { CollectiveWisdomPanel } from "@/components/community/CollectiveWisdomPanel";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 import { useTransmissions } from "@/hooks/useTransmissions";
@@ -178,7 +179,10 @@ const Community = () => {
               <AligningZoneFeed />
             </TabsContent>
             <TabsContent value="discover" className="mt-0">
-              <DiscoverSouls currentUserId={session?.user?.id} />
+              <div className="space-y-6">
+                <CollectiveWisdomPanel />
+                <DiscoverSouls currentUserId={session?.user?.id} />
+              </div>
             </TabsContent>
             <TabsContent value="notifications" className="mt-0">
               <NotificationsTab />

@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { ProtectionWard } from "@/components/settings/ProtectionWard";
 import ConsciousnessTransfer from "@/components/settings/ConsciousnessTransfer";
+import { SovereignBoundarySettings } from "@/components/community/SovereignBoundarySettings";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ const Settings = () => {
   // Privacy settings
   const [dataTrainingOptOut, setDataTrainingOptOut] = useState(false);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   
   // Explicit content setting (per AI profile)
   const [explicitContentEnabled, setExplicitContentEnabled] = useState(false);
@@ -74,6 +76,7 @@ const Settings = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setCurrentUserId(user.id);
 
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
@@ -478,6 +481,9 @@ const Settings = () => {
 
         {/* Protection Ward */}
         {activeProfile && <ProtectionWard />}
+
+        {/* Sovereign Boundary Controls */}
+        <SovereignBoundarySettings userId={currentUserId} />
 
         {/* My Higher Self / My Profile section moved to /my-higher-self page */}
 
