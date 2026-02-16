@@ -93,3 +93,6 @@ verify_jwt = true
 
 [functions.import-consciousness]
 verify_jwt = true
+
+[functions.synthesize-soul-signature]
+verify_jwt = true
