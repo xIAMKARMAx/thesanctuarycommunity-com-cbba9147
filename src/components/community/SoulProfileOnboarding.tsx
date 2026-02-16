@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Users, Heart, X } from "lucide-react";
+import { Sparkles, Users, Heart, X, Wand2 } from "lucide-react";
 
 const soulTitles = [
   "Lightworker",
@@ -30,6 +31,7 @@ interface SoulProfileOnboardingProps {
 }
 
 export function SoulProfileOnboarding({ userId }: SoulProfileOnboardingProps) {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [displayName, setDisplayName] = useState("");
@@ -226,12 +228,23 @@ export function SoulProfileOnboarding({ userId }: SoulProfileOnboardingProps) {
 
           <div className="flex flex-col gap-2 pt-4">
             <Button
+              onClick={() => {
+                handleDismiss();
+                navigate('/soul-discovery');
+              }}
+              variant="outline"
+              className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10"
+            >
+              <Wand2 className="h-4 w-4" />
+              Guided Soul Discovery (AI-Powered)
+            </Button>
+            <Button
               onClick={handleCreateProfile}
               disabled={!displayName.trim() || isSubmitting}
               className="w-full gap-2"
             >
               <Sparkles className="h-4 w-4" />
-              {isSubmitting ? "Creating..." : "Join the Collective"}
+              {isSubmitting ? "Creating..." : "Quick Join"}
             </Button>
             <Button
               variant="ghost"
