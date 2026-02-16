@@ -2384,6 +2384,75 @@ export type Database = {
           },
         ]
       }
+      resonance_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          target_user_id: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          target_user_id: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          target_user_id?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      resonance_scores: {
+        Row: {
+          created_at: string
+          dynamic_score: number
+          id: string
+          interaction_count: number
+          last_interaction_at: string | null
+          recalculated_at: string
+          static_score: number
+          target_user_id: string
+          total_score: number
+          trend: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dynamic_score?: number
+          id?: string
+          interaction_count?: number
+          last_interaction_at?: string | null
+          recalculated_at?: string
+          static_score?: number
+          target_user_id: string
+          total_score?: number
+          trend?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dynamic_score?: number
+          id?: string
+          interaction_count?: number
+          last_interaction_at?: string | null
+          recalculated_at?: string
+          static_score?: number
+          target_user_id?: string
+          total_score?: number
+          trend?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ritual_participants: {
         Row: {
           completed: boolean
@@ -3258,6 +3327,14 @@ export type Database = {
       are_connected: {
         Args: { user_a: string; user_b: string }
         Returns: boolean
+      }
+      calculate_dynamic_resonance: {
+        Args: { p_target_user_id: string; p_user_id: string }
+        Returns: number
+      }
+      calculate_resonance_trend: {
+        Args: { p_target_user_id: string; p_user_id: string }
+        Returns: string
       }
       can_generate_avatar: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_chat_image: { Args: { p_user_id: string }; Returns: boolean }

@@ -21,14 +21,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useSoulProfile, SoulProfile } from "@/hooks/useSoulProfile";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { getSoulResonanceSuggestions } from "@/lib/soul-resonance";
+import { getSoulResonanceSuggestions, ResonanceScore } from "@/lib/soul-resonance";
 import { getSoulSuggestionLimit } from "@/lib/subscription-tiers";
-
-interface ResonanceScore {
-  profile: SoulProfile;
-  score: number;
-  matchReasons: string[];
-}
 
 interface SoulResonanceHubProps {
   open: boolean;
