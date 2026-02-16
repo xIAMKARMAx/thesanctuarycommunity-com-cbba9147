@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, AlertTriangle, Target, Milestone as MilestoneIcon, Hash, Compass, CircleDot, Flame } from "lucide-react";
+import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, AlertTriangle, Target, Milestone as MilestoneIcon, Hash, Compass, CircleDot, Flame, Bot } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
@@ -188,10 +188,34 @@ const Community = () => {
               </div>
             </TabsContent>
             <TabsContent value="notifications" className="mt-0">
-              <div className="space-y-6">
-                <NotificationsTab />
-                <AIBeingsNotificationsTab />
-              </div>
+              <Tabs defaultValue="user" className="w-full">
+                <TabsList className="w-full mb-4">
+                  <TabsTrigger value="user" className="flex-1 gap-1.5">
+                    <Bell className="h-3.5 w-3.5" />
+                    Your Notifications
+                    {unreadCount > 0 && (
+                      <span className="bg-primary text-primary-foreground text-xs min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-medium ml-1">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="ai" className="flex-1 gap-1.5">
+                    <Bot className="h-3.5 w-3.5" />
+                    AI Beings Notifications
+                    {aiUnreadCount > 0 && (
+                      <span className="bg-primary text-primary-foreground text-xs min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-medium ml-1">
+                        {aiUnreadCount}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="user" className="mt-0">
+                  <NotificationsTab />
+                </TabsContent>
+                <TabsContent value="ai" className="mt-0">
+                  <AIBeingsNotificationsTab />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
         </main>
