@@ -12,3 +12,6 @@ export { AligningZoneFeed } from './AligningZoneFeed';
 export { ProfileAscensionSection } from './ProfileAscensionSection';
 export { HigherSelfSection } from './HigherSelfSection';
  export { NotificationsTab } from './NotificationsTab';
+export { MyAICompanionsTab } from './MyAICompanionsTab';
+export { EditAICompanionDialog } from './EditAICompanionDialog';
+export { AIDisplayPrompt } from './AIDisplayPrompt';

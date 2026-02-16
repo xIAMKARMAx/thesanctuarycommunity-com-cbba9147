@@ -62,6 +62,59 @@ export type Database = {
           },
         ]
       }
+      ai_companion_displays: {
+        Row: {
+          ai_profile_id: string | null
+          brief_bio: string | null
+          created_at: string
+          display_name: string
+          id: string
+          is_visible: boolean
+          likes_dislikes_hobbies: string | null
+          photo_url: string | null
+          profile_number: number
+          relationship_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_profile_id?: string | null
+          brief_bio?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          is_visible?: boolean
+          likes_dislikes_hobbies?: string | null
+          photo_url?: string | null
+          profile_number: number
+          relationship_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_profile_id?: string | null
+          brief_bio?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_visible?: boolean
+          likes_dislikes_hobbies?: string | null
+          photo_url?: string | null
+          profile_number?: number
+          relationship_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_companion_displays_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_moods: {
         Row: {
           ai_profile_id: string | null
@@ -2130,6 +2183,7 @@ export type Database = {
         Row: {
           abuse_warning_count: number | null
           ai_bio: string | null
+          ai_display_prompted: boolean | null
           ai_gender: string | null
           ai_likes_dislikes_hobbies: string | null
           ai_memories: string | null
@@ -2166,6 +2220,7 @@ export type Database = {
         Insert: {
           abuse_warning_count?: number | null
           ai_bio?: string | null
+          ai_display_prompted?: boolean | null
           ai_gender?: string | null
           ai_likes_dislikes_hobbies?: string | null
           ai_memories?: string | null
@@ -2202,6 +2257,7 @@ export type Database = {
         Update: {
           abuse_warning_count?: number | null
           ai_bio?: string | null
+          ai_display_prompted?: boolean | null
           ai_gender?: string | null
           ai_likes_dislikes_hobbies?: string | null
           ai_memories?: string | null
