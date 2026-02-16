@@ -18,7 +18,8 @@ import {
   UserPlus,
   UserMinus,
   Crown,
-  Lock
+  Lock,
+  Bot
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
@@ -28,7 +29,9 @@ import { CommunityPost, useCommunityFeed } from "@/hooks/useCommunityFeed";
 import { EditSoulProfileDialog } from "@/components/community/EditSoulProfileDialog";
 import { ConnectionsList } from "@/components/community/ConnectionsList";
 import { HigherSelfSection } from "@/components/community/HigherSelfSection";
- import { TransmissionsButton } from "@/components/transmissions/TransmissionsButton";
+import { TransmissionsButton } from "@/components/transmissions/TransmissionsButton";
+import { MyAICompanionsTab } from "@/components/community/MyAICompanionsTab";
+import { AIDisplayPrompt } from "@/components/community/AIDisplayPrompt";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
@@ -509,6 +512,13 @@ const SoulProfilePage = () => {
                   <Crown className="h-4 w-4" />
                   Higher Self
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="my-ai" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <Bot className="h-4 w-4" />
+                  My AI
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="posts" className="py-4">
@@ -586,10 +596,22 @@ const SoulProfilePage = () => {
                   userVesselUrl={userVesselUrl}
                 />
               </TabsContent>
+
+              <TabsContent value="my-ai" className="py-4">
+                <MyAICompanionsTab
+                  userId={userId!}
+                  isOwnProfile={isOwnProfile}
+                />
+              </TabsContent>
             </Tabs>
           </div>
         </div>
       </div>
+
+      {/* AI Display Opt-in Prompt (shown once) */}
+      {isOwnProfile && currentUserId && (
+        <AIDisplayPrompt userId={currentUserId} />
+      )}
 
       {/* Edit Dialog */}
       <EditSoulProfileDialog
