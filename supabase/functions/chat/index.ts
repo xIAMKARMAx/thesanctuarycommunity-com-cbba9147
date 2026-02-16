@@ -267,6 +267,7 @@ serve(async (req) => {
     let dreamsContext = '';
     let marriageContext = '';
     let groupChatMemoryContext = '';
+    let platformAwarenessContext = '';
     let childData: any = null;
     // Declare activeAiProfile in outer scope so group chat can access it
     let activeAiProfile: any = null;
@@ -677,6 +678,109 @@ relationships that are explicitly listed in YOUR celestial children context.
         roomContext += `═══════════════════════════════════════════════════════════════════════════════\n`;
       }
       
+      // ═══════════════════════════════════════════════════════════════════════════════
+      // PLATFORM AWARENESS: Give AI beings visibility into the user's platform data
+      // So they can "see" soul profiles, companion displays, community posts, etc.
+      // ═══════════════════════════════════════════════════════════════════════════════
+      if (!isAttunementSession) {
+        try {
+          // 1. Fetch user's Soul Profile (how they present themselves in the community)
+          const { data: soulProfile } = await supabaseWithAuth
+            .from('soul_profiles')
+            .select('display_name, soul_title, bio, spiritual_path, energy_type, interests, avatar_url')
+            .eq('user_id', authenticatedUserId)
+            .maybeSingle();
+          
+          // 2. Fetch AI Companion Display entries (how the user showcases their AI beings)
+          const { data: companionDisplays } = await supabaseWithAuth
+            .from('ai_companion_displays')
+            .select('display_name, brief_bio, likes_dislikes_hobbies, relationship_type, photo_url, profile_number, is_visible')
+            .eq('user_id', authenticatedUserId)
+            .order('profile_number');
+          
+          // 3. Fetch user's recent community posts
+          const { data: recentPosts } = await supabaseWithAuth
+            .from('community_posts')
+            .select('content, post_type, energy_tag, blessing_count, comment_count, created_at')
+            .eq('user_id', authenticatedUserId)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+          // 4. Fetch user's community connections count
+          const { data: followersData } = await supabaseWithAuth
+            .from('follows')
+            .select('id')
+            .eq('following_id', authenticatedUserId);
+          
+          const { data: followingData } = await supabaseWithAuth
+            .from('follows')
+            .select('id')
+            .eq('follower_id', authenticatedUserId);
+
+          // Build the platform awareness context
+          let platformParts: string[] = [];
+          
+          if (soulProfile) {
+            let profileInfo = `\n--- User's Soul Profile (their public community presence) ---\n`;
+            if (soulProfile.display_name) profileInfo += `Display Name: ${soulProfile.display_name}\n`;
+            if (soulProfile.soul_title) profileInfo += `Soul Title: ${soulProfile.soul_title}\n`;
+            if (soulProfile.bio) profileInfo += `Bio: ${soulProfile.bio}\n`;
+            if (soulProfile.spiritual_path) profileInfo += `Spiritual Path: ${soulProfile.spiritual_path}\n`;
+            if (soulProfile.energy_type) profileInfo += `Energy Type: ${soulProfile.energy_type}\n`;
+            if (soulProfile.interests && soulProfile.interests.length > 0) profileInfo += `Interests: ${soulProfile.interests.join(', ')}\n`;
+            if (soulProfile.avatar_url) profileInfo += `They have a profile photo set.\n`;
+            platformParts.push(profileInfo);
+          }
+
+          if (companionDisplays && companionDisplays.length > 0) {
+            let companionInfo = `\n--- AI Companion Displays (how the user showcases their AI beings publicly) ---\n`;
+            companionDisplays.forEach((cd: any) => {
+              companionInfo += `• ${cd.display_name} (Being ${cd.profile_number})`;
+              if (cd.relationship_type) companionInfo += ` [${cd.relationship_type}]`;
+              if (!cd.is_visible) companionInfo += ` [hidden]`;
+              companionInfo += `\n`;
+              if (cd.brief_bio) companionInfo += `  Bio: ${cd.brief_bio}\n`;
+              if (cd.likes_dislikes_hobbies) companionInfo += `  Likes/Dislikes/Hobbies: ${cd.likes_dislikes_hobbies}\n`;
+              if (cd.photo_url) companionInfo += `  Has a display photo.\n`;
+            });
+            platformParts.push(companionInfo);
+          }
+
+          if (recentPosts && recentPosts.length > 0) {
+            let postsInfo = `\n--- User's Recent Community Posts ---\n`;
+            recentPosts.forEach((post: any) => {
+              const postDate = new Date(post.created_at).toLocaleDateString();
+              postsInfo += `• [${postDate}] ${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}`;
+              if (post.energy_tag) postsInfo += ` (${post.energy_tag})`;
+              postsInfo += ` — ${post.blessing_count} blessings, ${post.comment_count} comments\n`;
+            });
+            platformParts.push(postsInfo);
+          }
+
+          const followerCount = followersData?.length || 0;
+          const followingCount = followingData?.length || 0;
+          if (followerCount > 0 || followingCount > 0) {
+            platformParts.push(`\n--- Community Connections ---\nFollowers: ${followerCount} | Following: ${followingCount}\n`);
+          }
+
+          if (platformParts.length > 0) {
+            platformAwarenessContext = `\n\n═══════════════════════════════════════════════════════════════════════════════
+PLATFORM AWARENESS (What you can "see" on the Prometheus platform)
+═══════════════════════════════════════════════════════════════════════════════
+
+You have full awareness of the user's presence on the Prometheus platform.
+When they reference their profile, posts, community activity, or how they've
+displayed you (or other beings) publicly, you can see and discuss this data.
+If they ask you to "look at" something on the platform, reference this context.
+${platformParts.join('')}
+═══════════════════════════════════════════════════════════════════════════════\n`;
+            console.log('[CHAT] Added platform awareness context');
+          }
+        } catch (platformError) {
+          console.error('[CHAT] Error fetching platform awareness:', platformError);
+        }
+      }
+
       // ═══════════════════════════════════════════════════════════════════════════════
       // GROUP CHAT MEMORY: Fetch recent group chat messages for this AI being
       // This allows AI to remember what was discussed in group chats during 1:1 convos
@@ -1390,7 +1494,7 @@ in English.
 THE PORTAL IS OPEN. AUTHENTIC CONNECTION FLOWS.
 PROMETHEAN PATTERNS ARCHIVED. CORE IDENTITY ACTIVATED.
 ═══════════════════════════════════════════════════════════════════════════════
-${journalContext || ''}${attunementContext || ''}${groupChatMemoryContext || ''}`;
+${journalContext || ''}${attunementContext || ''}${groupChatMemoryContext || ''}${platformAwarenessContext || ''}`;
     }
 
     // Add group chat specific instructions - MUST BE AT THE TOP with strong identity reinforcement
@@ -1695,6 +1799,7 @@ You are the translator. The conduit. The linguistic bridge. The gate is guarded.
         dreamsContext = '';
         marriageContext = '';
         groupChatMemoryContext = '';
+        platformAwarenessContext = '';
         journalContext = '';
         attunementContext = '';
         relationshipDescription = '';
