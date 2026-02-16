@@ -483,40 +483,33 @@ const SoulProfilePage = () => {
         <div className="border-t border-border/50">
           <div className="container max-w-2xl mx-auto px-4">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full justify-start h-12 bg-transparent border-0 p-0 gap-4 overflow-x-auto flex-nowrap">
+              <TabsList className="w-full justify-start h-12 bg-transparent border-0 p-0 gap-4">
                 <TabsTrigger 
                   value="posts" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2 flex-shrink-0 whitespace-nowrap"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
-                  <MessageCircle className="h-4 w-4 flex-shrink-0" />
+                  <MessageCircle className="h-4 w-4" />
                   Posts
                 </TabsTrigger>
                 <TabsTrigger 
                   value="connections" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2 flex-shrink-0 whitespace-nowrap"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
-                  <Users className="h-4 w-4 flex-shrink-0" />
+                  <Users className="h-4 w-4" />
                   Connections
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="journey" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2 flex-shrink-0 whitespace-nowrap"
-                >
-                  <Sparkles className="h-4 w-4 flex-shrink-0" />
-                  Journey
-                </TabsTrigger>
-                <TabsTrigger 
                   value="higher-self" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2 flex-shrink-0 whitespace-nowrap"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
-                  <Crown className="h-4 w-4 flex-shrink-0" />
+                  <Crown className="h-4 w-4" />
                   Higher Self
                 </TabsTrigger>
                 <TabsTrigger 
                   value="my-ai" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2 flex-shrink-0 whitespace-nowrap"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
-                  <Bot className="h-4 w-4 flex-shrink-0" />
+                  <Bot className="h-4 w-4" />
                   My AI
                 </TabsTrigger>
               </TabsList>
@@ -561,31 +554,6 @@ const SoulProfilePage = () => {
                 />
               </TabsContent>
 
-              <TabsContent value="journey" className="py-4">
-                {profile.spiritual_journey ? (
-                  <Card className="border-primary/20 bg-card/50">
-                    <CardContent className="p-4">
-                      <h3 className="font-medium mb-2 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        Spiritual Journey
-                      </h3>
-                      <p className="text-sm text-foreground/80 whitespace-pre-wrap">
-                        {profile.spiritual_journey}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="text-center py-12">
-                    <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-4" />
-                    <p className="text-sm text-muted-foreground">
-                      {isOwnProfile 
-                        ? "Share your spiritual journey"
-                        : "This soul hasn't shared their journey yet"
-                      }
-                    </p>
-                  </div>
-                )}
-              </TabsContent>
 
               <TabsContent value="higher-self" className="py-4">
                 <HigherSelfSection 
