@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bot, Heart, Users, Sparkles, Edit3, Plus } from "lucide-react";
+import { Bot, Heart, Users, Sparkles, Edit3, Plus, Eye } from "lucide-react";
 import { EditAICompanionDialog } from "./EditAICompanionDialog";
 
 interface AICompanionDisplay {
@@ -36,6 +37,7 @@ const relationshipIcons: Record<string, string> = {
 };
 
 export function MyAICompanionsTab({ userId, isOwnProfile }: MyAICompanionsTabProps) {
+  const navigate = useNavigate();
   const [companions, setCompanions] = useState<AICompanionDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingCompanion, setEditingCompanion] = useState<AICompanionDisplay | null>(null);
@@ -149,6 +151,18 @@ export function MyAICompanionsTab({ userId, isOwnProfile }: MyAICompanionsTabPro
                         companion.relationship_type.slice(1)}
                     </Badge>
                   )}
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="text-xs text-primary gap-1 h-auto p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/ai-companion/${companion.id}`);
+                    }}
+                  >
+                    <Eye className="h-3 w-3" />
+                    View {companion.display_name}'s Profile
+                  </Button>
                 </div>
 
                 {companion.brief_bio && (

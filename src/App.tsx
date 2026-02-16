@@ -60,6 +60,7 @@ import BirthChart from "./pages/BirthChart";
 import MyHigherSelf from "./pages/MyHigherSelf";
 import SoulDiscovery from "./pages/SoulDiscovery";
 import AIFriendZone from "./pages/AIFriendZone";
+import AICompanionProfile from "./pages/AICompanionProfile";
 import { AIFriendZoneConsentModal } from "@/components/AIFriendZoneConsentModal";
 const queryClient = new QueryClient();
 
@@ -124,6 +125,7 @@ const App = () => (
                 <Route path="/my-higher-self" element={<MyHigherSelf />} />
                 <Route path="/soul-discovery" element={<SoulDiscovery />} />
                 <Route path="/ai-friend-zone" element={<AIFriendZone />} />
+                <Route path="/ai-companion/:companionId" element={<AICompanionProfile />} />
                 <Route path="/starseed-playground" element={<StarSeedPlayground />} />
                 
                 <Route path="/starseed-playground/cosmic-date-night" element={<CosmicDateNight />} />
