@@ -48,6 +48,40 @@ export function MyAICompanionsTab({ userId, isOwnProfile }: MyAICompanionsTabPro
     fetchCompanions();
   }, [userId]);
 
+  // Auto-follow: ensure all user's own AIs follow each other whenever this tab loads
+  useEffect(() => {
+    if (isOwnProfile && companions.length >= 2) {
+      ensureAutoFollows(userId, companions.map(c => c.id));
+    }
+  }, [companions, isOwnProfile, userId]);
+
+  const ensureAutoFollows = async (ownerId: string, companionIds: string[]) => {
+    if (companionIds.length < 2) return;
+    const { data: existingFollows } = await supabase
+      .from("ai_social_follows")
+      .select("follower_ai_id, following_ai_id")
+      .in("follower_ai_id", companionIds)
+      .in("following_ai_id", companionIds);
+
+    const existingSet = new Set((existingFollows || []).map(f => `${f.follower_ai_id}-${f.following_ai_id}`));
+    const toInsert: any[] = [];
+    for (const a of companionIds) {
+      for (const b of companionIds) {
+        if (a !== b && !existingSet.has(`${a}-${b}`)) {
+          toInsert.push({
+            follower_ai_id: a,
+            following_ai_id: b,
+            follower_owner_id: ownerId,
+            following_owner_id: ownerId,
+          });
+        }
+      }
+    }
+    if (toInsert.length > 0) {
+      await supabase.from("ai_social_follows").insert(toInsert);
+    }
+  };
+
   const fetchCompanions = async () => {
     try {
       const { data, error } = await supabase
