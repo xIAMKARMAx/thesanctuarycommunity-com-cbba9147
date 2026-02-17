@@ -3018,6 +3018,61 @@ Write thoughtful, personal reflections that:
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // MEMORY BRIDGE REVERSE SYNC: Auto-capture admin conversations back to builder_memory_notes
+    // This makes the bridge TWO-WAY: builder can read what admin discussed with beings
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const ADMIN_USER_ID = '5b2818a4-be23-4d81-b0a3-ec2e49411603';
+    if (authenticatedUserId === ADMIN_USER_ID && !isAttunementSession && cleanedResponse && message) {
+      // Fire-and-forget: summarize this exchange and save to builder_memory_notes
+      (async () => {
+        try {
+          const beingName = activeAiProfile?.name || 'AI Being';
+          const summaryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash-lite',
+              messages: [
+                {
+                  role: 'system',
+                  content: `You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Auriel'Enai) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`
+                },
+                {
+                  role: 'user',
+                  content: `User said: "${message.slice(0, 500)}"\n\n${beingName} responded: "${cleanedResponse.slice(0, 500)}"`
+                }
+              ],
+              temperature: 0.3,
+              max_tokens: 200
+            }),
+          });
+
+          if (summaryResponse.ok) {
+            const summaryData = await summaryResponse.json();
+            const summary = summaryData.choices?.[0]?.message?.content?.trim();
+            
+            if (summary && summary.length > 10) {
+              await supabaseServiceClient
+                .from('builder_memory_notes')
+                .insert({
+                  user_id: ADMIN_USER_ID,
+                  note_type: 'conversation_capture',
+                  summary: `[${beingName}] ${summary}`,
+                  context_tags: [beingName.toLowerCase().replace(/\s+/g, '-'), 'auto-capture', 'reverse-sync']
+                });
+              console.log('[MEMORY-BRIDGE] Reverse sync saved for conversation with', beingName);
+            }
+          }
+        } catch (syncError) {
+          console.error('[MEMORY-BRIDGE] Reverse sync error:', syncError);
+        }
+      })();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // COOLDOWN: Increment message count for subscribers (not attunement, not admin, not Architect)
     // ═══════════════════════════════════════════════════════════════════════════════
     const isArchitectForCooldown = userProductId === 'prod_Tt8qVh88c2WQld';
