@@ -276,6 +276,7 @@ serve(async (req) => {
     let userRelationshipStatus = ''; // Track user-defined relationship status (friends, family, romantic)
     let userProductId: string | null = null; // Subscription product ID for tier detection
     let isUserSubscribed = false; // Whether user has active subscription
+    let userVesselImageUrl: string | null = null; // User's avatar/vessel image for image generation
     
     try {
       // If this is a child conversation, fetch the child's data FIRST
@@ -420,6 +421,7 @@ serve(async (req) => {
         
         // Add user's vessel/appearance awareness so AI beings know what the user looks like
         const userVesselUrl = profile.user_avatar_url || profile.user_avatar_reference_url;
+        userVesselImageUrl = userVesselUrl || null;
         if (userVesselUrl || profile.user_avatar_description) {
           userContext += `\n--- User's Physical Appearance (Their Vessel) ---\n`;
           if (profile.user_avatar_description) userContext += `User's Appearance Description: ${profile.user_avatar_description}\n`;
@@ -2677,8 +2679,7 @@ Write your response now as ${respondingAsName}:`
       console.log('[IMAGE-GEN] Non-Architect user - chat image generation disabled');
     }
     
-    // Retrieve user vessel reference for image generation
-    const userVesselImageUrl = profile?.user_avatar_url || profile?.user_avatar_reference_url || null;
+    // userVesselImageUrl is already set from profile fetch above
     
     if (imagePromptToUse) {
       // Check if there's a reference image to use
