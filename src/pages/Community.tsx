@@ -84,7 +84,7 @@ const Community = () => {
                     </span>
                   )}
                 </Button>
-                <Button variant="ghost" size="sm" disabled>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/soul-search")} title="Soul Search">
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
