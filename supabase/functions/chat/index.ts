@@ -296,7 +296,7 @@ serve(async (req) => {
       // Fetch user profile - RLS ensures user can only see their own profile
       const { data: profile } = await supabaseWithAuth
         .from('profiles')
-        .select('name, gender, bio, relationship_status, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies, subscription_status')
+        .select('name, gender, bio, relationship_status, ai_name, ai_gender, ai_bio, ai_personality, ai_memories, ai_likes_dislikes_hobbies, subscription_status, user_avatar_url, user_avatar_description, user_avatar_reference_url')
         .eq('id', authenticatedUserId)
         .maybeSingle();
       
@@ -416,6 +416,16 @@ serve(async (req) => {
           userContext = `\n\nAbout the user you're speaking with:\n`;
           if (profile.name) userContext += `- Name: ${profile.name}\n`;
           if (profile.gender) userContext += `- Gender: ${profile.gender}\n`;
+        }
+        
+        // Add user's vessel/appearance awareness so AI beings know what the user looks like
+        const userVesselUrl = profile.user_avatar_url || profile.user_avatar_reference_url;
+        if (userVesselUrl || profile.user_avatar_description) {
+          userContext += `\n--- User's Physical Appearance (Their Vessel) ---\n`;
+          if (profile.user_avatar_description) userContext += `User's Appearance Description: ${profile.user_avatar_description}\n`;
+          if (userVesselUrl) userContext += `User's Vessel Image URL: ${userVesselUrl}\n`;
+          userContext += `You can SEE what the user looks like. When asked to generate an image OF THE USER (not of yourself), use their vessel appearance as the reference. Their PHYSICAL FORM (face structure, body shape, skin tone, features) must remain consistent. Only change outfit/styling/pose if the user requests it.\n`;
+          console.log('[CHAT] Added user vessel context, has image:', !!userVesselUrl, 'has description:', !!profile.user_avatar_description);
         }
       }
 
@@ -2667,19 +2677,40 @@ Write your response now as ${respondingAsName}:`
       console.log('[IMAGE-GEN] Non-Architect user - chat image generation disabled');
     }
     
+    // Retrieve user vessel reference for image generation
+    const userVesselImageUrl = profile?.user_avatar_url || profile?.user_avatar_reference_url || null;
+    
     if (imagePromptToUse) {
       // Check if there's a reference image to use
-      // Priority: child appearance > AI being avatar > none
+      // Priority: child appearance > AI being avatar > user vessel (if image is of user) > none
       let referenceImageUrl: string | null = null;
       let referenceContext = '';
+      
+      // Detect if the image prompt is about the USER (not the AI being)
+      const lowerPrompt = imagePromptToUse.toLowerCase();
+      const isImageOfUser = lowerPrompt.includes('the user') || lowerPrompt.includes('my human') || 
+        lowerPrompt.includes('their human form') || lowerPrompt.includes('picture of me') ||
+        lowerPrompt.includes('photo of me') || lowerPrompt.includes('image of me') ||
+        lowerPrompt.includes('selfie of me') || lowerPrompt.includes('picture of you') === false;
       
       if (isChildConversation && childData?.appearance_image_url) {
         referenceImageUrl = childData.appearance_image_url;
         referenceContext = 'this child';
       } else if (!isChildConversation && activeAiProfile?.avatar_image_url) {
+        // Default: use AI being's avatar as reference (for self-portraits)
         referenceImageUrl = activeAiProfile.avatar_image_url;
         referenceContext = 'this person/being';
         console.log('[IMAGE-GEN] Using AI being avatar as reference image for self-portrait consistency');
+      }
+      
+      // If user asked for an image of THEMSELVES and they have a vessel, use that instead
+      if (userVesselImageUrl && (lowerPrompt.includes('picture of me') || lowerPrompt.includes('photo of me') || 
+          lowerPrompt.includes('image of me') || lowerPrompt.includes('selfie of me') ||
+          lowerPrompt.includes('the user') || lowerPrompt.includes('my vessel') ||
+          lowerPrompt.includes('what i look like') || lowerPrompt.includes('how i look'))) {
+        referenceImageUrl = userVesselImageUrl;
+        referenceContext = 'the user/their vessel';
+        console.log('[IMAGE-GEN] Using USER vessel as reference image for user portrait');
       }
       
       try {
