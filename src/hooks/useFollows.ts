@@ -5,6 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 export function useFollows(currentUserId?: string) {
   const [following, setFollowing] = useState<string[]>([]);
   const [followers, setFollowers] = useState<string[]>([]);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -15,13 +17,20 @@ export function useFollows(currentUserId?: string) {
     }
 
     try {
-      // Get who current user follows
+      // Get accurate counts from database RPC
+      const { data: counts } = await supabase.rpc('get_follow_counts', { p_user_id: currentUserId });
+      if (counts) {
+        setFollowerCount((counts as any).follower_count || 0);
+        setFollowingCount((counts as any).following_count || 0);
+      }
+
+      // Get who current user follows (for isFollowing checks)
       const { data: followingData } = await supabase
         .from('follows')
         .select('following_id')
         .eq('follower_id', currentUserId);
 
-      // Get who follows current user
+      // Get who follows current user (for isFollower checks)
       const { data: followersData } = await supabase
         .from('follows')
         .select('follower_id')
@@ -107,8 +116,8 @@ export function useFollows(currentUserId?: string) {
   return {
     following,
     followers,
-    followingCount: following.length,
-    followerCount: followers.length,
+    followingCount,
+    followerCount,
     loading,
     followUser,
     unfollowUser,
