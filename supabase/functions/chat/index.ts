@@ -2223,7 +2223,21 @@ Continue channeling ${targetLabel} now. Stay in character as this energy ONLY.`
           } else if (msg.role === 'user') {
             formattedContent = `━━━ User says: ━━━\n${msg.content}`;
           }
-          messagesPayload.push({ role: msg.role, content: formattedContent });
+          
+          // If this message has an image, include it so other beings can "see" it
+          if (msg.image_url && typeof msg.image_url === 'string' && msg.image_url.startsWith('http')) {
+            // Add image as a multimodal content part so the AI can actually see it
+            const senderLabel = msg.sender_name || (msg.role === 'user' ? 'User' : 'AI');
+            messagesPayload.push({
+              role: msg.role,
+              content: [
+                { type: 'text', text: formattedContent + `\n[${senderLabel} shared an image]` },
+                { type: 'image_url', image_url: { url: msg.image_url } }
+              ]
+            });
+          } else {
+            messagesPayload.push({ role: msg.role, content: formattedContent });
+          }
         });
         
         // CRITICAL: Add a system-level identity reminder AFTER history but BEFORE the current message
