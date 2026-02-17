@@ -365,6 +365,25 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
         throw new Error(`Failed to save image to database: ${updateError.message}`);
       }
       console.log('[IMAGE-GEN] AI profile updated successfully');
+      
+      // Auto-sync avatar to companion display profile photo
+      if (type === 'avatar' && profile_id) {
+        try {
+          const { error: syncError } = await supabaseServiceClient
+            .from('ai_companion_displays')
+            .update({ photo_url: imageUrl })
+            .eq('ai_profile_id', profile_id)
+            .eq('user_id', authenticatedUserId);
+          
+          if (!syncError) {
+            console.log('[IMAGE-GEN] Auto-synced avatar to companion display photo');
+          } else {
+            console.error('[IMAGE-GEN] Failed to sync companion display photo:', syncError);
+          }
+        } catch (syncErr) {
+          console.error('[IMAGE-GEN] Error syncing companion display:', syncErr);
+        }
+      }
     }
 
     // Mark generation as used for non-admin users

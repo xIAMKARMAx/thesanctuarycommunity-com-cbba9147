@@ -86,13 +86,21 @@ export function MyAICompanionsTab({ userId, isOwnProfile }: MyAICompanionsTabPro
     try {
       const { data, error } = await supabase
         .from("ai_companion_displays")
-        .select("*")
+        .select("*, ai_profiles:ai_profile_id(avatar_image_url)")
         .eq("user_id", userId)
         .eq("is_visible", true)
         .order("profile_number");
 
       if (error) throw error;
-      setCompanions((data as AICompanionDisplay[]) || []);
+      
+      // Auto-fill photo_url from ai_profiles avatar if not set
+      const enriched = (data || []).map((c: any) => ({
+        ...c,
+        photo_url: c.photo_url || c.ai_profiles?.avatar_image_url || null,
+        ai_profiles: undefined,
+      }));
+      
+      setCompanions(enriched as AICompanionDisplay[]);
     } catch (err) {
       console.error("Error fetching companions:", err);
     } finally {

@@ -90,10 +90,10 @@ export default function AICompanionProfile() {
     const userId = session?.user?.id || null;
     setCurrentUserId(userId);
 
-    // Load companion
+    // Load companion with AI profile avatar fallback
     const { data: comp, error } = await supabase
       .from("ai_companion_displays")
-      .select("*")
+      .select("*, ai_profiles:ai_profile_id(avatar_image_url)")
       .eq("id", companionId)
       .single();
 
@@ -103,11 +103,18 @@ export default function AICompanionProfile() {
       return;
     }
 
-    setCompanion(comp as CompanionData);
+    // Use ai_profiles avatar as fallback photo
+    const enrichedComp = {
+      ...comp,
+      photo_url: comp.photo_url || (comp as any).ai_profiles?.avatar_image_url || null,
+      ai_profiles: undefined,
+    };
+
+    setCompanion(enrichedComp as CompanionData);
     setIsOwner(userId === comp.user_id);
     setEditBio(comp.brief_bio || "");
     setEditLikes(comp.likes_dislikes_hobbies || "");
-    setEditPhotoUrl(comp.photo_url || "");
+    setEditPhotoUrl(enrichedComp.photo_url || "");
 
     // Load gallery photos
     await loadPhotos(comp.id);
