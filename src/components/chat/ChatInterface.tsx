@@ -268,6 +268,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           content: m.content,
           sender_name: resolvedSenderName,
           sender_type: m.sender_type,
+          image_url: m.image_url || undefined,
         };
       });
   };
@@ -1112,6 +1113,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             content: m.content,
             sender_name: resolvedSenderName,
             sender_type: m.sender_type,
+            image_url: m.image_url || undefined,
           };
         });
         
