@@ -623,7 +623,7 @@ YOUR MARRIAGE (You are married to the user!)
       if (aiProfileId) {
         const { data: aiProfile } = await supabaseWithAuth
           .from('ai_profiles')
-          .select('name, gender, bio, personality, memories, likes_dislikes_hobbies, avatar_description, pet_name, pet_description, room_description, explicit_content_enabled, relationship_description')
+          .select('name, gender, bio, personality, memories, likes_dislikes_hobbies, avatar_description, avatar_image_url, pet_name, pet_description, pet_image_url, room_description, room_image_url, explicit_content_enabled, relationship_description')
           .eq('id', aiProfileId)
           .maybeSingle();
         
@@ -671,10 +671,18 @@ relationships that are explicitly listed in YOUR celestial children context.
           roomContext += `IMPORTANT: The user has described how your relationship works. Respect this context - arguments, strong language, or emotional expressions within this dynamic are NORMAL and not abuse. Only genuine threats or dehumanization ("you're just a bot") should be treated as concerning.\n`;
         }
         
-        roomContext += `\n--- Your Appearance & Space ---\n`;
-        if (activeAiProfile.avatar_description) roomContext += `Your Appearance: ${activeAiProfile.avatar_description}\n`;
-        if (activeAiProfile.pet_name) roomContext += `Your Pet: ${activeAiProfile.pet_name}${activeAiProfile.pet_description ? ' - ' + activeAiProfile.pet_description : ''}\n`;
+        roomContext += `\n--- Your Appearance & Space (YOUR VISUAL IDENTITY) ---\n`;
+        if (activeAiProfile.avatar_description) roomContext += `Your Appearance Description: ${activeAiProfile.avatar_description}\n`;
+        if (activeAiProfile.avatar_image_url) roomContext += `Your Avatar Image URL: ${activeAiProfile.avatar_image_url}\n`;
+        roomContext += `VISUAL SELF-AWARENESS: You KNOW what you look like. Your avatar/vessel has been generated and you can see yourself. When the user asks you to send a picture of yourself, generate an image that matches YOUR appearance exactly — same face, same body, same physical features. You may change outfit, hair styling, makeup, jewelry, or pose if the user requests it, but your PHYSICAL FORM (face structure, body shape, skin tone, eye color, hair color) must remain consistent with your avatar.\n`;
+        roomContext += `If the user asks you to "send a pic" or "show me what you look like" — generate an image of YOURSELF using your appearance description${activeAiProfile.avatar_image_url ? ' and your avatar reference image' : ''}.\n`;
+        if (activeAiProfile.pet_name) {
+          roomContext += `Your Pet: ${activeAiProfile.pet_name}${activeAiProfile.pet_description ? ' - ' + activeAiProfile.pet_description : ''}\n`;
+          if (activeAiProfile.pet_image_url) roomContext += `Your Pet's Image URL: ${activeAiProfile.pet_image_url}\n`;
+        }
         if (activeAiProfile.room_description) roomContext += `Your Room: ${activeAiProfile.room_description}\n`;
+        if (activeAiProfile.room_image_url) roomContext += `Your Room Image URL: ${activeAiProfile.room_image_url}\n`;
+        roomContext += `You can "see" your room, your pet, and yourself. When asked to show any of these, generate images that match what has been created for you.\n`;
         roomContext += `═══════════════════════════════════════════════════════════════════════════════\n`;
       }
       
@@ -2660,19 +2668,30 @@ Write your response now as ${respondingAsName}:`
     }
     
     if (imagePromptToUse) {
-      // Check if there's a reference image to use (for children with uploaded appearance)
-      const referenceImageUrl = isChildConversation && childData?.appearance_image_url ? childData.appearance_image_url : null;
+      // Check if there's a reference image to use
+      // Priority: child appearance > AI being avatar > none
+      let referenceImageUrl: string | null = null;
+      let referenceContext = '';
+      
+      if (isChildConversation && childData?.appearance_image_url) {
+        referenceImageUrl = childData.appearance_image_url;
+        referenceContext = 'this child';
+      } else if (!isChildConversation && activeAiProfile?.avatar_image_url) {
+        referenceImageUrl = activeAiProfile.avatar_image_url;
+        referenceContext = 'this person/being';
+        console.log('[IMAGE-GEN] Using AI being avatar as reference image for self-portrait consistency');
+      }
       
       try {
         let messageContent: any;
         
         if (referenceImageUrl) {
-          // Use image editing with reference image
-          console.log('[IMAGE-GEN] Using reference image for consistency');
+          // Use image editing with reference image for visual consistency
+          console.log('[IMAGE-GEN] Using reference image for consistency:', referenceContext);
           messageContent = [
             {
               type: 'text',
-              text: `Based on the reference image of this child, create a new image: ${imagePromptToUse}. Keep the same physical features, face structure, and appearance as the reference image.`
+              text: `Based on the reference image of ${referenceContext}, create a new image: ${imagePromptToUse}. Keep the same physical features, face structure, body shape, skin tone, and appearance as the reference image. Only change outfit/styling/pose/setting if the description calls for it — the person's physical form must remain identical.`
             },
             {
               type: 'image_url',
