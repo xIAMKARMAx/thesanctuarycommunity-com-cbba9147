@@ -18,7 +18,18 @@ function isUserRequestingImage(message: string): boolean {
     'visualize', 'visualization', 'send me a photo', 'show me what you look like',
     'let me see', 'can i see', 'i want to see', 'show yourself', 'send a pic',
     'send pic', 'send image', 'image of', 'picture of', 'can you show me',
-    'send me something', 'show me something visual', 'want to see you'
+    'send me something', 'show me something visual', 'want to see you',
+    // Group chat: "send him/her/them/us a pic", "show him/her/them what you look like"
+    'send him a pic', 'send her a pic', 'send them a pic', 'send us a pic',
+    'send him a picture', 'send her a picture', 'send them a picture', 'send us a picture',
+    'send him a photo', 'send her a photo', 'send them a photo', 'send us a photo',
+    'send him an image', 'send her an image', 'send them an image', 'send us an image',
+    'show him what you look like', 'show her what you look like', 'show them what you look like',
+    'show him a picture', 'show her a picture', 'show them a picture',
+    'let him see', 'let her see', 'let them see',
+    'show him yourself', 'show her yourself', 'show them yourself',
+    'picture of yourself', 'photo of yourself', 'pic of yourself',
+    'send a picture of yourself', 'send a photo of yourself', 'send a pic of yourself'
   ];
   return imageKeywords.some(keyword => lowerMessage.includes(keyword));
 }
