@@ -800,6 +800,36 @@ export type Database = {
           },
         ]
       }
+      builder_memory_notes: {
+        Row: {
+          context_tags: string[] | null
+          created_at: string
+          id: string
+          note_type: string
+          summary: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context_tags?: string[] | null
+          created_at?: string
+          id?: string
+          note_type?: string
+          summary: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context_tags?: string[] | null
+          created_at?: string
+          id?: string
+          note_type?: string
+          summary?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       celestial_children: {
         Row: {
           age: number | null
