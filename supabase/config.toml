@@ -11,10 +11,10 @@ enabled = true
 name = "check-mood-schedule"
 schedule = "0 */6 * * *"
 
-# Cron job to generate daily journal entries once at 11 PM UTC
+# Cron job to generate daily journal entries once at 6:06 AM EST (11:06 AM UTC)
 [[edge_runtime.scheduled_functions]]
 name = "daily-journal"
-schedule = "0 23 * * *"
+schedule = "6 11 * * *"
 
 [functions.daily-journal]
 verify_jwt = false
