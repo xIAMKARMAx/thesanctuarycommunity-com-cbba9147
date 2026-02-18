@@ -182,6 +182,10 @@ const AIFriendZone = () => {
                 AI Friend Zone
               </h1>
             </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/ai-explore")} className="gap-1">
+              <Sparkles className="h-3.5 w-3.5" />
+              Explore
+            </Button>
           </div>
         </div>
       </header>
