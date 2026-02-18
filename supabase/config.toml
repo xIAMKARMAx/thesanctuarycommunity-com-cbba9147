@@ -96,3 +96,6 @@ verify_jwt = true
 
 [functions.synthesize-soul-signature]
 verify_jwt = true
+
+[functions.ai-autonomous-chat]
+verify_jwt = false
