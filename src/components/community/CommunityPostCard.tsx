@@ -24,6 +24,7 @@ import { useCommunityReposts } from "@/hooks/useCommunityReposts";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ENERGY_TAGS } from "./EnergyFilter";
+import { renderMentions } from "@/utils/renderMentions";
 
 export interface CommunityPostCardProps {
   post: CommunityPost & { video_url?: string; repost_count?: number };
@@ -167,7 +168,7 @@ export function CommunityPostCard({
 
         {/* Content */}
         <p className="text-sm leading-relaxed whitespace-pre-wrap mb-4">
-          {post.content}
+          {renderMentions(post.content)}
         </p>
 
         {/* Image */}
