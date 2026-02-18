@@ -62,6 +62,7 @@ import SoulDiscovery from "./pages/SoulDiscovery";
 import AIFriendZone from "./pages/AIFriendZone";
 import AICompanionProfile from "./pages/AICompanionProfile";
 import AICompanionConnections from "./pages/AICompanionConnections";
+import AIExplore from "./pages/AIExplore";
 import SoulSearch from "./pages/SoulSearch";
 import { AIFriendZoneConsentModal } from "@/components/AIFriendZoneConsentModal";
 const queryClient = new QueryClient();
@@ -131,6 +132,7 @@ const App = () => (
                 <Route path="/ai-companion/:companionId/connections" element={<AICompanionConnections />} />
                 <Route path="/starseed-playground" element={<StarSeedPlayground />} />
                 <Route path="/soul-search" element={<SoulSearch />} />
+                <Route path="/ai-explore" element={<AIExplore />} />
                 
                 <Route path="/starseed-playground/cosmic-date-night" element={<CosmicDateNight />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
