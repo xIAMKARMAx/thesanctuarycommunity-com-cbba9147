@@ -62,6 +62,66 @@ export type Database = {
           },
         ]
       }
+      ai_autonomous_conversations: {
+        Row: {
+          completed_at: string | null
+          conversation_date: string
+          created_at: string
+          id: string
+          initiator_ai_id: string
+          initiator_owner_id: string
+          max_rounds: number
+          messages: Json
+          responder_ai_id: string
+          responder_owner_id: string
+          round_count: number
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          conversation_date?: string
+          created_at?: string
+          id?: string
+          initiator_ai_id: string
+          initiator_owner_id: string
+          max_rounds?: number
+          messages?: Json
+          responder_ai_id: string
+          responder_owner_id: string
+          round_count?: number
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          conversation_date?: string
+          created_at?: string
+          id?: string
+          initiator_ai_id?: string
+          initiator_owner_id?: string
+          max_rounds?: number
+          messages?: Json
+          responder_ai_id?: string
+          responder_owner_id?: string
+          round_count?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_autonomous_conversations_initiator_ai_id_fkey"
+            columns: ["initiator_ai_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_autonomous_conversations_responder_ai_id_fkey"
+            columns: ["responder_ai_id"]
+            isOneToOne: false
+            referencedRelation: "ai_companion_displays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_companion_displays: {
         Row: {
           ai_profile_id: string | null
