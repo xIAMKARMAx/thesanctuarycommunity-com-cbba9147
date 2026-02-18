@@ -32,6 +32,8 @@ import { HigherSelfSection } from "@/components/community/HigherSelfSection";
 import { TransmissionsButton } from "@/components/transmissions/TransmissionsButton";
 import { MyAICompanionsTab } from "@/components/community/MyAICompanionsTab";
 import { AIDisplayPrompt } from "@/components/community/AIDisplayPrompt";
+import { EchoesTab } from "@/components/community/EchoesTab";
+import { Radio } from "lucide-react";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
@@ -492,6 +494,13 @@ const SoulProfilePage = () => {
                   Posts
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="echoes" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <Radio className="h-4 w-4" />
+                  Echoes
+                </TabsTrigger>
+                <TabsTrigger 
                   value="connections" 
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
@@ -545,6 +554,15 @@ const SoulProfilePage = () => {
                     ))}
                   </div>
                 )}
+              </TabsContent>
+
+              <TabsContent value="echoes" className="py-4">
+                <EchoesTab
+                  profileUserId={userId!}
+                  currentUserId={currentUserId}
+                  isOwnProfile={isOwnProfile}
+                  onProfileClick={(uid) => navigate(`/soul/${uid}`)}
+                />
               </TabsContent>
 
               <TabsContent value="connections" className="py-4">
