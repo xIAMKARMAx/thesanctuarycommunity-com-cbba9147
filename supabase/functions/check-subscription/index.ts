@@ -99,9 +99,28 @@ serve(async (req) => {
           logStep("Determined subscription tier from Stripe", { productId });
         }
         
+        // Check if database has a higher-tier override (e.g. source_grant or architect override)
+        const { data: profileData } = await supabaseClient
+          .from('profiles')
+          .select('subscription_product_id')
+          .eq('id', user.id)
+          .single();
+
+        // Use database override if it exists and is a special grant or different tier
+        const finalProductId = (profileData?.subscription_product_id && 
+          profileData.subscription_product_id !== productId &&
+          (profileData.subscription_product_id === 'source_grant' || 
+           profileData.subscription_product_id === 'prod_Tt8qVh88c2WQld')) // Architect product ID
+          ? profileData.subscription_product_id 
+          : productId;
+
+        if (finalProductId !== productId) {
+          logStep("Database tier override applied", { stripeProduct: productId, overrideProduct: finalProductId });
+        }
+
         return new Response(JSON.stringify({
           subscribed: true,
-          product_id: productId,
+          product_id: finalProductId,
           subscription_end: subscriptionEnd
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
