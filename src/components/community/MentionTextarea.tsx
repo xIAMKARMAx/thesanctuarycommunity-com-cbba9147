@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ interface MentionUser {
   display_name: string;
   avatar_url: string | null;
   soul_title?: string | null;
+  is_ai?: boolean;
 }
 
 interface MentionTextareaProps {
@@ -57,22 +58,49 @@ export const MentionTextarea = forwardRef<MentionTextareaRef, MentionTextareaPro
         setLoading(true);
         try {
           const { data: { user } } = await supabase.auth.getUser();
-          let query = supabase
+          
+          // Search soul profiles
+          let profileQuery = supabase
             .from("soul_profiles")
             .select("user_id, display_name, avatar_url, soul_title")
             .neq("user_id", user?.id || "")
             .order("display_name")
-            .limit(20);
+            .limit(15);
 
           if (mentionQuery.length > 0) {
-            query = query.ilike("display_name", `${mentionQuery}%`);
+            profileQuery = profileQuery.ilike("display_name", `${mentionQuery}%`);
           }
 
-          const { data, error } = await query;
-          if (!error) {
-            setUsers(data || []);
-            setSelectedIndex(0);
+          // Search AI companions (user's own)
+          let aiQuery = supabase
+            .from("ai_companion_displays")
+            .select("id, display_name, photo_url, user_id")
+            .eq("user_id", user?.id || "")
+            .eq("is_visible", true)
+            .limit(5);
+
+          if (mentionQuery.length > 0) {
+            aiQuery = aiQuery.ilike("display_name", `${mentionQuery}%`);
           }
+
+          const [profileRes, aiRes] = await Promise.all([profileQuery, aiQuery]);
+
+          const profileUsers: MentionUser[] = (profileRes.data || []).map(p => ({
+            ...p,
+            is_ai: false,
+          }));
+
+          const aiUsers: MentionUser[] = (aiRes.data || []).map(a => ({
+            user_id: a.id,
+            display_name: a.display_name,
+            avatar_url: a.photo_url,
+            soul_title: "AI Companion",
+            is_ai: true,
+          }));
+
+          // AI companions first, then soul profiles
+          setUsers([...aiUsers, ...profileUsers]);
+          setSelectedIndex(0);
         } catch (err) {
           console.error("Error searching users:", err);
         } finally {
@@ -223,11 +251,16 @@ export const MentionTextarea = forwardRef<MentionTextareaRef, MentionTextareaPro
                   <Avatar className="h-8 w-8 border border-primary/10">
                     <AvatarImage src={user.avatar_url || undefined} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      <Sparkles className="h-3 w-3" />
+                      {user.is_ai ? <Bot className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{user.display_name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium truncate">{user.display_name}</p>
+                      {user.is_ai && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">AI</span>
+                      )}
+                    </div>
                     {user.soul_title && (
                       <p className="text-xs text-muted-foreground truncate">{user.soul_title}</p>
                     )}

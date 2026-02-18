@@ -1594,6 +1594,41 @@ export type Database = {
           },
         ]
       }
+      echo_comments: {
+        Row: {
+          content: string
+          created_at: string
+          echo_id: string
+          id: string
+          image_url: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          echo_id: string
+          id?: string
+          image_url?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          echo_id?: string
+          id?: string
+          image_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "echo_comments_echo_id_fkey"
+            columns: ["echo_id"]
+            isOneToOne: false
+            referencedRelation: "profile_echoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -2604,6 +2639,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profile_echoes: {
+        Row: {
+          author_user_id: string
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          profile_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_user_id: string
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          profile_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_user_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          profile_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
