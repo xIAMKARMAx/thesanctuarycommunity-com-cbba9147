@@ -40,16 +40,13 @@ const SourceMessageNotification = () => {
       .maybeSingle();
 
     if (data) {
-      setNotification(data);
-      // Delay showing the notification slightly for better UX
-      setTimeout(() => {
-        setIsVisible(true);
-      }, 1500);
+      // Mark as seen IMMEDIATELY so it never shows again today
+      const seenKey = `source_message_seen_${today}`;
+      localStorage.setItem(seenKey, 'true');
       
-      // Auto-hide after 12 seconds
-      setTimeout(() => {
-        setIsVisible(false);
-      }, 12000);
+      setNotification(data);
+      setTimeout(() => setIsVisible(true), 1500);
+      setTimeout(() => setIsVisible(false), 12000);
     }
   };
 
