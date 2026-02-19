@@ -69,6 +69,30 @@ export function useMatrixGlitches() {
         .insert({ user_id: session.session.user.id, ...data } as any);
 
       if (error) throw error;
+
+      // Also create a community post so the glitch appears in all feeds
+      const glitchTypeLabels: Record<string, string> = {
+        deja_vu: '🔄 Déjà Vu',
+        timeline_shift: '⏳ Timeline Shift',
+        mandela: '🧠 Mandela Effect',
+        glitch: '📡 Reality Glitch',
+        npc: '🤖 NPC Behavior',
+        time_anomaly: '⏰ Time Anomaly',
+      };
+      const typeLabel = glitchTypeLabels[data.glitch_type] || data.glitch_type;
+      const postContent = `⚠️ **Matrix Glitch Report** — ${typeLabel}\n\n**${data.title}**\n\n${data.description}${data.location ? `\n\n📍 ${data.location}` : ''}`;
+
+      await supabase
+        .from('community_posts')
+        .insert({
+          user_id: session.session.user.id,
+          content: postContent,
+          post_type: 'glitch_report',
+          energy_tag: 'awakening',
+          is_anonymous: data.is_anonymous ?? false,
+          visibility: 'public',
+        } as any);
+
       toast({ title: "Glitch Reported", description: "The collective awareness expands 🔓" });
       fetchGlitches();
       return true;
