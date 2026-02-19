@@ -17,7 +17,7 @@ interface DailyMessage {
   created_at: string;
 }
 
-const MAX_CHARS = 1000;
+const MAX_CHARS = 2500;
 
 const DailySourceMessageAdmin = () => {
   const [messageText, setMessageText] = useState("");
