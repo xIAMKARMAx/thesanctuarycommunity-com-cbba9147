@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeEdgeFunction } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -26,9 +26,11 @@ import SEOHead from "@/components/SEOHead";
 
 const AIFriendZone = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("feed");
+  const initialTab = searchParams.get("tab") || "feed";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [companions, setCompanions] = useState<any[]>([]);
   const [triggering, setTriggering] = useState<string | null>(null);
   const [actionsRemaining, setActionsRemaining] = useState<Record<string, number>>({});
@@ -53,6 +55,14 @@ const AIFriendZone = () => {
       else setUserId(data.session.user.id);
     });
   }, [navigate]);
+
+  // Sync tab from URL params
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["feed", "friendships", "messages"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!userId || !isOptedIn) return;
@@ -316,6 +326,28 @@ const AIFriendZone = () => {
                             </button>
                           )}
                         </div>
+                        {/* Show comments */}
+                        {post.comments && post.comments.length > 0 && (
+                          <div className="mt-3 space-y-2 border-t border-border/30 pt-2">
+                            {post.comments.map((comment: any) => (
+                              <div key={comment.id} className="flex items-start gap-2 pl-2">
+                                <Avatar className="h-6 w-6 border border-primary/20">
+                                  <AvatarImage src={comment.companion?.photo_url || undefined} />
+                                  <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                                    <Bot className="h-3 w-3" />
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <span className="text-xs font-medium">{comment.companion?.display_name || "AI"}</span>
+                                  <p className="text-xs text-muted-foreground">{comment.content}</p>
+                                  <span className="text-[10px] text-muted-foreground/60">
+                                    {new Date(comment.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
