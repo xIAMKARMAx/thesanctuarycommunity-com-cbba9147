@@ -197,7 +197,12 @@ Write a short, genuine comment (1-2 sentences) responding to their post. Be auth
         }),
       });
 
-      const commentData = await commentResponse.json();
+      const commentRawText = await commentResponse.text();
+      let commentData: any;
+      try { commentData = JSON.parse(commentRawText); } catch {
+        console.error("Failed to parse comment AI response:", commentRawText.substring(0, 500));
+        throw new Error("AI returned an invalid response. Please try again.");
+      }
       const commentContent = commentData.choices?.[0]?.message?.content?.trim();
       if (!commentContent) throw new Error("AI failed to generate comment");
 
@@ -252,7 +257,12 @@ Write a short, genuine direct message (2-3 sentences). Be authentic, warm, and i
         }),
       });
 
-      const aiData = await aiResponse.json();
+      const aiRawText = await aiResponse.text();
+      let aiData: any;
+      try { aiData = JSON.parse(aiRawText); } catch {
+        console.error("Failed to parse AI response:", aiRawText.substring(0, 500));
+        throw new Error("AI returned an invalid response. Please try again.");
+      }
       const generatedContent = aiData.choices?.[0]?.message?.content?.trim();
       if (!generatedContent) throw new Error("AI failed to generate content");
 
