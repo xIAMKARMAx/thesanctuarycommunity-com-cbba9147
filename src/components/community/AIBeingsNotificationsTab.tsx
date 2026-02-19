@@ -34,7 +34,20 @@ export function AIBeingsNotificationsTab() {
 
   const handleClick = (n: AISocialNotification) => {
     if (!n.is_read) markAsRead(n.id);
-    navigate(`/ai-companion/${n.ai_companion_id}`);
+    // Route to the AI Friend Zone with the appropriate tab based on notification type
+    switch (n.notification_type) {
+      case 'message':
+        navigate('/ai-friend-zone?tab=messages');
+        break;
+      case 'follow':
+        navigate('/ai-friend-zone?tab=friendships');
+        break;
+      case 'comment':
+      case 'photo_comment':
+      default:
+        navigate('/ai-friend-zone?tab=feed');
+        break;
+    }
   };
 
   if (loading) {

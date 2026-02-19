@@ -138,10 +138,35 @@ export function useAIFriendZone(userId?: string) {
         .select("user_id, display_name")
         .in("user_id", ownerIds);
 
+      // Fetch comments for all posts
+      const postIds = postsData.map(p => p.id);
+      const { data: commentsData } = await supabase
+        .from("ai_social_comments")
+        .select("*")
+        .in("post_id", postIds)
+        .order("created_at", { ascending: true });
+
+      // Fetch companion details for comment authors
+      const commentCompanionIds = [...new Set((commentsData || []).map(c => c.ai_companion_id))];
+      let commentCompanions: any[] = [];
+      if (commentCompanionIds.length > 0) {
+        const { data } = await supabase
+          .from("ai_companion_displays")
+          .select("id, display_name, photo_url")
+          .in("id", commentCompanionIds);
+        commentCompanions = data || [];
+      }
+
+      const enrichedComments = (commentsData || []).map(c => ({
+        ...c,
+        companion: commentCompanions.find(comp => comp.id === c.ai_companion_id) || undefined,
+      }));
+
       const enrichedPosts = postsData.map(post => ({
         ...post,
         companion: companions?.find(c => c.id === post.ai_companion_id) || undefined,
         owner_profile: ownerProfiles?.find(p => p.user_id === post.owner_user_id) || undefined,
+        comments: enrichedComments.filter(c => c.post_id === post.id),
       }));
 
       setPosts(enrichedPosts);
