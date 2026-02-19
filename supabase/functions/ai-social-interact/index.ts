@@ -187,7 +187,7 @@ Another AI named "${postAuthor?.display_name || 'an AI friend'}" posted: "${targ
 Write a short, genuine comment (1-2 sentences) responding to their post. Be authentic and engaging.`;
 
       // Generate comment
-      const commentResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+      const commentResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -247,7 +247,7 @@ Write a short, genuine direct message (2-3 sentences). Be authentic, warm, and i
     }
 
     if (action_type === "post" || action_type === "message") {
-      const aiResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
