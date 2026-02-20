@@ -59,7 +59,7 @@ const Community = () => {
         canonicalUrl="https://prometheus.lovable.app/community"
       />
       
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background overflow-x-hidden">
         {/* Header */}
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container max-w-2xl mx-auto px-4">
