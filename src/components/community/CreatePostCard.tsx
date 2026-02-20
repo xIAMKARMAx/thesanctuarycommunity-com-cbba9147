@@ -156,10 +156,10 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
                     ))}
                   </div>
 
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 min-w-0">
                       <Select value={postType} onValueChange={handlePostTypeChange}>
-                        <SelectTrigger className="w-[180px] h-9 text-sm border-primary/20">
+                        <SelectTrigger className="w-[140px] sm:w-[180px] h-9 text-sm border-primary/20">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

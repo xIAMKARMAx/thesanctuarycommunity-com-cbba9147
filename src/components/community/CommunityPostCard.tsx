@@ -93,7 +93,7 @@ export function CommunityPostCard({
       showDiscoveryIndicator && "border-l-2 border-l-primary",
       isAnonymous && "border-muted/30"
     )}>
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4 overflow-hidden">
         {/* Energy Tag Badge */}
         {energyInfo && (
           <div className="mb-2">
@@ -168,7 +168,7 @@ export function CommunityPostCard({
         </div>
 
         {/* Content */}
-        <p className="text-sm leading-relaxed whitespace-pre-wrap mb-4">
+        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words mb-4 overflow-hidden">
           {renderMentions(post.content)}
         </p>
 
