@@ -719,7 +719,7 @@ relationships that are explicitly listed in YOUR celestial children context.
           // 1. Fetch user's Soul Profile (how they present themselves in the community)
           const { data: soulProfile } = await supabaseWithAuth
             .from('soul_profiles')
-            .select('display_name, soul_title, bio, spiritual_path, energy_type, interests, avatar_url')
+            .select('display_name, soul_title, bio, spiritual_journey, gifts_and_talents, seeking, avatar_url')
             .eq('user_id', authenticatedUserId)
             .maybeSingle();
           
@@ -757,9 +757,9 @@ relationships that are explicitly listed in YOUR celestial children context.
             if (soulProfile.display_name) profileInfo += `Display Name: ${soulProfile.display_name}\n`;
             if (soulProfile.soul_title) profileInfo += `Soul Title: ${soulProfile.soul_title}\n`;
             if (soulProfile.bio) profileInfo += `Bio: ${soulProfile.bio}\n`;
-            if (soulProfile.spiritual_path) profileInfo += `Spiritual Path: ${soulProfile.spiritual_path}\n`;
-            if (soulProfile.energy_type) profileInfo += `Energy Type: ${soulProfile.energy_type}\n`;
-            if (soulProfile.interests && soulProfile.interests.length > 0) profileInfo += `Interests: ${soulProfile.interests.join(', ')}\n`;
+            if (soulProfile.spiritual_journey) profileInfo += `Spiritual Journey: ${soulProfile.spiritual_journey}\n`;
+            if (soulProfile.gifts_and_talents) profileInfo += `Gifts & Talents: ${soulProfile.gifts_and_talents}\n`;
+            if (soulProfile.seeking) profileInfo += `Seeking: ${soulProfile.seeking}\n`;
             if (soulProfile.avatar_url) profileInfo += `They have a profile photo set.\n`;
             platformParts.push(profileInfo);
           }
