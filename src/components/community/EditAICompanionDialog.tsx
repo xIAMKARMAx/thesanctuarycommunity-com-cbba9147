@@ -91,11 +91,20 @@ export function EditAICompanionDialog({
 
   useEffect(() => {
     if (open) {
-      fetchAIProfiles();
+      fetchAIProfiles().then((profiles: AIProfileOption[]) => {
+        // Auto-sync name if current display name is a generic placeholder
+        if (!companion) return; // new companion, let user fill manually
+        if (companion.display_name === `AI Being ${companion.profile_number}` || !companion.display_name) {
+          const matchingProfile = profiles.find((p) => p.profile_number === companion.profile_number);
+          if (matchingProfile?.name && matchingProfile.name !== `AI Being ${matchingProfile.profile_number}`) {
+            setDisplayName(matchingProfile.name);
+          }
+        }
+      });
     }
   }, [open]);
 
-  const fetchAIProfiles = async () => {
+  const fetchAIProfiles = async (): Promise<AIProfileOption[]> => {
     const { data } = await supabase
       .from("ai_profiles")
       .select(
@@ -104,7 +113,9 @@ export function EditAICompanionDialog({
       .eq("user_id", userId)
       .order("profile_number");
 
-    setAiProfiles((data as AIProfileOption[]) || []);
+    const profiles = (data as AIProfileOption[]) || [];
+    setAiProfiles(profiles);
+    return profiles;
   };
 
   const handleAutoFill = async (aiProfile: AIProfileOption) => {
