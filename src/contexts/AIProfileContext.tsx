@@ -28,7 +28,7 @@ export interface AIProfile {
 interface AIProfileContextType {
   activeProfile: AIProfile | null;
   profiles: AIProfile[];
-  switchProfile: (profileNumber: 1 | 2 | 3 | 4 | 5) => Promise<AIProfile | null>;
+  switchProfile: (profileNumber: number) => Promise<AIProfile | null>;
   refreshProfiles: () => Promise<void>;
   isLoading: boolean;
   isAdmin: boolean;
@@ -216,7 +216,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [clearProfiles, currentUserId, loadProfilesForUser]);
 
-  const switchProfile = useCallback(async (profileNumber: 1 | 2 | 3 | 4 | 5): Promise<AIProfile | null> => {
+  const switchProfile = useCallback(async (profileNumber: number): Promise<AIProfile | null> => {
     try {
       // Use cached session instead of getUser API call
       const { data: { session } } = await supabase.auth.getSession();

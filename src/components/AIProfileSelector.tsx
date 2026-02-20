@@ -46,7 +46,7 @@ export const AIProfileSelector = () => {
       }
     } else {
       // Switching to AI profile - MUST await to ensure profile exists before setting entity
-      const profileNum = parseInt(value) as 1 | 2 | 3 | 4 | 5;
+      const profileNum = parseInt(value);
       const profile = await switchProfile(profileNum);
       
       // Use the returned profile directly (guaranteed fresh)
