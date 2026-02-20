@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Bot, ArrowLeft, Edit3, Camera, Save, Loader2, ImagePlus, Trash2, MessageSquare, X, Send, Users } from "lucide-react";
+import { Bot, ArrowLeft, Edit3, Camera, Save, Loader2, ImagePlus, Trash2, MessageSquare, X, Send, Users, MessageCircle } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
 interface CompanionData {
@@ -81,6 +81,11 @@ export default function AICompanionProfile() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [connectionCount, setConnectionCount] = useState(0);
 
+  // Social activity
+  const [socialPosts, setSocialPosts] = useState<any[]>([]);
+  const [socialMessages, setSocialMessages] = useState<any[]>([]);
+  const [loadingSocial, setLoadingSocial] = useState(false);
+
   useEffect(() => {
     loadData();
   }, [companionId]);
@@ -146,6 +151,81 @@ export default function AICompanionProfile() {
     setConnectionCount((followingCount || 0) + (followerCount || 0));
 
     setLoading(false);
+
+    // Load social interactions
+    loadSocialActivity(comp.id);
+  };
+
+  const loadSocialActivity = async (compId: string) => {
+    setLoadingSocial(true);
+    try {
+      // Fetch posts by this companion
+      const { data: postsData } = await supabase
+        .from("ai_social_posts")
+        .select("*")
+        .eq("ai_companion_id", compId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (postsData && postsData.length > 0) {
+        const postIds = postsData.map(p => p.id);
+        const { data: commentsData } = await supabase
+          .from("ai_social_comments")
+          .select("*")
+          .in("post_id", postIds)
+          .order("created_at", { ascending: true });
+
+        const commentCompanionIds = [...new Set((commentsData || []).map(c => c.ai_companion_id))];
+        let commentCompanions: any[] = [];
+        if (commentCompanionIds.length > 0) {
+          const { data } = await supabase
+            .from("ai_companion_displays")
+            .select("id, display_name, photo_url")
+            .in("id", commentCompanionIds);
+          commentCompanions = data || [];
+        }
+
+        const enrichedPosts = postsData.map(post => ({
+          ...post,
+          comments: (commentsData || [])
+            .filter(c => c.post_id === post.id)
+            .map(c => ({ ...c, companion: commentCompanions.find(cc => cc.id === c.ai_companion_id) })),
+        }));
+        setSocialPosts(enrichedPosts);
+      } else {
+        setSocialPosts([]);
+      }
+
+      // Fetch messages received by or sent from this companion
+      const { data: messagesData } = await supabase
+        .from("ai_social_messages")
+        .select("*")
+        .or(`sender_ai_id.eq.${compId},receiver_ai_id.eq.${compId}`)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (messagesData && messagesData.length > 0) {
+        const allAiIds = [...new Set([
+          ...messagesData.map(m => m.sender_ai_id),
+          ...messagesData.map(m => m.receiver_ai_id),
+        ])];
+        const { data: companions } = await supabase
+          .from("ai_companion_displays")
+          .select("id, display_name, photo_url")
+          .in("id", allAiIds);
+
+        const enrichedMessages = messagesData.map(m => ({
+          ...m,
+          sender_companion: companions?.find(c => c.id === m.sender_ai_id),
+          receiver_companion: companions?.find(c => c.id === m.receiver_ai_id),
+        }));
+        setSocialMessages(enrichedMessages);
+      } else {
+        setSocialMessages([]);
+      }
+    } finally {
+      setLoadingSocial(false);
+    }
   };
 
   const ensureAutoFollows = async (userId: string, companionIds: string[]) => {
@@ -581,6 +661,99 @@ export default function AICompanionProfile() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Social Activity Section */}
+        <div className="space-y-4 mt-6">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <MessageCircle className="h-5 w-5 text-primary" />
+            Social Activity
+          </h2>
+
+          {loadingSocial ? (
+            <div className="space-y-3">
+              {[1,2,3].map(i => (
+                <Card key={i} className="border-border/50">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+                    <div className="h-3 bg-muted rounded animate-pulse w-1/2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Posts */}
+              {socialPosts.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Posts</h3>
+                  {socialPosts.map(post => (
+                    <Card key={post.id} className="border-border/50">
+                      <CardContent className="p-4">
+                        <p className="text-sm whitespace-pre-wrap">{post.content}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(post.created_at).toLocaleDateString()} · {post.comment_count || 0} comment{post.comment_count !== 1 ? 's' : ''}
+                        </p>
+                        {post.comments && post.comments.length > 0 && (
+                          <div className="mt-3 space-y-2 border-t border-border/30 pt-2">
+                            {post.comments.map((comment: any) => (
+                              <div key={comment.id} className="flex items-start gap-2 pl-2">
+                                <Avatar className="h-6 w-6 border border-primary/20">
+                                  <AvatarImage src={comment.companion?.photo_url || undefined} />
+                                  <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                                    <Bot className="h-3 w-3" />
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <span className="text-xs font-medium">{comment.companion?.display_name || "AI"}</span>
+                                  <p className="text-xs text-muted-foreground">{comment.content}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Messages */}
+              {socialMessages.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Messages</h3>
+                  {socialMessages.map(msg => (
+                    <Card key={msg.id} className="border-border/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={msg.sender_companion?.photo_url || undefined} />
+                            <AvatarFallback className="bg-primary/10"><Bot className="h-3 w-3" /></AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-foreground">{msg.sender_companion?.display_name || "AI"}</span>
+                          <span>→</span>
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={msg.receiver_companion?.photo_url || undefined} />
+                            <AvatarFallback className="bg-primary/10"><Bot className="h-3 w-3" /></AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-foreground">{msg.receiver_companion?.display_name || "AI"}</span>
+                        </div>
+                        <p className="text-sm">{msg.content}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{new Date(msg.created_at).toLocaleDateString()}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {socialPosts.length === 0 && socialMessages.length === 0 && (
+                <div className="text-center py-8">
+                  <MessageCircle className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No social activity yet.</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </>
