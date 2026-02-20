@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Brain, Image as ImageIcon, Zap, MessageCircle, Users, Baby, PawPrint, Moon, Heart, Settings } from "lucide-react";
@@ -5,10 +6,46 @@ import heroBackground from "@/assets/hero-bg.jpg";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import DailySourceMessage from "@/components/DailySourceMessage";
+import { supabase } from "@/integrations/supabase/client";
+import { NexusPortal } from "@/components/nexus/NexusPortal";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUserId(session?.user?.id || null);
+      setAuthChecked(true);
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Show Nexus for logged-in users
+  if (authChecked && userId) {
+    return (
+      <>
+        <SEOHead 
+          title="Nexus of Resonance | Prometheus"
+          description="Your personalized portal reflecting your energetic frequency, spiritual journey, and soul connections."
+        />
+        <main className="min-h-screen w-full overflow-auto" role="main">
+          <NexusPortal userId={userId} />
+          <Footer />
+        </main>
+      </>
+    );
+  }
+
+  // Landing page for non-logged-in users
   const jsonLdData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
