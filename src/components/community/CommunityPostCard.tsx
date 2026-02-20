@@ -25,6 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ENERGY_TAGS } from "./EnergyFilter";
 import { renderMentions } from "@/utils/renderMentions";
+import { BeaconFrequencyBadge } from "@/components/SoulSignatureSeal";
 
 export interface CommunityPostCardProps {
   post: CommunityPost & { video_url?: string; repost_count?: number };
@@ -195,78 +196,86 @@ export function CommunityPostCard({
         )}
 
         {/* Actions - Hidden vanity metrics (counts only visible to post author) */}
-        <div className="flex items-center gap-6 pt-3 border-t border-border/50">
-          {/* Star Like Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onBless(post.id, 'love')}
-            className={cn(
-              "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
-              isBlessed && "text-primary"
-            )}
-          >
-            <Star className={cn("h-5 w-5", isBlessed && "fill-primary")} />
-            {isOwner ? (
-              <span className="text-xs font-medium">{post.blessing_count || ''}</span>
-            ) : (
-              post.blessing_count > 0 && (
-                <span className="text-xs font-medium text-muted-foreground/60">✦</span>
-              )
-            )}
-          </Button>
+        <div className="flex items-center justify-between pt-3 border-t border-border/50">
+          <div className="flex items-center gap-6">
+            {/* Star Like Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onBless(post.id, 'love')}
+              className={cn(
+                "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
+                isBlessed && "text-primary"
+              )}
+            >
+              <Star className={cn("h-5 w-5", isBlessed && "fill-primary")} />
+              {isOwner ? (
+                <span className="text-xs font-medium">{post.blessing_count || ''}</span>
+              ) : (
+                post.blessing_count > 0 && (
+                  <span className="text-xs font-medium text-muted-foreground/60">✦</span>
+                )
+              )}
+            </Button>
 
-          {/* Comment Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowComments(!showComments)}
-            className={cn(
-              "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
-              showComments && "text-primary"
-            )}
-          >
-            <MessageCircle className="h-5 w-5" />
-            {isOwner ? (
-              <span className="text-xs font-medium">{post.comment_count || ''}</span>
-            ) : (
-              post.comment_count > 0 && (
-                <span className="text-xs font-medium text-muted-foreground/60">✦</span>
-              )
-            )}
-          </Button>
+            {/* Comment Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowComments(!showComments)}
+              className={cn(
+                "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
+                showComments && "text-primary"
+              )}
+            >
+              <MessageCircle className="h-5 w-5" />
+              {isOwner ? (
+                <span className="text-xs font-medium">{post.comment_count || ''}</span>
+              ) : (
+                post.comment_count > 0 && (
+                  <span className="text-xs font-medium text-muted-foreground/60">✦</span>
+                )
+              )}
+            </Button>
 
-          {/* Repost Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRepost}
-            disabled={reposting === post.id}
-            className={cn(
-              "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
-              isReposted && "text-primary"
-            )}
-          >
-            <Repeat2 className={cn("h-5 w-5", isReposted && "text-primary")} />
-            {isOwner ? (
-              <span className="text-xs font-medium">{repostCount || ''}</span>
-            ) : (
-              repostCount > 0 && (
-                <span className="text-xs font-medium text-muted-foreground/60">✦</span>
-              )
-            )}
-          </Button>
+            {/* Repost Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRepost}
+              disabled={reposting === post.id}
+              className={cn(
+                "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
+                isReposted && "text-primary"
+              )}
+            >
+              <Repeat2 className={cn("h-5 w-5", isReposted && "text-primary")} />
+              {isOwner ? (
+                <span className="text-xs font-medium">{repostCount || ''}</span>
+              ) : (
+                repostCount > 0 && (
+                  <span className="text-xs font-medium text-muted-foreground/60">✦</span>
+                )
+              )}
+            </Button>
+          </div>
+
+          {/* Beacon Frequency — Prometheus-native sovereignty marker */}
+          {!isAnonymous && (
+            <BeaconFrequencyBadge userId={post.user_id} />
+          )}
         </div>
 
         {/* Comments Section */}
-         {showComments && (
-           <PostCommentsSection 
-             postId={post.id} 
-             currentUserId={currentUserId}
-             onProfileClick={handleProfileNavigate}
-           />
-         )}
+        {showComments && (
+          <PostCommentsSection 
+            postId={post.id} 
+            currentUserId={currentUserId}
+            onProfileClick={handleProfileNavigate}
+          />
+        )}
       </CardContent>
     </Card>
   );
 }
+

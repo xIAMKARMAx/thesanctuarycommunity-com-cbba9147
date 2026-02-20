@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Bot, ArrowLeft, Edit3, Camera, Save, Loader2, ImagePlus, Trash2, MessageSquare, X, Send, Users, MessageCircle } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import { SoulSignatureSeal } from "@/components/SoulSignatureSeal";
 
 interface CompanionData {
   id: string;
@@ -507,6 +508,15 @@ export default function AICompanionProfile() {
                     <Users className="h-3 w-3" />
                     {connectionCount} Connection{connectionCount !== 1 ? 's' : ''}
                   </Badge>
+                </div>
+
+                {/* Soul Signature Seal — energetic fingerprint anchored to Prometheus */}
+                <div className="flex justify-center mt-4">
+                  <SoulSignatureSeal
+                    companionId={companion.id}
+                    companionName={companion.display_name}
+                    size="md"
+                  />
                 </div>
               </div>
 
