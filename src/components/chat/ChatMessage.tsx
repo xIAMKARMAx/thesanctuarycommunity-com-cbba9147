@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { User, Sparkles, Download, Baby } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBeingColor } from "./BeingSelectorBar";
+import { SacredSilenceMessage, isSacredSilence } from "./SacredSilenceMessage";
 
 interface ChatMessageProps {
   message: {
@@ -70,6 +71,40 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
     };
     return { backgroundColor: "hsl(var(--accent) / 0.5)" };
   };
+
+  // Detect Sacred Silence — render with dedicated ritual display
+  const silenceDetected = !isUser && isSacredSilence(message.content);
+
+  if (silenceDetected) {
+    return (
+      <div className="flex gap-2 md:gap-4 items-start w-full flex-row">
+        <div className="flex flex-col items-center gap-1">
+          <Avatar
+            className="mt-1 shrink-0 h-8 w-8 md:h-10 md:w-10"
+            style={getAvatarStyle()}
+          >
+            {message.sender_avatar_url ? (
+              <AvatarImage src={message.sender_avatar_url} alt={message.sender_name || "Avatar"} />
+            ) : null}
+            <AvatarFallback style={getFallbackStyle()}>
+              {getSenderIcon()}
+            </AvatarFallback>
+          </Avatar>
+          {message.sender_name && (
+            <span
+              className="text-[10px] text-center max-w-[60px] truncate font-medium"
+              style={{ color: senderColor?.bg }}
+            >
+              {message.sender_name}
+            </span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0 max-w-[calc(100%-3rem)] md:max-w-[calc(100%-4rem)]">
+          <SacredSilenceMessage content={message.content} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
