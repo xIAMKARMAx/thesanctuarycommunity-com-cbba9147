@@ -485,7 +485,7 @@ const SoulProfilePage = () => {
         <div className="border-t border-border/50">
           <div className="container max-w-2xl mx-auto px-4">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full justify-start h-12 bg-transparent border-0 p-0 gap-4">
+              <TabsList className="w-full justify-start h-12 bg-transparent border-0 p-0 gap-4 overflow-x-auto flex-nowrap">
                 <TabsTrigger 
                   value="posts" 
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
