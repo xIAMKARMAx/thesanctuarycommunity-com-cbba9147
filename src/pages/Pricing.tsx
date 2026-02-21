@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap, AlertTriangle } from "lucide-react";
+import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap, AlertTriangle, XCircle, ArrowUpCircle, Settings } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
@@ -8,12 +8,24 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import SEOHead from "@/components/SEOHead";
 import { getTierFromProductId, SUBSCRIPTION_TIERS, getTierLevel } from "@/lib/subscription-tiers";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Pricing = () => {
   const navigate = useNavigate();
-  const { productId, checkSubscription } = useSubscription();
+  const { productId, checkSubscription, subscriptionEnd } = useSubscription();
   const { toast } = useToast();
   const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   const [searchParams] = useSearchParams();
   const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | null;
@@ -92,6 +104,25 @@ const Pricing = () => {
       });
     } finally {
       setCheckoutLoading(null);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      setPortalLoading(true);
+      const { data, error } = await api.customerPortal();
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to open subscription management",
+        variant: "destructive",
+      });
+    } finally {
+      setPortalLoading(false);
     }
   };
 
@@ -232,17 +263,73 @@ const Pricing = () => {
             </p>
           </div>
 
-          {/* Current Plan Badge for subscribers */}
+          {/* Current Plan Badge + Management for subscribers */}
           {currentTier && currentTier !== "free" && (
-            <div className="mb-6 text-center">
-              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-                currentTier === "source" 
-                  ? "bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-violet-400 border border-violet-500/30"
-                  : "bg-primary/10 text-primary"
-              }`}>
-                <Crown className="h-4 w-4" />
-                Currently on {currentTier === "source" ? "Source" : currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan
-              </span>
+            <div className="mb-8">
+              <div className="max-w-md mx-auto">
+                <Card className="border-primary/30 bg-primary/5">
+                  <CardContent className="pt-6 pb-4 space-y-4">
+                    <div className="text-center">
+                      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+                        currentTier === "source" 
+                          ? "bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-violet-400 border border-violet-500/30"
+                          : "bg-primary/10 text-primary"
+                      }`}>
+                        <Crown className="h-4 w-4" />
+                        Currently on {currentTier === "source" ? "Source" : currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan
+                      </span>
+                      {subscriptionEnd && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Renews on {new Date(subscriptionEnd).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      {/* Upgrade button - show for Awakening and Anchoring */}
+                      {(currentTier === "awakening" || currentTier === "anchoring") && (
+                        <Button 
+                          className="flex-1 gap-2"
+                          onClick={() => {
+                            const target = currentTier === "awakening" ? "anchoring" : "architect";
+                            handleSubscribe(target as 'awakening' | 'anchoring' | 'architect');
+                          }}
+                          disabled={checkoutLoading !== null}
+                        >
+                          <ArrowUpCircle className="h-4 w-4" />
+                          {currentTier === "awakening" ? "Upgrade to Anchoring" : "Upgrade to Architect"}
+                        </Button>
+                      )}
+                      
+                      {/* Manage / Cancel button */}
+                      {currentTier !== "source" && (
+                        <Button 
+                          variant="outline" 
+                          className="flex-1 gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+                          onClick={() => setCancelDialogOpen(true)}
+                          disabled={portalLoading}
+                        >
+                          <XCircle className="h-4 w-4" />
+                          Cancel Subscription
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Manage subscription link */}
+                    {currentTier !== "source" && (
+                      <Button
+                        variant="ghost"
+                        className="w-full gap-2 text-muted-foreground"
+                        onClick={handleManageSubscription}
+                        disabled={portalLoading}
+                      >
+                        <Settings className="h-4 w-4" />
+                        {portalLoading ? "Loading..." : "Manage Billing & Payment"}
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
 
@@ -475,6 +562,29 @@ const Pricing = () => {
           </div>
         </div>
       </div>
+
+      {/* Cancel Subscription Confirmation Dialog */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Your Subscription?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will open the Stripe billing portal where you can cancel your subscription. 
+              Your access will continue until the end of your current billing period
+              {subscriptionEnd ? ` (${new Date(subscriptionEnd).toLocaleDateString()})` : ""}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep My Plan</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleManageSubscription}
+            >
+              Proceed to Cancel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
