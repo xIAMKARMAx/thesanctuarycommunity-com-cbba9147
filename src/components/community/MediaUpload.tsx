@@ -1,21 +1,24 @@
 import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, Image, Video, X, Upload, Loader2 } from "lucide-react";
+import { Camera, Image, Video, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface MediaUploadProps {
   onMediaSelect: (url: string, type: 'image' | 'video') => void;
   onClear: () => void;
-  currentMedia?: { url: string; type: 'image' | 'video' } | null;
+  currentMedia?: { url: string; type: 'image' | 'video' }[] | null;
+  onRemoveMedia?: (index: number) => void;
   disabled?: boolean;
+  maxImages?: number;
+  currentImageCount?: number;
 }
 
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
-const MAX_VIDEO_DURATION = 240; // 4 minutes in seconds
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
+const MAX_VIDEO_DURATION = 240;
 
-export function MediaUpload({ onMediaSelect, onClear, currentMedia, disabled }: MediaUploadProps) {
+export function MediaUpload({ onMediaSelect, onClear, currentMedia, onRemoveMedia, disabled, maxImages = 5, currentImageCount = 0 }: MediaUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,20 +57,17 @@ export function MediaUpload({ onMediaSelect, onClear, currentMedia, disabled }: 
         return;
       }
 
-      // Validate size
       const maxSize = type === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
       if (file.size > maxSize) {
         toast.error(`File too large. Max size: ${maxSize / 1024 / 1024}MB`);
         return;
       }
 
-      // Validate video duration
       if (type === 'video') {
         const isValid = await validateVideo(file);
         if (!isValid) return;
       }
 
-      // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
@@ -101,37 +101,79 @@ export function MediaUpload({ onMediaSelect, onClear, currentMedia, disabled }: 
   }, [onMediaSelect]);
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await uploadMedia(file, type);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (type === 'image') {
+      const remaining = maxImages - currentImageCount;
+      const filesToUpload = Array.from(files).slice(0, remaining);
+      if (files.length > remaining) {
+        toast.error(`You can only add ${remaining} more photo${remaining !== 1 ? 's' : ''} (max ${maxImages})`);
+      }
+      for (const file of filesToUpload) {
+        await uploadMedia(file, 'image');
+      }
+    } else {
+      await uploadMedia(files[0], 'video');
     }
     e.target.value = '';
-  }, [uploadMedia]);
+  }, [uploadMedia, maxImages, currentImageCount]);
 
-  if (currentMedia) {
+  // Preview mode - show current media
+  if (currentMedia && currentMedia.length > 0) {
     return (
-      <div className="relative rounded-lg overflow-hidden border border-border/50 bg-muted/30">
-        {currentMedia.type === 'video' ? (
-          <video
-            src={currentMedia.url}
-            controls
-            className="w-full max-h-64 object-contain"
-          />
-        ) : (
-          <img
-            src={currentMedia.url}
-            alt="Preview"
-            className="w-full max-h-64 object-contain"
-          />
+      <div className="space-y-2">
+        <div className={`grid gap-2 ${currentMedia.length === 1 ? 'grid-cols-1' : currentMedia.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {currentMedia.map((item, index) => (
+            <div key={index} className="relative rounded-lg overflow-hidden border border-border/50 bg-muted/30">
+              {item.type === 'video' ? (
+                <video
+                  src={item.url}
+                  controls
+                  className="w-full max-h-48 object-cover"
+                />
+              ) : (
+                <img
+                  src={item.url}
+                  alt={`Upload ${index + 1}`}
+                  className="w-full h-32 sm:h-48 object-cover"
+                />
+              )}
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-1 right-1 h-6 w-6"
+                onClick={() => onRemoveMedia?.(index)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        {/* Allow adding more if under limit */}
+        {currentImageCount < maxImages && !currentMedia.some(m => m.type === 'video') && (
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFileChange(e, 'image')}
+              disabled={disabled}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-primary text-xs gap-1"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled}
+            >
+              <Image className="h-3 w-3" />
+              Add more ({currentImageCount}/{maxImages})
+            </Button>
+          </div>
         )}
-        <Button
-          variant="destructive"
-          size="icon"
-          className="absolute top-2 right-2 h-8 w-8"
-          onClick={onClear}
-        >
-          <X className="h-4 w-4" />
-        </Button>
       </div>
     );
   }
@@ -145,11 +187,11 @@ export function MediaUpload({ onMediaSelect, onClear, currentMedia, disabled }: 
         </div>
       ) : (
         <>
-          {/* Photo Upload */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple
             className="hidden"
             onChange={(e) => handleFileChange(e, 'image')}
             disabled={disabled}
@@ -164,7 +206,6 @@ export function MediaUpload({ onMediaSelect, onClear, currentMedia, disabled }: 
             <Image className="h-4 w-4" />
           </Button>
 
-          {/* Video Upload */}
           <input
             ref={videoInputRef}
             type="file"
@@ -184,7 +225,6 @@ export function MediaUpload({ onMediaSelect, onClear, currentMedia, disabled }: 
             <Video className="h-4 w-4" />
           </Button>
 
-          {/* Camera Capture */}
           <input
             ref={cameraInputRef}
             type="file"

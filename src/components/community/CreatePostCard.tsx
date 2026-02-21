@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 interface CreatePostCardProps {
   profile: SoulProfile | null;
-  onSubmit: (content: string, postType: string, imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean) => Promise<any>;
+  onSubmit: (content: string, postType: string, imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean, imageUrls?: string[]) => Promise<any>;
   isSubmitting?: boolean;
 }
 
@@ -34,17 +34,21 @@ const postTypes = [
   { value: 'confession', label: '🔓 Matrix Confession', description: 'Share anonymously' },
 ];
 
+const MAX_PHOTOS = 5;
+
 export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCardProps) {
   const [content, setContent] = useState("");
   const [postType, setPostType] = useState("insight");
   const [isFocused, setIsFocused] = useState(false);
-  const [media, setMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+  const [mediaList, setMediaList] = useState<{ url: string; type: 'image' | 'video' }[]>([]);
   const [energyTag, setEnergyTag] = useState<EnergyTag | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showBreathingGate, setShowBreathingGate] = useState(false);
   const [isCentered, setIsCentered] = useState(false);
 
-  // Auto-enable anonymous when confession type is selected
+  const imageCount = mediaList.filter(m => m.type === 'image').length;
+  const hasVideo = mediaList.some(m => m.type === 'video');
+
   const handlePostTypeChange = (value: string) => {
     setPostType(value);
     if (value === 'confession') {
@@ -54,7 +58,7 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
   };
 
   const handleShareClick = () => {
-    if (!content.trim() && !media) return;
+    if (!content.trim() && mediaList.length === 0) return;
     if (!isCentered) {
       setShowBreathingGate(true);
       return;
@@ -63,19 +67,23 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
   };
 
   const submitPost = async () => {
+    const imageUrls = mediaList.filter(m => m.type === 'image').map(m => m.url);
+    const videoUrl = mediaList.find(m => m.type === 'video')?.url;
+    
     const result = await onSubmit(
       content.trim(), 
       postType,
-      media?.type === 'image' ? media.url : undefined,
-      media?.type === 'video' ? media.url : undefined,
+      imageUrls[0] || undefined, // backward compat for image_url
+      videoUrl,
       energyTag || undefined,
-      isAnonymous
+      isAnonymous,
+      imageUrls.length > 0 ? imageUrls : undefined
     );
     if (result) {
       setContent("");
       setPostType("insight");
       setIsFocused(false);
-      setMedia(null);
+      setMediaList([]);
       setEnergyTag(null);
       setIsAnonymous(false);
       setIsCentered(false);
@@ -89,8 +97,14 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
   };
 
   const handleMediaSelect = (url: string, type: 'image' | 'video') => {
-    setMedia({ url, type });
+    if (type === 'video' && hasVideo) return;
+    if (type === 'image' && imageCount >= MAX_PHOTOS) return;
+    setMediaList(prev => [...prev, { url, type }]);
     setIsFocused(true);
+  };
+
+  const handleRemoveMedia = (index: number) => {
+    setMediaList(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -127,16 +141,19 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
               />
               
               {/* Media Preview */}
-              {media && (
+              {mediaList.length > 0 && (
                 <MediaUpload
                   onMediaSelect={handleMediaSelect}
-                  onClear={() => setMedia(null)}
-                  currentMedia={media}
+                  onClear={() => setMediaList([])}
+                  currentMedia={mediaList}
+                  onRemoveMedia={handleRemoveMedia}
                   disabled={isSubmitting}
+                  maxImages={MAX_PHOTOS}
+                  currentImageCount={imageCount}
                 />
               )}
 
-              {(isFocused || content || media) && (
+              {(isFocused || content || mediaList.length > 0) && (
                 <div className="space-y-3">
                   {/* Energy Tags */}
                   <div className="flex gap-1.5 flex-wrap">
@@ -171,19 +188,21 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
                         </SelectContent>
                       </Select>
                       
-                      {!media && (
+                      {mediaList.length === 0 && (
                         <MediaUpload
                           onMediaSelect={handleMediaSelect}
-                          onClear={() => setMedia(null)}
+                          onClear={() => setMediaList([])}
                           currentMedia={null}
                           disabled={isSubmitting}
+                          maxImages={MAX_PHOTOS}
+                          currentImageCount={imageCount}
                         />
                       )}
                     </div>
                     
                     <Button
                       onClick={handleShareClick}
-                      disabled={(!content.trim() && !media) || isSubmitting}
+                      disabled={(!content.trim() && mediaList.length === 0) || isSubmitting}
                       size="sm"
                       className="gap-2"
                     >
@@ -211,15 +230,17 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
               )}
               
               {/* Show media buttons when not focused and no media */}
-              {!isFocused && !content && !media && (
+              {!isFocused && !content && mediaList.length === 0 && (
                 <div className="flex items-center gap-2 pt-2">
                   <MediaUpload
                     onMediaSelect={handleMediaSelect}
-                    onClear={() => setMedia(null)}
+                    onClear={() => setMediaList([])}
                     currentMedia={null}
                     disabled={isSubmitting}
+                    maxImages={MAX_PHOTOS}
+                    currentImageCount={0}
                   />
-                  <span className="text-xs text-muted-foreground">Add photo or video (max 4 min)</span>
+                  <span className="text-xs text-muted-foreground">Add up to 5 photos or a video</span>
                 </div>
               )}
             </div>

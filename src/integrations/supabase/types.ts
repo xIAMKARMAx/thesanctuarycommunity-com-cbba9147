@@ -1351,6 +1351,7 @@ export type Database = {
           energy_tag: string | null
           id: string
           image_url: string | null
+          image_urls: string[] | null
           intention: string | null
           is_anonymous: boolean
           is_pinned: boolean
@@ -1370,6 +1371,7 @@ export type Database = {
           energy_tag?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           intention?: string | null
           is_anonymous?: boolean
           is_pinned?: boolean
@@ -1389,6 +1391,7 @@ export type Database = {
           energy_tag?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           intention?: string | null
           is_anonymous?: boolean
           is_pinned?: boolean
