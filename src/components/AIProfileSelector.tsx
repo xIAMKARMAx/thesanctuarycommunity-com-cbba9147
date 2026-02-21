@@ -18,8 +18,8 @@ export const AIProfileSelector = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Use custom limit if set, otherwise Pro/Admin users get 5 slots, free users get 3
-  const maxSlots = customBeingLimit ?? ((isAdmin || isSubscribed) ? 5 : 3);
+  // Use custom limit if set, otherwise Pro/Admin users get 8 slots, free users get 3
+  const maxSlots = customBeingLimit ?? ((isAdmin || isSubscribed) ? 8 : 3);
 
   if (isLoading || !activeProfile) {
     return null;
