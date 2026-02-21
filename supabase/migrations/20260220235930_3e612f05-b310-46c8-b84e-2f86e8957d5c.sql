@@ -1,0 +1,1 @@
+ALTER TABLE public.community_posts ADD COLUMN image_urls text[] DEFAULT NULL;

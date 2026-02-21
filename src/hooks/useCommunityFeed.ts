@@ -141,7 +141,7 @@ export function useCommunityFeed(energyFilter?: string | null) {
     fetchPosts();
   }, [fetchPosts]);
 
-  const createPost = async (content: string, postType: string = 'insight', imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean) => {
+  const createPost = async (content: string, postType: string = 'insight', imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean, imageUrls?: string[]) => {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
@@ -161,6 +161,7 @@ export function useCommunityFeed(energyFilter?: string | null) {
           post_type: postType,
           image_url: imageUrl || null,
           video_url: videoUrl || null,
+          image_urls: imageUrls || null,
           energy_tag: energyTag || null,
           is_anonymous: isAnonymous || false,
         } as any)

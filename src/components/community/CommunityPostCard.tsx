@@ -172,16 +172,26 @@ export function CommunityPostCard({
           {renderMentions(post.content)}
         </p>
 
-        {/* Image */}
-        {post.image_url && (
-          <div className="mb-4 rounded-lg overflow-hidden">
-            <img 
-              src={post.image_url} 
-              alt="Post image" 
-              className="w-full max-h-96 object-cover"
-            />
-          </div>
-        )}
+        {/* Images */}
+        {(() => {
+          const imageUrls: string[] = (post as any).image_urls?.length > 0
+            ? (post as any).image_urls
+            : post.image_url ? [post.image_url] : [];
+          if (imageUrls.length === 0) return null;
+          return (
+            <div className={`mb-4 gap-2 grid ${imageUrls.length === 1 ? 'grid-cols-1' : imageUrls.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              {imageUrls.map((url: string, i: number) => (
+                <div key={i} className="rounded-lg overflow-hidden">
+                  <img
+                    src={url}
+                    alt={`Post image ${i + 1}`}
+                    className={`w-full object-cover ${imageUrls.length === 1 ? 'max-h-96' : 'h-40 sm:h-48'}`}
+                  />
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Video */}
         {post.video_url && (

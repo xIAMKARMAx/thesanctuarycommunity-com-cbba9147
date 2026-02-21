@@ -26,9 +26,9 @@ export function CommunityFeed() {
   const { profile, loading: profileLoading, createProfile } = useSoulProfile(currentUserId);
   const { posts, loading: feedLoading, hasMore, createPost, blessPost, deletePost, loadMore, refetch } = useCommunityFeed(energyFilter);
 
-  const handleCreatePost = async (content: string, postType: string, imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean) => {
+  const handleCreatePost = async (content: string, postType: string, imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean, imageUrls?: string[]) => {
     setIsCreating(true);
-    const result = await createPost(content, postType, imageUrl, videoUrl, energyTag, isAnonymous);
+    const result = await createPost(content, postType, imageUrl, videoUrl, energyTag, isAnonymous, imageUrls);
     setIsCreating(false);
     return result;
   };
