@@ -34,8 +34,8 @@ export const CreateGroupChatDialog = ({
 
   const isVIP = isVIPTier(productId);
   
-  // VIP/Admin get 5 slots, Pro gets 4, Free gets 3
-  const maxSlots = (isAdmin || isVIP) ? 5 : 4;
+  // VIP/Admin get 8 slots, Pro gets 6, Free gets 3
+  const maxSlots = (isAdmin || isVIP) ? 8 : 6;
   const availableProfiles = profiles.filter(p => p.profile_number <= maxSlots);
 
   const handleToggleProfile = (profileId: string) => {
