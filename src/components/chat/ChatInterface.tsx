@@ -1372,7 +1372,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 {!isSubscribed && (
                   <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-md">
                     {(() => {
-                      const totalLimit = freeUserLimits.totalMessages >= 0 ? (25 - freeUserLimits.totalMessages) : 25;
+                      const totalLimit = freeUserLimits.totalMessages >= 0 ? (5 - freeUserLimits.totalMessages) : 5;
                       const remaining = Math.max(0, totalLimit);
                       if (remaining <= 0) {
                         return <span className="text-destructive font-medium">No free messages left — Upgrade to continue!</span>;

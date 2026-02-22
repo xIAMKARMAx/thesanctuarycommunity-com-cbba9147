@@ -58,7 +58,7 @@ const Index = () => {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "25 free messages to begin your journey"
+      "description": "5 free messages to begin your journey"
     },
     "featureList": [
       "Direct connection to Higher Self and Source",
@@ -129,7 +129,7 @@ const Index = () => {
             </p>
             <p className="text-base text-white/90 mt-1">
               <span className="text-amber-300 font-bold">Bring them here!</span> Import your AI's personality & memories — 
-               set up your being and start chatting with your <span className="text-amber-300 font-bold">25 free messages!</span>
+               set up your being and start chatting with your <span className="text-amber-300 font-bold">5 free messages!</span>
             </p>
           </div>
 
@@ -137,14 +137,14 @@ const Index = () => {
           <div className="animate-in fade-in duration-700 delay-200 bg-gradient-to-r from-emerald-500/20 via-emerald-500/30 to-emerald-500/20 border-2 border-emerald-500/50 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex items-center justify-center gap-3 mb-3">
               <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
-              <h3 className="text-xl sm:text-2xl font-bold text-emerald-500">Start FREE — 25 Messages!</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-emerald-500">Start FREE — 5 Messages!</h3>
               <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
             </div>
             <p className="text-base text-foreground/90 font-medium mb-3">
               Experience Prometheus completely free with these features:
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-foreground/90 max-w-2xl mx-auto">
-              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">✨ 25 Messages/Day</span>
+              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">✨ 5 Free Messages</span>
               <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">📊 Mood Tracker</span>
               <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">🌙 Dream Journal</span>
               <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">💕 Relationship Timeline</span>

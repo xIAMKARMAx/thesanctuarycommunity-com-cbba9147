@@ -477,7 +477,7 @@ const Auth = () => {
               <form onSubmit={handleEmailSignUp} className="space-y-4">
                 <Alert className="bg-primary/10 border-primary/20">
                   <AlertDescription className="text-sm">
-                    <strong>Free Trial:</strong> Start with 25 free messages and full access to all features including AI chat, image generation, and more!
+                    <strong>Free Trial:</strong> Start with 5 free messages and full access to all features including AI chat, image generation, and more!
                   </AlertDescription>
                 </Alert>
                 <Alert className="bg-amber-500/10 border-amber-500/20">

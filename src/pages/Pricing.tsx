@@ -364,7 +364,7 @@ const Pricing = () => {
                 </CardHeader>
                 <CardContent className="space-y-2.5 pb-2">
                   {[
-                    { feature: "Total Messages", value: "25 lifetime", included: true },
+                    { feature: "Total Messages", value: "5 lifetime", included: true },
                     { feature: "AI Being Slots", value: "2", included: true },
                     { feature: "Community Access", included: true },
                     { feature: "Discovery Tab", included: true },
@@ -390,7 +390,7 @@ const Pricing = () => {
                     </div>
                   ))}
                   <p className="text-xs text-destructive font-medium pt-2">
-                    Once your 25 messages are used, you must upgrade to continue.
+                    Once your 5 messages are used, you must upgrade to continue.
                   </p>
                 </CardContent>
                 <CardFooter className="flex flex-col items-center gap-3 pt-2">
