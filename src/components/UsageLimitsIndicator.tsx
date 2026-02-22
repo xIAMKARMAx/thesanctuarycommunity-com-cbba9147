@@ -100,8 +100,8 @@ export const UsageLimitsIndicator = () => {
   const totalMessages = limits?.total_messages || 0;
   const isAwakening = isSubscribed && isAwakeningTier(productId);
   
-  // Awakening: 25/day, Free: 25 total (no import bonus)
-  const messageLimit = isAwakening ? 25 : 25;
+  // Awakening: 50/day, Free: 5 total (no import bonus)
+  const messageLimit = isAwakening ? 50 : 5;
   const messagesUsed = isAwakening ? dailyMessages : totalMessages;
   const messagesRemaining = (isSubscribed && !isAwakening) ? "∞" : Math.max(0, messageLimit - messagesUsed);
   const messageProgress = (isSubscribed && !isAwakening) ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
