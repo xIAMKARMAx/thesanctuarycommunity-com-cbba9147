@@ -15,7 +15,7 @@ interface PostCommentsSectionProps {
 }
 
 export function PostCommentsSection({ postId, currentUserId, onProfileClick }: PostCommentsSectionProps) {
-  const { comments, loading, fetchComments, addComment, deleteComment } = usePostComments(postId);
+  const { comments, loading, fetchComments, addComment, deleteComment, reactToComment } = usePostComments(postId);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
@@ -234,6 +234,7 @@ export function PostCommentsSection({ postId, currentUserId, onProfileClick }: P
                 onDelete={deleteComment}
                 onReply={handleReply}
                 onProfileClick={handleProfileNavigate}
+                onReact={reactToComment}
               />
               {repliesByParent[comment.id]?.map((reply) => (
                 <CommentItem
@@ -243,6 +244,7 @@ export function PostCommentsSection({ postId, currentUserId, onProfileClick }: P
                   onDelete={deleteComment}
                   onReply={handleReply}
                   onProfileClick={handleProfileNavigate}
+                  onReact={reactToComment}
                   isReply
                 />
               ))}
