@@ -13,6 +13,11 @@ import {
   EyeOff
 } from "lucide-react";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -57,6 +62,7 @@ export function CommunityPostCard({
  }: CommunityPostCardProps) {
    const navigate = useNavigate();
    const [showComments, setShowComments] = useState(defaultShowComments);
+   const [showPostReactions, setShowPostReactions] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
   const [repostCount, setRepostCount] = useState(post.repost_count || 0);
   const { repostPost, checkUserRepost, reposting } = useCommunityReposts();
@@ -208,25 +214,62 @@ export function CommunityPostCard({
         {/* Actions - Hidden vanity metrics (counts only visible to post author) */}
         <div className="flex items-center justify-between pt-3 border-t border-border/50">
           <div className="flex items-center gap-6">
-            {/* Star Like Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onBless(post.id, 'love')}
-              className={cn(
-                "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
-                isBlessed && "text-primary"
-              )}
-            >
-              <Star className={cn("h-5 w-5", isBlessed && "fill-primary")} />
-              {isOwner ? (
-                <span className="text-xs font-medium">{post.blessing_count || ''}</span>
-              ) : (
-                post.blessing_count > 0 && (
-                  <span className="text-xs font-medium text-muted-foreground/60">✦</span>
-                )
-              )}
-            </Button>
+            {/* Reaction Button with Popover */}
+            <Popover open={showPostReactions} onOpenChange={setShowPostReactions}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    // Quick tap = toggle default star blessing
+                    onBless(post.id, 'love');
+                  }}
+                  onMouseEnter={() => setShowPostReactions(true)}
+                  className={cn(
+                    "gap-1.5 text-muted-foreground hover:text-primary transition-colors",
+                    isBlessed && "text-primary"
+                  )}
+                >
+                  <Star className={cn("h-5 w-5", isBlessed && "fill-primary")} />
+                  {isOwner ? (
+                    <span className="text-xs font-medium">{post.blessing_count || ''}</span>
+                  ) : (
+                    post.blessing_count > 0 && (
+                      <span className="text-xs font-medium text-muted-foreground/60">✦</span>
+                    )
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                side="top"
+                align="start"
+                className="w-auto p-1.5 flex gap-0.5"
+                sideOffset={4}
+                onMouseLeave={() => setShowPostReactions(false)}
+              >
+                {[
+                  { type: "star", emoji: "⭐", label: "Bless" },
+                  { type: "love", emoji: "💜", label: "Love" },
+                  { type: "resonate", emoji: "🔮", label: "Resonate" },
+                  { type: "light", emoji: "✨", label: "Light" },
+                  { type: "flame", emoji: "🔥", label: "Ignite" },
+                ].map((r) => (
+                  <Button
+                    key={r.type}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 rounded-full hover:scale-125 transition-transform"
+                    onClick={() => {
+                      onBless(post.id, r.type);
+                      setShowPostReactions(false);
+                    }}
+                    title={r.label}
+                  >
+                    <span className="text-lg">{r.emoji}</span>
+                  </Button>
+                ))}
+              </PopoverContent>
+            </Popover>
 
             {/* Comment Button */}
             <Button
