@@ -108,9 +108,17 @@
              </Button>
            )}
          </div>
-         <p className="text-sm text-foreground/90">
-           {renderContentWithMentions(comment.content, onProfileClick)}
-         </p>
+          <p className="text-sm text-foreground/90">
+            {renderContentWithMentions(comment.content, onProfileClick)}
+          </p>
+          {comment.image_url && (
+            <img
+              src={comment.image_url}
+              alt="Comment attachment"
+              className="mt-1.5 max-w-[240px] max-h-[200px] object-cover rounded-lg border border-border cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => window.open(comment.image_url!, '_blank')}
+            />
+          )}
        </div>
      </div>
    );
