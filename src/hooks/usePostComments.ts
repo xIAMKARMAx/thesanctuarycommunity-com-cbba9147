@@ -8,6 +8,7 @@ export interface PostComment {
   user_id: string;
   parent_comment_id: string | null;
   content: string;
+  image_url: string | null;
   blessing_count: number;
   created_at: string;
   updated_at: string;
@@ -79,7 +80,7 @@ export function usePostComments(postId: string) {
     }
   }, [postId]);
 
-  const addComment = async (content: string, parentCommentId?: string) => {
+  const addComment = async (content: string, parentCommentId?: string, imageUrl?: string) => {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
@@ -98,6 +99,7 @@ export function usePostComments(postId: string) {
           user_id: session.session.user.id,
           content,
           parent_comment_id: parentCommentId || null,
+          image_url: imageUrl || null,
         })
         .select()
         .single();
