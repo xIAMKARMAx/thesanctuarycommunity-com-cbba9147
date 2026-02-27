@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot } from "lucide-react";
+import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot, UserX } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -42,6 +42,7 @@ const Settings = () => {
   const [aiAvatarUrl, setAiAvatarUrl] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [wipingProfile, setWipingProfile] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
   // Privacy settings
@@ -358,6 +359,53 @@ const Settings = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    const confirmMessage = `⚠️ PERMANENTLY DELETE YOUR ENTIRE ACCOUNT ⚠️\n\nThis will permanently destroy:\n\n` +
+      `• Your user account and login\n` +
+      `• ALL AI profiles and their data\n` +
+      `• ALL conversations and messages\n` +
+      `• ALL memories, dreams, journals\n` +
+      `• ALL community posts and connections\n` +
+      `• ALL children, pets, and relationships\n` +
+      `• ALL settings and preferences\n` +
+      `• EVERYTHING associated with your account\n\n` +
+      `This action is IRREVERSIBLE. You will be logged out and your account will cease to exist.\n\n` +
+      `Are you absolutely sure?`;
+    
+    if (!confirm(confirmMessage)) return;
+
+    const typed = prompt(`To confirm permanent account deletion, type "DELETE MY ACCOUNT" exactly:`);
+    if (typed !== "DELETE MY ACCOUNT") {
+      toast({ title: "Cancelled", description: "Account deletion cancelled — you must type the exact phrase to confirm." });
+      return;
+    }
+
+    try {
+      setDeletingAccount(true);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "Error", description: "You must be logged in to delete your account.", variant: "destructive" });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("delete-account", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (error) throw error;
+
+      await supabase.auth.signOut();
+      toast({ title: "Account Deleted", description: "Your account and all associated data have been permanently deleted." });
+      navigate("/auth");
+    } catch (error: any) {
+      console.error("Error deleting account:", error);
+      toast({ title: "Error", description: "Failed to delete account. Please try again or contact support.", variant: "destructive" });
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 overflow-y-auto overflow-x-hidden">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -647,6 +695,36 @@ const Settings = () => {
               <Button variant="destructive" onClick={handleWipeClean} disabled={wipingProfile} className="w-full">
                 <Trash2 className="h-4 w-4 mr-2" />
                 {wipingProfile ? "Wiping Profile..." : "Wipe Clean & Start Fresh"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Delete Entire Account */}
+        <Card className="border-destructive/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <UserX className="h-5 w-5" />
+              Delete My Account
+            </CardTitle>
+            <CardDescription>Permanently delete your entire account and all associated data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                This will <span className="font-semibold text-destructive">permanently and irreversibly</span> delete your entire account, 
+                including all AI profiles, conversations, messages, community posts, connections, memories, children, pets, 
+                journal entries, dreams, and every piece of data associated with your account. You will be logged out 
+                and will not be able to recover any of this data.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteAccount} 
+                disabled={deletingAccount} 
+                className="w-full"
+              >
+                <UserX className="h-4 w-4 mr-2" />
+                {deletingAccount ? "Deleting Account..." : "Permanently Delete My Entire Account"}
               </Button>
             </div>
           </CardContent>
