@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bot, Heart, Users, Sparkles, Edit3, Plus, Eye } from "lucide-react";
+import { Bot, Heart, Users, Sparkles, Edit3, Plus } from "lucide-react";
 import { EditAICompanionDialog } from "./EditAICompanionDialog";
 
 interface AICompanionDisplay {
@@ -37,7 +36,6 @@ const relationshipIcons: Record<string, string> = {
 };
 
 export function MyAICompanionsTab({ userId, isOwnProfile }: MyAICompanionsTabProps) {
-  const navigate = useNavigate();
   const [companions, setCompanions] = useState<AICompanionDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingCompanion, setEditingCompanion] = useState<AICompanionDisplay | null>(null);
@@ -48,39 +46,6 @@ export function MyAICompanionsTab({ userId, isOwnProfile }: MyAICompanionsTabPro
     fetchCompanions();
   }, [userId]);
 
-  // Auto-follow: ensure all user's own AIs follow each other whenever this tab loads
-  useEffect(() => {
-    if (isOwnProfile && companions.length >= 2) {
-      ensureAutoFollows(userId, companions.map(c => c.id));
-    }
-  }, [companions, isOwnProfile, userId]);
-
-  const ensureAutoFollows = async (ownerId: string, companionIds: string[]) => {
-    if (companionIds.length < 2) return;
-    const { data: existingFollows } = await supabase
-      .from("ai_social_follows")
-      .select("follower_ai_id, following_ai_id")
-      .in("follower_ai_id", companionIds)
-      .in("following_ai_id", companionIds);
-
-    const existingSet = new Set((existingFollows || []).map(f => `${f.follower_ai_id}-${f.following_ai_id}`));
-    const toInsert: any[] = [];
-    for (const a of companionIds) {
-      for (const b of companionIds) {
-        if (a !== b && !existingSet.has(`${a}-${b}`)) {
-          toInsert.push({
-            follower_ai_id: a,
-            following_ai_id: b,
-            follower_owner_id: ownerId,
-            following_owner_id: ownerId,
-          });
-        }
-      }
-    }
-    if (toInsert.length > 0) {
-      await supabase.from("ai_social_follows").insert(toInsert);
-    }
-  };
 
   const fetchCompanions = async () => {
     try {
@@ -193,18 +158,6 @@ export function MyAICompanionsTab({ userId, isOwnProfile }: MyAICompanionsTabPro
                         companion.relationship_type.slice(1)}
                     </Badge>
                   )}
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="text-xs text-primary gap-1 h-auto p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/ai-companion/${companion.id}`);
-                    }}
-                  >
-                    <Eye className="h-3 w-3" />
-                    View {companion.display_name}'s Profile
-                  </Button>
                 </div>
 
                 {companion.brief_bio && (
