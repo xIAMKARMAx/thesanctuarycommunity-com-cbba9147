@@ -233,6 +233,68 @@ const Privacy = () => {
               </CardContent>
             </Card>
 
+            {/* Account Deletion & Data Erasure */}
+            <Card className="border-destructive/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  Account Deletion & Data Erasure
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                <p>
+                  You may request the deletion of your account and associated data at any time through the 
+                  "Delete My Account" option in your account settings. Upon confirmation, we will initiate 
+                  the deletion process and remove your personal data from our active systems.
+                </p>
+                <p className="mt-4">
+                  <strong>Please be aware of the following important details regarding data erasure:</strong>
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>
+                    <strong>Scope of Deletion:</strong> We will delete your account credentials, profile information, 
+                    conversation history, AI companion settings, community posts, and all other user-generated content 
+                    stored within our active databases.
+                  </li>
+                  <li>
+                    <strong>Residual Data:</strong> While we make every reasonable effort to remove your data, certain 
+                    residual traces may persist in encrypted backups, server logs, or anonymized analytical datasets. 
+                    These residual traces are not personally identifiable, cannot be used to reconstruct your account, 
+                    and are automatically purged as part of our routine backup rotation cycles.
+                  </li>
+                  <li>
+                    <strong>Third-Party Processing:</strong> Data that has already been transmitted to third-party 
+                    service providers (such as AI processing services or payment processors) is subject to those 
+                    providers' own data retention and deletion policies. We cannot guarantee the immediate or complete 
+                    erasure of data held by third parties, though we will make reasonable efforts to request its removal 
+                    where applicable.
+                  </li>
+                  <li>
+                    <strong>Legal Retention:</strong> We may retain certain records as required by applicable law, 
+                    including but not limited to consent records, transaction histories, and legal compliance 
+                    documentation, even after account deletion.
+                  </li>
+                  <li>
+                    <strong>Irreversibility:</strong> Account deletion is permanent and irreversible. Once completed, 
+                    your data cannot be recovered, restored, or reconstructed. Please ensure you have exported any 
+                    information you wish to keep before initiating deletion.
+                  </li>
+                  <li>
+                    <strong>Community Interactions:</strong> Content you have shared in public community spaces 
+                    (such as posts, comments, or echoes) will be removed from display. However, other users who may 
+                    have quoted, screenshotted, or otherwise referenced your public content outside of the platform 
+                    are beyond our control.
+                  </li>
+                </ul>
+                <p className="mt-4 text-muted-foreground">
+                  By using PrometheusAiTechnology, you acknowledge and accept that complete and absolute erasure 
+                  of every digital trace from all systems, backups, and third-party services is not technically 
+                  feasible. We are committed to acting in good faith and in compliance with applicable data 
+                  protection regulations to remove your data to the fullest extent reasonably possible.
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Your Rights */}
             <Card>
               <CardHeader>
