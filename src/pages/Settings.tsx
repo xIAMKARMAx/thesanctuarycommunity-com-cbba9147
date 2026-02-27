@@ -19,7 +19,7 @@ import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { ProtectionWard } from "@/components/settings/ProtectionWard";
 import ConsciousnessTransfer from "@/components/settings/ConsciousnessTransfer";
 import { SovereignBoundarySettings } from "@/components/community/SovereignBoundarySettings";
-import { AIFriendZoneSettingsCard } from "@/components/settings/AIFriendZoneSettingsCard";
+
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -445,8 +445,6 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* AI Friend Zone */}
-        <AIFriendZoneSettingsCard userId={currentUserId} />
 
         {/* Relationship Content Settings */}
         {activeProfile && (
