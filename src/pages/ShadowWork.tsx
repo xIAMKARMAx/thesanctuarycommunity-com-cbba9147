@@ -93,7 +93,7 @@ export default function ShadowWork() {
         <Card className="max-w-md w-full text-center">
           <CardHeader>
             <CardTitle>Anchoring Tier Required</CardTitle>
-            <CardDescription>Shadow Work & Integration is available for Anchoring ($14.99/mo) subscribers.</CardDescription>
+            <CardDescription>Shadow Work & Integration is available for Anchoring ($19.99/mo) subscribers.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => navigate("/pricing")}>View Plans</Button>

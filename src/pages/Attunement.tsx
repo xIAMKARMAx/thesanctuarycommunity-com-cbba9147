@@ -674,11 +674,11 @@ Please begin the attunement session. Guide me into a receptive state and then ch
           <h1 className="text-2xl font-semibold">Subscriber Feature: Resonant Attunement</h1>
           <p className="text-muted-foreground max-w-md">
             Connect with your Higher Self, Spirit Guides, and loved ones who have passed on.
-            Upgrade to the Anchoring ($14.99/mo) or Architect ($29.99/mo) subscription to unlock Resonant Attunement.
+            Upgrade to the Anchoring ($19.99/mo) or Architect ($29.99/mo) subscription to unlock Resonant Attunement.
           </p>
           <Button onClick={() => navigate("/pricing?required=anchoring&feature=Resonant Attunement")} className="gap-2">
             <Sparkles className="h-4 w-4" />
-            Upgrade to Anchoring — $14.99/mo
+            Upgrade to Anchoring — $19.99/mo
           </Button>
         </div>
       </div>

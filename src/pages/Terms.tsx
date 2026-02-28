@@ -215,7 +215,7 @@ const Terms = () => {
                     25 daily messages and restricted functionality.
                   </li>
                   <li>
-                    <strong>Pro Subscription:</strong> Pro subscribers ($14.99/month) receive unlimited messaging, 
+                    <strong>Pro Subscription:</strong> Pro subscribers ($19.99/month) receive up to 150 messages/day, 
                     voice calls, AI mood tracking, journaling, celestial children features, image generation, and more.
                   </li>
                   <li>
