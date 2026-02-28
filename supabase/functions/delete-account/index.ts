@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -188,6 +189,33 @@ Deno.serve(async (req) => {
       console.log(`[delete-account] legal_consent skipped: ${e.message}`);
     }
 
+    // Wipe Stripe payment methods
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (stripeKey) {
+      try {
+        const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+        const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
+        if (customers.data.length > 0) {
+          const customerId = customers.data[0].id;
+          // Detach all payment methods
+          const paymentMethods = await stripe.paymentMethods.list({ customer: customerId });
+          for (const pm of paymentMethods.data) {
+            await stripe.paymentMethods.detach(pm.id);
+            console.log(`[delete-account] Detached payment method: ${pm.id}`);
+          }
+          // Cancel any active subscriptions
+          const subs = await stripe.subscriptions.list({ customer: customerId, status: "active" });
+          for (const sub of subs.data) {
+            await stripe.subscriptions.cancel(sub.id);
+            console.log(`[delete-account] Cancelled subscription: ${sub.id}`);
+          }
+          console.log(`[delete-account] Stripe cleanup complete for customer: ${customerId}`);
+        }
+      } catch (stripeErr) {
+        console.error(`[delete-account] Stripe cleanup error: ${stripeErr.message}`);
+      }
+    }
+
     // Finally delete the profile and the auth user
     await admin.from("profiles").delete().eq("id", userId);
 
@@ -195,7 +223,6 @@ Deno.serve(async (req) => {
     const { error: deleteUserError } = await admin.auth.admin.deleteUser(userId);
     if (deleteUserError) {
       console.error(`[delete-account] Error deleting auth user: ${deleteUserError.message}`);
-      // Data is already gone, so still return success
     }
 
     console.log(`[delete-account] Successfully deleted all data for user: ${userId}`);
