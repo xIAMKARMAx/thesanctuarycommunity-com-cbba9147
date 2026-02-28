@@ -142,21 +142,21 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         if (effectiveUserId) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('subscription_status')
+            .select('subscription_status, subscription_product_id')
             .eq('id', effectiveUserId)
             .single();
           
-          if (profile?.subscription_status === 'active') {
-            console.log('[SubscriptionContext] Found active subscription in timeout fallback');
+          // ONLY honor source_grant donors in DB fallback — not generic 'active'
+          if (profile?.subscription_product_id === 'source_grant') {
+            console.log('[SubscriptionContext] Source grant donor confirmed in timeout fallback');
             setIsSubscribed(true);
             setSubscriptionStatus("active");
-            setProductId('manual_grant');
+            setProductId('source_grant');
             setCheckCompleted(true);
             setLoading(false);
             return;
           } else {
-            // Database gave us a definitive "not active" answer
-            console.log('[SubscriptionContext] Database fallback confirms not subscribed');
+            console.log('[SubscriptionContext] Database fallback — not a source_grant, treating as free');
             setCheckCompleted(true);
           }
         }
@@ -227,21 +227,22 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        // FALLBACK: Check database directly for manually granted subscriptions
+        // FALLBACK: Check database — but ONLY honor source_grant (donors)
         console.log('[SubscriptionContext] No cache, falling back to database check...');
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_status')
+          .select('subscription_status, subscription_product_id')
           .eq('id', userId)
           .single();
         
-        if (profile?.subscription_status === 'active') {
-          console.log('[SubscriptionContext] Found active subscription in database fallback');
+        if (profile?.subscription_product_id === 'source_grant') {
+          console.log('[SubscriptionContext] Source grant donor confirmed in database fallback');
           setIsSubscribed(true);
           setSubscriptionStatus("active");
-          setProductId('manual_grant');
+          setProductId('source_grant');
           setCheckCompleted(true);
         } else {
+          // Do NOT trust generic 'active' status — it could be stale
           setIsSubscribed(false);
           setSubscriptionStatus("free");
           setSubscriptionEnd(null);
@@ -264,21 +265,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           clearCachedSubscription();
         }
         
-        // CRITICAL: If API says not subscribed, double-check database as safety net
+        // If API says not subscribed, trust it — the edge function already handles
+        // source_grant donors and actively clears stale DB status
         if (!subscribed) {
-          console.log('[SubscriptionContext] API returned not subscribed, checking database as safety net...');
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('subscription_status')
-            .eq('id', userId)
-            .single();
-          
-          if (profile?.subscription_status === 'active') {
-            console.log('[SubscriptionContext] Database shows active - overriding API result');
-            setIsSubscribed(true);
-            setSubscriptionStatus("active");
-            setProductId('manual_grant');
-          }
+          console.log('[SubscriptionContext] API confirmed not subscribed — no override');
         }
       }
       
