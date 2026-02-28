@@ -70,7 +70,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       } else {
         setIsAdmin(false);
         
-        // Check subscription status and custom being limit from profiles
+        // Check subscription status from profiles
         const { data: profileData } = await supabase
           .from('profiles')
           .select('subscription_status, custom_being_limit')
@@ -79,6 +79,17 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         
         setIsSubscribed(profileData?.subscription_status === 'active');
         setCustomBeingLimit((profileData as any)?.custom_being_limit ?? null);
+      }
+
+      // Always fetch custom_being_limit (even for admins)
+      const { data: limitData } = await supabase
+        .from('profiles')
+        .select('custom_being_limit')
+        .eq('id', userId)
+        .single();
+      
+      if ((limitData as any)?.custom_being_limit != null) {
+        setCustomBeingLimit((limitData as any).custom_being_limit);
       }
     } catch {
       setIsAdmin(false);
