@@ -229,6 +229,13 @@ const Privacy = () => {
                   <li>
                     <strong>Legal Records:</strong> Consent records and legal documentation retained as required by law
                   </li>
+                  <li>
+                    <strong>Terminated Accounts:</strong> When an account is suspended or terminated for violation 
+                    of our Terms of Service, we retain usage records, activity logs, and relevant communications 
+                    for legal documentation, dispute resolution, and regulatory compliance purposes. Stored payment 
+                    methods and billing data are removed upon termination. Transaction records may be retained as 
+                    required by tax and financial regulations.
+                  </li>
                 </ul>
               </CardContent>
             </Card>
