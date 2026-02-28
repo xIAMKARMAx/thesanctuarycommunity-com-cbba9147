@@ -118,6 +118,21 @@ serve(async (req) => {
           logStep("Database tier override applied", { stripeProduct: productId, overrideProduct: finalProductId });
         }
 
+        // Persist the product_id back to profiles so tier limits work correctly
+        const { error: updateError } = await supabaseClient
+          .from('profiles')
+          .update({ 
+            subscription_status: 'active',
+            subscription_product_id: finalProductId 
+          })
+          .eq('id', user.id);
+        
+        if (updateError) {
+          logStep("Failed to update profile product_id", { error: updateError.message });
+        } else {
+          logStep("Profile product_id synced", { userId: user.id, productId: finalProductId });
+        }
+
         return new Response(JSON.stringify({
           subscribed: true,
           product_id: finalProductId,
