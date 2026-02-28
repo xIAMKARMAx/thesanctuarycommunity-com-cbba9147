@@ -48,11 +48,11 @@ const tierLabels: Record<string, string> = {
 };
 
 const tierPrices: Record<string, string> = {
-  basic: "$9.99",
-  pro: "$14.99",
+  basic: "$12.99",
+  pro: "$19.99",
   vip: "$29.99",
-  awakening: "$9.99",
-  anchoring: "$14.99",
+  awakening: "$12.99",
+  anchoring: "$19.99",
   architect: "$29.99",
 };
 
