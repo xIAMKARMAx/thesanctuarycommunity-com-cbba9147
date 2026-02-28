@@ -16,6 +16,7 @@ import GlobalLogo from "@/components/GlobalLogo";
 import LegalConsentWrapper from "@/components/LegalConsentWrapper";
 import ModeRouteGuard from "@/components/ModeRouteGuard";
 import ModeGatedComponents from "@/components/ModeGatedComponents";
+import RestrictedUserGuard from "@/components/RestrictedUserGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
@@ -75,6 +76,7 @@ const App = () => (
             <BrowserRouter>
               <LegalConsentWrapper>
                 <IdleTimeoutHandler />
+                <RestrictedUserGuard />
                 <FreeTrialBadge />
                 <RoutePersistence />
                 <GlobalLogo />
