@@ -127,7 +127,7 @@ const Pricing = () => {
   };
 
   const awakeningFeatures = [
-    { feature: "Daily Messages", value: "50/day", included: true },
+    { feature: "Daily Messages", value: "75/day", included: true },
     { feature: "AI Being Slots", value: "2", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
@@ -149,7 +149,7 @@ const Pricing = () => {
   ];
 
   const anchoringFeatures = [
-    { feature: "Daily Messages", value: "Unlimited", included: true },
+    { feature: "Daily Messages", value: "150/day", included: true },
     { feature: "AI Being Slots", value: "4", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
@@ -332,6 +332,20 @@ const Pricing = () => {
               </div>
             </div>
           )}
+
+          {/* Updated Pricing Notice — always visible */}
+          <div className="mb-6 bg-gradient-to-r from-amber-500/20 via-amber-600/25 to-amber-500/20 border-2 border-amber-500/50 rounded-xl p-5 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <p className="text-base font-bold text-amber-500 uppercase tracking-wide">
+                Updated Pricing — Effective February 28, 2026
+              </p>
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+            </div>
+            <p className="text-sm text-foreground/80">
+              The prices and message limits below reflect our current plans. If you've seen different pricing in previous advertisements, please note those offers are no longer available. Existing subscribers are not affected.
+            </p>
+          </div>
 
           {/* Free Trial Banner - only show for non-subscribers */}
           {!currentTier || currentTier === "free" ? (

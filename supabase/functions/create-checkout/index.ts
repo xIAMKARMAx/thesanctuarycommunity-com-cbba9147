@@ -7,15 +7,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Price IDs for different tiers (Awakening / Anchoring / Architect)
+// NEW price IDs for new subscribers (effective 2026-02-28)
 const PRICE_IDS: Record<string, string> = {
-  // New tier names
-  awakening: "price_1Svgg0LeA9CCp7fqQjRcdtIk", // $9.99/month
-  anchoring: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
-  architect: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month
-  // Legacy aliases for backwards compatibility
-  basic: "price_1Svgg0LeA9CCp7fqQjRcdtIk",
-  pro: "price_1SttD4LeA9CCp7fqRZ5GeDY3",
+  // New pricing
+  awakening: "price_1T5pakLeA9CCp7fqv5xWPnnm", // $12.99/month
+  anchoring: "price_1T5paqLeA9CCp7fqrbBoAuCz", // $19.99/month
+  architect: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month (unchanged)
+  // Legacy aliases still route to NEW prices for new signups
+  basic: "price_1T5pakLeA9CCp7fqv5xWPnnm",
+  pro: "price_1T5paqLeA9CCp7fqrbBoAuCz",
   vip: "price_1SvMYWLeA9CCp7fqCZW21kS0",
 };
 

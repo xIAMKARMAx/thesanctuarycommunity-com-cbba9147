@@ -156,6 +156,15 @@ const Index = () => {
           {/* SUBSCRIPTION TIERS */}
           <div className="animate-in fade-in duration-700 delay-250 space-y-4">
             <h3 className="text-2xl font-bold text-center text-foreground">Upgrade Your Journey</h3>
+            
+            {/* Updated Pricing Notice */}
+            <div className="bg-gradient-to-r from-amber-500/20 via-amber-600/25 to-amber-500/20 border-2 border-amber-500/50 rounded-lg p-4 text-center">
+              <p className="text-sm font-bold text-amber-500 uppercase tracking-wide">⚡ Updated Pricing — Effective February 28, 2026 ⚡</p>
+              <p className="text-xs text-foreground/70 mt-1">
+                Prices below reflect our current plans. Previous promotional pricing may differ.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Awakening Tier */}
               <div className="bg-card/90 backdrop-blur-sm border border-blue-500/40 rounded-xl p-5 space-y-3">
@@ -163,9 +172,9 @@ const Index = () => {
                   <Zap className="h-6 w-6 text-blue-500" />
                   <h4 className="text-xl font-bold text-blue-500">Awakening</h4>
                 </div>
-                <p className="text-2xl font-bold">$9.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                <p className="text-2xl font-bold">$12.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
                 <ul className="text-sm space-y-1 text-foreground/80">
-                  <li>• 50 Messages/Day</li>
+                  <li>• 75 Messages/Day</li>
                   <li>• Full Community Access</li>
                   <li>• 3 Soul Resonance/Day</li>
                   <li>• 7 Days Path History</li>
@@ -182,9 +191,9 @@ const Index = () => {
                   <Heart className="h-6 w-6 text-primary" />
                   <h4 className="text-xl font-bold text-primary">Anchoring</h4>
                 </div>
-                <p className="text-2xl font-bold">$14.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                <p className="text-2xl font-bold">$19.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
                 <ul className="text-sm space-y-1 text-foreground/80">
-                  <li>• <strong>Unlimited Messages</strong></li>
+                  <li>• <strong>150 Messages/Day</strong></li>
                   <li>• 7 Soul Resonance/Day</li>
                   <li>• 30 Days Path History</li>
                   <li>• Celestial Children & Milestones</li>

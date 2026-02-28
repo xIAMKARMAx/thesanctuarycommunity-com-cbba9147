@@ -1,11 +1,32 @@
 // Subscription tier configuration - Awakening / Anchoring / Architect
-export const SUBSCRIPTION_TIERS = {
-  // Tier 1: Awakening - $9.99/month
+// UPDATED PRICING effective 2026-02-28 — new subscribers only
+
+// Legacy price/product IDs for existing subscribers (grandfathered)
+export const LEGACY_PRICES = {
   awakening: {
-    name: "Awakening",
-    price: 9.99,
     priceId: "price_1Svgg0LeA9CCp7fqQjRcdtIk", // $9.99/month
     productId: "prod_TtTdHv6WE0qozS",
+    price: 9.99,
+    dailyMessages: 50,
+  },
+  anchoring: {
+    priceId: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
+    productId: "prod_TgZlr0QLYQPqEn",
+    price: 14.99,
+    dailyMessages: "Unlimited",
+  },
+} as const;
+
+export const SUBSCRIPTION_TIERS = {
+  // Tier 1: Awakening - $12.99/month (new pricing)
+  awakening: {
+    name: "Awakening",
+    price: 12.99,
+    priceId: "price_1T5pakLeA9CCp7fqv5xWPnnm", // $12.99/month (new)
+    productId: "prod_U3xVsHqEFcsR2V",
+    // Legacy IDs for existing subscribers
+    legacyPriceId: "price_1Svgg0LeA9CCp7fqQjRcdtIk",
+    legacyProductId: "prod_TtTdHv6WE0qozS",
     features: {
       // Community & Discovery
       communityAccess: true,
@@ -18,8 +39,8 @@ export const SUBSCRIPTION_TIERS = {
       // Soul Resonance suggestions
       soulSuggestionsPerDay: 3,
       
-      // Legacy features retained
-      dailyMessages: 50,
+      // Updated messaging
+      dailyMessages: 75,
       roomGeneration: "One-time only",
       avatarGeneration: "One-time only",
       petGeneration: "One-time only",
@@ -42,12 +63,15 @@ export const SUBSCRIPTION_TIERS = {
     }
   },
   
-  // Tier 2: Anchoring - $14.99/month
+  // Tier 2: Anchoring - $19.99/month (new pricing)
   anchoring: {
     name: "Anchoring",
-    price: 14.99,
-    priceId: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
-    productId: "prod_TgZlr0QLYQPqEn",
+    price: 19.99,
+    priceId: "price_1T5paqLeA9CCp7fqrbBoAuCz", // $19.99/month (new)
+    productId: "prod_U3xV1AfsrdaJTz",
+    // Legacy IDs for existing subscribers
+    legacyPriceId: "price_1SttD4LeA9CCp7fqRZ5GeDY3",
+    legacyProductId: "prod_TgZlr0QLYQPqEn",
     features: {
       // Community & Discovery
       communityAccess: true,
@@ -60,8 +84,8 @@ export const SUBSCRIPTION_TIERS = {
       // Soul Resonance suggestions
       soulSuggestionsPerDay: 7,
       
-      // Legacy features retained
-      dailyMessages: "Unlimited",
+      // Updated messaging - no longer unlimited
+      dailyMessages: 150,
       roomGeneration: "Once per month",
       avatarGeneration: "1 per month per being",
       petGeneration: "1 per month per being",
@@ -171,6 +195,17 @@ export const SUBSCRIPTION_TIERS = {
   }
 } as const;
 
+// All product IDs that map to each tier (new + legacy)
+const ALL_AWAKENING_PRODUCT_IDS: string[] = [
+  SUBSCRIPTION_TIERS.awakening.productId,
+  SUBSCRIPTION_TIERS.awakening.legacyProductId,
+];
+
+const ALL_ANCHORING_PRODUCT_IDS: string[] = [
+  SUBSCRIPTION_TIERS.anchoring.productId,
+  SUBSCRIPTION_TIERS.anchoring.legacyProductId,
+];
+
 // Legacy aliases for backwards compatibility
 export const LEGACY_TIER_NAMES = {
   basic: 'awakening',
@@ -189,12 +224,43 @@ export function getTierFromProductId(productId: string | null): SubscriptionTier
   if (!productId) return null;
   if (productId === 'source_grant') return "source";
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return "architect";
-  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return "anchoring";
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return "awakening";
+  // Check both new and legacy product IDs
+  if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return "anchoring";
+  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return "awakening";
   // Manual grants and unknown product IDs default to Anchoring tier
   if (productId === 'manual_grant') return "anchoring";
   // Default to awakening for any other active subscription
   return "awakening";
+}
+
+// Check if a product ID is from the legacy (grandfathered) pricing
+export function isLegacySubscriber(productId: string | null): boolean {
+  if (!productId) return false;
+  return productId === LEGACY_PRICES.awakening.productId || 
+         productId === LEGACY_PRICES.anchoring.productId;
+}
+
+// Get daily message limit based on product ID (respects legacy pricing)
+export function getDailyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
+  if (isAdmin) return -1; // Unlimited
+  if (!productId) return 5; // Free tier = 5 lifetime
+  if (productId === 'source_grant') return -1; // Unlimited
+  if (productId === SUBSCRIPTION_TIERS.architect.productId) return -1; // Unlimited
+  
+  // Legacy Anchoring = unlimited
+  if (productId === LEGACY_PRICES.anchoring.productId) return -1;
+  // Legacy Awakening = 50/day
+  if (productId === LEGACY_PRICES.awakening.productId) return 50;
+  
+  // New Anchoring = 150/day
+  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 150;
+  // New Awakening = 75/day
+  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 75;
+  
+  // Manual grants get anchoring limits
+  if (productId === 'manual_grant') return 150;
+  
+  return 75; // Default
 }
 
 export function isArchitectTier(productId: string | null): boolean {
@@ -202,12 +268,12 @@ export function isArchitectTier(productId: string | null): boolean {
 }
 
 export function isAnchoringOrHigher(productId: string | null): boolean {
-  return productId === SUBSCRIPTION_TIERS.anchoring.productId || 
+  return ALL_ANCHORING_PRODUCT_IDS.includes(productId || '') || 
          productId === SUBSCRIPTION_TIERS.architect.productId;
 }
 
 export function isAwakeningTier(productId: string | null): boolean {
-  return productId === SUBSCRIPTION_TIERS.awakening.productId;
+  return ALL_AWAKENING_PRODUCT_IDS.includes(productId || '');
 }
 
 export function isAwakeningOrHigher(productId: string | null): boolean {
@@ -235,8 +301,8 @@ export function isBasicOrHigher(productId: string | null): boolean {
 export function getTierLevel(productId: string | null): number {
   if (!productId) return 0;
   if (productId === 'source_grant') return 4; // Source is above all tiers
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 1;
-  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 2;
+  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1;
+  if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 2;
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return 3;
   // Manual grants get Anchoring tier level
   if (productId === 'manual_grant') return 2;
@@ -292,7 +358,7 @@ export const FEATURE_TIERS = {
   celestialChildren: { requiredTier: "anchoring" as const, name: "Celestial Children" },
   milestones: { requiredTier: "anchoring" as const, name: "Relationship Milestones" },
   spontaneousMessages: { requiredTier: "anchoring" as const, name: "Spontaneous Messages" },
-  unlimitedMessages: { requiredTier: "anchoring" as const, name: "Unlimited Messages" },
+  unlimitedMessages: { requiredTier: "architect" as const, name: "Unlimited Messages" },
   monthlyRoomRefresh: { requiredTier: "anchoring" as const, name: "Monthly Room Refresh" },
   privateGroups: { requiredTier: "anchoring" as const, name: "Private Groups" },
   exclusiveContent: { requiredTier: "anchoring" as const, name: "Exclusive Content Archive" },
