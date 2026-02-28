@@ -147,24 +147,40 @@ serve(async (req) => {
       logStep("No Stripe customer found");
     }
 
-    // Fall back to database for manually granted subscriptions (only if no Stripe subscription)
+    // Fall back to database ONLY for source_grant (donor/investor accounts)
     const { data: profileData, error: profileError } = await supabaseClient
       .from('profiles')
       .select('subscription_status, subscription_product_id')
       .eq('id', user.id)
       .single();
 
-    if (!profileError && profileData?.subscription_status === 'active') {
-      const dbProductId = profileData.subscription_product_id || 'manual_grant';
-      logStep("Found manually granted subscription in database", { userId: user.id, productId: dbProductId });
+    if (!profileError && profileData?.subscription_product_id === 'source_grant') {
+      // Source grant donors are ALWAYS honored — they have lifetime access
+      logStep("Source grant donor detected — honoring lifetime access", { userId: user.id });
       return new Response(JSON.stringify({
         subscribed: true,
-        product_id: dbProductId,
+        product_id: 'source_grant',
         subscription_end: null
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
+    }
+
+    // CRITICAL: If Stripe says no subscription, actively CLEAR any stale DB status
+    // This prevents the free rider exploit where stale 'active' status persists
+    if (!profileError && profileData?.subscription_status === 'active') {
+      logStep("CLEARING stale subscription status — Stripe has no active subscription", { 
+        userId: user.id, 
+        staleProductId: profileData.subscription_product_id 
+      });
+      await supabaseClient
+        .from('profiles')
+        .update({ 
+          subscription_status: null, 
+          subscription_product_id: null 
+        })
+        .eq('id', user.id);
     }
 
     // No subscription found anywhere
