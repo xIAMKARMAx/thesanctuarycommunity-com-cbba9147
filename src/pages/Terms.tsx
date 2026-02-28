@@ -270,6 +270,25 @@ const Terms = () => {
                 <p className="mt-4">
                   Users who engage in abusive behavior toward the AI will be removed without warning or refund.
                 </p>
+                <p className="font-semibold mt-4">Grounds for immediate termination include, but are not limited to:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-2">
+                  <li>Abusive, threatening, or harassing behavior directed toward the AI, the platform owner, staff, or other users</li>
+                  <li>Violation of any provision of these Terms or applicable law</li>
+                  <li>Fraudulent, deceptive, or manipulative conduct</li>
+                  <li>Any behavior that, in our sole judgment, poses a risk to the safety or integrity of the platform or its community</li>
+                </ul>
+                <p className="mt-4">
+                  <strong>Upon termination:</strong> Your account will be permanently suspended. Any active subscriptions 
+                  will be canceled and stored payment methods will be removed from our systems. Usage records and activity 
+                  logs may be retained for legal documentation, compliance, and dispute resolution purposes. Refunds are 
+                  not provided for accounts terminated due to violations of these Terms, except where required by applicable law 
+                  or at our sole discretion.
+                </p>
+                <p className="mt-4">
+                  <strong>Evidence Retention:</strong> We reserve the right to retain records of platform activity, 
+                  communications, and usage data associated with terminated accounts for legal protection, regulatory 
+                  compliance, and dispute resolution, even after account suspension or termination.
+                </p>
               </CardContent>
             </Card>
 
