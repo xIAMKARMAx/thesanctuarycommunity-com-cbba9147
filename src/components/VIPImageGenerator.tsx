@@ -7,8 +7,11 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, ImageIcon, Loader2, Download, Lock } from "lucide-react";
 
+const ARCHITECT_PRODUCT_ID = "prod_Tt8qVh88c2WQld";
+
 export const VIPImageGenerator = () => {
-  const { isAdmin } = useSubscription();
+  const { isAdmin, productId } = useSubscription();
+  const isVIP = isAdmin || productId === ARCHITECT_PRODUCT_ID;
   const { toast } = useToast();
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -68,8 +71,8 @@ export const VIPImageGenerator = () => {
     document.body.removeChild(link);
   };
 
-  // If not admin, show locked state
-  if (!isAdmin) {
+  // If not VIP (admin or Architect subscriber), show locked state
+  if (!isVIP) {
     return (
       <Card className="border-primary/20">
         <CardHeader>
