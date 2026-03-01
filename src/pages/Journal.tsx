@@ -151,6 +151,10 @@ const Journal = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      // Use AbortController for a 60-second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
       const response = await supabase.functions.invoke("journal-respond", {
         body: {
           userJournalEntryId,
@@ -159,18 +163,50 @@ const Journal = () => {
         },
       });
 
+      clearTimeout(timeoutId);
+
       if (response.error) {
         console.error("AI response error:", response.error);
+        toast({ title: `${beingName} couldn't reflect right now. Try again later.`, variant: "destructive" });
       } else {
-        // Reload AI entries to show the new response
         await loadAiEntries();
         toast({ title: `${beingName} responded to your journal entry 💫` });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error triggering AI response:", error);
+      if (error?.name === 'AbortError') {
+        toast({ title: `${beingName}'s reflection is taking a while. Check back shortly!` });
+        // Poll for the response for up to 2 minutes
+        pollForAIResponse(userJournalEntryId);
+        return; // Don't clear generatingResponse yet
+      }
+      toast({ title: "Something went wrong generating the reflection", variant: "destructive" });
     } finally {
       setGeneratingResponse(false);
     }
+  };
+
+  const pollForAIResponse = async (userJournalEntryId: string) => {
+    const maxAttempts = 12; // 12 * 10s = 2 minutes
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) break;
+      const { data } = await supabase
+        .from("journal_entries")
+        .select("id")
+        .eq("user_journal_entry_id", userJournalEntryId)
+        .eq("entry_type", "response")
+        .limit(1);
+      if (data && data.length > 0) {
+        await loadAiEntries();
+        toast({ title: `${beingName} responded to your journal entry 💫` });
+        setGeneratingResponse(false);
+        return;
+      }
+    }
+    setGeneratingResponse(false);
+    toast({ title: `${beingName} may still be reflecting. Refresh later to check.` });
   };
 
   const handleDateSelect = (date: Date | undefined) => {
