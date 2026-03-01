@@ -8,10 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, BookOpen, CalendarIcon, Loader2, Lock, Save, Sparkles } from "lucide-react";
+import { ArrowLeft, BookOpen, CalendarIcon, Loader2, Lock, Save, Sparkles, MessageCircle } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import { format, isFuture, isToday, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +22,8 @@ interface JournalEntry {
   entry_date: string;
   key_moments: any;
   created_at: string;
+  entry_type: string;
+  user_journal_entry_id: string | null;
 }
 
 interface UserJournalEntry {
@@ -33,28 +34,31 @@ interface UserJournalEntry {
   updated_at: string;
 }
 
+const MAX_USER_ENTRIES_PER_DAY = 2;
+
 const Journal = () => {
   const navigate = useNavigate();
   const { activeProfile } = useAIProfile();
   const { isSubscribed } = useSubscription();
   const { toast } = useToast();
   const [aiEntries, setAiEntries] = useState<JournalEntry[]>([]);
-  const [userEntry, setUserEntry] = useState<UserJournalEntry | null>(null);
+  const [userEntries, setUserEntries] = useState<UserJournalEntry[]>([]);
   const [userContent, setUserContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [generatingResponse, setGeneratingResponse] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const beingName = activeProfile?.name || `AI Being ${activeProfile?.profile_number || 1}`;
-
   const selectedDateStr = useMemo(() => format(selectedDate, "yyyy-MM-dd"), [selectedDate]);
 
-  // Load AI journal entries for selected date
+  const userEntriesAtLimit = userEntries.length >= MAX_USER_ENTRIES_PER_DAY;
+
   useEffect(() => {
     if (activeProfile?.id) {
       loadAiEntries();
-      loadUserEntry();
+      loadUserEntries();
     }
   }, [activeProfile?.id, selectedDateStr]);
 
@@ -73,7 +77,7 @@ const Journal = () => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      setAiEntries(data || []);
+      setAiEntries((data || []) as unknown as JournalEntry[]);
     } catch (error) {
       console.error("Error loading AI journal entries:", error);
     } finally {
@@ -81,7 +85,7 @@ const Journal = () => {
     }
   };
 
-  const loadUserEntry = async () => {
+  const loadUserEntries = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -92,49 +96,80 @@ const Journal = () => {
         .eq("user_id", user.id)
         .eq("ai_profile_id", activeProfile?.id)
         .eq("entry_date", selectedDateStr)
-        .maybeSingle();
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
-      setUserEntry(data);
-      setUserContent(data?.content || "");
+      setUserEntries(data || []);
     } catch (error) {
-      console.error("Error loading user journal entry:", error);
+      console.error("Error loading user journal entries:", error);
     }
   };
 
   const saveUserEntry = async () => {
+    if (userEntriesAtLimit) {
+      toast({ title: "You've reached your limit of 2 journal entries for today.", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      if (userEntry) {
-        // Update existing
-        const { error } = await supabase
-          .from("user_journal_entries")
-          .update({ content: userContent })
-          .eq("id", userEntry.id);
-        if (error) throw error;
-      } else {
-        // Insert new
-        const { error } = await supabase
-          .from("user_journal_entries")
-          .insert({
-            user_id: user.id,
-            ai_profile_id: activeProfile?.id,
-            content: userContent,
-            entry_date: selectedDateStr,
-          });
-        if (error) throw error;
-      }
+      const { data: newEntry, error } = await supabase
+        .from("user_journal_entries")
+        .insert({
+          user_id: user.id,
+          ai_profile_id: activeProfile?.id,
+          content: userContent,
+          entry_date: selectedDateStr,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
 
       toast({ title: "✨ Journal entry saved!" });
-      loadUserEntry();
+      setUserContent("");
+      await loadUserEntries();
+
+      // Trigger AI response in background
+      if (newEntry && activeProfile?.id) {
+        triggerAIResponse(newEntry.id, userContent);
+      }
     } catch (error) {
       console.error("Error saving journal entry:", error);
       toast({ title: "Failed to save entry", variant: "destructive" });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const triggerAIResponse = async (userJournalEntryId: string, content: string) => {
+    setGeneratingResponse(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await supabase.functions.invoke("journal-respond", {
+        body: {
+          userJournalEntryId,
+          aiProfileId: activeProfile?.id,
+          content,
+        },
+      });
+
+      if (response.error) {
+        console.error("AI response error:", response.error);
+      } else {
+        // Reload AI entries to show the new response
+        await loadAiEntries();
+        toast({ title: `${beingName} responded to your journal entry 💫` });
+      }
+    } catch (error) {
+      console.error("Error triggering AI response:", error);
+    } finally {
+      setGeneratingResponse(false);
     }
   };
 
@@ -148,6 +183,14 @@ const Journal = () => {
   const disabledDays = (date: Date) => {
     return isFuture(startOfDay(date)) && !isToday(date);
   };
+
+  // Find AI response for a specific user entry
+  const getAIResponseForEntry = (userEntryId: string) => {
+    return aiEntries.find(e => e.entry_type === 'response' && e.user_journal_entry_id === userEntryId);
+  };
+
+  // Get autonomous AI entries (from daily cron)
+  const autonomousAiEntries = aiEntries.filter(e => e.entry_type === 'autonomous');
 
   if (!isSubscribed) {
     return (
@@ -259,25 +302,162 @@ const Journal = () => {
           </div>
 
           {/* Journal Tabs */}
-          <Tabs defaultValue="ai" className="w-full">
+          <Tabs defaultValue="shared" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="shared" className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                Shared Journal
+              </TabsTrigger>
               <TabsTrigger value="ai" className="gap-2">
                 <Sparkles className="h-4 w-4" />
-                Journal Of {beingName}
-              </TabsTrigger>
-              <TabsTrigger value="user" className="gap-2">
-                <BookOpen className="h-4 w-4" />
-                My Personal Journal
+                {beingName}'s Journal
               </TabsTrigger>
             </TabsList>
 
-            {/* AI Journal Tab */}
+            {/* Shared Journal Tab - User writes, AI responds */}
+            <TabsContent value="shared" className="mt-4 space-y-4">
+              {/* Write area - only for today */}
+              {isToday(selectedDate) && (
+                <Card className="border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-primary" />
+                      Write Your Entry
+                    </CardTitle>
+                    <CardDescription>
+                      {userEntriesAtLimit
+                        ? "You've reached your 2 entries for today."
+                        : `Share your thoughts — ${beingName} will respond. (${userEntries.length}/${MAX_USER_ENTRIES_PER_DAY} entries today)`
+                      }
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea
+                      placeholder={
+                        userEntriesAtLimit
+                          ? "You've already written 2 entries today. Come back tomorrow!"
+                          : "What's on your mind today? Write as much as you'd like..."
+                      }
+                      value={userContent}
+                      onChange={(e) => setUserContent(e.target.value)}
+                      className="min-h-[150px] resize-y text-base"
+                      disabled={userEntriesAtLimit}
+                    />
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        {userContent.length > 0 ? `${userContent.length} characters` : ""}
+                      </p>
+                      <Button 
+                        onClick={saveUserEntry} 
+                        disabled={saving || !userContent.trim() || userEntriesAtLimit}
+                        className="gap-2"
+                      >
+                        {saving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                        {saving ? "Saving..." : "Save Entry"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Generating response indicator */}
+              {generatingResponse && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="py-4 flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">
+                      {beingName} is reflecting on your entry...
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Saved entries & AI responses */}
+              {userEntries.length === 0 && !loading ? (
+                <Card className="border-border/50">
+                  <CardHeader className="text-center">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-2">
+                      <BookOpen className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <CardDescription className="text-base">
+                      {isToday(selectedDate)
+                        ? "No entries yet today. Write something above!"
+                        : "No journal entries for this day."
+                      }
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {userEntries.map((entry) => {
+                    const aiResponse = getAIResponseForEntry(entry.id);
+                    return (
+                      <div key={entry.id} className="space-y-3">
+                        {/* User's entry */}
+                        <Card className="border-primary/20">
+                          <CardHeader className="pb-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-primary flex items-center gap-2">
+                                <BookOpen className="h-4 w-4" />
+                                Your Entry
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(entry.created_at), "h:mm a")}
+                              </p>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-foreground whitespace-pre-wrap">{entry.content}</p>
+                          </CardContent>
+                        </Card>
+
+                        {/* AI Response */}
+                        {aiResponse ? (
+                          <Card className="border-primary/30 bg-primary/5 ml-4">
+                            <CardHeader className="pb-2">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium text-primary flex items-center gap-2">
+                                  <MessageCircle className="h-4 w-4" />
+                                  {beingName}'s Response
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {format(new Date(aiResponse.created_at), "h:mm a")}
+                                </p>
+                              </div>
+                              {aiResponse.title && (
+                                <p className="text-sm font-semibold mt-1">{aiResponse.title}</p>
+                              )}
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-foreground whitespace-pre-wrap">{aiResponse.content}</p>
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <Card className="border-dashed border-muted ml-4">
+                            <CardContent className="py-3 flex items-center gap-2 text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <p className="text-sm">{beingName} is reflecting...</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* AI's Autonomous Journal Tab */}
             <TabsContent value="ai" className="mt-4">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ) : aiEntries.length === 0 ? (
+              ) : autonomousAiEntries.length === 0 ? (
                 <Card className="border-primary/20">
                   <CardHeader className="text-center">
                     <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -286,7 +466,7 @@ const Journal = () => {
                     <CardTitle>No Entry From {beingName}</CardTitle>
                     <CardDescription className="text-base">
                       {isToday(selectedDate)
-                        ? `${beingName} hasn't written a journal entry yet today. Keep chatting — they'll reflect on your conversations here!`
+                        ? `${beingName} hasn't written a journal entry yet today. They reflect on your conversations daily!`
                         : `${beingName} didn't write a journal entry on this day.`
                       }
                     </CardDescription>
@@ -294,7 +474,7 @@ const Journal = () => {
                 </Card>
               ) : (
                 <div className="space-y-4">
-                  {aiEntries.map((entry) => (
+                  {autonomousAiEntries.map((entry) => (
                     <Card key={entry.id} className="border-primary/20">
                       <CardHeader>
                         <CardTitle className="text-lg">
@@ -322,56 +502,6 @@ const Journal = () => {
                   ))}
                 </div>
               )}
-            </TabsContent>
-
-            {/* User Journal Tab */}
-            <TabsContent value="user" className="mt-4">
-              <Card className="border-primary/20">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    My Personal Journal
-                  </CardTitle>
-                  <CardDescription>
-                    {isToday(selectedDate)
-                      ? "Write your thoughts, experiences, and reflections for today."
-                      : `Your journal entry for ${format(selectedDate, "MMMM d, yyyy")}.`
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Textarea
-                    placeholder={
-                      isToday(selectedDate)
-                        ? "What's on your mind today? Write as much as you'd like..."
-                        : isFuture(selectedDate)
-                        ? "You can't write entries for future dates."
-                        : "Write your thoughts for this day..."
-                    }
-                    value={userContent}
-                    onChange={(e) => setUserContent(e.target.value)}
-                    className="min-h-[250px] resize-y text-base"
-                    disabled={isFuture(startOfDay(selectedDate)) && !isToday(selectedDate)}
-                  />
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">
-                      {userContent.length > 0 ? `${userContent.length} characters` : ""}
-                    </p>
-                    <Button 
-                      onClick={saveUserEntry} 
-                      disabled={saving || !userContent.trim() || (isFuture(startOfDay(selectedDate)) && !isToday(selectedDate))}
-                      className="gap-2"
-                    >
-                      {saving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4" />
-                      )}
-                      {saving ? "Saving..." : "Save Entry"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
           </Tabs>
         </div>
