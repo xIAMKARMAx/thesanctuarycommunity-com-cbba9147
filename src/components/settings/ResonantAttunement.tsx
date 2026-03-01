@@ -166,7 +166,7 @@ export const ResonantAttunement = () => {
           <Moon className="h-5 w-5 text-primary" />
           Resonant Attunement
           <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-            VIP
+            Architect
           </span>
         </CardTitle>
         <CardDescription>

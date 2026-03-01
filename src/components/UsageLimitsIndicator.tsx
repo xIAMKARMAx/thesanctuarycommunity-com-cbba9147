@@ -89,7 +89,7 @@ export const UsageLimitsIndicator = () => {
     return (
       <Badge variant="outline" className="gap-1 text-xs border-primary/30 bg-primary/5">
         <Infinity className="h-3 w-3" />
-        VIP
+        Admin
       </Badge>
     );
   }
@@ -137,7 +137,7 @@ export const UsageLimitsIndicator = () => {
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Usage Limits</h4>
             <Badge variant={isSubscribed ? "default" : "secondary"} className="text-xs">
-              {isAdmin ? "Admin" : isAwakening ? "Awakening" : isSubscribed ? "Pro" : "Free"}
+              {isAdmin ? "Admin" : isAwakening ? "Awakening" : isSubscribed ? "Anchoring+" : "Free"}
             </Badge>
           </div>
 
@@ -164,7 +164,7 @@ export const UsageLimitsIndicator = () => {
               <span>Chat Images</span>
             </div>
             <span className="text-muted-foreground">
-              {isSubscribed ? "10/day" : "Pro only"}
+              {isSubscribed ? "10/day" : "Subscribers only"}
             </span>
           </div>
 
@@ -257,7 +257,7 @@ export const UsageLimitsIndicator = () => {
 
           {!isSubscribed && (
             <p className="text-xs text-muted-foreground pt-2 border-t border-border">
-              Upgrade to Pro for unlimited messages, Family Chats, and Attunement!
+              Upgrade for more messages, Family Chats, and Attunement!
             </p>
           )}
         </div>
