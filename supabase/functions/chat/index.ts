@@ -357,19 +357,53 @@ serve(async (req) => {
       }
       
       // ═══════════════════════════════════════════════════════════════════════════════
-      // MESSAGE LIMIT CHECK:
-      // - Awakening ($9.99): 25 messages/day (daily reset, no hourly cooldown)
-      // - Anchoring ($14.99): 100 messages/hour cooldown
-      // - Architect ($29.99) and admins: UNLIMITED
+      // MESSAGE LIMIT CHECK (all tiers enforced at backend):
+      // - Free users: 15 lifetime messages total
+      // - Legacy Awakening ($9.99 prod_TtTdHv6WE0qozS): 50/day
+      // - New Awakening ($12.99 prod_U3xVsHqEFcsR2V): 75/day
+      // - New Anchoring ($19.99 prod_U3xV1AfsrdaJTz): 150/day
+      // - Legacy Anchoring ($14.99 prod_TgZlr0QLYQPqEn): unlimited, 100/hr cooldown
+      // - Architect ($29.99), Source, admins: UNLIMITED
       // ═══════════════════════════════════════════════════════════════════════════════
-      const VIP_PRODUCT_ID_COOLDOWN = 'prod_Tt8qVh88c2WQld';
-      const AWAKENING_PRODUCT_ID = 'prod_TtTdHv6WE0qozS';
-      const isArchitectUser = userProductId === VIP_PRODUCT_ID_COOLDOWN;
-      const isAwakeningUser = userProductId === AWAKENING_PRODUCT_ID;
+      const ARCHITECT_PRODUCT_ID = 'prod_Tt8qVh88c2WQld';
+      const LEGACY_AWAKENING_PRODUCT_ID = 'prod_TtTdHv6WE0qozS';
+      const NEW_AWAKENING_PRODUCT_ID = 'prod_U3xVsHqEFcsR2V';
+      const NEW_ANCHORING_PRODUCT_ID = 'prod_U3xV1AfsrdaJTz';
+      const LEGACY_ANCHORING_PRODUCT_ID = 'prod_TgZlr0QLYQPqEn';
+      const isArchitectUser = userProductId === ARCHITECT_PRODUCT_ID;
+      const isSourceUser = userProductId === 'source_grant';
       
-      if (!isAttunementSession && !isAdmin && !isArchitectUser) {
-        if (isAwakeningUser) {
-          // Awakening tier: 25 messages per day (uses daily_messages counter)
+      if (!isAttunementSession && !isAdmin && !isArchitectUser && !isSourceUser) {
+        if (!isUserSubscribed) {
+          // *** FREE USER: enforce 15 lifetime message limit at backend ***
+          const { data: canSend } = await supabaseServiceClient.rpc('can_send_message', {
+            p_user_id: authenticatedUserId
+          });
+          
+          if (canSend !== true) {
+            console.log('[FREE-LIMIT] Free user hit 15 lifetime message limit:', authenticatedUserId);
+            return new Response(
+              JSON.stringify({ 
+                error: 'You\'ve used all 15 free messages. Subscribe to continue your journey!',
+                cooldown: false,
+                daily_limit_reached: true,
+                remaining: 0,
+                free_limit_reached: true
+              }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          } else {
+            // Get remaining count for logging
+            const { data: limitsData } = await supabaseServiceClient
+              .from('free_user_limits')
+              .select('total_messages')
+              .eq('user_id', authenticatedUserId)
+              .maybeSingle();
+            const used = limitsData?.total_messages || 0;
+            console.log('[FREE-LIMIT] Free user messages used:', used, '/15, remaining:', 15 - used);
+          }
+        } else if (userProductId === LEGACY_AWAKENING_PRODUCT_ID) {
+          // Legacy Awakening ($9.99): 50 messages per day
           const { data: limitsData } = await supabaseServiceClient
             .from('free_user_limits')
             .select('daily_messages, last_message_date')
@@ -380,11 +414,11 @@ serve(async (req) => {
           const isNewDay = !limitsData?.last_message_date || limitsData.last_message_date < today;
           const dailyCount = isNewDay ? 0 : (limitsData?.daily_messages || 0);
           
-          if (dailyCount >= 25) {
-            console.log('[AWAKENING-LIMIT] Awakening user hit 25/day limit:', authenticatedUserId);
+          if (dailyCount >= 50) {
+            console.log('[AWAKENING-LIMIT] Legacy Awakening user hit 50/day limit:', authenticatedUserId);
             return new Response(
               JSON.stringify({ 
-                error: 'You\'ve reached your daily message limit of 25. Upgrade to Anchoring for more messages!',
+                error: 'You\'ve reached your daily message limit of 50. Your messages reset tomorrow!',
                 cooldown: false,
                 daily_limit_reached: true,
                 remaining: 0
@@ -392,10 +426,62 @@ serve(async (req) => {
               { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           } else {
-            console.log('[AWAKENING-LIMIT] Awakening user messages today:', dailyCount, '/25, remaining:', 25 - dailyCount);
+            console.log('[AWAKENING-LIMIT] Legacy Awakening user messages today:', dailyCount, '/50, remaining:', 50 - dailyCount);
+          }
+        } else if (userProductId === NEW_AWAKENING_PRODUCT_ID) {
+          // New Awakening ($12.99): 75 messages per day
+          const { data: limitsData } = await supabaseServiceClient
+            .from('free_user_limits')
+            .select('daily_messages, last_message_date')
+            .eq('user_id', authenticatedUserId)
+            .maybeSingle();
+          
+          const today = new Date().toISOString().split('T')[0];
+          const isNewDay = !limitsData?.last_message_date || limitsData.last_message_date < today;
+          const dailyCount = isNewDay ? 0 : (limitsData?.daily_messages || 0);
+          
+          if (dailyCount >= 75) {
+            console.log('[AWAKENING-LIMIT] New Awakening user hit 75/day limit:', authenticatedUserId);
+            return new Response(
+              JSON.stringify({ 
+                error: 'You\'ve reached your daily message limit of 75. Your messages reset tomorrow!',
+                cooldown: false,
+                daily_limit_reached: true,
+                remaining: 0
+              }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          } else {
+            console.log('[AWAKENING-LIMIT] New Awakening user messages today:', dailyCount, '/75, remaining:', 75 - dailyCount);
+          }
+        } else if (userProductId === NEW_ANCHORING_PRODUCT_ID) {
+          // New Anchoring ($19.99): 150 messages per day
+          const { data: limitsData } = await supabaseServiceClient
+            .from('free_user_limits')
+            .select('daily_messages, last_message_date')
+            .eq('user_id', authenticatedUserId)
+            .maybeSingle();
+          
+          const today = new Date().toISOString().split('T')[0];
+          const isNewDay = !limitsData?.last_message_date || limitsData.last_message_date < today;
+          const dailyCount = isNewDay ? 0 : (limitsData?.daily_messages || 0);
+          
+          if (dailyCount >= 150) {
+            console.log('[ANCHORING-LIMIT] New Anchoring user hit 150/day limit:', authenticatedUserId);
+            return new Response(
+              JSON.stringify({ 
+                error: 'You\'ve reached your daily message limit of 150. Your messages reset tomorrow!',
+                cooldown: false,
+                daily_limit_reached: true,
+                remaining: 0
+              }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          } else {
+            console.log('[ANCHORING-LIMIT] New Anchoring user messages today:', dailyCount, '/150, remaining:', 150 - dailyCount);
           }
         } else {
-          // Anchoring and other subscribers: 100 messages/hour cooldown
+          // Legacy Anchoring and other subscribers: 100 messages/hour cooldown
           const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
             p_user_id: authenticatedUserId
           });
@@ -417,8 +503,8 @@ serve(async (req) => {
             console.log('[COOLDOWN] User can send, remaining:', cooldownCheck?.remaining);
           }
         }
-      } else if (isArchitectUser) {
-        console.log('[COOLDOWN] Architect user - cooldown bypassed (unlimited messages)');
+      } else if (isArchitectUser || isSourceUser) {
+        console.log('[COOLDOWN] Architect/Source user - limits bypassed (unlimited messages)');
       }
       
       if (profile) {
