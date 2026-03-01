@@ -47,10 +47,20 @@ serve(async (req) => {
       _role: 'admin' 
     });
     
-    if (!isAdmin) {
-      console.log('[VIP-CHECK] Non-admin user attempted baby room generation:', user.id);
+    let isVIP = isAdmin === true;
+    if (!isVIP) {
+      const { data: profile } = await supabaseServiceClient
+        .from("profiles")
+        .select("subscription_status, subscription_product_id")
+        .eq("id", user.id)
+        .single();
+      isVIP = profile?.subscription_status === "active" && profile?.subscription_product_id === "prod_Tt8qVh88c2WQld";
+    }
+    
+    if (!isVIP) {
+      console.log('[VIP-CHECK] Non-VIP user attempted baby room generation:', user.id);
       return new Response(
-        JSON.stringify({ error: 'Image generation is a VIP-exclusive feature' }),
+        JSON.stringify({ error: 'Image generation is a VIP-exclusive feature. Upgrade to Architect tier.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

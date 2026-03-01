@@ -41,28 +41,37 @@ serve(async (req) => {
     const userId = userData.user.id;
     logStep("User authenticated", { userId });
 
-    // Check if user is admin using has_role function
-    const { data: isAdmin, error: roleError } = await supabaseClient.rpc("has_role", {
+    // Check if user is admin OR Architect subscriber (VIP access)
+    const { data: isAdmin } = await supabaseClient.rpc("has_role", {
       _user_id: userId,
       _role: "admin"
     });
 
-    if (roleError) {
-      logStep("Error checking admin role", { error: roleError.message });
-      throw new Error("Failed to verify VIP status");
+    let isVIP = isAdmin === true;
+
+    if (!isVIP) {
+      // Check if user is Architect subscriber
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("subscription_status, subscription_product_id")
+        .eq("id", userId)
+        .single();
+
+      const ARCHITECT_PRODUCT_ID = "prod_Tt8qVh88c2WQld";
+      isVIP = profile?.subscription_status === "active" && profile?.subscription_product_id === ARCHITECT_PRODUCT_ID;
     }
 
-    if (!isAdmin) {
+    if (!isVIP) {
       logStep("User is not VIP", { userId });
       return new Response(
-        JSON.stringify({ error: "This feature is only available for VIP users" }),
+        JSON.stringify({ error: "This feature is only available for Architect tier subscribers" }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 403 
         }
       );
     }
-    logStep("User is VIP/Admin", { userId });
+    logStep("User is VIP/Admin/Architect", { userId });
 
     // Get the prompt from request body
     const { prompt } = await req.json();
