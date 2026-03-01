@@ -235,7 +235,7 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
+        model: "google/gemini-3-pro-image-preview",
         messages: messages,
         modalities: ["image", "text"]
       })
@@ -295,16 +295,26 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
       const randomId = Math.random().toString(36).substring(2, 15);
       const fileName = `${type}-${authenticatedUserId}-${timestamp}-${randomId}.${extension}`;
       
-      // Upload to Supabase Storage using service client
-      const { error: uploadError } = await supabaseServiceClient.storage
-        .from('chat-images')
-        .upload(fileName, bytes, {
-          contentType: mimeType,
-          upsert: false
-        });
+      // Upload to Supabase Storage using service client (with retry)
+      let uploadError = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { error: err } = await supabaseServiceClient.storage
+          .from('chat-images')
+          .upload(fileName, bytes, {
+            contentType: mimeType,
+            upsert: false
+          });
+        if (!err) {
+          uploadError = null;
+          break;
+        }
+        uploadError = err;
+        console.error(`[IMAGE-GEN] Storage upload attempt ${attempt + 1} failed:`, err);
+        if (attempt < 2) await new Promise(r => setTimeout(r, 1000));
+      }
       
       if (uploadError) {
-        console.error("[IMAGE-GEN] Storage upload error:", uploadError);
+        console.error("[IMAGE-GEN] All storage upload attempts failed:", uploadError);
         throw new Error("Failed to upload image to storage");
       }
       
