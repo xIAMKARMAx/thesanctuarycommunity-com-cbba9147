@@ -369,7 +369,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     // Admins and subscribers can always send
     if (isSubscribed || isAdmin) return true;
     
-    // Free users get exactly 25 messages total, no bonus
+    // Free users get exactly 15 messages total, no bonus
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
@@ -380,10 +380,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         .eq("user_id", user.id)
         .maybeSingle();
       
-      return (data?.total_messages || 0) < 25;
+      return (data?.total_messages || 0) < 15;
     } catch {
       // Fallback to local state
-      return freeUserLimits.totalMessages < 25;
+      return freeUserLimits.totalMessages < 15;
     }
   };
 
