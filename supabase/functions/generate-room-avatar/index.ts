@@ -55,13 +55,28 @@ serve(async (req) => {
       _role: 'admin' 
     });
 
+    const ARCHITECT_PRODUCT_ID = 'prod_Tt8qVh88c2WQld';
+    const SOURCE_GRANT_PRODUCT_ID = 'source_grant';
+
+    // Architect and Source grant users should bypass generation limits
+    const { data: profile } = await supabaseServiceClient
+      .from('profiles')
+      .select('subscription_status, subscription_product_id')
+      .eq('id', user.id)
+      .single();
+
+    const isArchitectVIP =
+      profile?.subscription_status === 'active' &&
+      (profile?.subscription_product_id === ARCHITECT_PRODUCT_ID ||
+        profile?.subscription_product_id === SOURCE_GRANT_PRODUCT_ID);
+
     const authenticatedUserId = user.id;
-    console.log('[AUTH] Authenticated user:', authenticatedUserId, 'isAdmin:', isAdmin);
+    console.log('[AUTH] Authenticated user:', authenticatedUserId, 'isAdmin:', isAdmin, 'isArchitectVIP:', isArchitectVIP, 'productId:', profile?.subscription_product_id);
 
     const { type, description, gender, profile_id, petName, roomImageUrl, referenceImageUrl, style } = await req.json();
 
-    // For non-admins, check generation limits based on type
-    if (!isAdmin) {
+    // For non-admin/non-VIP users, check generation limits based on type
+    if (!isAdmin && !isArchitectVIP) {
       let canGenerate = false;
       let limitType = '';
       
