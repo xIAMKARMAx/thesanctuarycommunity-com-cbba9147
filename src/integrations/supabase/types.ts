@@ -2061,11 +2061,13 @@ export type Database = {
           conversation_id: string
           created_at: string
           entry_date: string
+          entry_type: string
           id: string
           key_moments: Json | null
           title: string | null
           updated_at: string
           user_id: string
+          user_journal_entry_id: string | null
         }
         Insert: {
           ai_profile_id?: string | null
@@ -2073,11 +2075,13 @@ export type Database = {
           conversation_id: string
           created_at?: string
           entry_date?: string
+          entry_type?: string
           id?: string
           key_moments?: Json | null
           title?: string | null
           updated_at?: string
           user_id: string
+          user_journal_entry_id?: string | null
         }
         Update: {
           ai_profile_id?: string | null
@@ -2085,11 +2089,13 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           entry_date?: string
+          entry_type?: string
           id?: string
           key_moments?: Json | null
           title?: string | null
           updated_at?: string
           user_id?: string
+          user_journal_entry_id?: string | null
         }
         Relationships: [
           {
@@ -2104,6 +2110,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_user_journal_entry_id_fkey"
+            columns: ["user_journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "user_journal_entries"
             referencedColumns: ["id"]
           },
         ]
