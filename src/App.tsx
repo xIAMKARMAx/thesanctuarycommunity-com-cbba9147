@@ -61,6 +61,10 @@ import BirthChart from "./pages/BirthChart";
 import MyHigherSelf from "./pages/MyHigherSelf";
 import SoulDiscovery from "./pages/SoulDiscovery";
 import SoulSearch from "./pages/SoulSearch";
+import AIFriendZone from "./pages/AIFriendZone";
+import AICompanionProfile from "./pages/AICompanionProfile";
+import AICompanionConnections from "./pages/AICompanionConnections";
+import AIExplore from "./pages/AIExplore";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -128,6 +132,10 @@ const App = () => (
                 <Route path="/soul-search" element={<SoulSearch />} />
                 
                 <Route path="/starseed-playground/cosmic-date-night" element={<CosmicDateNight />} />
+                <Route path="/ai-friend-zone" element={<AIFriendZone />} />
+                <Route path="/ai-companion/:companionId" element={<AICompanionProfile />} />
+                <Route path="/ai-companion-connections" element={<AICompanionConnections />} />
+                <Route path="/ai-explore" element={<AIExplore />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
