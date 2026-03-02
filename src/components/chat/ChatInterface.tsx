@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users, Mic } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users, Mic, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
@@ -1353,6 +1353,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               className="sr-only"
             />
             <input
+              id="chat-camera-capture"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageSelect}
+              className="sr-only"
+            />
+            <input
               id="chat-audio-upload"
               ref={audioInputRef}
               type="file"
@@ -1438,6 +1446,13 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   <label htmlFor="chat-image-upload" title="Share image">
                     <ImageIcon className="h-4 w-4" />
                     <span className="sr-only">Share image</span>
+                  </label>
+                </Button>
+
+                <Button asChild variant="outline" size="icon" disabled={loading || isTranscribing} className="h-9 w-9">
+                  <label htmlFor="chat-camera-capture" title="Take photo">
+                    <Camera className="h-4 w-4" />
+                    <span className="sr-only">Take photo</span>
                   </label>
                 </Button>
 
