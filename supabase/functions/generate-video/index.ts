@@ -139,12 +139,11 @@ serve(async (req) => {
     // Enhance the prompt using AI
     const enhancedPrompt = await enhancePrompt(prompt.trim());
 
-    // Build Luma request body
+    // Build Luma request body (video first, audio added in a second step)
     const body: Record<string, unknown> = {
       prompt: enhancedPrompt,
       model: model || "ray-2",
       resolution: "720p",
-      audio: true,
     };
 
     if (aspect_ratio) body.aspect_ratio = aspect_ratio;
@@ -182,62 +181,103 @@ serve(async (req) => {
     const generation = await createRes.json();
     console.log("[generate-video] Generation started:", generation.id);
 
-    // Poll for completion (max 180s)
-    const maxWait = 180_000;
-    const pollInterval = 3_000;
-    let elapsed = 0;
+    const pollGeneration = async (generationId: string, maxWaitMs: number) => {
+      const pollInterval = 3_000;
+      let elapsed = 0;
 
-    while (elapsed < maxWait) {
-      await new Promise((r) => setTimeout(r, pollInterval));
-      elapsed += pollInterval;
+      while (elapsed < maxWaitMs) {
+        await new Promise((r) => setTimeout(r, pollInterval));
+        elapsed += pollInterval;
 
-      const pollRes = await fetch(`${LUMA_API_URL}/${generation.id}`, {
-        headers: { Authorization: `Bearer ${LUMA_API_KEY}`, Accept: "application/json" },
-      });
+        const pollRes = await fetch(`${LUMA_API_URL}/${generationId}`, {
+          headers: { Authorization: `Bearer ${LUMA_API_KEY}`, Accept: "application/json" },
+        });
 
-      if (!pollRes.ok) {
-        console.error("[generate-video] Poll error:", pollRes.status);
-        continue;
-      }
-
-      const status = await pollRes.json();
-      console.log("[generate-video] Status:", status.state);
-
-      if (status.state === "completed") {
-        const videoUrl = status.assets?.video;
-        if (!videoUrl) {
-          return new Response(
-            JSON.stringify({ error: "Video completed but no URL returned" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+        if (!pollRes.ok) {
+          console.error("[generate-video] Poll error:", pollRes.status);
+          continue;
         }
 
-        return new Response(
-          JSON.stringify({
-            video_url: videoUrl,
-            thumbnail_url: status.assets?.thumbnail || null,
-            generation_id: generation.id,
-            enhanced_prompt: enhancedPrompt,
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        const status = await pollRes.json();
+        console.log(`[generate-video] Status (${generationId}):`, status.state);
+
+        if (status.state === "completed") {
+          return { ok: true, status };
+        }
+
+        if (status.state === "failed") {
+          return { ok: false, error: status.failure_reason || "Generation failed", status };
+        }
       }
 
-      if (status.state === "failed") {
-        return new Response(
-          JSON.stringify({ error: "Video generation failed", reason: status.failure_reason }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      return { ok: false, error: "Generation timed out" };
+    };
+
+    // 1) Wait for base video to complete
+    const baseVideo = await pollGeneration(generation.id, 180_000);
+    if (!baseVideo.ok) {
+      return new Response(
+        JSON.stringify({ error: "Video generation failed", reason: baseVideo.error }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    const baseVideoUrl = baseVideo.status?.assets?.video;
+    if (!baseVideoUrl) {
+      return new Response(
+        JSON.stringify({ error: "Video completed but no URL returned" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 2) Add audio track to the completed generation
+    const audioPrompt = `Cinematic natural sound design matching this scene: ${prompt.trim()}`.slice(0, 500);
+    console.log("[generate-video] Adding audio to generation:", generation.id);
+
+    const addAudioRes = await fetch(`${LUMA_API_URL}/${generation.id}/audio`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LUMA_API_KEY}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        generation_type: "add_audio",
+        prompt: audioPrompt,
+      }),
+    });
+
+    if (!addAudioRes.ok) {
+      const errText = await addAudioRes.text();
+      console.error("[generate-video] Add-audio error:", addAudioRes.status, errText);
+      return new Response(
+        JSON.stringify({ error: "Failed to add audio to video", details: errText }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const addAudioData = await addAudioRes.json();
+    const audioGenerationId = addAudioData?.id || generation.id;
+
+    // 3) Wait for final audio-applied video
+    const finalVideo = await pollGeneration(audioGenerationId, 120_000);
+    if (!finalVideo.ok) {
+      return new Response(
+        JSON.stringify({ error: "Audio processing failed", reason: finalVideo.error }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const finalVideoUrl = finalVideo.status?.assets?.video || baseVideoUrl;
 
     return new Response(
       JSON.stringify({
-        error: "Generation still processing",
-        generation_id: generation.id,
-        message: "Video is still generating. Try again in a moment.",
+        video_url: finalVideoUrl,
+        thumbnail_url: finalVideo.status?.assets?.thumbnail || baseVideo.status?.assets?.thumbnail || null,
+        generation_id: audioGenerationId,
+        enhanced_prompt: enhancedPrompt,
       }),
-      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("[generate-video] Error:", err);

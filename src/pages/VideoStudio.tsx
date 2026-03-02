@@ -33,15 +33,7 @@ const VideoStudio = () => {
   // Check access on mount
   useEffect(() => {
     const checkAccess = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("generate-video", {
-          body: { prompt: "__access_check__" },
-        });
-        // We'll get a 400 for empty prompt if they have access, or 403 if not
-        // Instead, let's just call the RPC directly
-      } catch {}
-
-      // Use RPC to check access
+      // Use RPC to check access (without triggering a generation)
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
