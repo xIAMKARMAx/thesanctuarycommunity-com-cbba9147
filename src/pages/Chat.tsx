@@ -14,7 +14,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit, Palette } from "lucide-react";
+import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit, Palette, Film } from "lucide-react";
 import HigherSelfNotification from "@/components/HigherSelfNotification";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
@@ -316,6 +316,12 @@ const Chat = () => {
                   <Palette className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">Art Studio</span>
                 </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger value="video-studio" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0" onClick={() => navigate("/video-studio")}>
+                    <Film className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline truncate">Video</span>
+                  </TabsTrigger>
+                )}
                 {isAdmin && (
                   <TabsTrigger value="source" className="gap-1 px-2 sm:px-4 min-w-0 flex-shrink-0">
                     <Sun className="h-4 w-4 flex-shrink-0" />
