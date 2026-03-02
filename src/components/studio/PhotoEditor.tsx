@@ -351,12 +351,29 @@ const PhotoEditor = () => {
       toast({ title: "Can't delete base image", variant: "destructive" });
       return;
     }
-    // Also remove from frame refs if applicable
     frameObjectsRef.current = frameObjectsRef.current.filter(f => f !== obj);
     canvas?.remove(obj);
     canvas?.renderAll();
     saveHistory();
   }, [saveHistory, toast]);
+
+  const handleClearAll = useCallback(() => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+    canvas.clear();
+    canvas.backgroundColor = "#1a1a2e";
+    canvas.renderAll();
+    mainImageRef.current = null;
+    frameObjectsRef.current = [];
+    historyRef.current = [];
+    historyIndexRef.current = -1;
+    setHasImage(false);
+    setActiveFilter("none");
+    setActiveFrame(null);
+    setBrightness(0); setContrast(0); setSaturation(0);
+    setCanUndo(false);
+    toast({ title: "Canvas Cleared", description: "Start fresh with a new upload." });
+  }, [toast]);
 
   const handleZoom = useCallback((dir: "in" | "out") => {
     const canvas = fabricRef.current;
@@ -410,6 +427,9 @@ const PhotoEditor = () => {
         <div className="w-px h-6 bg-border" />
         <Button variant="ghost" size="sm" onClick={handleDelete} disabled={!hasImage} className="gap-1.5 text-destructive hover:text-destructive">
           <Trash2 className="h-4 w-4" /><span className="hidden sm:inline">Delete</span>
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handleClearAll} disabled={!hasImage} className="gap-1.5 text-destructive hover:text-destructive">
+          <Trash2 className="h-4 w-4" /><span className="hidden sm:inline">Clear All</span>
         </Button>
         <Button variant="ghost" size="sm" onClick={handleUndo} disabled={!canUndo} className="gap-1.5">
           <Undo2 className="h-4 w-4" /><span className="hidden sm:inline">Undo</span>
