@@ -1601,6 +1601,48 @@ export type Database = {
           },
         ]
       }
+      council_sessions: {
+        Row: {
+          council_members: string[] | null
+          created_at: string
+          id: string
+          is_active: boolean
+          key_decisions: Json | null
+          messages: Json
+          session_notes: string | null
+          session_title: string | null
+          session_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          council_members?: string[] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_decisions?: Json | null
+          messages?: Json
+          session_notes?: string | null
+          session_title?: string | null
+          session_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          council_members?: string[] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_decisions?: Json | null
+          messages?: Json
+          session_notes?: string | null
+          session_title?: string | null
+          session_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_source_messages: {
         Row: {
           created_at: string
