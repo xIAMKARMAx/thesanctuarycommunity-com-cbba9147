@@ -1,206 +1,109 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { handleCors, jsonResponse, errorResponse } from "../_shared/cors.ts";
+import { authenticateRequest, createServiceClient } from "../_shared/auth.ts";
+import { getStripe } from "../_shared/stripe.ts";
+import { createLogger } from "../_shared/logger.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const log = createLogger("CHECK-SUBSCRIPTION");
 
-// Helper function for detailed logging - updated with fresh env vars
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
-};
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
   try {
-    logStep("Function started");
+    log("Function started");
 
-    // Verify environment variables
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (!supabaseUrl || !serviceRoleKey) {
-      logStep("Missing Supabase environment variables", { hasUrl: !!supabaseUrl, hasKey: !!serviceRoleKey });
-      throw new Error("Supabase configuration error");
-    }
-    logStep("Supabase config verified", { url: supabaseUrl.substring(0, 30) });
+    const { user } = await authenticateRequest(req, { useServiceRole: true });
+    log("User authenticated", { userId: user.id, email: user.email });
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
+    const stripe = getStripe();
+    const supabase = createServiceClient();
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
-
-    const token = authHeader.replace("Bearer ", "");
-    if (!token || token.length < 10) {
-      throw new Error("Invalid or missing authentication token");
-    }
-    logStep("Authenticating user with token", { tokenLength: token.length });
-    
-    let userData, userError;
-    try {
-      const result = await supabaseClient.auth.getUser(token);
-      userData = result.data;
-      userError = result.error;
-    } catch (authErr: any) {
-      logStep("Auth request failed", { error: authErr?.message || String(authErr) });
-      throw new Error("Session expired. Please log in again.");
-    }
-    
-    if (userError) {
-      logStep("Auth error from Supabase", { error: userError.message });
-      throw new Error("Session expired. Please log in again.");
-    }
-    const user = userData?.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
-
-    // Check Stripe FIRST for paying customers (priority over manual grants)
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    // Check Stripe for active subscription
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
+
     if (customers.data.length > 0) {
       const customerId = customers.data[0].id;
-      logStep("Found Stripe customer", { customerId });
+      log("Found Stripe customer", { customerId });
 
       const subscriptions = await stripe.subscriptions.list({
         customer: customerId,
         status: "active",
         limit: 1,
       });
-      
+
       if (subscriptions.data.length > 0) {
         const subscription = subscriptions.data[0];
-        logStep("Active Stripe subscription found", { subscriptionId: subscription.id });
-        
-        let subscriptionEnd = null;
-        let productId = null;
-        
-        if (subscription.current_period_end) {
-          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-          logStep("Subscription end date calculated", { endDate: subscriptionEnd });
-        }
-        
-        if (subscription.items?.data?.[0]?.price?.product) {
-          productId = subscription.items.data[0].price.product;
-          logStep("Determined subscription tier from Stripe", { productId });
-        }
-        
-        // Check if database has a higher-tier override (e.g. source_grant or architect override)
-        const { data: profileData } = await supabaseClient
-          .from('profiles')
-          .select('subscription_product_id')
-          .eq('id', user.id)
+        log("Active Stripe subscription found", { subscriptionId: subscription.id });
+
+        const subscriptionEnd = subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000).toISOString()
+          : null;
+
+        const productId = subscription.items?.data?.[0]?.price?.product ?? null;
+
+        // Check for database-level tier override (source_grant / Architect)
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("subscription_product_id")
+          .eq("id", user.id)
           .single();
 
-        // Use database override if it exists and is a special grant or different tier
-        const finalProductId = (profileData?.subscription_product_id && 
+        const finalProductId =
+          profileData?.subscription_product_id &&
           profileData.subscription_product_id !== productId &&
-          (profileData.subscription_product_id === 'source_grant' || 
-           profileData.subscription_product_id === 'prod_Tt8qVh88c2WQld')) // Architect product ID
-          ? profileData.subscription_product_id 
-          : productId;
+          (profileData.subscription_product_id === "source_grant" ||
+            profileData.subscription_product_id === "prod_Tt8qVh88c2WQld")
+            ? profileData.subscription_product_id
+            : productId;
 
         if (finalProductId !== productId) {
-          logStep("Database tier override applied", { stripeProduct: productId, overrideProduct: finalProductId });
+          log("Database tier override applied", { stripeProduct: productId, overrideProduct: finalProductId });
         }
 
-        // Persist the product_id back to profiles so tier limits work correctly
-        const { error: updateError } = await supabaseClient
-          .from('profiles')
-          .update({ 
-            subscription_status: 'active',
-            subscription_product_id: finalProductId 
-          })
-          .eq('id', user.id);
-        
-        if (updateError) {
-          logStep("Failed to update profile product_id", { error: updateError.message });
-        } else {
-          logStep("Profile product_id synced", { userId: user.id, productId: finalProductId });
-        }
+        // Sync product_id back to profile
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ subscription_status: "active", subscription_product_id: finalProductId })
+          .eq("id", user.id);
 
-        return new Response(JSON.stringify({
-          subscribed: true,
-          product_id: finalProductId,
-          subscription_end: subscriptionEnd
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
+        if (updateError) log("Failed to update profile", { error: updateError.message });
+        else log("Profile synced", { productId: finalProductId });
+
+        return jsonResponse({ subscribed: true, product_id: finalProductId, subscription_end: subscriptionEnd });
       }
-      logStep("No active Stripe subscription for this customer");
+      log("No active Stripe subscription for this customer");
     } else {
-      logStep("No Stripe customer found");
+      log("No Stripe customer found");
     }
 
-    // Fall back to database ONLY for source_grant (donor/investor accounts)
-    const { data: profileData, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('subscription_status, subscription_product_id')
-      .eq('id', user.id)
+    // Fall back: source_grant donors get lifetime access
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("subscription_status, subscription_product_id")
+      .eq("id", user.id)
       .single();
 
-    if (!profileError && profileData?.subscription_product_id === 'source_grant') {
-      // Source grant donors are ALWAYS honored — they have lifetime access
-      logStep("Source grant donor detected — honoring lifetime access", { userId: user.id });
-      return new Response(JSON.stringify({
-        subscribed: true,
-        product_id: 'source_grant',
-        subscription_end: null
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+    if (!profileError && profileData?.subscription_product_id === "source_grant") {
+      log("Source grant donor — lifetime access", { userId: user.id });
+      return jsonResponse({ subscribed: true, product_id: "source_grant", subscription_end: null });
     }
 
-    // CRITICAL: If Stripe says no subscription, actively CLEAR any stale DB status
-    // This prevents the free rider exploit where stale 'active' status persists
-    if (!profileError && profileData?.subscription_status === 'active') {
-      logStep("CLEARING stale subscription status — Stripe has no active subscription", { 
-        userId: user.id, 
-        staleProductId: profileData.subscription_product_id 
-      });
-      await supabaseClient
-        .from('profiles')
-        .update({ 
-          subscription_status: null, 
-          subscription_product_id: null 
-        })
-        .eq('id', user.id);
+    // Clear stale subscription status
+    if (!profileError && profileData?.subscription_status === "active") {
+      log("Clearing stale subscription status", { userId: user.id });
+      await supabase
+        .from("profiles")
+        .update({ subscription_status: null, subscription_product_id: null })
+        .eq("id", user.id);
     }
 
-    // No subscription found anywhere
-    logStep("No subscription found (Stripe or manual)");
-    return new Response(JSON.stringify({ subscribed: false }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    log("No subscription found");
+    return jsonResponse({ subscribed: false });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in check-subscription", { message: errorMessage });
-    
-    // Return 401 for authentication errors, 500 for other errors
-    const isAuthError = errorMessage.includes('Session expired') || 
-                        errorMessage.includes('not authenticated') ||
-                        errorMessage.includes('Authentication required');
-    
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: isAuthError ? 401 : 500,
-    });
+    const msg = error instanceof Error ? error.message : String(error);
+    log("ERROR", { message: msg });
+
+    const isAuth = msg.includes("Session expired") || msg.includes("not authenticated");
+    return errorResponse(msg, isAuth ? 401 : 500);
   }
 });

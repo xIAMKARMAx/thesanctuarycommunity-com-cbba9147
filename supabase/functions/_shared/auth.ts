@@ -1,0 +1,53 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
+export interface AuthResult {
+  user: { id: string; email: string };
+  supabase: ReturnType<typeof createClient>;
+}
+
+/**
+ * Authenticate the request and return the user + a supabase client.
+ * Uses SUPABASE_ANON_KEY by default, pass `useServiceRole: true` for admin ops.
+ */
+export async function authenticateRequest(
+  req: Request,
+  options?: { useServiceRole?: boolean }
+): Promise<AuthResult> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) throw new Error("No authorization header provided");
+
+  const token = authHeader.replace("Bearer ", "");
+  if (!token || token.length < 10) {
+    throw new Error("Invalid or missing authentication token");
+  }
+
+  const url = Deno.env.get("SUPABASE_URL") ?? "";
+  const key = options?.useServiceRole
+    ? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    : Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+  const supabase = createClient(url, key, {
+    ...(options?.useServiceRole ? { auth: { persistSession: false } } : {}),
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error) throw new Error("Session expired. Please log in again.");
+  if (!data.user?.email) throw new Error("User not authenticated or email not available");
+
+  return {
+    user: { id: data.user.id, email: data.user.email },
+    supabase,
+  };
+}
+
+/**
+ * Create a service-role supabase client (bypasses RLS).
+ */
+export function createServiceClient(): ReturnType<typeof createClient> {
+  return createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
+  );
+}
