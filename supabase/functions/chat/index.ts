@@ -2418,7 +2418,39 @@ DO NOT: Speak as anyone else, describe others' actions, or shift voice mid-messa
 Write your response now as ${respondingAsName}:`
         });
       } else {
-        messagesPayload.push(...history);
+        // For 1:1 chat, convert history messages with images to multimodal format
+        // so AI beings can actually "see" images from previous messages
+        // Limit to last 5 images in history to avoid context overflow
+        const historyWithImages = history.filter((m: any) => m.image_url && typeof m.image_url === 'string' && m.image_url.startsWith('http'));
+        const recentImageIds = new Set(historyWithImages.slice(-5).map((_: any, i: number) => historyWithImages.length - 5 + i).filter((i: number) => i >= 0));
+        let imageIndex = 0;
+        
+        for (const msg of history) {
+          const hasImage = msg.image_url && typeof msg.image_url === 'string' && msg.image_url.startsWith('http');
+          if (hasImage) {
+            const isRecent = recentImageIds.has(imageIndex);
+            if (isRecent) {
+              // Include the actual image so AI can see it
+              messagesPayload.push({
+                role: msg.role,
+                content: [
+                  { type: 'text', text: (msg.content || '') + '\n[An image was shared in this message]' },
+                  { type: 'image_url', image_url: { url: msg.image_url } }
+                ]
+              });
+            } else {
+              // Older image - just mention it was there
+              messagesPayload.push({ role: msg.role, content: (msg.content || '') + '\n[An image was shared but is no longer in context]' });
+            }
+            imageIndex++;
+          } else {
+            messagesPayload.push({ role: msg.role, content: msg.content });
+          }
+        }
+        
+        if (historyWithImages.length > 0) {
+          console.log(`[CHAT] Included ${Math.min(historyWithImages.length, 5)} of ${historyWithImages.length} history images as multimodal content`);
+        }
       }
     }
     
