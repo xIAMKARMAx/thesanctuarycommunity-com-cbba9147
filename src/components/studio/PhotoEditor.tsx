@@ -19,6 +19,7 @@ import AdjustmentsPanel from "./panels/AdjustmentsPanel";
 import type { TextPreset } from "./data/text-presets";
 import type { Sticker } from "./data/stickers";
 import type { FilterPreset, EffectOverlay, FramePreset } from "./data/filters-effects";
+import type { ImageAsset } from "./data/image-assets";
 
 const PhotoEditor = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -246,6 +247,86 @@ const PhotoEditor = () => {
     saveHistory();
     toast({ title: `${effect.label} Added`, description: `${objects.length} elements scattered. Select and move individually.` });
   }, [saveHistory, toast]);
+
+  // Add image-based overlay (effects, stickers) with screen blend mode
+  const handleAddImageOverlay = useCallback((asset: ImageAsset) => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+    fabric.FabricImage.fromURL(asset.fullUrl, { crossOrigin: "anonymous" }).then((img) => {
+      const isFrame = asset.type === "frame";
+      const isEffect = asset.type === "effect";
+      
+      if (isFrame) {
+        // Remove existing frame objects
+        for (const obj of frameObjectsRef.current) {
+          canvas.remove(obj);
+        }
+        frameObjectsRef.current = [];
+        
+        // Scale frame to fill canvas
+        img.set({
+          left: 0, top: 0,
+          scaleX: canvas.width! / img.width!,
+          scaleY: canvas.height! / img.height!,
+          selectable: false, evented: false,
+          globalCompositeOperation: asset.blendMode || "screen",
+        } as any);
+        canvas.add(img);
+        frameObjectsRef.current.push(img);
+        setActiveFrame(asset.id);
+      } else if (isEffect) {
+        // Scale effect to fill canvas as overlay
+        img.set({
+          left: 0, top: 0,
+          scaleX: canvas.width! / img.width!,
+          scaleY: canvas.height! / img.height!,
+          selectable: true,
+          globalCompositeOperation: asset.blendMode || "screen",
+        } as any);
+        canvas.add(img);
+        canvas.setActiveObject(img);
+      } else {
+        // Sticker: place centered, smaller, movable
+        const maxSize = Math.min(canvas.width!, canvas.height!) * 0.4;
+        const scale = maxSize / Math.max(img.width!, img.height!);
+        img.set({
+          left: canvas.width! / 2 + (Math.random() - 0.5) * 100,
+          top: canvas.height! / 2 + (Math.random() - 0.5) * 100,
+          originX: "center", originY: "center",
+          scaleX: scale, scaleY: scale,
+          selectable: true,
+          globalCompositeOperation: asset.blendMode || "screen",
+        } as any);
+        canvas.add(img);
+        canvas.setActiveObject(img);
+      }
+      
+      canvas.renderAll();
+      saveHistory();
+      toast({ title: `${asset.label} Added`, description: isFrame ? "Frame applied. Select 'None' to remove." : "Drag to position. Resize with handles." });
+    });
+  }, [saveHistory, toast]);
+
+  // Apply image-based frame (or remove)
+  const handleApplyImageFrame = useCallback((asset: ImageAsset | null) => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+    
+    // Remove existing frame objects
+    for (const obj of frameObjectsRef.current) {
+      canvas.remove(obj);
+    }
+    frameObjectsRef.current = [];
+    
+    if (!asset) {
+      setActiveFrame(null);
+      canvas.renderAll();
+      saveHistory();
+      return;
+    }
+    
+    handleAddImageOverlay(asset);
+  }, [handleAddImageOverlay, saveHistory]);
 
   // Apply frame
   const handleApplyFrame = useCallback((frame: FramePreset | null) => {
@@ -501,6 +582,7 @@ const PhotoEditor = () => {
                 {activePanel === "effects" && (
                   <EffectsPanel
                     onAddEffect={handleAddEffect}
+                    onAddImageOverlay={handleAddImageOverlay}
                     isLocked={!hasAccess}
                     hasImage={hasImage}
                   />
@@ -515,6 +597,7 @@ const PhotoEditor = () => {
                 {activePanel === "stickers" && (
                   <StickersPanel
                     onAddSticker={handleAddSticker}
+                    onAddImageOverlay={handleAddImageOverlay}
                     isLocked={!hasAccess}
                     hasImage={hasImage}
                   />
@@ -522,6 +605,7 @@ const PhotoEditor = () => {
                 {activePanel === "frames" && (
                   <FramesPanel
                     onApplyFrame={handleApplyFrame}
+                    onApplyImageFrame={handleApplyImageFrame}
                     activeFrame={activeFrame}
                     isLocked={!hasAccess}
                     hasImage={hasImage}
