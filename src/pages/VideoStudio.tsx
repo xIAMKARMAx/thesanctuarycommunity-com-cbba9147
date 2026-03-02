@@ -21,7 +21,8 @@ const VideoStudio = () => {
   const [prompt, setPrompt] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [model, setModel] = useState("ray-flash-2");
+  const [model, setModel] = useState("ray-2");
+  const [enhancedPrompt, setEnhancedPrompt] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -97,6 +98,7 @@ const VideoStudio = () => {
     setGenerating(true);
     setVideoUrl(null);
     setThumbnailUrl(null);
+    setEnhancedPrompt(null);
 
     try {
       let imageUrl: string | null = null;
@@ -128,6 +130,8 @@ const VideoStudio = () => {
       if (data?.video_url) {
         setVideoUrl(data.video_url);
         setThumbnailUrl(data.thumbnail_url || null);
+        setEnhancedPrompt(data.enhanced_prompt || null);
+        toast({ title: "🎬 Video Created!", description: "Your video is ready to view and download." });
         toast({ title: "🎬 Video Created!", description: "Your video is ready to view and download." });
       } else if (data?.generation_id) {
         toast({ title: "Still Processing", description: "Video is taking longer than usual. Try again shortly." });
@@ -249,8 +253,8 @@ const VideoStudio = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="ray-2">Ray 2 (Quality — Default)</SelectItem>
                     <SelectItem value="ray-flash-2">Ray Flash 2 (Fast)</SelectItem>
-                    <SelectItem value="ray-2">Ray 2 (Quality)</SelectItem>
                   </SelectContent>
                 </Select>
               </CardContent>
@@ -287,7 +291,7 @@ const VideoStudio = () => {
             {generating ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Generating Video... (up to 2 min)
+                Generating Video... (up to 3 min)
               </>
             ) : (
               <>
@@ -301,6 +305,12 @@ const VideoStudio = () => {
           {videoUrl && (
             <Card>
               <CardContent className="pt-6 space-y-4">
+                {enhancedPrompt && (
+                  <div className="bg-muted/50 rounded-lg p-3 border border-border">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">✨ AI-Enhanced Prompt</p>
+                    <p className="text-sm text-foreground">{enhancedPrompt}</p>
+                  </div>
+                )}
                 <video
                   src={videoUrl}
                   controls
