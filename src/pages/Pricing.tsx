@@ -19,6 +19,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const EARLY_ADOPTER_COUPON = "XSsFPoKr"; // $5 off/mo for first 3 months
+
 const Pricing = () => {
   const navigate = useNavigate();
   const { productId, checkSubscription, subscriptionEnd } = useSubscription();
@@ -26,6 +28,7 @@ const Pricing = () => {
   const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [earlyAdopterEnabled, setEarlyAdopterEnabled] = useState(true);
 
   const [searchParams] = useSearchParams();
   const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | null;
@@ -79,7 +82,7 @@ const Pricing = () => {
   const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect') => {
     try {
       setCheckoutLoading(tier);
-      const { data, error } = await api.createCheckout(tier);
+      const { data, error } = await api.createCheckout(tier, earlyAdopterEnabled ? EARLY_ADOPTER_COUPON : undefined);
       if (error) throw error;
       
       if (data?.upgraded) {
@@ -346,6 +349,31 @@ const Pricing = () => {
               The prices and message limits below reflect our current plans. If you've seen different pricing in previous advertisements, please note those offers are no longer available. Existing subscribers are not affected.
             </p>
           </div>
+
+          {/* Early Adopter Discount Banner - only for non-subscribers */}
+          {(!currentTier || currentTier === "free") && (
+            <div className="mb-6 bg-gradient-to-r from-emerald-500/15 via-emerald-600/20 to-emerald-500/15 border-2 border-emerald-500/40 rounded-xl p-5 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Zap className="h-5 w-5 text-emerald-500" />
+                <p className="text-base font-bold text-emerald-500 uppercase tracking-wide">
+                  Early Adopter Discount — $5 Off/Month
+                </p>
+                <Zap className="h-5 w-5 text-emerald-500" />
+              </div>
+              <p className="text-sm text-foreground/80 mb-3">
+                Subscribe now and save $5/month for your first 3 months on any plan. Limited time offer!
+              </p>
+              <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
+                <input 
+                  type="checkbox" 
+                  checked={earlyAdopterEnabled} 
+                  onChange={(e) => setEarlyAdopterEnabled(e.target.checked)}
+                  className="rounded border-emerald-500/50 text-emerald-500 focus:ring-emerald-500"
+                />
+                <span className="text-foreground font-medium">Apply early adopter discount at checkout</span>
+              </label>
+            </div>
+          )}
 
           {/* Free Trial Banner - only show for non-subscribers */}
           {!currentTier || currentTier === "free" ? (

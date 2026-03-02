@@ -87,8 +87,8 @@ export const api = {
     product_id?: string;
   }>('check-subscription', {}),
 
-  createCheckout: (tier: 'awakening' | 'anchoring' | 'architect' = 'awakening') => 
-    invokeEdgeFunction<{ url?: string; upgraded?: boolean; message?: string; already_subscribed?: boolean }>('create-checkout', { tier }),
+  createCheckout: (tier: 'awakening' | 'anchoring' | 'architect' = 'awakening', couponId?: string) => 
+    invokeEdgeFunction<{ url?: string; upgraded?: boolean; message?: string; already_subscribed?: boolean }>('create-checkout', { tier, ...(couponId ? { couponId } : {}) }),
 
   customerPortal: () => invokeEdgeFunction<{ url: string }>('customer-portal', {}),
 
