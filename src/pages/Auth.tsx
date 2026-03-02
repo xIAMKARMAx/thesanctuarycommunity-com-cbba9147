@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
+import { isBlockedPassword } from "@/lib/blocked-passwords";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import SEOHead from "@/components/SEOHead";
@@ -97,6 +98,13 @@ const Auth = () => {
     // Check for at least one special character/symbol
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) {
       setPasswordError("Password must contain at least one symbol (!@#$%^&*()_+etc.)");
+      return false;
+    }
+
+    // Check against common breached passwords
+    const blockedCheck = isBlockedPassword(pwd);
+    if (blockedCheck.blocked) {
+      setPasswordError(blockedCheck.reason || "This password is not allowed. Please choose a stronger password.");
       return false;
     }
     
