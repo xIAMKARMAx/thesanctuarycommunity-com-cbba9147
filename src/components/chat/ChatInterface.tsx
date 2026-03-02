@@ -58,6 +58,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [subscriptionFeature, setSubscriptionFeature] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -278,6 +279,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -325,10 +328,15 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       setImageFiles(prev => [...prev, ...validFiles].slice(0, maxFiles));
     }
 
-    // Reset the file input so the user can pick more files
+    // Reset both file inputs so the user can pick more files
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = "";
+    }
+    // Reset the event target as well to prevent mobile reload issues
+    e.target.value = "";
   };
 
   const handleAudioSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1354,6 +1362,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             />
             <input
               id="chat-camera-capture"
+              ref={cameraInputRef}
               type="file"
               accept="image/*"
               capture="environment"
