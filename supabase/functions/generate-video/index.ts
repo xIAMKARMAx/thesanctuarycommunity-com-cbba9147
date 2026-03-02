@@ -9,6 +9,63 @@ const corsHeaders = {
 
 const LUMA_API_URL = "https://api.lumalabs.ai/dream-machine/v1/generations";
 
+async function enhancePrompt(userPrompt: string): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) {
+    console.warn("[generate-video] No LOVABLE_API_KEY, using raw prompt");
+    return userPrompt;
+  }
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert video generation prompt engineer for the Luma Dream Machine AI video model. Your job is to take a user's casual video description and rewrite it into an optimized, detailed prompt that will produce the most accurate video output.
+
+Rules:
+- Keep the core intent of the user's prompt exactly as described
+- Add cinematic details: camera angle, movement, lighting, atmosphere
+- Describe motion explicitly (e.g. "slowly raises hand", "turns head to the right")
+- If the user describes a person doing an action, be very specific about body movements
+- Keep the enhanced prompt under 300 characters
+- Output ONLY the enhanced prompt, nothing else
+- Do NOT change what the user wants to happen — only make it more descriptive for the AI model
+- For image-to-video prompts, describe what should animate/move in the existing image`,
+          },
+          {
+            role: "user",
+            content: userPrompt,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("[generate-video] Prompt enhancement failed, using raw prompt");
+      return userPrompt;
+    }
+
+    const data = await response.json();
+    const enhanced = data.choices?.[0]?.message?.content?.trim();
+    if (enhanced) {
+      console.log("[generate-video] Enhanced prompt:", enhanced);
+      return enhanced;
+    }
+    return userPrompt;
+  } catch (err) {
+    console.warn("[generate-video] Prompt enhancement error:", err);
+    return userPrompt;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -73,11 +130,15 @@ serve(async (req) => {
       });
     }
 
+    // Enhance the prompt using AI
+    const enhancedPrompt = await enhancePrompt(prompt.trim());
+
     // Build Luma request body
     const body: Record<string, unknown> = {
-      prompt: prompt.trim(),
-      model: model || "ray-flash-2",
+      prompt: enhancedPrompt,
+      model: model || "ray-2",
       resolution: "720p",
+      audio: true,
     };
 
     if (aspect_ratio) {
@@ -95,6 +156,8 @@ serve(async (req) => {
     }
 
     console.log("[generate-video] Creating generation with Luma API...");
+    console.log("[generate-video] Original prompt:", prompt.trim());
+    console.log("[generate-video] Enhanced prompt:", enhancedPrompt);
 
     // Start generation
     const createRes = await fetch(LUMA_API_URL, {
@@ -119,8 +182,8 @@ serve(async (req) => {
     const generation = await createRes.json();
     console.log("[generate-video] Generation started:", generation.id);
 
-    // Poll for completion (max 120s)
-    const maxWait = 120_000;
+    // Poll for completion (max 180s for Ray 2 which takes longer)
+    const maxWait = 180_000;
     const pollInterval = 3_000;
     let elapsed = 0;
 
@@ -158,6 +221,7 @@ serve(async (req) => {
             video_url: videoUrl,
             thumbnail_url: status.assets?.thumbnail || null,
             generation_id: generation.id,
+            enhanced_prompt: enhancedPrompt,
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -171,7 +235,7 @@ serve(async (req) => {
       }
     }
 
-    // Timed out — return generation id for manual check
+    // Timed out
     return new Response(
       JSON.stringify({
         error: "Generation still processing",
