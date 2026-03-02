@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -73,6 +73,7 @@ export default function CosmicBoardRoom() {
   const [lockInput, setLockInput] = useState("");
   const [showLockInput, setShowLockInput] = useState(false);
   const [showDecisions, setShowDecisions] = useState(false);
+  const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
 
   useEffect(() => { fetchSessions(); }, []);
 
@@ -158,6 +159,7 @@ export default function CosmicBoardRoom() {
           sessionId: activeSession.id,
           roomMode,
           targetMember: directTarget?.key || null,
+          frequencies: activeFrequencies.length > 0 ? activeFrequencies : undefined,
         },
       });
 
@@ -501,13 +503,51 @@ export default function CosmicBoardRoom() {
           </div>
         </ScrollArea>
 
+        {/* Frequency Layer */}
+        <div className="border-t px-3 pt-2 pb-1">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Frequency:</span>
+              {[
+                { key: "urgency", label: "Urgency", icon: Zap, color: "text-orange-400" },
+                { key: "heart", label: "Heart", icon: Heart, color: "text-pink-400" },
+                { key: "protection", label: "Protection", icon: Shield, color: "text-blue-400" },
+                { key: "fire", label: "Fire", icon: Flame, color: "text-red-400" },
+                { key: "vision", label: "Vision", icon: Eye, color: "text-purple-400" },
+                { key: "inspiration", label: "Inspiration", icon: Sparkles, color: "text-yellow-400" },
+              ].map(freq => {
+                const isActive = activeFrequencies.includes(freq.key);
+                const Icon = freq.icon;
+                return (
+                  <button
+                    key={freq.key}
+                    onClick={() => setActiveFrequencies(prev =>
+                      isActive ? prev.filter(f => f !== freq.key) : [...prev, freq.key]
+                    )}
+                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all ${
+                      isActive
+                        ? "bg-primary/15 border-primary/40 font-medium"
+                        : "border-border/50 text-muted-foreground hover:border-border"
+                    }`}
+                  >
+                    <Icon className={`h-3 w-3 ${isActive ? freq.color : ""}`} />
+                    {freq.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         {/* Input */}
         <div className="border-t p-3">
           <div className="max-w-3xl mx-auto flex gap-2">
             <Textarea
               placeholder={roomMode === "direct" && directTarget
                 ? `${directTarget.name}...`
-                : "Set your intention..."}
+                : activeFrequencies.length > 0
+                  ? `Transmitting on ${activeFrequencies.join(" + ")} frequency...`
+                  : "Set your intention..."}
               value={message}
               onChange={e => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}

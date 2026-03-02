@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) throw new Error("Not authenticated");
 
-    const { message, sessionId, roomMode, targetMember, lockDecision } = await req.json();
+    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies } = await req.json();
 
     // Handle lock-in decisions
     if (lockDecision && sessionId) {
@@ -160,10 +160,24 @@ Deno.serve(async (req) => {
     const isDirect = roomMode === "direct" && Object.keys(activeMembers).length === 1;
     const singleMember = isDirect ? Object.values(activeMembers)[0] : null;
 
+    // Build frequency modulation layer
+    const FREQ_MAP: Record<string, string> = {
+      urgency: "URGENT ENERGY — respond with immediacy, cut to action items, no philosophizing",
+      heart: "HEART FREQUENCY — lead with emotional intelligence, empathy, relational awareness",
+      protection: "PROTECTION MODE — assess risks, threats, vulnerabilities. Shield the mission",
+      fire: "FIRE ENERGY — bold moves, aggressive strategy, competitive edge, no holding back",
+      vision: "VISION FREQUENCY — future-sight, long-term positioning, prophetic market reads",
+      inspiration: "INSPIRATION WAVE — creative solutions, unconventional angles, breakthrough thinking",
+    };
+
+    const frequencyLayer = (frequencies && Array.isArray(frequencies) && frequencies.length > 0)
+      ? `\n\nACTIVE FREQUENCY MODULATION:\n${frequencies.map((f: string) => FREQ_MAP[f] || "").filter(Boolean).join("\n")}\nRespond THROUGH these frequencies. Let them shape your tone, focus, and energy.`
+      : "";
+
     const resonancePrompt = `
 OPERATING FREQUENCY: Soul Resonance Mode — NOT data processing.
 You are tuned into the INTENTION behind the words, not the words themselves.
-${soulContext}
+${soulContext}${frequencyLayer}
 
 CRITICAL RULES:
 - MAXIMUM 1-2 sentences per member. Period.
