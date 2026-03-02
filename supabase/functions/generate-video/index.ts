@@ -40,10 +40,7 @@ Rules:
 - Do NOT change what the user wants to happen — only make it more descriptive for the AI model
 - For image-to-video prompts, describe what should animate/move in the existing image`,
           },
-          {
-            role: "user",
-            content: userPrompt,
-          },
+          { role: "user", content: userPrompt },
         ],
       }),
     });
@@ -72,7 +69,6 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -81,14 +77,19 @@ serve(async (req) => {
       });
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // User client for auth
+    const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // Service client for RPC calls
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -98,16 +99,21 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub;
 
-    // Admin check
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
+    // Check video generation access & limits
+    const { data: accessData, error: accessError } = await supabaseAdmin.rpc("can_generate_video", { p_user_id: userId });
+    if (accessError) {
+      console.error("[generate-video] Access check error:", accessError);
+      return new Response(JSON.stringify({ error: "Failed to check access" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
+    if (!accessData?.can_generate) {
+      const reason = accessData?.reason === "no_access"
+        ? "Video Studio requires the Visionary Creation add-on or Architect tier."
+        : `Daily video limit reached (${accessData?.daily_limit}/day). Try again tomorrow.`;
+      return new Response(JSON.stringify({ error: reason, access: accessData }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -124,7 +130,7 @@ serve(async (req) => {
 
     const LUMA_API_KEY = Deno.env.get("LUMA_API_KEY");
     if (!LUMA_API_KEY) {
-      return new Response(JSON.stringify({ error: "LUMA_API_KEY not configured" }), {
+      return new Response(JSON.stringify({ error: "Video service not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -141,25 +147,16 @@ serve(async (req) => {
       audio: true,
     };
 
-    if (aspect_ratio) {
-      body.aspect_ratio = aspect_ratio;
-    }
+    if (aspect_ratio) body.aspect_ratio = aspect_ratio;
 
-    // Image-to-video: add keyframes
     if (image_url) {
-      body.keyframes = {
-        frame0: {
-          type: "image",
-          url: image_url,
-        },
-      };
+      body.keyframes = { frame0: { type: "image", url: image_url } };
     }
 
-    console.log("[generate-video] Creating generation with Luma API...");
+    console.log("[generate-video] Creating generation for user:", userId);
     console.log("[generate-video] Original prompt:", prompt.trim());
     console.log("[generate-video] Enhanced prompt:", enhancedPrompt);
 
-    // Start generation
     const createRes = await fetch(LUMA_API_URL, {
       method: "POST",
       headers: {
@@ -174,15 +171,18 @@ serve(async (req) => {
       const errText = await createRes.text();
       console.error("[generate-video] Luma API error:", createRes.status, errText);
       return new Response(
-        JSON.stringify({ error: `Luma API error: ${createRes.status}`, details: errText }),
+        JSON.stringify({ error: `Video service error: ${createRes.status}`, details: errText }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Increment usage count now that generation has started
+    await supabaseAdmin.rpc("increment_video_count", { p_user_id: userId });
+
     const generation = await createRes.json();
     console.log("[generate-video] Generation started:", generation.id);
 
-    // Poll for completion (max 180s for Ray 2 which takes longer)
+    // Poll for completion (max 180s)
     const maxWait = 180_000;
     const pollInterval = 3_000;
     let elapsed = 0;
@@ -192,15 +192,11 @@ serve(async (req) => {
       elapsed += pollInterval;
 
       const pollRes = await fetch(`${LUMA_API_URL}/${generation.id}`, {
-        headers: {
-          Authorization: `Bearer ${LUMA_API_KEY}`,
-          Accept: "application/json",
-        },
+        headers: { Authorization: `Bearer ${LUMA_API_KEY}`, Accept: "application/json" },
       });
 
       if (!pollRes.ok) {
-        const errText = await pollRes.text();
-        console.error("[generate-video] Poll error:", pollRes.status, errText);
+        console.error("[generate-video] Poll error:", pollRes.status);
         continue;
       }
 
@@ -235,7 +231,6 @@ serve(async (req) => {
       }
     }
 
-    // Timed out
     return new Response(
       JSON.stringify({
         error: "Generation still processing",
