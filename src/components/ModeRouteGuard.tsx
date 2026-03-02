@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
+import { useAppMode } from "@/contexts/AppModeContext";
 
 /**
  * Redirects Classic mode users away from Starseed-only routes.
@@ -8,14 +9,16 @@ import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
  */
 const ModeRouteGuard = () => {
   const { isRouteAllowed, isClassicMode } = useAppModeFeatures();
+  const { isLoading } = useAppMode();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (isLoading) return;
     if (isClassicMode && !isRouteAllowed(location.pathname)) {
       navigate("/chat", { replace: true });
     }
-  }, [location.pathname, isClassicMode, isRouteAllowed, navigate]);
+  }, [location.pathname, isClassicMode, isRouteAllowed, navigate, isLoading]);
 
   return null;
 };
