@@ -1,100 +1,49 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { handleCors, jsonResponse, errorResponse } from "../_shared/cors.ts";
+import { authenticateRequest } from "../_shared/auth.ts";
+import { getStripe, findCustomerByEmail } from "../_shared/stripe.ts";
+import { createLogger } from "../_shared/logger.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const log = createLogger("CREATE-CHECKOUT");
 
-// NEW price IDs for new subscribers (effective 2026-02-28)
+// Price IDs (effective 2026-02-28)
 const PRICE_IDS: Record<string, string> = {
-  // New pricing
-  awakening: "price_1T5pakLeA9CCp7fqv5xWPnnm", // $12.99/month
-  anchoring: "price_1T5paqLeA9CCp7fqrbBoAuCz", // $19.99/month
-  architect: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month (unchanged)
-  // Legacy aliases still route to NEW prices for new signups
+  awakening: "price_1T5pakLeA9CCp7fqv5xWPnnm",
+  anchoring: "price_1T5paqLeA9CCp7fqrbBoAuCz",
+  architect: "price_1SvMYWLeA9CCp7fqCZW21kS0",
   basic: "price_1T5pakLeA9CCp7fqv5xWPnnm",
   pro: "price_1T5paqLeA9CCp7fqrbBoAuCz",
   vip: "price_1SvMYWLeA9CCp7fqCZW21kS0",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
-};
-
-serve(async (req) => {
-  logStep("Function started");
-  
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-  );
+Deno.serve(async (req) => {
+  const cors = handleCors(req);
+  if (cors) return cors;
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      logStep("ERROR: No authorization header");
-      throw new Error("No authorization header provided");
-    }
-    
-    const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user");
-    
-    const { data, error: authError } = await supabaseClient.auth.getUser(token);
-    if (authError) {
-      logStep("ERROR: Auth failed", { error: authError.message });
-      throw new Error(`Authentication failed: ${authError.message}`);
-    }
-    
-    const user = data.user;
-    if (!user?.email) {
-      logStep("ERROR: No user email");
-      throw new Error("User not authenticated or email not available");
-    }
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    log("Function started");
 
-    // Get the tier from request body (default to 'awakening')
+    const { user } = await authenticateRequest(req);
+    log("User authenticated", { userId: user.id, email: user.email });
+
+    // Parse tier from body
     let tier = "awakening";
+    let couponId: string | undefined;
     try {
       const body = await req.json();
-      if (body.tier && body.tier in PRICE_IDS) {
-        tier = body.tier;
-      }
-    } catch {
-      // No body or invalid JSON, use default tier
-    }
+      if (body.tier && body.tier in PRICE_IDS) tier = body.tier;
+      if (body.couponId && typeof body.couponId === "string") couponId = body.couponId;
+    } catch { /* default tier */ }
 
     const priceId = PRICE_IDS[tier];
-    logStep("Target tier", { tier, priceId });
+    log("Target tier", { tier, priceId, couponId });
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      logStep("ERROR: No Stripe key");
-      throw new Error("STRIPE_SECRET_KEY is not configured");
-    }
-    
-    const stripe = new Stripe(stripeKey, { 
-      apiVersion: "2025-08-27.basil" 
-    });
+    const stripe = getStripe();
+    const customerId = await findCustomerByEmail(user.email);
 
-    // Check for existing Stripe customer
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId: string | undefined;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Found existing customer", { customerId });
-    } else {
-      logStep("No existing customer found, will create new via checkout");
-    }
-
-    // If customer exists, check for active subscription to handle UPGRADES
     if (customerId) {
+      log("Found existing customer", { customerId });
+
+      // Check for active subscription → handle upgrade
       const subscriptions = await stripe.subscriptions.list({
         customer: customerId,
         status: "active",
@@ -106,87 +55,48 @@ serve(async (req) => {
         const existingItem = existingSub.items.data[0];
         const existingPriceId = existingItem.price.id;
 
-        logStep("Found active subscription", { 
-          subscriptionId: existingSub.id, 
-          currentPrice: existingPriceId,
-          targetPrice: priceId 
-        });
-
-        // If they already have this price, no change needed
         if (existingPriceId === priceId) {
-          logStep("User already on this tier");
-          return new Response(JSON.stringify({ 
-            error: "You are already subscribed to this plan.",
-            already_subscribed: true 
-          }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 400,
-          });
+          return jsonResponse({ error: "You are already subscribed to this plan.", already_subscribed: true }, 400);
         }
 
-        // UPGRADE/DOWNGRADE: Swap the subscription item to the new price
-        logStep("Upgrading subscription", { 
-          from: existingPriceId, 
-          to: priceId,
-          itemId: existingItem.id 
-        });
-
+        // Swap subscription item
+        log("Upgrading subscription", { from: existingPriceId, to: priceId });
         const updatedSub = await stripe.subscriptions.update(existingSub.id, {
-          items: [
-            {
-              id: existingItem.id,
-              price: priceId,
-            },
-          ],
+          items: [{ id: existingItem.id, price: priceId }],
           proration_behavior: "create_prorations",
         });
 
-        logStep("Subscription upgraded successfully", { 
-          subscriptionId: updatedSub.id,
-          newStatus: updatedSub.status 
-        });
-
-        return new Response(JSON.stringify({ 
-          upgraded: true,
-          subscription_id: updatedSub.id,
-          message: "Your subscription has been updated!" 
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
+        log("Subscription upgraded", { subscriptionId: updatedSub.id });
+        return jsonResponse({ upgraded: true, subscription_id: updatedSub.id, message: "Your subscription has been updated!" });
       }
     }
 
-    // No existing subscription — create a new checkout session
+    // New checkout session
     const origin = req.headers.get("origin") || "https://prometheus-insight-engine.lovable.app";
-    logStep("Creating new checkout session", { origin });
+    log("Creating checkout session", { origin });
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
       success_url: `${origin}/chat?subscription=success`,
       cancel_url: `${origin}/chat?subscription=canceled`,
-    });
+    };
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    // Apply coupon if provided
+    if (couponId) {
+      sessionParams.discounts = [{ coupon: couponId }];
+      log("Applying coupon", { couponId });
+    }
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    const session = await stripe.checkout.sessions.create(sessionParams);
+    log("Checkout session created", { sessionId: session.id });
+
+    return jsonResponse({ url: session.url });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-    logStep("ERROR in create-checkout", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    const msg = error instanceof Error ? error.message : "An unexpected error occurred";
+    log("ERROR", { message: msg });
+    return errorResponse(msg);
   }
 });
