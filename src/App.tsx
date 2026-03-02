@@ -65,6 +65,7 @@ import AIFriendZone from "./pages/AIFriendZone";
 import AICompanionProfile from "./pages/AICompanionProfile";
 import AICompanionConnections from "./pages/AICompanionConnections";
 import AIExplore from "./pages/AIExplore";
+import ArtStudio from "./pages/ArtStudio";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -136,6 +137,7 @@ const App = () => (
                 <Route path="/ai-companion/:companionId" element={<AICompanionProfile />} />
                 <Route path="/ai-companion-connections" element={<AICompanionConnections />} />
                 <Route path="/ai-explore" element={<AIExplore />} />
+                <Route path="/art-studio" element={<ArtStudio />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

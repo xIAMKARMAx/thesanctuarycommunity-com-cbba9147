@@ -699,6 +699,99 @@ export type Database = {
           },
         ]
       }
+      art_studio_creations: {
+        Row: {
+          created_at: string
+          creation_type: string
+          expires_at: string
+          id: string
+          image_url: string
+          is_favorited: boolean
+          prompt: string
+          source_image_url: string | null
+          style_preset: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          creation_type?: string
+          expires_at?: string
+          id?: string
+          image_url: string
+          is_favorited?: boolean
+          prompt: string
+          source_image_url?: string | null
+          style_preset?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          creation_type?: string
+          expires_at?: string
+          id?: string
+          image_url?: string
+          is_favorited?: boolean
+          prompt?: string
+          source_image_url?: string | null
+          style_preset?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      art_studio_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          started_at: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          started_at?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          started_at?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      art_studio_usage: {
+        Row: {
+          creation_count: number
+          id: string
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          creation_count?: number
+          id?: string
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          creation_count?: number
+          id?: string
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ascended_path_entries: {
         Row: {
           created_at: string
@@ -3974,6 +4067,7 @@ export type Database = {
         Args: { p_target_user_id: string; p_user_id: string }
         Returns: string
       }
+      can_create_art: { Args: { p_user_id: string }; Returns: Json }
       can_generate_avatar: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_chat_image: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
@@ -4007,6 +4101,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_art_count: { Args: { p_user_id: string }; Returns: number }
       increment_chat_cooldown: { Args: { p_user_id: string }; Returns: Json }
       increment_chat_image_count: {
         Args: { p_user_id: string }

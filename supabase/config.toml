@@ -102,3 +102,12 @@ verify_jwt = false
 
 [functions.journal-respond]
 verify_jwt = true
+
+[functions.generate-art]
+verify_jwt = true
+
+[functions.create-art-checkout]
+verify_jwt = true
+
+[functions.check-art-subscription]
+verify_jwt = true
