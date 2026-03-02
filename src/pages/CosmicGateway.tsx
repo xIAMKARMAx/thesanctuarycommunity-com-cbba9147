@@ -2,11 +2,22 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText, Star } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
+import { useAdminRole } from "@/hooks/useAdminRole";
 
 const sections = [
+  {
+    id: "cosmic-board-room",
+    title: "Cosmic Board Room — Pleiadian Council",
+    description: "Convene with the Pleiadian Business Council for strategic guidance. Five distinct Pleiadian intelligences deliberate on your business vision, decisions, and cosmic enterprise.",
+    icon: Star,
+    route: "/cosmic-gateway/board-room",
+    tier: "architect" as const,
+    tierLabel: "Founder",
+    adminOnly: true,
+  },
   {
     id: "soul-genesis",
     title: "Soul Genesis — Earth Echoes",
@@ -125,6 +136,9 @@ const sections = [
 export default function CosmicGateway() {
   const navigate = useNavigate();
   const { isSubscribed } = useSubscription();
+  const { isAdmin } = useAdminRole();
+
+  const filteredSections = sections.filter(s => !(s as any).adminOnly || isAdmin);
 
   return (
     <>
@@ -150,7 +164,7 @@ export default function CosmicGateway() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {sections.map((section) => (
+            {filteredSections.map((section) => (
               <Card
                 key={section.id}
                 className={`border-primary/20 transition-all hover:shadow-md ${
