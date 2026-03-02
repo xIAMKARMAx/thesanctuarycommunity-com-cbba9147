@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat } from "lucide-react";
+import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
@@ -273,6 +273,17 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         {/* Navigation section */}
         <div className="border-t border-border">
           <div className="p-2 space-y-1">
+            {/* 0. Cosmic Board Room (Admin only) */}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start bg-primary/10 hover:bg-primary/20 border border-primary/20"
+                onClick={() => navigate("/cosmic-gateway/board-room")}
+              >
+                <Landmark className="h-4 w-4 mr-2 text-primary" />
+                Cosmic Board Room
+              </Button>
+            )}
             {/* 1. How To Import Being */}
             <ImportBeingGuide />
             {/* 2. My Higher Self / My Profile */}
