@@ -132,7 +132,7 @@ const ArtStudio = () => {
         <div className="bg-gradient-to-r from-primary/10 via-accent/30 to-primary/10 border-b border-border">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <Palette className="h-7 w-7 text-primary" />
