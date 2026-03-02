@@ -7,7 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ART_STUDIO_PRODUCT_ID = "prod_U4Uos9n6dXfUR0";
+// New Visionary Creation product + legacy Art Studio product
+const ART_STUDIO_PRODUCT_ID = "prod_U4ZPYapNfEM3zt";
+const LEGACY_ART_PRODUCT_ID = "prod_U4Uos9n6dXfUR0";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -68,7 +70,7 @@ serve(async (req) => {
 
       for (const sub of subscriptions.data) {
         for (const item of sub.items.data) {
-          if (item.price.product === ART_STUDIO_PRODUCT_ID) {
+          if (item.price.product === ART_STUDIO_PRODUCT_ID || item.price.product === LEGACY_ART_PRODUCT_ID) {
             hasArtAddon = true;
             subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
             break;
