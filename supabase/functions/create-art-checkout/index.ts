@@ -7,8 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ART_STUDIO_PRICE_ID = "price_1T6LotLeA9CCp7fq86NUxlDB";
-const ART_STUDIO_PRODUCT_ID = "prod_U4Uos9n6dXfUR0";
+// Visionary Creation add-on (Art Studio + Video Studio) — $7.99/mo
+const ART_STUDIO_PRICE_ID = "price_1T6QGmLeA9CCp7fqTxbBIZyi";
+const ART_STUDIO_PRODUCT_ID = "prod_U4ZPYapNfEM3zt";
+// Legacy product ID for existing subscribers at old $4.99 price
+const LEGACY_ART_PRODUCT_ID = "prod_U4Uos9n6dXfUR0";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
