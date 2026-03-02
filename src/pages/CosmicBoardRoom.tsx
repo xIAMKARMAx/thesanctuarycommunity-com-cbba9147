@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -19,12 +20,19 @@ interface BoardMessage {
   roomMode?: string;
 }
 
+interface LockedDecision {
+  text: string;
+  locked_at: string;
+  locked_by: string;
+}
+
 interface CouncilSession {
   id: string;
   session_title: string | null;
   session_type: string;
   messages: BoardMessage[];
   council_members: string[];
+  key_decisions: LockedDecision[];
   is_active: boolean;
   created_at: string;
 }
@@ -62,6 +70,9 @@ export default function CosmicBoardRoom() {
   const [roomMode, setRoomMode] = useState<RoomMode>("full");
   const [directTarget, setDirectTarget] = useState<typeof ALL_MEMBERS[0] | null>(null);
   const [showSessions, setShowSessions] = useState(true);
+  const [lockInput, setLockInput] = useState("");
+  const [showLockInput, setShowLockInput] = useState(false);
+  const [showDecisions, setShowDecisions] = useState(false);
 
   useEffect(() => { fetchSessions(); }, []);
 
@@ -108,6 +119,29 @@ export default function CosmicBoardRoom() {
     setRoomMode("full");
   };
 
+  const lockDecision = async () => {
+    if (!lockInput.trim() || !activeSession) return;
+    try {
+      await supabase.functions.invoke("pleiadian-council", {
+        body: { lockDecision: lockInput.trim(), sessionId: activeSession.id },
+      });
+      const newDecision: LockedDecision = {
+        text: lockInput.trim(),
+        locked_at: new Date().toISOString(),
+        locked_by: "Karma",
+      };
+      setActiveSession(prev => prev ? {
+        ...prev,
+        key_decisions: [...(prev.key_decisions || []), newDecision],
+      } : null);
+      setLockInput("");
+      setShowLockInput(false);
+      toast({ title: "🔒 Decision Locked", description: "This decision has been sealed into the record." });
+    } catch {
+      toast({ title: "Error", description: "Failed to lock decision", variant: "destructive" });
+    }
+  };
+
   const sendMessage = async () => {
     if (!message.trim() || !activeSession || sending) return;
     const userMessage = message.trim();
@@ -118,18 +152,12 @@ export default function CosmicBoardRoom() {
     setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
 
     try {
-      const conversationHistory = (activeSession.messages || [])
-        .filter(m => !roomMode || m.roomMode === roomMode || m.roomMode === "full" || !m.roomMode)
-        .slice(-10)
-        .map(m => ({ role: m.role === "council" ? "assistant" : "user", content: m.content }));
-
       const { data, error } = await supabase.functions.invoke("pleiadian-council", {
         body: {
           message: userMessage,
           sessionId: activeSession.id,
           roomMode,
           targetMember: directTarget?.key || null,
-          conversationHistory,
         },
       });
 
@@ -254,9 +282,14 @@ export default function CosmicBoardRoom() {
                     <CardContent className="py-4 flex items-center justify-between">
                       <div>
                         <p className="font-medium">{session.session_title || "Untitled Meeting"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(session.created_at).toLocaleDateString()} · {(session.messages as any[])?.length || 0} exchanges
-                        </p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span>{new Date(session.created_at).toLocaleDateString()} · {(session.messages as any[])?.length || 0} exchanges</span>
+                          {(session.key_decisions as any[])?.length > 0 && (
+                            <span className="flex items-center gap-1 text-primary">
+                              <Lock className="h-3 w-3" /> {(session.key_decisions as any[]).length} locked
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -271,6 +304,7 @@ export default function CosmicBoardRoom() {
 
   // Active session — the conference room
   const currentMessages = (activeSession?.messages || []);
+  const lockedDecisions = (activeSession?.key_decisions || []) as LockedDecision[];
 
   const getModeLabel = () => {
     if (roomMode === "direct" && directTarget) return `Direct Line — ${directTarget.name}`;
@@ -292,15 +326,78 @@ export default function CosmicBoardRoom() {
       <div className="min-h-screen bg-background flex flex-col">
         {/* Header */}
         <div className="border-b p-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); }}>
+          <Button variant="ghost" size="icon" onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-sm truncate">{activeSession?.session_title || "Board Meeting"}</h2>
-            <p className="text-xs text-muted-foreground">{getModeLabel()}</p>
+            <p className="text-xs text-muted-foreground">{getModeLabel()} · Soul Resonance Mode</p>
+          </div>
+          <div className="flex gap-1.5">
+            <Button
+              variant={showDecisions ? "default" : "outline"}
+              size="sm"
+              className="text-xs gap-1.5 h-8"
+              onClick={() => setShowDecisions(!showDecisions)}
+            >
+              <Lock className="h-3.5 w-3.5" />
+              {lockedDecisions.length > 0 && <span>{lockedDecisions.length}</span>}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5 h-8"
+              onClick={() => setShowLockInput(!showLockInput)}
+            >
+              <Pin className="h-3.5 w-3.5" /> Lock In
+            </Button>
           </div>
         </div>
+
+        {/* Lock-in input */}
+        {showLockInput && (
+          <div className="border-b px-3 py-2 bg-primary/5">
+            <div className="max-w-3xl mx-auto flex gap-2 items-center">
+              <Lock className="h-4 w-4 text-primary flex-shrink-0" />
+              <Input
+                placeholder="Lock in a key decision or directive..."
+                value={lockInput}
+                onChange={e => setLockInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") lockDecision(); }}
+                className="text-sm h-9"
+              />
+              <Button size="sm" onClick={lockDecision} disabled={!lockInput.trim()} className="h-9">
+                Seal It
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowLockInput(false)} className="h-9">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Locked Decisions panel */}
+        {showDecisions && lockedDecisions.length > 0 && (
+          <div className="border-b px-3 py-3 bg-primary/5">
+            <div className="max-w-3xl mx-auto space-y-2">
+              <h3 className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5" /> LOCKED DECISIONS
+              </h3>
+              {lockedDecisions.map((d, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm bg-background/60 rounded-lg px-3 py-2 border border-primary/10">
+                  <Lock className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium">{d.text}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(d.locked_at).toLocaleDateString()} · {d.locked_by}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Room Tabs */}
         <div className="border-b px-3">
@@ -329,7 +426,7 @@ export default function CosmicBoardRoom() {
           </Tabs>
         </div>
 
-        {/* Seats — clickable for direct lines */}
+        {/* Seats */}
         <div className="border-b px-3 py-2">
           <div className="flex flex-wrap gap-1.5">
             {getModeMembers().map(m => (
@@ -353,7 +450,8 @@ export default function CosmicBoardRoom() {
             {currentMessages.length === 0 && (
               <div className="text-center py-8 space-y-2">
                 <Building2 className="h-8 w-8 text-primary/30 mx-auto" />
-                <p className="text-sm text-muted-foreground">The board room is ready. Present your agenda.</p>
+                <p className="text-sm text-muted-foreground">The room is tuned in. Set your intention.</p>
+                <p className="text-xs text-muted-foreground/60">Soul Resonance Mode — No history. Present moment only.</p>
               </div>
             )}
 
@@ -366,14 +464,13 @@ export default function CosmicBoardRoom() {
                 ) : (
                   <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5">
                     {msg.content.split('\n').map((line, j) => {
-                      // Detect member name headers like **[Name]:** or **Name:**
                       const memberMatch = line.match(/^\*\*\[?([^\]]*?)\]?:\*\*\s*(.*)/);
                       if (memberMatch) {
                         const name = memberMatch[1];
                         const text = memberMatch[2];
                         const member = ALL_MEMBERS.find(m => name.includes(m.name) || m.name.includes(name));
                         return (
-                          <div key={j} className="py-1.5">
+                          <div key={j} className="py-1">
                             <span className="text-xs font-bold text-primary">{member?.emoji || "💬"} {name}:</span>
                             <span className="text-sm ml-1.5">{text}</span>
                           </div>
@@ -395,8 +492,8 @@ export default function CosmicBoardRoom() {
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
                   <span className="text-sm text-muted-foreground">
                     {roomMode === "direct" && directTarget
-                      ? `${directTarget.name} is responding...`
-                      : "The room is deliberating..."}
+                      ? `${directTarget.name} is tuning in...`
+                      : "Reading the frequency..."}
                   </span>
                 </div>
               </div>
@@ -409,8 +506,8 @@ export default function CosmicBoardRoom() {
           <div className="max-w-3xl mx-auto flex gap-2">
             <Textarea
               placeholder={roomMode === "direct" && directTarget
-                ? `Message ${directTarget.name}...`
-                : "Address the room..."}
+                ? `${directTarget.name}...`
+                : "Set your intention..."}
               value={message}
               onChange={e => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
