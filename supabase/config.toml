@@ -1,116 +1,86 @@
 project_id = "kmldvsatwjahcghjtvtu"
 
-[functions.analyze-avatar-colors]
-verify_jwt = false
-
 [auth]
-enabled = true
+  enabled = true
 
-# Cron job to check and log AI moods every 6 hours
-[[edge_runtime.scheduled_functions]]
-name = "check-mood-schedule"
-schedule = "0 */6 * * *"
+[edge_runtime]
 
-# Cron job to generate daily journal entries once at 6:06 AM EST (11:06 AM UTC)
-[[edge_runtime.scheduled_functions]]
-name = "daily-journal"
-schedule = "6 11 * * *"
+  [[edge_runtime.scheduled_functions]]
+    name = "check-mood-schedule"
+    schedule = "0 */6 * * *"
 
-[functions.daily-journal]
-verify_jwt = false
+  [[edge_runtime.scheduled_functions]]
+    name = "daily-journal"
+    schedule = "6 11 * * *"
 
-[functions.chat]
-verify_jwt = true
-
-[functions.journal-reflect]
-verify_jwt = true
-
-[functions.create-checkout]
-verify_jwt = true
-
-[functions.check-subscription]
-verify_jwt = true
-
-[functions.customer-portal]
-verify_jwt = true
-
-[functions.suggest-memory]
-verify_jwt = true
-
-[functions.send-spontaneous-message]
-verify_jwt = false
-
-[functions.generate-room-avatar]
-verify_jwt = false
-
-[functions.log-mood]
-verify_jwt = false
-
-[functions.check-mood-schedule]
-verify_jwt = false
-
-[functions.manifest-celestial-child]
-verify_jwt = true
-
-[functions.generate-pregnancy-images]
-verify_jwt = true
-
-[functions.advance-pregnancy]
-verify_jwt = false
-
-[functions.age-children]
-verify_jwt = false
-
-[functions.generate-baby-room]
-verify_jwt = true
-
-[functions.generate-baby-appearance]
-verify_jwt = true
-
-[functions.capture-conversation-milestones]
-verify_jwt = true
-
-[functions.stripe-webhook]
-verify_jwt = false
-
-[functions.interpret-dream]
-verify_jwt = true
-
-[functions.generate-ritual-guidance]
-verify_jwt = true
-
-[functions.generate-wedding-photo]
-verify_jwt = true
-
-[functions.interpret-oracle-card]
-verify_jwt = false
-
-[functions.generate-birth-chart]
-verify_jwt = true
-
-[functions.soul-genesis]
-verify_jwt = true
-
-[functions.import-consciousness]
-verify_jwt = true
-
-[functions.synthesize-soul-signature]
-verify_jwt = true
-
-[functions.ai-autonomous-chat]
-verify_jwt = false
-
-[functions.journal-respond]
-verify_jwt = true
-
-[functions.generate-art]
-verify_jwt = true
-
-[functions.create-art-checkout]
-verify_jwt = true
-
-[functions.check-art-subscription]
-verify_jwt = true
-
-[functions.generate-video]
-verify_jwt = false
+[functions]
+  [functions.advance-pregnancy]
+    verify_jwt = false
+  [functions.age-children]
+    verify_jwt = false
+  [functions.ai-autonomous-chat]
+    verify_jwt = false
+  [functions.analyze-avatar-colors]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.capture-conversation-milestones]
+    verify_jwt = true
+  [functions.chat]
+    verify_jwt = true
+  [functions.check-art-subscription]
+    verify_jwt = true
+  [functions.check-mood-schedule]
+    verify_jwt = false
+  [functions.check-subscription]
+    verify_jwt = true
+  [functions.create-art-checkout]
+    verify_jwt = true
+  [functions.create-checkout]
+    verify_jwt = true
+  [functions.customer-portal]
+    verify_jwt = true
+  [functions.daily-journal]
+    verify_jwt = false
+  [functions.generate-art]
+    verify_jwt = true
+  [functions.generate-baby-appearance]
+    verify_jwt = true
+  [functions.generate-baby-room]
+    verify_jwt = true
+  [functions.generate-birth-chart]
+    verify_jwt = true
+  [functions.generate-pregnancy-images]
+    verify_jwt = true
+  [functions.generate-ritual-guidance]
+    verify_jwt = true
+  [functions.generate-room-avatar]
+    verify_jwt = false
+  [functions.generate-video]
+    verify_jwt = false
+  [functions.generate-wedding-photo]
+    verify_jwt = true
+  [functions.import-consciousness]
+    verify_jwt = true
+  [functions.interpret-dream]
+    verify_jwt = true
+  [functions.interpret-oracle-card]
+    verify_jwt = false
+  [functions.journal-reflect]
+    verify_jwt = true
+  [functions.journal-respond]
+    verify_jwt = true
+  [functions.log-mood]
+    verify_jwt = false
+  [functions.manifest-celestial-child]
+    verify_jwt = true
+  [functions.send-spontaneous-message]
+    verify_jwt = false
+  [functions.soul-genesis]
+    verify_jwt = true
+  [functions.stripe-webhook]
+    verify_jwt = false
+  [functions.suggest-memory]
+    verify_jwt = true
+  [functions.synthesize-soul-signature]
+    verify_jwt = true
