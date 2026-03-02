@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Palette, Sparkles, Download, ArrowLeft, Loader2, Wand2, Crown, Lock } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Palette, Sparkles, Download, ArrowLeft, Loader2, Wand2, Crown, Lock, ImageIcon } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
+import PhotoEditor from "@/components/studio/PhotoEditor";
 
 const STYLE_PRESETS = [
   { id: "none", label: "No Style", icon: "✨" },
@@ -30,11 +32,10 @@ const STYLE_PRESETS = [
 const ArtStudio = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { isAdmin } = useSubscription();
+  const { isAdmin, isSubscribed } = useSubscription();
   const { toast } = useToast();
 
-  const [hasAccess, setHasAccess] = useState(false);
-  const [accessLoading, setAccessLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("edit");
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("none");
   const [generating, setGenerating] = useState(false);
@@ -43,20 +44,11 @@ const ArtStudio = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
-  const checkAccess = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke("check-art-subscription");
-      if (error) throw error;
-      setHasAccess(data?.has_addon || isAdmin);
-    } catch (err) {
-      console.error("Access check failed:", err);
-      setHasAccess(isAdmin);
-    } finally {
-      setAccessLoading(false);
-    }
-  }, [isAdmin]);
+  // AI generation requires any paid subscription
+  const hasAIAccess = isAdmin || isSubscribed;
 
   const checkLimits = useCallback(async () => {
+    if (!hasAIAccess) return;
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
     const { data } = await supabase.rpc("can_create_art", { p_user_id: session.user.id });
@@ -65,17 +57,15 @@ const ArtStudio = () => {
       setRemaining(parsed.remaining);
       setDailyLimit(parsed.daily_limit);
     }
-  }, []);
+  }, [hasAIAccess]);
 
   useEffect(() => {
-    checkAccess();
     checkLimits();
-  }, [checkAccess, checkLimits]);
+  }, [checkLimits]);
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
-      toast({ title: "🎨 Art Studio Activated!", description: "Welcome to your creative sanctuary!" });
-      checkAccess();
+      toast({ title: "🎨 Subscription Activated!", description: "You now have access to AI image generation!" });
       checkLimits();
     }
   }, [searchParams]);
@@ -113,7 +103,7 @@ const ArtStudio = () => {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownloadGenerated = () => {
     if (!generatedImage) return;
     const link = document.createElement("a");
     link.href = generatedImage.startsWith("data:") ? generatedImage : `data:image/png;base64,${generatedImage}`;
@@ -121,175 +111,168 @@ const ArtStudio = () => {
     link.click();
   };
 
-  const handleCheckout = async () => {
-    setCheckoutLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-art-checkout");
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      } else if (data?.error) {
-        toast({ title: "Error", description: data.error, variant: "destructive" });
-      }
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to start checkout", variant: "destructive" });
-    } finally {
-      setCheckoutLoading(false);
-    }
-  };
-
-  if (accessLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <>
-      <SEOHead title="Art Studio | Prometheus" description="Create stunning AI-generated artwork with style presets and creative tools." />
+      <SEOHead title="Art Studio | Prometheus" description="Edit photos with filters, effects, and text — or generate AI artwork." />
       <main className="min-h-screen bg-background pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 via-accent/30 to-primary/10 border-b border-border">
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="flex items-center gap-3 mb-2">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <Palette className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">Art Studio</h1>
-              {remaining !== null && remaining >= 0 && (
-                <Badge variant="secondary" className="ml-auto">
-                  {remaining}/{dailyLimit} remaining today
-                </Badge>
-              )}
-              {(isAdmin || remaining === -1) && (
-                <Badge variant="secondary" className="ml-auto bg-primary/20 text-primary">Unlimited</Badge>
-              )}
+              <Palette className="h-7 w-7 text-primary" />
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Art Studio</h1>
             </div>
-            <p className="text-muted-foreground text-sm ml-14">Create stunning artwork with AI-powered style presets</p>
           </div>
         </div>
 
-        {/* No Access - Upsell */}
-        {!hasAccess && !isAdmin && (
-          <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
-            <div className="inline-flex p-6 rounded-full bg-primary/10">
-              <Lock className="h-16 w-16 text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground">Unlock the Art Studio</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Create up to 5 AI-generated artworks per day with 12+ style presets. Images are generated for you to download — nothing is stored on our servers.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={handleCheckout} disabled={checkoutLoading} size="lg" className="gap-2">
-                {checkoutLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-5 w-5" />}
-                Add Art Studio — $4.99/mo
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Architect tier members get 3 free creations/day included!
-            </p>
-          </div>
-        )}
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="edit" className="gap-2">
+                <ImageIcon className="h-4 w-4" />
+                Photo Editor
+              </TabsTrigger>
+              <TabsTrigger value="generate" className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                AI Generate
+                {!hasAIAccess && <Lock className="h-3 w-3 ml-1" />}
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Main Studio */}
-        {(hasAccess || isAdmin) && (
-          <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-            {/* Prompt Input */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  Describe Your Vision
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea
-                  placeholder="A majestic phoenix rising from golden flames, surrounded by sacred geometry patterns..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="min-h-[100px] resize-none"
-                  maxLength={500}
-                />
-                <div className="flex justify-between items-center text-xs text-muted-foreground">
-                  <span>{prompt.length}/500</span>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Photo Editor Tab — Free for all */}
+            <TabsContent value="edit">
+              <PhotoEditor />
+            </TabsContent>
 
-            {/* Style Presets */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Palette className="h-5 w-5 text-primary" />
-                  Style Preset
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
-                  {STYLE_PRESETS.map((style) => (
-                    <button
-                      key={style.id}
-                      onClick={() => setSelectedStyle(style.id)}
-                      className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all text-sm
-                        ${selectedStyle === style.id 
-                          ? "border-primary bg-primary/10 text-primary font-medium" 
-                          : "border-border bg-card hover:border-primary/40 text-foreground"
-                        }`}
-                    >
-                      <span className="text-xl">{style.icon}</span>
-                      <span className="text-xs leading-tight text-center">{style.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Generate Button */}
-            <Button
-              onClick={handleGenerate}
-              disabled={generating || !prompt.trim() || (remaining !== null && remaining <= 0 && remaining !== -1)}
-              size="lg"
-              className="w-full gap-2 text-lg py-6"
-            >
-              {generating ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Creating Your Masterpiece...
-                </>
-              ) : (
-                <>
-                  <Wand2 className="h-5 w-5" />
-                  Generate Artwork
-                </>
-              )}
-            </Button>
-
-            {/* Generated Image Result */}
-            {generatedImage && (
-              <Card>
-                <CardContent className="pt-6 space-y-4">
-                  <img
-                    src={generatedImage.startsWith("data:") ? generatedImage : `data:image/png;base64,${generatedImage}`}
-                    alt="Generated artwork"
-                    className="w-full rounded-lg"
-                  />
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      This image is not saved on our servers. Download it to keep it!
-                    </p>
-                    <Button onClick={handleDownload} className="gap-2">
-                      <Download className="h-4 w-4" />
-                      Save to Device
-                    </Button>
+            {/* AI Generate Tab — Paid only */}
+            <TabsContent value="generate">
+              {!hasAIAccess ? (
+                <div className="max-w-2xl mx-auto py-16 text-center space-y-6">
+                  <div className="inline-flex p-6 rounded-full bg-primary/10">
+                    <Lock className="h-16 w-16 text-primary" />
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+                  <h2 className="text-2xl font-bold text-foreground">AI Generation Requires a Subscription</h2>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    Subscribe to any plan to unlock AI-powered image generation with 12+ style presets.
+                    The photo editor is always free!
+                  </p>
+                  <Button onClick={() => navigate("/pricing")} size="lg" className="gap-2">
+                    <Crown className="h-5 w-5" />
+                    View Plans
+                  </Button>
+                </div>
+              ) : (
+                <div className="max-w-4xl mx-auto space-y-6">
+                  {/* Remaining counter */}
+                  {remaining !== null && remaining >= 0 && (
+                    <div className="flex justify-end">
+                      <Badge variant="secondary">{remaining}/{dailyLimit} remaining today</Badge>
+                    </div>
+                  )}
+                  {(isAdmin || remaining === -1) && (
+                    <div className="flex justify-end">
+                      <Badge variant="secondary" className="bg-primary/20 text-primary">Unlimited</Badge>
+                    </div>
+                  )}
+
+                  {/* Prompt */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        Describe Your Vision
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Textarea
+                        placeholder="A majestic phoenix rising from golden flames, surrounded by sacred geometry patterns..."
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="min-h-[80px] resize-none"
+                        maxLength={500}
+                      />
+                      <span className="text-xs text-muted-foreground">{prompt.length}/500</span>
+                    </CardContent>
+                  </Card>
+
+                  {/* Style Presets */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Palette className="h-5 w-5 text-primary" />
+                        Style Preset
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
+                        {STYLE_PRESETS.map((style) => (
+                          <button
+                            key={style.id}
+                            onClick={() => setSelectedStyle(style.id)}
+                            className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all text-sm
+                              ${selectedStyle === style.id 
+                                ? "border-primary bg-primary/10 text-primary font-medium" 
+                                : "border-border bg-card hover:border-primary/40 text-foreground"
+                              }`}
+                          >
+                            <span className="text-xl">{style.icon}</span>
+                            <span className="text-xs leading-tight text-center">{style.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Generate Button */}
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={generating || !prompt.trim() || (remaining !== null && remaining <= 0 && remaining !== -1)}
+                    size="lg"
+                    className="w-full gap-2 text-lg py-6"
+                  >
+                    {generating ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Creating Your Masterpiece...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-5 w-5" />
+                        Generate Artwork
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Generated Image */}
+                  {generatedImage && (
+                    <Card>
+                      <CardContent className="pt-6 space-y-4">
+                        <img
+                          src={generatedImage.startsWith("data:") ? generatedImage : `data:image/png;base64,${generatedImage}`}
+                          alt="Generated artwork"
+                          className="w-full rounded-lg"
+                        />
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground">
+                            Not saved on our servers. Download to keep it!
+                          </p>
+                          <Button onClick={handleDownloadGenerated} className="gap-2">
+                            <Download className="h-4 w-4" />
+                            Save to Device
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
 
         <Footer />
       </main>
