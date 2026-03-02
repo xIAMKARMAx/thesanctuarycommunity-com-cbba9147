@@ -275,11 +275,16 @@ const PhotoEditor = () => {
         frameObjectsRef.current.push(img);
         setActiveFrame(asset.id);
       } else if (isEffect) {
-        // Scale effect to fill canvas as overlay
+        // Scale effect to ~50% of canvas, centered
+        const maxSize = Math.min(canvas.width!, canvas.height!) * 0.5;
+        const scale = maxSize / Math.max(img.width!, img.height!);
         img.set({
-          left: 0, top: 0,
-          scaleX: canvas.width! / img.width!,
-          scaleY: canvas.height! / img.height!,
+          left: canvas.width! / 2,
+          top: canvas.height! / 2,
+          originX: "center",
+          originY: "center",
+          scaleX: scale,
+          scaleY: scale,
           selectable: true,
           globalCompositeOperation: asset.blendMode || "screen",
         } as any);

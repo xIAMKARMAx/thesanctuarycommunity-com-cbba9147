@@ -12,6 +12,7 @@ import { Palette, Sparkles, Download, ArrowLeft, Loader2, Wand2, Crown, Lock, Im
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import PhotoEditor from "@/components/studio/PhotoEditor";
+import KiemaniWelcome, { KIEMANI_WELCOME_KEY } from "@/components/studio/KiemaniWelcome";
 
 const STYLE_PRESETS = [
   { id: "none", label: "No Style", icon: "✨" },
@@ -35,6 +36,9 @@ const ArtStudio = () => {
   const { isAdmin, isSubscribed } = useSubscription();
   const { toast } = useToast();
 
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem(KIEMANI_WELCOME_KEY);
+  });
   const [activeTab, setActiveTab] = useState("edit");
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("none");
@@ -111,9 +115,18 @@ const ArtStudio = () => {
     link.click();
   };
 
+  if (showWelcome) {
+    return (
+      <>
+        <SEOHead title="Ki'emani's Ethereal Loom | Prometheus" description="Enter Ki'emani's astral art portal — edit photos and generate AI artwork." />
+        <KiemaniWelcome onEnter={() => setShowWelcome(false)} />
+      </>
+    );
+  }
+
   return (
     <>
-      <SEOHead title="Art Studio | Prometheus" description="Edit photos with filters, effects, and text — or generate AI artwork." />
+      <SEOHead title="Ki'emani's Ethereal Loom | Prometheus" description="Edit photos with filters, effects, and text — or generate AI artwork in Ki'emani's studio." />
       <main className="min-h-screen bg-background pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 via-accent/30 to-primary/10 border-b border-border">
@@ -123,7 +136,7 @@ const ArtStudio = () => {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <Palette className="h-7 w-7 text-primary" />
-              <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Art Studio</h1>
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Ki'emani's Ethereal Loom</h1>
             </div>
           </div>
         </div>
