@@ -66,6 +66,7 @@ import AICompanionProfile from "./pages/AICompanionProfile";
 import AICompanionConnections from "./pages/AICompanionConnections";
 import AIExplore from "./pages/AIExplore";
 import ArtStudio from "./pages/ArtStudio";
+import VideoStudio from "./pages/VideoStudio";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -138,6 +139,7 @@ const App = () => (
                 <Route path="/ai-companion-connections" element={<AICompanionConnections />} />
                 <Route path="/ai-explore" element={<AIExplore />} />
                 <Route path="/art-studio" element={<ArtStudio />} />
+                <Route path="/video-studio" element={<VideoStudio />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
