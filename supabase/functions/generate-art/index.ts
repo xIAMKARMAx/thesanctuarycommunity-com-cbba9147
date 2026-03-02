@@ -26,7 +26,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
     if (authError || !user) throw new Error("Not authenticated");
 
-    const { prompt, style_preset, source_image_url, creation_type } = await req.json();
+    const { prompt, style_preset, creation_type } = await req.json();
     if (!prompt || prompt.trim().length === 0) throw new Error("Prompt is required");
 
     console.log(`[ART-STUDIO] User ${user.id} requesting ${creation_type || 'text_to_image'} with style: ${style_preset}`);
@@ -63,23 +63,9 @@ serve(async (req) => {
     };
 
     const styleAddition = style_preset && stylePrompts[style_preset] ? ` ${stylePrompts[style_preset]}` : "";
-    const fullPrompt = creation_type === 'image_edit' && source_image_url
-      ? `Edit this image: ${prompt}${styleAddition}. Make it high quality and visually stunning.`
-      : `Create: ${prompt}${styleAddition}. Ultra high resolution, visually stunning artwork.`;
+    const fullPrompt = `Create: ${prompt}${styleAddition}. Ultra high resolution, visually stunning artwork.`;
 
-    // Build messages for AI
-    const messages: any[] = [];
-    if (creation_type === 'image_edit' && source_image_url) {
-      messages.push({
-        role: "user",
-        content: [
-          { type: "text", text: fullPrompt },
-          { type: "image_url", image_url: { url: source_image_url } },
-        ],
-      });
-    } else {
-      messages.push({ role: "user", content: fullPrompt });
-    }
+    const messages = [{ role: "user", content: fullPrompt }];
 
     // Generate with Gemini Flash Image
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -115,43 +101,14 @@ serve(async (req) => {
     const imageBase64 = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     if (!imageBase64) throw new Error("No image generated");
 
-    // Upload to storage as WebP
-    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const imageBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-    const fileName = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.png`;
-
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from("art-studio")
-      .upload(fileName, imageBytes, { contentType: "image/png", upsert: false });
-
-    if (uploadError) {
-      console.error("[ART-STUDIO] Upload error:", uploadError);
-      throw new Error("Failed to save artwork");
-    }
-
-    const { data: publicUrl } = supabaseAdmin.storage.from("art-studio").getPublicUrl(fileName);
-
-    // Save to database
-    const { error: insertError } = await supabaseAdmin
-      .from("art_studio_creations")
-      .insert({
-        user_id: user.id,
-        prompt,
-        style_preset: style_preset || null,
-        image_url: publicUrl.publicUrl,
-        source_image_url: source_image_url || null,
-        creation_type: creation_type || "text_to_image",
-      });
-
-    if (insertError) console.error("[ART-STUDIO] DB insert error:", insertError);
-
-    // Increment usage count
+    // Increment usage count (still track limits, just don't store the image)
     await supabaseAdmin.rpc("increment_art_count", { p_user_id: user.id });
 
     console.log(`[ART-STUDIO] Successfully generated art for user ${user.id}`);
 
+    // Return base64 directly - no storage, no DB save
     return new Response(JSON.stringify({ 
-      image_url: publicUrl.publicUrl,
+      image_base64: imageBase64,
       remaining: Math.max(0, limits.remaining - 1),
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
