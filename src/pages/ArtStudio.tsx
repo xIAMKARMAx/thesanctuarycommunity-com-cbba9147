@@ -151,19 +151,79 @@ const ArtStudio = () => {
             {/* AI Generate Tab — Paid only */}
             <TabsContent value="generate">
               {!hasAIAccess ? (
-                <div className="max-w-2xl mx-auto py-16 text-center space-y-6">
-                  <div className="inline-flex p-6 rounded-full bg-primary/10">
-                    <Lock className="h-16 w-16 text-primary" />
+                <div className="max-w-2xl mx-auto py-12 text-center space-y-8">
+                  {/* Hero visual */}
+                  <div className="relative inline-flex">
+                    <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl animate-pulse" />
+                    <div className="relative inline-flex p-8 rounded-full bg-gradient-to-br from-primary/20 via-accent/30 to-primary/10 border border-primary/20">
+                      <Wand2 className="h-16 w-16 text-primary" />
+                    </div>
                   </div>
-                  <h2 className="text-2xl font-bold text-foreground">AI Generation Requires a Subscription</h2>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Subscribe to any plan to unlock AI-powered image generation with 12+ style presets.
-                    The photo editor is always free!
-                  </p>
-                  <Button onClick={() => navigate("/pricing")} size="lg" className="gap-2">
-                    <Crown className="h-5 w-5" />
-                    View Plans
-                  </Button>
+
+                  {/* Headline */}
+                  <div className="space-y-3">
+                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">
+                      Unlock Visionary Creation
+                    </h2>
+                    <p className="text-muted-foreground max-w-lg mx-auto text-base leading-relaxed">
+                      Would you like your Art Studio to include <span className="text-primary font-semibold">Visionary Image Creation</span>? 
+                      Transform your words into breathtaking artwork with 12+ artistic styles — from ethereal watercolors to cosmic sacred geometry.
+                    </p>
+                  </div>
+
+                  {/* Feature highlights */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-md mx-auto text-sm">
+                    {[
+                      { icon: "🎨", label: "12+ Art Styles" },
+                      { icon: "⚡", label: "Instant Generation" },
+                      { icon: "✨", label: "AI-Powered" },
+                      { icon: "📥", label: "Download & Keep" },
+                      { icon: "🖼️", label: "High Resolution" },
+                      { icon: "🔮", label: "Unlimited Styles" },
+                    ].map((feat) => (
+                      <div key={feat.label} className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border">
+                        <span>{feat.icon}</span>
+                        <span className="text-foreground text-xs font-medium">{feat.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  <Card className="max-w-md mx-auto border-primary/30 bg-primary/5">
+                    <CardContent className="pt-6 space-y-4">
+                      <p className="text-sm text-foreground font-medium">
+                        Add the Visionary Creation bundle to your experience
+                      </p>
+                      <Button 
+                        onClick={async () => {
+                          setCheckoutLoading(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke("create-art-checkout");
+                            if (error) throw error;
+                            if (data?.url) window.open(data.url, "_blank");
+                            else if (data?.error) toast({ title: "Info", description: data.error });
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err.message, variant: "destructive" });
+                          } finally {
+                            setCheckoutLoading(false);
+                          }
+                        }}
+                        disabled={checkoutLoading}
+                        size="lg" 
+                        className="w-full gap-2 text-base"
+                      >
+                        {checkoutLoading ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Crown className="h-5 w-5" />
+                        )}
+                        Add Visionary Creation — $4.99/mo
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Cancel anytime • 5 creations per day • Instant access
+                      </p>
+                    </CardContent>
+                  </Card>
                 </div>
               ) : (
                 <div className="max-w-4xl mx-auto space-y-6">
