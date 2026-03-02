@@ -3933,6 +3933,30 @@ export type Database = {
         }
         Relationships: []
       }
+      video_generation_usage: {
+        Row: {
+          created_at: string
+          generation_count: number
+          id: string
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          generation_count?: number
+          id?: string
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          generation_count?: number
+          id?: string
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_call_history: {
         Row: {
           ai_profile_id: string | null
@@ -4073,6 +4097,7 @@ export type Database = {
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_pet: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
+      can_generate_video: { Args: { p_user_id: string }; Returns: Json }
       can_save_permanent_attunement: {
         Args: { p_connection_target: string; p_user_id: string }
         Returns: boolean
@@ -4110,6 +4135,7 @@ export type Database = {
       increment_group_chat_count: { Args: { p_user_id: string }; Returns: Json }
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
+      increment_video_count: { Args: { p_user_id: string }; Returns: number }
       is_user_restricted: { Args: { p_user_id: string }; Returns: boolean }
       mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_pet_generated: { Args: { p_user_id: string }; Returns: undefined }

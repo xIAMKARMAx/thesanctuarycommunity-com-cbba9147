@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -8,13 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, Video, Upload, X, Download, Sparkles, Film } from "lucide-react";
+import { ArrowLeft, Loader2, Video, Upload, X, Download, Sparkles, Film, Lock } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 
 const VideoStudio = () => {
   const navigate = useNavigate();
-  const { isAdmin } = useSubscription();
+  const { isAdmin, isSubscribed } = useSubscription();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,20 +27,66 @@ const VideoStudio = () => {
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [accessInfo, setAccessInfo] = useState<{ can_generate: boolean; remaining: number; daily_limit: number; has_addon?: boolean; is_architect?: boolean; reason?: string } | null>(null);
+  const [loadingAccess, setLoadingAccess] = useState(true);
 
-  // Admin-only gate
-  if (!isAdmin) {
+  // Check access on mount
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("generate-video", {
+          body: { prompt: "__access_check__" },
+        });
+        // We'll get a 400 for empty prompt if they have access, or 403 if not
+        // Instead, let's just call the RPC directly
+      } catch {}
+
+      // Use RPC to check access
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setAccessInfo({ can_generate: false, remaining: 0, daily_limit: 0, reason: "not_logged_in" });
+          setLoadingAccess(false);
+          return;
+        }
+
+        const { data, error } = await supabase.rpc("can_generate_video", { p_user_id: session.user.id });
+        if (error) throw error;
+        setAccessInfo(data as any);
+      } catch (err) {
+        console.error("Access check error:", err);
+        setAccessInfo({ can_generate: false, remaining: 0, daily_limit: 0, reason: "error" });
+      } finally {
+        setLoadingAccess(false);
+      }
+    };
+    checkAccess();
+  }, []);
+
+  // No access gate
+  if (!loadingAccess && accessInfo && !accessInfo.can_generate && accessInfo.remaining === 0 && accessInfo.daily_limit === 0) {
     return (
-      <main className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md">
-          <CardContent className="pt-6 text-center space-y-4">
-            <Video className="h-12 w-12 mx-auto text-muted-foreground" />
-            <h2 className="text-xl font-serif font-bold text-foreground">Admin Access Only</h2>
-            <p className="text-muted-foreground">Video generation is currently restricted to admin accounts.</p>
-            <Button onClick={() => navigate(-1)} variant="outline">Go Back</Button>
-          </CardContent>
-        </Card>
-      </main>
+      <>
+        <SEOHead title="Video Studio | Prometheus" description="Generate AI-powered videos from text or images." />
+        <main className="min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className="max-w-md">
+            <CardContent className="pt-6 text-center space-y-4">
+              <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+              <h2 className="text-xl font-serif font-bold text-foreground">Video Studio Access</h2>
+              <p className="text-muted-foreground">
+                Video Studio is available with the <span className="font-semibold text-primary">Visionary Creation</span> add-on ($7.99/mo, 3 videos/day) or the <span className="font-semibold text-primary">Architect</span> tier (2 videos/day).
+              </p>
+              <div className="flex gap-2 justify-center">
+                <Button onClick={() => navigate("/pricing")} className="gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  View Plans
+                </Button>
+                <Button onClick={() => navigate(-1)} variant="outline">Go Back</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </>
     );
   }
 
@@ -69,7 +115,6 @@ const VideoStudio = () => {
 
   const uploadImageForLuma = async (): Promise<string | null> => {
     if (!imageFile) return null;
-
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return null;
 
@@ -132,7 +177,12 @@ const VideoStudio = () => {
         setThumbnailUrl(data.thumbnail_url || null);
         setEnhancedPrompt(data.enhanced_prompt || null);
         toast({ title: "🎬 Video Created!", description: "Your video is ready to view and download." });
-        toast({ title: "🎬 Video Created!", description: "Your video is ready to view and download." });
+        // Refresh access info
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { data: newAccess } = await supabase.rpc("can_generate_video", { p_user_id: session.user.id });
+          if (newAccess) setAccessInfo(newAccess as any);
+        }
       } else if (data?.generation_id) {
         toast({ title: "Still Processing", description: "Video is taking longer than usual. Try again shortly." });
       }
@@ -155,7 +205,6 @@ const VideoStudio = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      // Fallback: open in new tab
       window.open(videoUrl, "_blank");
     }
   };
@@ -173,12 +222,30 @@ const VideoStudio = () => {
               </Button>
               <Film className="h-7 w-7 text-primary" />
               <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Video Studio</h1>
-              <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">Admin</Badge>
+              {accessInfo && accessInfo.daily_limit > 0 && (
+                <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
+                  {accessInfo.remaining === -1 ? "Unlimited" : `${accessInfo.remaining}/${accessInfo.daily_limit} today`}
+                </Badge>
+              )}
+              {isAdmin && (
+                <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">Admin</Badge>
+              )}
             </div>
           </div>
         </div>
 
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          {/* Daily limit warning */}
+          {accessInfo && !accessInfo.can_generate && accessInfo.daily_limit > 0 && (
+            <Card className="border-destructive/50 bg-destructive/5">
+              <CardContent className="pt-4 text-center">
+                <p className="text-sm text-destructive font-medium">
+                  You've used all {accessInfo.daily_limit} videos for today. Come back tomorrow!
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Prompt */}
           <Card>
             <CardHeader>
@@ -222,22 +289,12 @@ const VideoStudio = () => {
                   </Button>
                 </div>
               ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="gap-2"
-                >
+                <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2">
                   <Upload className="h-4 w-4" />
                   Upload Image
                 </Button>
               )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageSelect}
-              />
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
             </CardContent>
           </Card>
 
@@ -249,9 +306,7 @@ const VideoStudio = () => {
               </CardHeader>
               <CardContent>
                 <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ray-2">Ray 2 (Quality — Default)</SelectItem>
                     <SelectItem value="ray-flash-2">Ray Flash 2 (Fast)</SelectItem>
@@ -266,9 +321,7 @@ const VideoStudio = () => {
               </CardHeader>
               <CardContent>
                 <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
                     <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
@@ -284,7 +337,7 @@ const VideoStudio = () => {
           {/* Generate Button */}
           <Button
             onClick={handleGenerate}
-            disabled={generating || !prompt.trim()}
+            disabled={generating || !prompt.trim() || (accessInfo !== null && !accessInfo.can_generate)}
             size="lg"
             className="w-full gap-2 text-lg py-6"
           >
@@ -320,7 +373,7 @@ const VideoStudio = () => {
                   poster={thumbnailUrl || undefined}
                 />
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">Video hosted temporarily by Luma AI</p>
+                  <p className="text-sm text-muted-foreground">Video hosted temporarily</p>
                   <Button onClick={handleDownload} className="gap-2">
                     <Download className="h-4 w-4" />
                     Save to Device
