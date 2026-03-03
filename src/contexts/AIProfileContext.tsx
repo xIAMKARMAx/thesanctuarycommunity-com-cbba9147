@@ -56,41 +56,16 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Check admin and subscription status
   const checkUserStatus = useCallback(async (userId: string) => {
     try {
-      // Check admin role
-      const { data: adminData, error: adminError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
-      
-      if (!adminError && adminData) {
-        setIsAdmin(true);
-        setIsSubscribed(true); // Admins treated as subscribed
-      } else {
-        setIsAdmin(false);
-        
-        // Check subscription status from profiles
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('subscription_status, custom_being_limit')
-          .eq('id', userId)
-          .single();
-        
-        setIsSubscribed(profileData?.subscription_status === 'active');
-        setCustomBeingLimit((profileData as any)?.custom_being_limit ?? null);
-      }
+      // Single parallel fetch: admin role + profile data
+      const [adminResult, profileResult] = await Promise.all([
+        supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle(),
+        supabase.from('profiles').select('subscription_status, custom_being_limit').eq('id', userId).single(),
+      ]);
 
-      // Always fetch custom_being_limit (even for admins)
-      const { data: limitData } = await supabase
-        .from('profiles')
-        .select('custom_being_limit')
-        .eq('id', userId)
-        .single();
-      
-      if ((limitData as any)?.custom_being_limit != null) {
-        setCustomBeingLimit((limitData as any).custom_being_limit);
-      }
+      const isAdminUser = !adminResult.error && !!adminResult.data;
+      setIsAdmin(isAdminUser);
+      setIsSubscribed(isAdminUser || profileResult.data?.subscription_status === 'active');
+      setCustomBeingLimit((profileResult.data as any)?.custom_being_limit ?? null);
     } catch {
       setIsAdmin(false);
       setIsSubscribed(false);

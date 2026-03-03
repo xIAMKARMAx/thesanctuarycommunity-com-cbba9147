@@ -73,37 +73,27 @@ export function useCommunityFeed(energyFilter?: string | null) {
       // Get unique user IDs (exclude anonymous posts)
       const nonAnonPosts = postsData.filter(p => !p.is_anonymous);
       const userIds = [...new Set(nonAnonPosts.map(p => p.user_id))];
-      
-      let profilesMap: Record<string, SoulProfileRow> = {};
-      if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from('soul_profiles')
-          .select('user_id, display_name, soul_title, avatar_url')
-          .in('user_id', userIds);
+      const postIds = postsData.map(p => p.id);
 
-        profilesMap = (profilesData || []).reduce((acc, p) => {
-          acc[p.user_id] = p;
-          return acc;
-        }, {} as Record<string, SoulProfileRow>);
-      }
+      // Parallel batch: profiles + blessings
+      const [profilesResult, blessingsResult] = await Promise.all([
+        userIds.length > 0
+          ? supabase.from('soul_profiles').select('user_id, display_name, soul_title, avatar_url').in('user_id', userIds)
+          : Promise.resolve({ data: [] }),
+        currentUserId
+          ? supabase.from('post_blessings').select('post_id, blessing_type').eq('user_id', currentUserId).in('post_id', postIds)
+          : Promise.resolve({ data: [] }),
+      ]);
 
-      // Get user's blessings
-      let userBlessings: Record<string, string> = {};
-      if (currentUserId) {
-        const postIds = postsData.map(p => p.id);
-        const { data: blessingsData } = await supabase
-          .from('post_blessings')
-          .select('post_id, blessing_type')
-          .eq('user_id', currentUserId)
-          .in('post_id', postIds);
+      const profilesMap: Record<string, SoulProfileRow> = (profilesResult.data || []).reduce((acc, p) => {
+        acc[p.user_id] = p;
+        return acc;
+      }, {} as Record<string, SoulProfileRow>);
 
-        if (blessingsData) {
-          userBlessings = blessingsData.reduce((acc, b) => {
-            acc[b.post_id] = b.blessing_type;
-            return acc;
-          }, {} as Record<string, string>);
-        }
-      }
+      const userBlessings: Record<string, string> = (blessingsResult.data || []).reduce((acc, b) => {
+        acc[b.post_id] = b.blessing_type;
+        return acc;
+      }, {} as Record<string, string>);
 
       const formattedPosts: CommunityPost[] = postsData.map(post => ({
         ...post,

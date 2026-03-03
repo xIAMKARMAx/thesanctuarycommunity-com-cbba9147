@@ -346,17 +346,18 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Helper: get cached userId without a network call
+  const getCachedUserId = async (): Promise<string | null> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.user?.id || null;
+  };
+
   const canGenerateImage = async (): Promise<boolean> => {
     if (isSubscribed) return true;
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      const { data, error } = await supabase.rpc("can_generate_image", {
-        p_user_id: user.id,
-      });
-
+      const userId = await getCachedUserId();
+      if (!userId) return false;
+      const { data, error } = await supabase.rpc("can_generate_image", { p_user_id: userId });
       if (error) throw error;
       return data || false;
     } catch (error) {
@@ -366,38 +367,27 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const canSendMessage = async (): Promise<boolean> => {
-    // Admins and subscribers can always send
     if (isSubscribed || isAdmin) return true;
-    
-    // Free users get exactly 15 messages total, no bonus
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      
+      const userId = await getCachedUserId();
+      if (!userId) return false;
       const { data } = await supabase
         .from("free_user_limits")
         .select("total_messages")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle();
-      
       return (data?.total_messages || 0) < 15;
     } catch {
-      // Fallback to local state
       return freeUserLimits.totalMessages < 15;
     }
   };
 
   const canGenerateRoom = async (): Promise<boolean> => {
     if (isSubscribed) return true;
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      const { data, error } = await supabase.rpc("can_generate_room", {
-        p_user_id: user.id,
-      });
-
+      const userId = await getCachedUserId();
+      if (!userId) return false;
+      const { data, error } = await supabase.rpc("can_generate_room", { p_user_id: userId });
       if (error) throw error;
       return data || false;
     } catch (error) {
@@ -408,15 +398,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const canGenerateAvatar = async (): Promise<boolean> => {
     if (isSubscribed) return true;
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      const { data, error } = await supabase.rpc("can_generate_avatar", {
-        p_user_id: user.id,
-      });
-
+      const userId = await getCachedUserId();
+      if (!userId) return false;
+      const { data, error } = await supabase.rpc("can_generate_avatar", { p_user_id: userId });
       if (error) throw error;
       return data || false;
     } catch (error) {
@@ -427,15 +412,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const canGeneratePet = async (): Promise<boolean> => {
     if (isSubscribed) return true;
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      const { data, error } = await supabase.rpc("can_generate_pet", {
-        p_user_id: user.id,
-      });
-
+      const userId = await getCachedUserId();
+      if (!userId) return false;
+      const { data, error } = await supabase.rpc("can_generate_pet", { p_user_id: userId });
       if (error) throw error;
       return data || false;
     } catch (error) {
@@ -446,22 +426,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const incrementMessageCount = async (): Promise<number> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 0;
-
-      const { data, error } = await supabase.rpc("increment_message_count", {
-        p_user_id: user.id,
-      });
-
+      const userId = await getCachedUserId();
+      if (!userId) return 0;
+      const { data, error } = await supabase.rpc("increment_message_count", { p_user_id: userId });
       if (error) throw error;
-      
-      // Update local state - data is now daily_messages count
       setFreeUserLimits(prev => ({
         ...prev,
         dailyMessages: data || prev.dailyMessages + 1,
         totalMessages: prev.totalMessages + 1,
       }));
-      
       return data || 0;
     } catch (error) {
       console.error("Error incrementing message count:", error);
@@ -471,17 +444,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const markRoomGenerated = async (): Promise<void> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      await supabase.rpc("mark_room_generated", {
-        p_user_id: user.id,
-      });
-      
-      setFreeUserLimits(prev => ({
-        ...prev,
-        roomGenerated: true,
-      }));
+      const userId = await getCachedUserId();
+      if (!userId) return;
+      await supabase.rpc("mark_room_generated", { p_user_id: userId });
+      setFreeUserLimits(prev => ({ ...prev, roomGenerated: true }));
     } catch (error) {
       console.error("Error marking room as generated:", error);
     }
@@ -489,17 +455,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const markAvatarGenerated = async (): Promise<void> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      await supabase.rpc("mark_avatar_generated", {
-        p_user_id: user.id,
-      });
-      
-      setFreeUserLimits(prev => ({
-        ...prev,
-        avatarGenerated: true,
-      }));
+      const userId = await getCachedUserId();
+      if (!userId) return;
+      await supabase.rpc("mark_avatar_generated", { p_user_id: userId });
+      setFreeUserLimits(prev => ({ ...prev, avatarGenerated: true }));
     } catch (error) {
       console.error("Error marking avatar as generated:", error);
     }
@@ -507,17 +466,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const markPetGenerated = async (): Promise<void> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      await supabase.rpc("mark_pet_generated", {
-        p_user_id: user.id,
-      });
-      
-      setFreeUserLimits(prev => ({
-        ...prev,
-        petGenerated: true,
-      }));
+      const userId = await getCachedUserId();
+      if (!userId) return;
+      await supabase.rpc("mark_pet_generated", { p_user_id: userId });
+      setFreeUserLimits(prev => ({ ...prev, petGenerated: true }));
     } catch (error) {
       console.error("Error marking pet as generated:", error);
     }
