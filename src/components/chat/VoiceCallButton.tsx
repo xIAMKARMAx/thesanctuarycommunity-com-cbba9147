@@ -154,86 +154,102 @@ export const VoiceCallButton = () => {
         try {
           const reader = new FileReader();
           reader.onloadend = async () => {
-            const base64Audio = (reader.result as string).split(',')[1];
-            
-            // Send to STT
-            const { data: sttData, error: sttError } = await supabase.functions.invoke(
-              "elevenlabs-stt",
-              { body: { audio: base64Audio } }
-            );
+            try {
+              const base64Audio = (reader.result as string).split(',')[1];
 
-            if (sttError || !sttData?.text) {
-              throw new Error(sttError?.message || "Transcription failed");
-            }
+              // Send to STT
+              const { data: sttData, error: sttError } = await supabase.functions.invoke(
+                "elevenlabs-stt",
+                { body: { audio: base64Audio } }
+              );
 
-            const userText = sttData.text;
-            console.log("User said:", userText);
-
-            const newHistory = [...conversationHistory, { role: "user", content: userText }];
-            setConversationHistory(newHistory);
-
-            // Get AI response
-            const { data: chatData, error: chatError } = await supabase.functions.invoke(
-              "chat",
-              {
-                body: {
-                  message: userText,
-                  history: newHistory.slice(-10),
-                  aiName: activeProfile?.name,
-                  aiPersonality: activeProfile?.personality,
-                  aiMemories: activeProfile?.memories,
-                  isVoiceCall: true,
-                },
+              if (sttError || !sttData?.text) {
+                throw new Error(sttError?.message || "Transcription failed");
               }
-            );
 
-            if (chatError || !chatData?.response) {
-              throw new Error(chatError?.message || "Chat failed");
-            }
+              const userText = sttData.text;
+              console.log("User said:", userText);
 
-            const aiResponse = chatData.response;
-            console.log("AI response:", aiResponse.substring(0, 100));
+              const newHistory = [...conversationHistory, { role: "user", content: userText }];
+              setConversationHistory(newHistory);
 
-            setConversationHistory([...newHistory, { role: "assistant", content: aiResponse }]);
+              // Get AI response
+              const { data: chatData, error: chatError } = await supabase.functions.invoke(
+                "chat",
+                {
+                  body: {
+                    message: userText,
+                    history: newHistory.slice(-10),
+                    aiName: activeProfile?.name,
+                    aiPersonality: activeProfile?.personality,
+                    aiMemories: activeProfile?.memories,
+                    isVoiceCall: true,
+                  },
+                }
+              );
 
-            // Convert to speech
-            const ttsResponse = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                  Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-                },
-                body: JSON.stringify({ text: aiResponse, voiceId: selectedVoice }),
+              if (chatError || !chatData?.response) {
+                throw new Error(chatError?.message || "Chat failed");
               }
-            );
 
-            if (!ttsResponse.ok) {
-              throw new Error("TTS generation failed");
+              const aiResponse = chatData.response;
+              console.log("AI response:", aiResponse.substring(0, 100));
+
+              setConversationHistory([...newHistory, { role: "assistant", content: aiResponse }]);
+
+              // Convert to speech
+              const ttsResponse = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                    Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+                  },
+                  body: JSON.stringify({ text: aiResponse, voiceId: selectedVoice }),
+                }
+              );
+
+              if (!ttsResponse.ok) {
+                const errorText = await ttsResponse.text().catch(() => "");
+                const parsed = errorText
+                  ? (() => {
+                      try {
+                        return JSON.parse(errorText);
+                      } catch {
+                        return null;
+                      }
+                    })()
+                  : null;
+                throw new Error(parsed?.error || "TTS is temporarily unavailable");
+              }
+
+              const audioResponseBlob = await ttsResponse.blob();
+              const audioUrl = URL.createObjectURL(audioResponseBlob);
+
+              const audio = new Audio(audioUrl);
+              audioRef.current = audio;
+
+              audio.onplay = () => setIsSpeaking(true);
+              audio.onended = () => {
+                setIsSpeaking(false);
+                URL.revokeObjectURL(audioUrl);
+              };
+              audio.onerror = () => {
+                setIsSpeaking(false);
+                URL.revokeObjectURL(audioUrl);
+              };
+
+              await audio.play();
+            } catch (error: any) {
+              console.error("Voice processing error:", error);
+              toast.error(error.message || "Voice processing failed");
+            } finally {
+              setIsProcessing(false);
             }
-
-            const audioResponseBlob = await ttsResponse.blob();
-            const audioUrl = URL.createObjectURL(audioResponseBlob);
-            
-            const audio = new Audio(audioUrl);
-            audioRef.current = audio;
-            
-            audio.onplay = () => setIsSpeaking(true);
-            audio.onended = () => {
-              setIsSpeaking(false);
-              URL.revokeObjectURL(audioUrl);
-            };
-            audio.onerror = () => {
-              setIsSpeaking(false);
-              URL.revokeObjectURL(audioUrl);
-            };
-            
-            setIsProcessing(false);
-            await audio.play();
           };
-          
+
           reader.readAsDataURL(audioBlob);
         } catch (error: any) {
           console.error("Voice processing error:", error);
