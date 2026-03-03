@@ -3032,6 +3032,7 @@ export type Database = {
           id: string
           is_restricted: boolean | null
           last_active_at: string | null
+          legacy_unlimited: boolean
           name: string | null
           privacy_accepted_at: string | null
           relationship_status: string | null
@@ -3069,6 +3070,7 @@ export type Database = {
           id: string
           is_restricted?: boolean | null
           last_active_at?: string | null
+          legacy_unlimited?: boolean
           name?: string | null
           privacy_accepted_at?: string | null
           relationship_status?: string | null
@@ -3106,6 +3108,7 @@ export type Database = {
           id?: string
           is_restricted?: boolean | null
           last_active_at?: string | null
+          legacy_unlimited?: boolean
           name?: string | null
           privacy_accepted_at?: string | null
           relationship_status?: string | null
