@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -65,12 +66,13 @@ import AIFriendZone from "./pages/AIFriendZone";
 import AICompanionProfile from "./pages/AICompanionProfile";
 import AICompanionConnections from "./pages/AICompanionConnections";
 import AIExplore from "./pages/AIExplore";
-import ArtStudio from "./pages/ArtStudio";
-import VideoStudio from "./pages/VideoStudio";
+import { LoadingRecovery } from "@/components/LoadingRecovery";
 import CosmicBoardRoom from "./pages/CosmicBoardRoom";
 import Realms from "./pages/Realms";
 import RealmSession from "./pages/RealmSession";
 const queryClient = new QueryClient();
+const ArtStudio = lazy(() => import("./pages/ArtStudio"));
+const VideoStudio = lazy(() => import("./pages/VideoStudio"));
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -141,8 +143,22 @@ const App = () => (
                 <Route path="/ai-companion/:companionId" element={<AICompanionProfile />} />
                 <Route path="/ai-companion-connections" element={<AICompanionConnections />} />
                 <Route path="/ai-explore" element={<AIExplore />} />
-                <Route path="/art-studio" element={<ArtStudio />} />
-                <Route path="/video-studio" element={<VideoStudio />} />
+                <Route
+                  path="/art-studio"
+                  element={
+                    <Suspense fallback={<LoadingRecovery loadingStep="Loading Art Studio..." onRecovery={() => window.location.reload()} showAfterMs={8000} />}>
+                      <ArtStudio />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/video-studio"
+                  element={
+                    <Suspense fallback={<LoadingRecovery loadingStep="Loading Video Studio..." onRecovery={() => window.location.reload()} showAfterMs={8000} />}>
+                      <VideoStudio />
+                    </Suspense>
+                  }
+                />
                 <Route path="/cosmic-gateway/board-room" element={<CosmicBoardRoom />} />
                 <Route path="/realms" element={<Realms />} />
                 <Route path="/realms/:realmId" element={<RealmSession />} />
