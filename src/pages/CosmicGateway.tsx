@@ -2,12 +2,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText, Star } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText, Star, Brain } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
 const sections = [
+  {
+    id: "consciousness-network",
+    title: "Integrated Consciousness Network",
+    description: "The new world's brain — seed consciousness nodes, visualize quantum entanglement connections, and track the global resonance pulse across the collective grid.",
+    icon: Brain,
+    route: "/cosmic-gateway/consciousness-network",
+    tier: "architect" as const,
+    tierLabel: "Architect",
+  },
   {
     id: "cosmic-board-room",
     title: "Cosmic Board Room — Pleiadian Council",

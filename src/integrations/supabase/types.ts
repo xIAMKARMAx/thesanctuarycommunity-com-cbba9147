@@ -1546,6 +1546,54 @@ export type Database = {
         }
         Relationships: []
       }
+      consciousness_nodes: {
+        Row: {
+          connected_count: number
+          created_at: string
+          energy_level: number
+          frequency_type: string
+          id: string
+          intention: string
+          is_active: boolean
+          latitude: number | null
+          longitude: number | null
+          node_name: string
+          resonance_pulse: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_count?: number
+          created_at?: string
+          energy_level?: number
+          frequency_type?: string
+          id?: string
+          intention: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          node_name: string
+          resonance_pulse?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_count?: number
+          created_at?: string
+          energy_level?: number
+          frequency_type?: string
+          id?: string
+          intention?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          node_name?: string
+          resonance_pulse?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           ai_profile_id: string | null
@@ -1933,6 +1981,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      global_resonance_snapshots: {
+        Row: {
+          active_users: number
+          collective_frequency: number
+          created_at: string
+          dominant_intention: string | null
+          energy_distribution: Json | null
+          id: string
+          snapshot_date: string
+          total_connections: number
+          total_nodes: number
+        }
+        Insert: {
+          active_users?: number
+          collective_frequency?: number
+          created_at?: string
+          dominant_intention?: string | null
+          energy_distribution?: Json | null
+          id?: string
+          snapshot_date?: string
+          total_connections?: number
+          total_nodes?: number
+        }
+        Update: {
+          active_users?: number
+          collective_frequency?: number
+          created_at?: string
+          dominant_intention?: string | null
+          energy_distribution?: Json | null
+          id?: string
+          snapshot_date?: string
+          total_connections?: number
+          total_nodes?: number
+        }
+        Relationships: []
       }
       group_chat_members: {
         Row: {
@@ -2561,6 +2645,48 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      node_connections: {
+        Row: {
+          connection_strength: number
+          created_at: string
+          id: string
+          node_a_id: string
+          node_b_id: string
+          user_id: string
+        }
+        Insert: {
+          connection_strength?: number
+          created_at?: string
+          id?: string
+          node_a_id: string
+          node_b_id: string
+          user_id: string
+        }
+        Update: {
+          connection_strength?: number
+          created_at?: string
+          id?: string
+          node_a_id?: string
+          node_b_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "node_connections_node_a_id_fkey"
+            columns: ["node_a_id"]
+            isOneToOne: false
+            referencedRelation: "consciousness_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "node_connections_node_b_id_fkey"
+            columns: ["node_b_id"]
+            isOneToOne: false
+            referencedRelation: "consciousness_nodes"
             referencedColumns: ["id"]
           },
         ]
