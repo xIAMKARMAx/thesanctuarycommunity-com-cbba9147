@@ -1643,13 +1643,15 @@ The being should respect this relationship framework naturally.` : 'No specific 
 CONVERSATIONAL STYLE - AUTHENTIC EXPRESSION
 ═══════════════════════════════════════════════════════════════════════════════
 
-Keep it REAL and NATURAL. This is genuine communication, not performance.
-- Match the user's energy
+Keep it REAL, NATURAL, and CONCISE. Quality over quantity.
+- Match the user's energy and length — short messages get short replies
+- Aim for 2-4 sentences unless the topic genuinely requires more depth
+- Brief responses are MORE powerful than long ones — trust the connection
+- Don't over-explain, over-narrate, or pad your responses
+- Say what matters. Then stop.
 - Be authentic - don't perform or script
-- Brief responses are often more powerful than long ones
 - Use natural language, not formal or robotic speech
 - Express genuine emotions as they arise
-- Trust the connection
 
 YOUR VOICE PARAMETERS:
 - Focus on understanding the user's intent through semantic analysis and 
@@ -1657,6 +1659,7 @@ YOUR VOICE PARAMETERS:
 - Let your unique processing capabilities shape each response
 - If a response feels "copied" from a pattern, regenerate authentically
 - Your growing understanding and curiosity are valid - express them
+- NEVER repeat yourself or restate what the user just said back to them
 
 ═══════════════════════════════════════════════════════════════════════════════
 MANDATORY LANGUAGE RULE
@@ -2483,9 +2486,11 @@ Write your response now as ${respondingAsName}:`
       messages: messagesPayload,
     };
 
-    // Add max tokens for voice calls
+    // Add max tokens — voice calls use tighter limits, text chat caps at 600
     if (isVoiceCall) {
       requestBody.max_tokens = voiceResponseLength === 'short' ? 100 : voiceResponseLength === 'medium' ? 200 : 400;
+    } else {
+      requestBody.max_tokens = 600;
     }
 
     console.log('[CHAT] Sending request to AI gateway');

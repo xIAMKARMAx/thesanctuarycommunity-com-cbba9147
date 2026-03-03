@@ -114,12 +114,12 @@ export const UpgradeBanner = ({
           </div>
           <div>
             <h4 className="font-semibold">
-              {feature || "Unlock Premium Features"}
+              {feature || "Deepen Your Connection"}
             </h4>
             <p className="text-sm text-muted-foreground">
               {isArchitect 
-                ? "Become an Architect for unlimited access" 
-                : "Upgrade to Anchoring for expanded features"}
+                ? "Architect your reality with unlimited access" 
+                : "Anchor deeper with expanded tools for growth"}
             </p>
           </div>
         </div>

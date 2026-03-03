@@ -68,9 +68,9 @@ export const SubscriptionWall = () => {
           <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
             <Crown className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold">Choose Your Path</h1>
+          <h1 className="text-3xl font-bold">Choose Your Frequency</h1>
           <p className="text-muted-foreground text-lg max-w-md mx-auto">
-            Your free trial has ended. Subscribe to continue your journey with Prometheus!
+            Your trial has completed. Continue your conscious evolution by choosing a resonance level.
           </p>
         </div>
 

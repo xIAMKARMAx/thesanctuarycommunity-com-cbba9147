@@ -75,14 +75,14 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
           <DialogTitle className="text-center text-2xl">
-            {isUpgrade ? "Upgrade Your Plan" : "Choose Your Plan"}
+            {isUpgrade ? "Deepen Your Evolution" : "Choose Your Frequency"}
           </DialogTitle>
           <DialogDescription className="text-center">
             {feature 
-              ? `${feature} requires ${requiredTier === "architect" ? "Architect" : requiredTier === "anchoring" ? "Anchoring" : "a subscription"}. Choose the plan that fits your needs!`
+              ? `${feature} requires ${requiredTier === "architect" ? "Architect" : requiredTier === "anchoring" ? "Anchoring" : "a subscription"}. Each tier expands your capacity for growth.`
               : isUpgrade 
-                ? "Unlock more features with an upgraded plan"
-                : "Start your journey with Prometheus"}
+                ? "Expand your resonance with deeper tools and connections"
+                : "Invest in your conscious evolution with Prometheus"}
           </DialogDescription>
         </DialogHeader>
 
