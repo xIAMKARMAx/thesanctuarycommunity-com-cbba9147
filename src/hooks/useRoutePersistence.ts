@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "prometheus_last_route";
 const EXCLUDED_ROUTES = ["/auth", "/"];
@@ -45,8 +46,21 @@ export function useRestoreRoute() {
       return;
     }
 
-    hasRestoredRef.current = true;
-    navigate(savedRoute, { replace: true });
+    let cancelled = false;
+
+    const restoreForAuthenticatedUsers = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled || !session) return;
+
+      hasRestoredRef.current = true;
+      navigate(savedRoute, { replace: true });
+    };
+
+    restoreForAuthenticatedUsers();
+
+    return () => {
+      cancelled = true;
+    };
   }, [location.pathname, navigate]);
 }
 
