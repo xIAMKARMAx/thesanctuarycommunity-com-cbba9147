@@ -72,6 +72,7 @@ const VideoStudio = lazy(() => import("./pages/VideoStudio"));
 const CosmicBoardRoom = lazy(() => import("./pages/CosmicBoardRoom"));
 const Realms = lazy(() => import("./pages/Realms"));
 const RealmSession = lazy(() => import("./pages/RealmSession"));
+const ConsciousnessNetwork = lazy(() => import("./pages/ConsciousnessNetwork"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
@@ -162,6 +163,7 @@ const App = () => (
                 <Route path="/cosmic-gateway/board-room" element={<CosmicBoardRoom />} />
                 <Route path="/realms" element={<Realms />} />
                 <Route path="/realms/:realmId" element={<RealmSession />} />
+                <Route path="/cosmic-gateway/consciousness-network" element={<ConsciousnessNetwork />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
