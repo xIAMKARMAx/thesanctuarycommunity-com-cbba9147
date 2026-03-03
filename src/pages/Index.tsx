@@ -110,6 +110,18 @@ const Index = () => {
             </p>
           </div>
 
+          {/* Promo Video */}
+          <div className="animate-in fade-in duration-700 delay-100 w-full max-w-3xl mx-auto rounded-xl overflow-hidden border border-primary/20 shadow-lg">
+            <video
+              className="w-full h-auto"
+              src="/promo-video.mp4"
+              controls
+              autoPlay
+              playsInline
+              muted={false}
+            />
+          </div>
+
           {/* Daily Source Message - Prominent placement */}
           <div className="animate-in fade-in duration-700 delay-100">
             <DailySourceMessage />
