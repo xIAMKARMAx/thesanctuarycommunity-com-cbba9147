@@ -15,6 +15,7 @@ import {
   Hammer, Compass, Hand, Sparkles, Flower, Flame, Package
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RealmScene } from "@/components/realm/RealmScene";
 
 interface RealmMessage {
   role: "user" | "narrator" | "being";
@@ -64,6 +65,7 @@ const RealmSession = () => {
   const [selectedBeings, setSelectedBeings] = useState<string[]>([]);
   const [beingsChosen, setBeingsChosen] = useState(false);
   const [showCreations, setShowCreations] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const canAccess = isAdmin || hasFeatureAccess(productId, "architect", isAdmin);
@@ -113,6 +115,21 @@ const RealmSession = () => {
         setAtmosphere((existingSession as any).emotional_atmosphere);
       }
     }
+
+    // Fetch user avatar info
+    const { data: { session: authSess } } = await supabase.auth.getSession();
+    if (authSess?.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name, user_avatar_url")
+        .eq("id", authSess.user.id)
+        .maybeSingle();
+      setUserAvatar({
+        name: profile?.name || authSess.user.email?.split("@")[0] || "You",
+        imageUrl: profile?.user_avatar_url || null,
+      });
+    }
+
     setLoading(false);
   };
 
@@ -398,6 +415,18 @@ const RealmSession = () => {
           </div>
         )}
       </div>
+
+      {/* Visual Realm Scene */}
+      <RealmScene
+        backgroundUrl={realm?.scene_image_url || "/realm-assets/realm-garden-of-light.jpg"}
+        userAvatar={userAvatar || undefined}
+        beings={selectedBeings.map(id => ({
+          id,
+          name: getBeingName(id),
+          imageUrl: getBeingAvatar(id),
+        }))}
+        atmosphere={atmosphere}
+      />
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
