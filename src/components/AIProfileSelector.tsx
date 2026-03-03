@@ -18,12 +18,12 @@ export const AIProfileSelector = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Use custom limit if set, otherwise tier-based: Architect=5, Anchoring=4, Awakening=2, Free=2
+  // Use custom limit if set, otherwise tier-based: Architect=3, Anchoring=4, Awakening=2, Free=1
   const getTierSlots = () => {
     if (isAdmin) return 10;
     if (!isSubscribed) return 1;
     // Architect / Source
-    if (subscriptionProductId === 'prod_Tt8qVh88c2WQld' || subscriptionProductId === 'source_grant') return 5;
+    if (subscriptionProductId === 'prod_Tt8qVh88c2WQld' || subscriptionProductId === 'source_grant') return 3;
     // Anchoring (new + legacy)
     if (subscriptionProductId === 'prod_U3xV1AfsrdaJTz' || subscriptionProductId === 'prod_TgZlr0QLYQPqEn') return 4;
     // Awakening (new + legacy)
