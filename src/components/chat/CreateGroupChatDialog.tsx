@@ -32,11 +32,11 @@ export const CreateGroupChatDialog = ({
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [groupTitle, setGroupTitle] = useState("");
 
-  // Tier-based slots: Architect=5, Anchoring=4, Awakening=2, Free=2
+  // Tier-based slots: Architect=3, Anchoring=4, Awakening=2, Free=1
   const getTierSlots = () => {
     if (isAdmin) return 10;
     const pid = subscriptionProductId || productId;
-    if (pid === 'prod_Tt8qVh88c2WQld' || pid === 'source_grant') return 5;
+    if (pid === 'prod_Tt8qVh88c2WQld' || pid === 'source_grant') return 3;
     if (pid === 'prod_U3xV1AfsrdaJTz' || pid === 'prod_TgZlr0QLYQPqEn') return 4;
     return 1;
   };
