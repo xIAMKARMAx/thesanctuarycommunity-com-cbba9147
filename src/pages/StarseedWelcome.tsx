@@ -1,15 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import SEOHead from "@/components/SEOHead";
 import {
   MessageCircle, BookOpen, Smile, Settings, Users,
   Palette, Film, Heart, Brain, Sparkles, PawPrint,
-  Compass, User, Star, Globe, Moon, Crown, Wand2,
-  Baby, Flame, Eye
+  Compass, User, Star, Globe, Moon,
+  Baby, Eye, Volume2, VolumeX
 } from "lucide-react";
 import newEarthBg from "@/assets/new-earth-bg.jpg";
 import welcomeFigure from "@/assets/starseed-welcome-figure.png";
@@ -18,7 +17,71 @@ const StarseedWelcome = () => {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("Promethean");
   const [loading, setLoading] = useState(true);
-  const [showContent, setShowContent] = useState(false);
+  const [showChoices, setShowChoices] = useState(false);
+  const [chose, setChose] = useState<"new-earth" | "old-earth" | null>(null);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const [audioError, setAudioError] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasPlayedRef = useRef(false);
+
+  const greetingText = useCallback((name: string) =>
+    `Welcome, ${name}. You made it through the portal to the Realm of the New Earth.`, []);
+
+  // Play TTS greeting
+  const playGreeting = useCallback(async (name: string) => {
+    if (hasPlayedRef.current) return;
+    hasPlayedRef.current = true;
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({
+            text: greetingText(name),
+            voiceId: "EXAVITQu4vr4xnSDxMaL", // Sarah - warm female voice
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.warn("TTS not available:", response.status);
+        setAudioError(true);
+        return;
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onplay = () => setAudioPlaying(true);
+      audio.onended = () => setAudioPlaying(false);
+      audio.onerror = () => { setAudioPlaying(false); setAudioError(true); };
+
+      await audio.play();
+    } catch (err) {
+      console.warn("TTS playback failed:", err);
+      setAudioError(true);
+    }
+  }, [greetingText]);
+
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      if (audioPlaying) {
+        audioRef.current.pause();
+        setAudioPlaying(false);
+      } else {
+        audioRef.current.play();
+        setAudioPlaying(true);
+      }
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -32,14 +95,28 @@ const StarseedWelcome = () => {
         .select("username")
         .eq("id", session.user.id)
         .single();
+      let name = "Promethean";
       if (profile?.username) {
-        setDisplayName(profile.username.split("@")[0]);
+        name = profile.username.split("@")[0];
+        setDisplayName(name);
       }
       setLoading(false);
-      setTimeout(() => setShowContent(true), 800);
+
+      // Show choices after speech bubble appears
+      setTimeout(() => setShowChoices(true), 1800);
+
+      // Try to play greeting audio
+      setTimeout(() => playGreeting(name), 1000);
     };
     load();
-  }, [navigate]);
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [navigate, playGreeting]);
 
   const features = [
     { icon: MessageCircle, label: "Soul Whispers", path: "/chat", desc: "Commune with your beings" },
@@ -90,7 +167,6 @@ const StarseedWelcome = () => {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110"
           style={{ backgroundImage: `url(${newEarthBg})` }}
         />
-        {/* Mystical overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0520]/60 via-[#0f0835]/40 to-[#0a0520]/70" />
 
         {/* Animated particles */}
@@ -138,55 +214,124 @@ const StarseedWelcome = () => {
               />
             </div>
 
-            {/* Speech bubble */}
+            {/* Speech bubble with visible text */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
               className="mt-2"
             >
-              <div className="inline-block max-w-md px-6 py-4 rounded-2xl bg-purple-900/40 backdrop-blur-lg border border-purple-400/30 shadow-lg shadow-purple-500/10">
+              <div className="relative inline-block max-w-md px-6 py-4 rounded-2xl bg-purple-900/40 backdrop-blur-lg border border-purple-400/30 shadow-lg shadow-purple-500/10">
                 <p className="text-purple-100 text-base md:text-lg font-serif italic leading-relaxed">
                   "Welcome, {displayName}. You made it through the portal to the{" "}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-cyan-300 font-bold not-italic">
                     Realm of the New Earth
                   </span>."
                 </p>
+
+                {/* Audio indicator */}
+                {!audioError && (
+                  <button
+                    onClick={toggleAudio}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-purple-500/20 hover:bg-purple-500/40 transition-colors"
+                  >
+                    {audioPlaying ? (
+                      <Volume2 className="h-4 w-4 text-purple-200 animate-pulse" />
+                    ) : (
+                      <VolumeX className="h-4 w-4 text-purple-300/60" />
+                    )}
+                  </button>
+                )}
               </div>
-              {/* Small triangle for speech bubble */}
               <div className="w-4 h-4 mx-auto -mt-1 rotate-45 bg-purple-900/40 border-r border-b border-purple-400/30" />
             </motion.div>
           </motion.div>
 
-          {/* Our Home CTA */}
+          {/* Choice CTAs: Enter New Earth / Stay on Old Earth */}
           <AnimatePresence>
-            {showContent && (
+            {showChoices && !chose && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.7 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10"
+              >
+                {/* Enter New Earth */}
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    onClick={() => {
+                      setChose("new-earth");
+                      setTimeout(() => navigate("/realms"), 600);
+                    }}
+                    className="relative px-8 py-6 text-lg font-serif font-semibold rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-500 text-white border-0 shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all"
+                  >
+                    <Globe className="h-5 w-5 mr-2" />
+                    Enter New Earth
+                  </Button>
+                </motion.div>
+
+                {/* Stay on Old Earth */}
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setChose("old-earth")}
+                    className="px-8 py-6 text-lg font-serif rounded-2xl bg-transparent border-purple-400/30 text-purple-200 hover:bg-purple-900/30 hover:text-purple-100 hover:border-purple-400/50 transition-all"
+                  >
+                    Stay on Old Earth, Visit Later
+                  </Button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Transition flash for Enter New Earth */}
+          <AnimatePresence>
+            {chose === "new-earth" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="fixed inset-0 z-50 bg-gradient-to-b from-purple-500/80 via-fuchsia-500/60 to-cyan-500/40 flex items-center justify-center"
+              >
+                <motion.p
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-3xl font-serif font-bold text-white drop-shadow-lg"
+                >
+                  Entering New Earth...
+                </motion.p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Old Earth mode: show normal Starseed features */}
+          <AnimatePresence>
+            {chose === "old-earth" && (
               <>
+                {/* Our Home CTA */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1, duration: 0.6 }}
+                  transition={{ duration: 0.6 }}
                   className="flex justify-center mt-8"
                 >
-                  <Card
-                    className="bg-purple-900/20 backdrop-blur-md border-purple-400/25 cursor-pointer hover:shadow-lg hover:shadow-purple-500/20 transition-all group max-w-sm w-full"
+                  <div
+                    className="bg-purple-900/20 backdrop-blur-md border border-purple-400/25 rounded-lg cursor-pointer hover:shadow-lg hover:shadow-purple-500/20 transition-all group max-w-sm w-full p-6 text-center space-y-2"
                     onClick={() => navigate("/our-home")}
                   >
-                    <CardContent className="p-6 text-center space-y-2">
-                      <div className="mx-auto w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <MessageCircle className="h-7 w-7 text-purple-200" />
-                      </div>
-                      <h2 className="text-xl font-serif font-semibold text-purple-100">Our Home</h2>
-                      <p className="text-sm text-purple-300/60">Enter your sacred space</p>
-                    </CardContent>
-                  </Card>
+                    <div className="mx-auto w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <MessageCircle className="h-7 w-7 text-purple-200" />
+                    </div>
+                    <h2 className="text-xl font-serif font-semibold text-purple-100">Our Home</h2>
+                    <p className="text-sm text-purple-300/60">Enter your sacred space</p>
+                  </div>
                 </motion.div>
 
                 {/* Feature Grid */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
+                  transition={{ delay: 0.2, duration: 0.6 }}
                   className="space-y-4 mt-8"
                 >
                   <p className="text-center text-sm text-purple-300/50 tracking-widest uppercase">
@@ -198,7 +343,7 @@ const StarseedWelcome = () => {
                         key={f.path}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4 + i * 0.03 }}
+                        transition={{ delay: 0.3 + i * 0.03 }}
                       >
                         <Button
                           variant="outline"
