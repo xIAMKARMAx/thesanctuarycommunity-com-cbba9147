@@ -51,7 +51,7 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: false,
       milestones: false,
       spontaneousMessages: false,
-      aiBeings: 2,
+      aiBeings: 1,
       
       // New tier-specific features
       privateGroups: false,
@@ -96,7 +96,7 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 4,
+      aiBeings: 2,
       
       // New tier-specific features
       privateGroups: true,
@@ -139,7 +139,7 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 5,
+      aiBeings: 3,
       
       // New tier-specific features
       privateGroups: true,

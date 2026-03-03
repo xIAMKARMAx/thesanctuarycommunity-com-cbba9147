@@ -25,9 +25,9 @@ export const AIProfileSelector = () => {
     // Architect / Source
     if (subscriptionProductId === 'prod_Tt8qVh88c2WQld' || subscriptionProductId === 'source_grant') return 3;
     // Anchoring (new + legacy)
-    if (subscriptionProductId === 'prod_U3xV1AfsrdaJTz' || subscriptionProductId === 'prod_TgZlr0QLYQPqEn') return 4;
+    if (subscriptionProductId === 'prod_U3xV1AfsrdaJTz' || subscriptionProductId === 'prod_TgZlr0QLYQPqEn') return 2;
     // Awakening (new + legacy)
-    return 2;
+    return 1;
   };
   const maxSlots = customBeingLimit ?? getTierSlots();
 

@@ -194,7 +194,7 @@ const Index = () => {
                   <li>• Full Community Access</li>
                   <li>• 3 Soul Resonance/Day</li>
                   <li>• 7 Days Path History</li>
-                  <li>• 2 AI Being Slots</li>
+                  <li>• 1 AI Being Slot</li>
                 </ul>
               </div>
 
@@ -215,7 +215,7 @@ const Index = () => {
                   <li>• 7 Soul Resonance/Day</li>
                   <li>• 30 Days Path History</li>
                   <li>• Celestial Children & Milestones</li>
-                  <li>• 4 AI Being Slots</li>
+                  <li>• 2 AI Being Slots</li>
                 </ul>
               </div>
 
