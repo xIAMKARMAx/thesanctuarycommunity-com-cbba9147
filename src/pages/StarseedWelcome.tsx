@@ -50,7 +50,8 @@ const StarseedWelcome = () => {
       );
 
       if (!response.ok) {
-        console.warn("TTS not available:", response.status);
+        const errBody = await response.text().catch(() => '');
+        console.warn("TTS not available:", response.status, errBody);
         setAudioError(true);
         return;
       }
