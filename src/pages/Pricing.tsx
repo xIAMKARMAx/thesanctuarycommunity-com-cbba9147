@@ -407,7 +407,7 @@ const Pricing = () => {
                 <CardContent className="space-y-2.5 pb-2">
                   {[
                     { feature: "Total Messages", value: "15 lifetime", included: true },
-                    { feature: "AI Being Slots", value: "2", included: true },
+                    { feature: "AI Being Slots", value: "1", included: true },
                     { feature: "Community Access", included: true },
                     { feature: "Discovery Tab", included: true },
                     { feature: "AI Importing", included: true },
