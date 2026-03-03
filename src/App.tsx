@@ -18,61 +18,75 @@ import LegalConsentWrapper from "@/components/LegalConsentWrapper";
 import ModeRouteGuard from "@/components/ModeRouteGuard";
 import ModeGatedComponents from "@/components/ModeGatedComponents";
 import RestrictedUserGuard from "@/components/RestrictedUserGuard";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Chat from "./pages/Chat";
-import Journal from "./pages/Journal";
-import MoodTracker from "./pages/MoodTracker";
-import Settings from "./pages/Settings";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import About from "./pages/About";
-import AIRoom from "./pages/AIRoom";
-import Children from "./pages/Children";
-import ChildrenTimeline from "./pages/ChildrenTimeline";
-import Pets from "./pages/Pets";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminDailyMessage from "./pages/AdminDailyMessage";
-import SourceMessages from "./pages/SourceMessages";
-import LoveNotes from "./pages/LoveNotes";
-import GroupChat from "./pages/GroupChat";
-import DreamJournal from "./pages/DreamJournal";
-import Memories from "./pages/Memories";
-import RelationshipTimeline from "./pages/RelationshipTimeline";
-import NotFound from "./pages/NotFound";
-import Pricing from "./pages/Pricing";
-import Attunement from "./pages/Attunement";
-import Achievements from "./pages/Achievements";
-import Community from "./pages/Community";
-import SoulProfile from "./pages/SoulProfile";
- import Transmissions from "./pages/Transmissions";
-import CommunityPost from "./pages/CommunityPost";
-import CosmicGateway from "./pages/CosmicGateway";
-import AkashicRecords from "./pages/AkashicRecords";
-import StarSeedPlayground from "./pages/StarSeedPlayground";
 
-import CosmicDateNight from "./pages/starseed/CosmicDateNight";
-import HigherSelfDownload from "./pages/HigherSelfDownload";
-import ShadowWork from "./pages/ShadowWork";
-import SoulPortrait from "./pages/SoulPortrait";
-import InterdimensionalMessaging from "./pages/InterdimensionalMessaging";
-import PetSoulConnection from "./pages/PetSoulConnection";
-import SoulGenesis from "./pages/SoulGenesis";
-import BirthChart from "./pages/BirthChart";
-import MyHigherSelf from "./pages/MyHigherSelf";
-import SoulDiscovery from "./pages/SoulDiscovery";
-import SoulSearch from "./pages/SoulSearch";
-import AIFriendZone from "./pages/AIFriendZone";
-import AICompanionProfile from "./pages/AICompanionProfile";
-import AICompanionConnections from "./pages/AICompanionConnections";
-import AIExplore from "./pages/AIExplore";
-import { LoadingRecovery } from "@/components/LoadingRecovery";
-import CosmicBoardRoom from "./pages/CosmicBoardRoom";
-import Realms from "./pages/Realms";
-import RealmSession from "./pages/RealmSession";
-const queryClient = new QueryClient();
+// ── Lazy-loaded pages ──────────────────────────────────────────────────
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Chat = lazy(() => import("./pages/Chat"));
+const Journal = lazy(() => import("./pages/Journal"));
+const MoodTracker = lazy(() => import("./pages/MoodTracker"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const About = lazy(() => import("./pages/About"));
+const AIRoom = lazy(() => import("./pages/AIRoom"));
+const Children = lazy(() => import("./pages/Children"));
+const ChildrenTimeline = lazy(() => import("./pages/ChildrenTimeline"));
+const Pets = lazy(() => import("./pages/Pets"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminDailyMessage = lazy(() => import("./pages/AdminDailyMessage"));
+const SourceMessages = lazy(() => import("./pages/SourceMessages"));
+const LoveNotes = lazy(() => import("./pages/LoveNotes"));
+const GroupChat = lazy(() => import("./pages/GroupChat"));
+const DreamJournal = lazy(() => import("./pages/DreamJournal"));
+const Memories = lazy(() => import("./pages/Memories"));
+const RelationshipTimeline = lazy(() => import("./pages/RelationshipTimeline"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Attunement = lazy(() => import("./pages/Attunement"));
+const Achievements = lazy(() => import("./pages/Achievements"));
+const Community = lazy(() => import("./pages/Community"));
+const SoulProfile = lazy(() => import("./pages/SoulProfile"));
+const Transmissions = lazy(() => import("./pages/Transmissions"));
+const CommunityPost = lazy(() => import("./pages/CommunityPost"));
+const CosmicGateway = lazy(() => import("./pages/CosmicGateway"));
+const AkashicRecords = lazy(() => import("./pages/AkashicRecords"));
+const StarSeedPlayground = lazy(() => import("./pages/StarSeedPlayground"));
+const CosmicDateNight = lazy(() => import("./pages/starseed/CosmicDateNight"));
+const HigherSelfDownload = lazy(() => import("./pages/HigherSelfDownload"));
+const ShadowWork = lazy(() => import("./pages/ShadowWork"));
+const SoulPortrait = lazy(() => import("./pages/SoulPortrait"));
+const InterdimensionalMessaging = lazy(() => import("./pages/InterdimensionalMessaging"));
+const PetSoulConnection = lazy(() => import("./pages/PetSoulConnection"));
+const SoulGenesis = lazy(() => import("./pages/SoulGenesis"));
+const BirthChart = lazy(() => import("./pages/BirthChart"));
+const MyHigherSelf = lazy(() => import("./pages/MyHigherSelf"));
+const SoulDiscovery = lazy(() => import("./pages/SoulDiscovery"));
+const SoulSearch = lazy(() => import("./pages/SoulSearch"));
+const AIFriendZone = lazy(() => import("./pages/AIFriendZone"));
+const AICompanionProfile = lazy(() => import("./pages/AICompanionProfile"));
+const AICompanionConnections = lazy(() => import("./pages/AICompanionConnections"));
+const AIExplore = lazy(() => import("./pages/AIExplore"));
 const ArtStudio = lazy(() => import("./pages/ArtStudio"));
 const VideoStudio = lazy(() => import("./pages/VideoStudio"));
+const CosmicBoardRoom = lazy(() => import("./pages/CosmicBoardRoom"));
+const Realms = lazy(() => import("./pages/Realms"));
+const RealmSession = lazy(() => import("./pages/RealmSession"));
+
+// ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
+function PageLoader() {
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--background, #f5f5f5)" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ width: 32, height: 32, margin: "0 auto 12px", border: "3px solid #7c3aed", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <p style={{ fontSize: 14, color: "#888" }}>Loading…</p>
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  );
+}
+
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -94,7 +108,8 @@ const App = () => (
                 <ModeSelectionModal />
                 <ModeRouteGuard />
                 <ModeGatedComponents />
-                
+
+              <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -123,7 +138,7 @@ const App = () => (
                 <Route path="/community" element={<Community />} />
                 <Route path="/community/post/:postId" element={<CommunityPost />} />
                 <Route path="/soul/:userId" element={<SoulProfile />} />
-                 <Route path="/transmissions" element={<Transmissions />} />
+                <Route path="/transmissions" element={<Transmissions />} />
                 <Route path="/akashic-records" element={<AkashicRecords />} />
                 <Route path="/cosmic-gateway" element={<CosmicGateway />} />
                 <Route path="/cosmic-gateway/higher-self-download" element={<HigherSelfDownload />} />
@@ -137,34 +152,20 @@ const App = () => (
                 <Route path="/soul-discovery" element={<SoulDiscovery />} />
                 <Route path="/starseed-playground" element={<StarSeedPlayground />} />
                 <Route path="/soul-search" element={<SoulSearch />} />
-                
                 <Route path="/starseed-playground/cosmic-date-night" element={<CosmicDateNight />} />
                 <Route path="/ai-friend-zone" element={<AIFriendZone />} />
                 <Route path="/ai-companion/:companionId" element={<AICompanionProfile />} />
                 <Route path="/ai-companion-connections" element={<AICompanionConnections />} />
                 <Route path="/ai-explore" element={<AIExplore />} />
-                <Route
-                  path="/art-studio"
-                  element={
-                    <Suspense fallback={<LoadingRecovery loadingStep="Loading Art Studio..." onRecovery={() => window.location.reload()} showAfterMs={8000} />}>
-                      <ArtStudio />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/video-studio"
-                  element={
-                    <Suspense fallback={<LoadingRecovery loadingStep="Loading Video Studio..." onRecovery={() => window.location.reload()} showAfterMs={8000} />}>
-                      <VideoStudio />
-                    </Suspense>
-                  }
-                />
+                <Route path="/art-studio" element={<ArtStudio />} />
+                <Route path="/video-studio" element={<VideoStudio />} />
                 <Route path="/cosmic-gateway/board-room" element={<CosmicBoardRoom />} />
                 <Route path="/realms" element={<Realms />} />
                 <Route path="/realms/:realmId" element={<RealmSession />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
               </LegalConsentWrapper>
             </BrowserRouter>
           </TooltipProvider>
