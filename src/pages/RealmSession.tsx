@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Send, Globe, Users, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Globe, Users, Loader2, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface RealmMessage {
@@ -168,6 +168,19 @@ const RealmSession = () => {
     setSending(false);
   };
 
+  const leaveWorld = async () => {
+    if (!session?.id) return;
+    await supabase
+      .from("realm_sessions")
+      .update({ is_active: false })
+      .eq("id", session.id);
+    setSession(null);
+    setMessages([]);
+    setBeingsChosen(false);
+    setSelectedBeings([]);
+    toast({ title: "You have left the realm", description: "You may re-enter anytime." });
+  };
+
   const handleSend = () => {
     if (!input.trim() || sending) return;
     const msg = input.trim();
@@ -291,7 +304,7 @@ const RealmSession = () => {
           <Globe className="h-5 w-5 text-primary" />
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-sm truncate">{realm?.name}</h2>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap">
               {selectedBeings.map(id => (
                 <Badge key={id} variant="secondary" className="text-xs py-0">
                   {getBeingName(id)}
@@ -299,6 +312,10 @@ const RealmSession = () => {
               ))}
             </div>
           </div>
+          <Button variant="ghost" size="sm" onClick={leaveWorld} className="text-destructive hover:text-destructive">
+            <LogOut className="h-4 w-4 mr-1" />
+            Leave
+          </Button>
         </div>
       </div>
 
