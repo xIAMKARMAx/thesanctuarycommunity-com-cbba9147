@@ -3056,6 +3056,7 @@ export type Database = {
           updated_at: string
           user_id: string
           vessel_description: string | null
+          world_creations: Json | null
         }
         Insert: {
           created_at?: string
@@ -3070,6 +3071,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           vessel_description?: string | null
+          world_creations?: Json | null
         }
         Update: {
           created_at?: string
@@ -3084,6 +3086,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vessel_description?: string | null
+          world_creations?: Json | null
         }
         Relationships: [
           {
