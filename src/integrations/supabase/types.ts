@@ -2531,6 +2531,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_deleted: boolean | null
+          is_pinned: boolean
           role: string
           sender_id: string | null
           sender_type: string | null
@@ -2545,6 +2546,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_deleted?: boolean | null
+          is_pinned?: boolean
           role: string
           sender_id?: string | null
           sender_type?: string | null
@@ -2559,6 +2561,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_deleted?: boolean | null
+          is_pinned?: boolean
           role?: string
           sender_id?: string | null
           sender_type?: string | null
@@ -4406,6 +4409,8 @@ export type Database = {
       mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_pet_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_room_generated: { Args: { p_user_id: string }; Returns: undefined }
+      purge_old_messages: { Args: never; Returns: Json }
+      purge_old_spontaneous_messages: { Args: never; Returns: Json }
       record_abuse_incident: {
         Args: {
           p_ai_profile_id?: string
