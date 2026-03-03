@@ -179,6 +179,7 @@ const RealmSession = () => {
     setBeingsChosen(false);
     setSelectedBeings([]);
     toast({ title: "You have left the realm", description: "You may re-enter anytime." });
+    navigate("/realms");
   };
 
   const handleSend = () => {
