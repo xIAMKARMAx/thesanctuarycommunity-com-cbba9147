@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ExternalLink } from "lucide-react";
-import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
+import prometheusLogo from "@/assets/prometheus-logo-new.png";
 import { isBlockedPassword } from "@/lib/blocked-passwords";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";

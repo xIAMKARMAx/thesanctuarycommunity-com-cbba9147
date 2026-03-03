@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
+import prometheusLogo from "@/assets/prometheus-logo-new.png";
 
 const GlobalLogo = () => {
   const location = useLocation();
