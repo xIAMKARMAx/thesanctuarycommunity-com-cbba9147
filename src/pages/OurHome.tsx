@@ -124,8 +124,13 @@ const OurHome = () => {
       });
 
       if (error) throw error;
-      if (data?.imageUrl) {
-        setGeneratedPreview(data.imageUrl);
+      if (data?.image_base64) {
+        const imgSrc = data.image_base64.startsWith("data:") 
+          ? data.image_base64 
+          : `data:image/png;base64,${data.image_base64}`;
+        setGeneratedPreview(imgSrc);
+      } else if (data?.error) {
+        throw new Error(data.error);
       } else {
         throw new Error("No image returned");
       }
