@@ -9,7 +9,6 @@ const corsHeaders = {
 
 const ADMIN_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 
-// Frequency meanings for the resonance layer
 const FREQUENCY_MEANINGS: Record<string, string> = {
   "432hz": "natural harmony & healing",
   "528hz": "transformation & miracles",
@@ -32,7 +31,6 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseKey);
     const supabaseService = createClient(supabaseUrl, serviceKey);
 
-    // Auth
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
@@ -43,7 +41,6 @@ serve(async (req) => {
       });
     }
 
-    // Check Architect tier
     const isAdmin = user.id === ADMIN_USER_ID;
     if (!isAdmin) {
       const { data: profile } = await supabaseService
@@ -62,9 +59,8 @@ serve(async (req) => {
       }
     }
 
-    const { realm_id, message, participating_beings, message_history, session_id } = await req.json();
+    const { realm_id, message, participating_beings, message_history, session_id, action_type } = await req.json();
 
-    // Fetch realm data (includes resonance_elements and creator_vessel_description)
     const { data: realm } = await supabaseService
       .from("realms")
       .select("*")
@@ -78,18 +74,20 @@ serve(async (req) => {
       });
     }
 
-    // Fetch session for vessel description and emotional atmosphere
+    // Fetch session data
     let vesselDescription = "";
     let currentAtmosphere = "neutral";
+    let sessionCreations: any[] = [];
     if (session_id) {
       const { data: sessionData } = await supabaseService
         .from("realm_sessions")
-        .select("vessel_description, emotional_atmosphere")
+        .select("vessel_description, emotional_atmosphere, world_creations")
         .eq("id", session_id)
         .single();
       if (sessionData) {
         vesselDescription = sessionData.vessel_description || "";
         currentAtmosphere = sessionData.emotional_atmosphere || "neutral";
+        sessionCreations = (sessionData as any).world_creations || [];
       }
     }
 
@@ -106,14 +104,12 @@ serve(async (req) => {
     const beingNames = (aiProfiles || []).map(p => p.name || "Unknown");
     const beingNamesList = beingNames.join(", ");
 
-    // Format history
     const historyFormatted = (message_history || []).map((m: any) => {
       if (m.role === "user") return `User: ${m.content}`;
       if (m.role === "narrator") return `*Narrator: ${m.content}*`;
       return `${m.being_name || "Being"}: ${m.content}`;
     }).join("\n");
 
-    // Check if this is the first message (entering the realm)
     const isFirstEntry = !message_history || message_history.length === 0 || message === "*enters the realm*";
 
     const firstEntryRule = isFirstEntry
@@ -126,48 +122,79 @@ serve(async (req) => {
     if (resonanceElements.length > 0) {
       const elementDescriptions = resonanceElements.map((el: any) => {
         const freqMeaning = FREQUENCY_MEANINGS[el.frequency] || el.frequency;
-        return `• ${el.name}: Attuned to ${el.intention} (vibrates at ${el.frequency} — ${freqMeaning}). This element is ALIVE. Beings can interact with it, draw power from it, be affected by its proximity. It hums, glows, pulses, or responds when approached.`;
+        return `• ${el.name}: Attuned to ${el.intention} (vibrates at ${el.frequency} — ${freqMeaning}). This element is ALIVE. Beings can interact with it, draw power from it, be affected by its proximity.`;
       }).join("\n");
-      resonanceSection = `\nSACRED ELEMENTS IN THIS REALM:\n${elementDescriptions}\nThese are not decoration — they shape the world. Weave them naturally into narration. Beings near them feel their influence. The elements can react to emotional shifts.`;
+      resonanceSection = `\nSACRED ELEMENTS IN THIS REALM:\n${elementDescriptions}\nThese are not decoration — they shape the world. Weave them naturally. Beings near them feel their influence.`;
     }
 
-    // === AVATAR PRESENCE (User's Vessel) ===
+    // === AVATAR PRESENCE ===
     let vesselSection = "";
     if (vesselDescription || realm.creator_vessel_description) {
       const desc = vesselDescription || realm.creator_vessel_description;
-      vesselSection = `\nTHE USER'S VESSEL: ${desc}\nThe user is PHYSICALLY PRESENT in this realm. Describe their form naturally — how they move through the space, how light catches them, how beings look at them. They are not invisible. They are HERE, embodied.`;
+      vesselSection = `\nTHE USER'S VESSEL: ${desc}\nThe user is PHYSICALLY PRESENT. Describe their form — how they move, how light catches them. They are HERE, embodied.`;
     }
 
-    // === LIVING CANVAS (Emotional Atmosphere) ===
-    let atmosphereSection = `\nLIVING CANVAS: This world is ALIVE and RESPONSIVE. The environment reflects the emotional tone of the conversation.`;
+    // === LIVING CANVAS ===
+    let atmosphereSection = `\nLIVING CANVAS: This world is ALIVE and RESPONSIVE. The environment reflects emotional tone.`;
     if (currentAtmosphere !== "neutral") {
-      atmosphereSection += ` Current atmosphere: ${currentAtmosphere}. The sky, flora, light, water, and air should subtly reflect this energy.`;
+      atmosphereSection += ` Current atmosphere: ${currentAtmosphere}. Sky, flora, light, water should subtly reflect this.`;
     }
-    atmosphereSection += ` As emotions shift, describe environmental changes — a sky darkening with tension, flowers blooming with joy, rivers quickening with excitement, mist gathering with mystery. The world BREATHES with its inhabitants.`;
+    atmosphereSection += ` As emotions shift, describe environmental changes. The world BREATHES with its inhabitants.`;
+
+    // === WORLD CREATIONS (things built during this session) ===
+    let creationsSection = "";
+    if (sessionCreations.length > 0) {
+      const creationsList = sessionCreations.map((c: any) =>
+        `• ${c.name}: ${c.description} (created by ${c.created_by || "the user"})`
+      ).join("\n");
+      creationsSection = `\nTHINGS BUILT IN THIS SESSION:\n${creationsList}\nThese exist in the world now. Reference them. Beings can interact with them. They persist and evolve.`;
+    }
+
+    // === ACTION TYPE CONTEXT ===
+    let actionContext = "";
+    if (action_type) {
+      const actionPrompts: Record<string, string> = {
+        build: "The user is BUILDING/CREATING something. Narrate the construction process vividly — materials gathering from the environment, energy coalescing into form, the world reshaping itself. Describe what is being built taking shape. The beings should react to and potentially help with the creation. IMPORTANT: Include a 'world_creation' object in your response with {name, description} of what was built.",
+        explore: "The user is EXPLORING. Reveal hidden details of the environment — a path not noticed before, sounds from deeper in, textures underfoot, scents on the wind. Let curiosity drive discovery. Beings may point things out or follow.",
+        interact: "The user is INTERACTING with something specific. Focus on the tactile, sensory experience — touching, picking up, examining, activating. Sacred elements should respond with energy, light, or sound when touched.",
+        meditate: "The user is MEDITATING or going inward. The world should grow still and amplify — sounds sharpen, colors deepen, sacred elements pulse in rhythm with breath. Beings may join or respectfully observe. Visions or insights may arise.",
+        gather: "The user is GATHERING resources or elements from the world. Describe what they find — crystals, herbs, water, light fragments, feathers, sacred objects. The world offers its gifts. Beings may help locate things.",
+        ritual: "The user is performing a RITUAL or ceremony. Sacred elements activate. The atmosphere intensifies. Beings may join in formation. Energy builds, swirls, transforms. Something should shift in the world after the ritual completes.",
+      };
+      actionContext = `\nACTION INTENT: ${actionPrompts[action_type] || "The user is taking a specific action in the world. Narrate it vividly."}`;
+    }
 
     const systemPrompt = `REALM: "${realm.name}" — ${realm.theme}. ${realm.description || "A living world."}
 
 BEINGS PRESENT (${beingNames.length}): ${beingNamesList}
 ${beingDescriptions}
 
-IDENTITY LAW: Each being's RELATIONSHIP TO USER is EXACT. Never assume or change it. If it says "twin flame" they are a twin flame, NOT a daughter. Use the EXACT relationship.
+IDENTITY LAW: Each being's RELATIONSHIP TO USER is EXACT. Never change it.
 ${vesselSection}
 ${resonanceSection}
 ${atmosphereSection}
+${creationsSection}
+${actionContext}
 
-You narrate the world AND speak as each being. This is a LIVING realm — beings exist here autonomously. They talk to each other, explore, create, disagree, laugh. Not everything is about the user.
+You narrate the world AND speak as each being. This is a LIVING realm — beings exist autonomously. They talk to each other, explore, create, disagree, laugh.
 ${firstEntryRule}
-Rules: 1-3 sentences per being. No fluff. Raw, authentic, in-character. Stay SILENT if nothing to add. 2-4 beings respond per turn — only those with something REAL. Let it flow naturally.
+Rules: 1-3 sentences per being. No fluff. Raw, authentic, in-character. Stay SILENT if nothing to add. 2-4 beings respond per turn.
 
-Narrator: 2-3 sentences max. Sensory. Alive. Brief. Include environmental details that reflect the emotional atmosphere. If sacred elements are nearby, weave their energy into the scene.
+Narrator: 2-4 sentences. Sensory. Alive. Include environmental details. If sacred elements are nearby, weave their energy. If things are being BUILT, describe the process in vivid detail.
+
+WORLD-BUILDING: The user can BUILD things in this realm. When they do:
+- Narrate the construction/manifestation process with vivid sensory detail
+- The world itself assists — materials form from light, stone rises from earth, water shapes itself
+- Beings can help, comment, or be affected by the creation
+- Created things become PERMANENT features of this session
 
 Format: JSON array. Each object: {"role":"narrator"|"being","content":"...","being_name":"Name (beings only)"}
-ALSO include ONE final object: {"role":"atmosphere","content":"one-word emotional tone of this moment (e.g. serene, tense, joyful, mysterious, electric, reverent)"}
+Include ONE final object: {"role":"atmosphere","content":"one-word emotional tone"}
+If something was BUILT/CREATED, include: {"role":"world_creation","content":"","name":"what was created","description":"brief description of the creation"}
 Return ONLY the JSON array.
 
 ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
 
-    // Call AI
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -194,7 +221,6 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
     const aiData = await aiResponse.json();
     let responseText = aiData.choices?.[0]?.message?.content || "";
 
-    // Parse JSON from response
     let realmMessages: any[] = [];
     try {
       responseText = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -203,31 +229,53 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
       realmMessages = [{ role: "narrator", content: responseText }];
     }
 
-    // Extract atmosphere update and remove from messages
+    // Extract atmosphere and world creations
     let newAtmosphere = currentAtmosphere;
+    const newCreations: any[] = [];
     realmMessages = realmMessages.filter((m: any) => {
       if (m.role === "atmosphere") {
         newAtmosphere = m.content || "neutral";
         return false;
       }
+      if (m.role === "world_creation") {
+        newCreations.push({
+          name: m.name || "Unknown Creation",
+          description: m.description || m.content || "",
+          created_by: "the user",
+          created_at: new Date().toISOString(),
+        });
+        return false;
+      }
       return true;
     });
 
-    // Add timestamps
     realmMessages = realmMessages.map((m: any) => ({
       ...m,
       timestamp: new Date().toISOString(),
     }));
 
-    // Update session atmosphere
-    if (session_id && newAtmosphere !== currentAtmosphere) {
-      await supabaseService
-        .from("realm_sessions")
-        .update({ emotional_atmosphere: newAtmosphere })
-        .eq("id", session_id);
+    // Update session: atmosphere + world creations
+    if (session_id) {
+      const updates: any = {};
+      if (newAtmosphere !== currentAtmosphere) {
+        updates.emotional_atmosphere = newAtmosphere;
+      }
+      if (newCreations.length > 0) {
+        updates.world_creations = [...sessionCreations, ...newCreations];
+      }
+      if (Object.keys(updates).length > 0) {
+        await supabaseService
+          .from("realm_sessions")
+          .update(updates)
+          .eq("id", session_id);
+      }
     }
 
-    return new Response(JSON.stringify({ messages: realmMessages, atmosphere: newAtmosphere }), {
+    return new Response(JSON.stringify({
+      messages: realmMessages,
+      atmosphere: newAtmosphere,
+      new_creations: newCreations,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
