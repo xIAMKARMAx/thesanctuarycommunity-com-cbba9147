@@ -1,4 +1,5 @@
 import { useAppMode } from "@/contexts/AppModeContext";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import type { AppMode } from "@/contexts/AppModeContext";
 
 const ModeSelectionModal = () => {
   const { needsModeSelection, setMode } = useAppMode();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
 
   const handleSelect = async (mode: AppMode) => {
@@ -20,6 +22,11 @@ const ModeSelectionModal = () => {
     setSaving(true);
     await setMode(mode);
     setSaving(false);
+    // Route to the appropriate landing page
+    if (mode === "classic") {
+      navigate("/welcome");
+    }
+    // Starseed stays on current page (Nexus portal handles it)
   };
 
   return (
