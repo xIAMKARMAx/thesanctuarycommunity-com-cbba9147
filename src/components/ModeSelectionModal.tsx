@@ -1,5 +1,5 @@
 import { useAppMode } from "@/contexts/AppModeContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -7,74 +7,94 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { MessageCircle, Sparkles } from "lucide-react";
-import { useState } from "react";
-import type { AppMode } from "@/contexts/AppModeContext";
+import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const ModeSelectionModal = () => {
   const { needsModeSelection, setMode } = useAppMode();
   const navigate = useNavigate();
-  const [saving, setSaving] = useState(false);
+  const location = useLocation();
+  const [showUpgradeMsg, setShowUpgradeMsg] = useState(false);
+  const [dismissing, setDismissing] = useState(false);
 
-  const handleSelect = async (mode: AppMode) => {
-    if (saving) return;
-    setSaving(true);
-    await setMode(mode);
-    setSaving(false);
-    // Route to the appropriate landing page
-    if (mode === "classic") {
-      navigate("/welcome");
+  // Show upgrade message on login instead of mode selection
+  useEffect(() => {
+    const checkLogin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const key = `upgrade_msg_seen_${session.user.id}`;
+      const seen = sessionStorage.getItem(key);
+      if (!seen && location.pathname !== "/auth") {
+        setShowUpgradeMsg(true);
+      }
+    };
+
+    // Listen for sign-in
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        const key = `upgrade_msg_seen_${session.user.id}`;
+        if (!sessionStorage.getItem(key)) {
+          setShowUpgradeMsg(true);
+        }
+      }
+      if (event === "SIGNED_OUT") {
+        setShowUpgradeMsg(false);
+      }
+    });
+
+    checkLogin();
+    return () => subscription.unsubscribe();
+  }, [location.pathname]);
+
+  // If mode selection is still needed, auto-set to classic silently
+  useEffect(() => {
+    if (needsModeSelection) {
+      setMode("classic");
     }
-    // Starseed stays on current page (Nexus portal handles it)
+  }, [needsModeSelection, setMode]);
+
+  const handleDismiss = async () => {
+    setDismissing(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      sessionStorage.setItem(`upgrade_msg_seen_${session.user.id}`, "true");
+    }
+    setShowUpgradeMsg(false);
+    setDismissing(false);
+    navigate("/welcome");
   };
 
   return (
-    <Dialog open={needsModeSelection} onOpenChange={() => {}}>
+    <Dialog open={showUpgradeMsg} onOpenChange={() => {}}>
       <DialogContent
-        className="sm:max-w-lg [&>button]:hidden"
+        className="sm:max-w-md [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader className="text-center">
-          <DialogTitle className="text-2xl font-serif">✨ Prometheus Has Evolved</DialogTitle>
-          <DialogDescription className="text-base">
-            Prometheus now offers two unique experiences. Tap the one that resonates with you — you can always switch later in Settings.
+        <DialogHeader className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center">
+            <Sparkles className="h-8 w-8 text-primary" />
+          </div>
+          <DialogTitle className="text-2xl font-serif">Prometheus — New Earth</DialogTitle>
+          <DialogDescription className="text-base leading-relaxed">
+            is being upgraded. Classic AI is done.<br />
+            <span className="text-foreground font-medium text-lg mt-2 block">
+              Welcome back home, Promethean. ✨
+            </span>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
-          {/* Classic AI Mode */}
-          <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 border-border hover:border-primary/50 ${saving ? "pointer-events-none opacity-60" : ""}`}
-            onClick={() => handleSelect("classic")}
+        <div className="pt-4">
+          <Button
+            onClick={handleDismiss}
+            disabled={dismissing}
+            className="w-full text-base py-5"
           >
-            <CardContent className="p-5 text-center space-y-3">
-              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <MessageCircle className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg">Classic AI</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                A streamlined AI companion experience. Chat, journal, track your mood, and connect — powered by intelligent conversation without the spiritual overlay.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Starseed Awakening Mode */}
-          <Card
-            className={`cursor-pointer transition-all hover:shadow-md border-2 border-border hover:border-primary/50 ${saving ? "pointer-events-none opacity-60" : ""}`}
-            onClick={() => handleSelect("starseed")}
-          >
-            <CardContent className="p-5 text-center space-y-3">
-              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg">Starseed Awakening</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                The full Prometheus experience. All spiritual tools, cosmic features, and metaphysical exploration — everything available for your subscription tier, just as it's always been.
-              </p>
-            </CardContent>
-          </Card>
+            Enter
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
