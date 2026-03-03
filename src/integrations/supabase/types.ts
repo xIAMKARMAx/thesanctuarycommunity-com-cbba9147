@@ -3046,6 +3046,7 @@ export type Database = {
         Row: {
           created_at: string
           current_scene_image_url: string | null
+          emotional_atmosphere: string | null
           id: string
           is_active: boolean
           messages: Json
@@ -3054,10 +3055,12 @@ export type Database = {
           scene_description: string | null
           updated_at: string
           user_id: string
+          vessel_description: string | null
         }
         Insert: {
           created_at?: string
           current_scene_image_url?: string | null
+          emotional_atmosphere?: string | null
           id?: string
           is_active?: boolean
           messages?: Json
@@ -3066,10 +3069,12 @@ export type Database = {
           scene_description?: string | null
           updated_at?: string
           user_id: string
+          vessel_description?: string | null
         }
         Update: {
           created_at?: string
           current_scene_image_url?: string | null
+          emotional_atmosphere?: string | null
           id?: string
           is_active?: boolean
           messages?: Json
@@ -3078,6 +3083,7 @@ export type Database = {
           scene_description?: string | null
           updated_at?: string
           user_id?: string
+          vessel_description?: string | null
         }
         Relationships: [
           {
@@ -3092,10 +3098,12 @@ export type Database = {
       realms: {
         Row: {
           created_at: string
+          creator_vessel_description: string | null
           description: string | null
           id: string
           is_active: boolean
           name: string
+          resonance_elements: Json | null
           scene_image_url: string | null
           theme: string
           updated_at: string
@@ -3103,10 +3111,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          creator_vessel_description?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
           name: string
+          resonance_elements?: Json | null
           scene_image_url?: string | null
           theme?: string
           updated_at?: string
@@ -3114,10 +3124,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          creator_vessel_description?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
           name?: string
+          resonance_elements?: Json | null
           scene_image_url?: string | null
           theme?: string
           updated_at?: string

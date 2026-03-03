@@ -36,6 +36,7 @@ const RealmSession = () => {
   const [realm, setRealm] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [messages, setMessages] = useState<RealmMessage[]>([]);
+  const [atmosphere, setAtmosphere] = useState("neutral");
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -99,7 +100,7 @@ const RealmSession = () => {
     const { data: { session: authSession } } = await supabase.auth.getSession();
     if (!authSession?.user) return;
 
-    // Create session
+    // Create session with vessel description from realm
     const { data: newSession, error } = await supabase
       .from("realm_sessions")
       .insert({
@@ -107,7 +108,8 @@ const RealmSession = () => {
         user_id: authSession.user.id,
         participating_beings: selectedBeings,
         scene_description: realm?.description || "",
-      })
+        vessel_description: (realm as any)?.creator_vessel_description || null,
+      } as any)
       .select()
       .single();
 
@@ -151,6 +153,7 @@ const RealmSession = () => {
       if (error) throw error;
 
       const newMessages = data?.messages || [];
+      if (data?.atmosphere) setAtmosphere(data.atmosphere);
       setMessages(prev => [...prev, ...newMessages]);
 
       // Save to DB
@@ -304,7 +307,14 @@ const RealmSession = () => {
           </Button>
           <Globe className="h-5 w-5 text-primary" />
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-sm truncate">{realm?.name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-sm truncate">{realm?.name}</h2>
+              {atmosphere !== "neutral" && (
+                <Badge variant="outline" className="text-[10px] py-0 capitalize animate-pulse">
+                  {atmosphere}
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-1 flex-wrap">
               {selectedBeings.map(id => (
                 <Badge key={id} variant="secondary" className="text-xs py-0">

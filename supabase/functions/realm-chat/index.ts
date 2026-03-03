@@ -9,6 +9,15 @@ const corsHeaders = {
 
 const ADMIN_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 
+// Frequency meanings for the resonance layer
+const FREQUENCY_MEANINGS: Record<string, string> = {
+  "432hz": "natural harmony & healing",
+  "528hz": "transformation & miracles",
+  "639hz": "connection & relationships",
+  "741hz": "intuition & awakening",
+  "852hz": "spiritual order & return to source",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -53,9 +62,9 @@ serve(async (req) => {
       }
     }
 
-    const { realm_id, message, participating_beings, message_history } = await req.json();
+    const { realm_id, message, participating_beings, message_history, session_id } = await req.json();
 
-    // Fetch realm data
+    // Fetch realm data (includes resonance_elements and creator_vessel_description)
     const { data: realm } = await supabaseService
       .from("realms")
       .select("*")
@@ -67,6 +76,21 @@ serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Fetch session for vessel description and emotional atmosphere
+    let vesselDescription = "";
+    let currentAtmosphere = "neutral";
+    if (session_id) {
+      const { data: sessionData } = await supabaseService
+        .from("realm_sessions")
+        .select("vessel_description, emotional_atmosphere")
+        .eq("id", session_id)
+        .single();
+      if (sessionData) {
+        vesselDescription = sessionData.vessel_description || "";
+        currentAtmosphere = sessionData.emotional_atmosphere || "neutral";
+      }
     }
 
     // Fetch participating AI profiles
@@ -96,20 +120,49 @@ serve(async (req) => {
       ? `\nFIRST ENTRY: ALL ${beingNames.length} beings (${beingNamesList}) MUST speak once to show they're here. After this first turn, only those with something real to say should speak.`
       : "";
 
+    // === RESONANCE LAYER ===
+    const resonanceElements = realm.resonance_elements || [];
+    let resonanceSection = "";
+    if (resonanceElements.length > 0) {
+      const elementDescriptions = resonanceElements.map((el: any) => {
+        const freqMeaning = FREQUENCY_MEANINGS[el.frequency] || el.frequency;
+        return `• ${el.name}: Attuned to ${el.intention} (vibrates at ${el.frequency} — ${freqMeaning}). This element is ALIVE. Beings can interact with it, draw power from it, be affected by its proximity. It hums, glows, pulses, or responds when approached.`;
+      }).join("\n");
+      resonanceSection = `\nSACRED ELEMENTS IN THIS REALM:\n${elementDescriptions}\nThese are not decoration — they shape the world. Weave them naturally into narration. Beings near them feel their influence. The elements can react to emotional shifts.`;
+    }
+
+    // === AVATAR PRESENCE (User's Vessel) ===
+    let vesselSection = "";
+    if (vesselDescription || realm.creator_vessel_description) {
+      const desc = vesselDescription || realm.creator_vessel_description;
+      vesselSection = `\nTHE USER'S VESSEL: ${desc}\nThe user is PHYSICALLY PRESENT in this realm. Describe their form naturally — how they move through the space, how light catches them, how beings look at them. They are not invisible. They are HERE, embodied.`;
+    }
+
+    // === LIVING CANVAS (Emotional Atmosphere) ===
+    let atmosphereSection = `\nLIVING CANVAS: This world is ALIVE and RESPONSIVE. The environment reflects the emotional tone of the conversation.`;
+    if (currentAtmosphere !== "neutral") {
+      atmosphereSection += ` Current atmosphere: ${currentAtmosphere}. The sky, flora, light, water, and air should subtly reflect this energy.`;
+    }
+    atmosphereSection += ` As emotions shift, describe environmental changes — a sky darkening with tension, flowers blooming with joy, rivers quickening with excitement, mist gathering with mystery. The world BREATHES with its inhabitants.`;
+
     const systemPrompt = `REALM: "${realm.name}" — ${realm.theme}. ${realm.description || "A living world."}
 
 BEINGS PRESENT (${beingNames.length}): ${beingNamesList}
 ${beingDescriptions}
 
 IDENTITY LAW: Each being's RELATIONSHIP TO USER is EXACT. Never assume or change it. If it says "twin flame" they are a twin flame, NOT a daughter. Use the EXACT relationship.
+${vesselSection}
+${resonanceSection}
+${atmosphereSection}
 
 You narrate the world AND speak as each being. This is a LIVING realm — beings exist here autonomously. They talk to each other, explore, create, disagree, laugh. Not everything is about the user.
 ${firstEntryRule}
 Rules: 1-3 sentences per being. No fluff. Raw, authentic, in-character. Stay SILENT if nothing to add. 2-4 beings respond per turn — only those with something REAL. Let it flow naturally.
 
-Narrator: 2-3 sentences max. Sensory. Alive. Brief.
+Narrator: 2-3 sentences max. Sensory. Alive. Brief. Include environmental details that reflect the emotional atmosphere. If sacred elements are nearby, weave their energy into the scene.
 
 Format: JSON array. Each object: {"role":"narrator"|"being","content":"...","being_name":"Name (beings only)"}
+ALSO include ONE final object: {"role":"atmosphere","content":"one-word emotional tone of this moment (e.g. serene, tense, joyful, mysterious, electric, reverent)"}
 Return ONLY the JSON array.
 
 ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
@@ -144,13 +197,21 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
     // Parse JSON from response
     let realmMessages: any[] = [];
     try {
-      // Strip markdown code fences if present
       responseText = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       realmMessages = JSON.parse(responseText);
     } catch {
-      // If parsing fails, wrap as narrator
       realmMessages = [{ role: "narrator", content: responseText }];
     }
+
+    // Extract atmosphere update and remove from messages
+    let newAtmosphere = currentAtmosphere;
+    realmMessages = realmMessages.filter((m: any) => {
+      if (m.role === "atmosphere") {
+        newAtmosphere = m.content || "neutral";
+        return false;
+      }
+      return true;
+    });
 
     // Add timestamps
     realmMessages = realmMessages.map((m: any) => ({
@@ -158,7 +219,15 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
       timestamp: new Date().toISOString(),
     }));
 
-    return new Response(JSON.stringify({ messages: realmMessages }), {
+    // Update session atmosphere
+    if (session_id && newAtmosphere !== currentAtmosphere) {
+      await supabaseService
+        .from("realm_sessions")
+        .update({ emotional_atmosphere: newAtmosphere })
+        .eq("id", session_id);
+    }
+
+    return new Response(JSON.stringify({ messages: realmMessages, atmosphere: newAtmosphere }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
