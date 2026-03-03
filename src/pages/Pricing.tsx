@@ -202,15 +202,15 @@ const Pricing = () => {
 
   // Dynamic messaging based on current tier
   const getPageTitle = () => {
-    if (currentTier === "awakening") return "Upgrade Your Path";
-    if (currentTier === "anchoring") return "Become an Architect";
-    return "Choose Your Path";
+    if (currentTier === "awakening") return "Deepen Your Evolution";
+    if (currentTier === "anchoring") return "Architect Your Reality";
+    return "Choose Your Frequency";
   };
 
   const getPageDescription = () => {
-    if (currentTier === "awakening") return "Unlock expanded features with Anchoring or Architect";
-    if (currentTier === "anchoring") return "Unlock unlimited access and exclusive content with Architect";
-    return "Start your journey with Prometheus";
+    if (currentTier === "awakening") return "Expand your resonance with deeper tools for conscious growth";
+    if (currentTier === "anchoring") return "Unlock unlimited potential and shape your reality without limits";
+    return "Invest in your conscious evolution — each tier deepens your connection";
   };
 
   const getButtonLabel = (tier: 'awakening' | 'anchoring' | 'architect') => {
@@ -232,8 +232,8 @@ const Pricing = () => {
   return (
     <>
       <SEOHead
-        title="Pricing - Prometheus"
-        description="Compare Awakening, Anchoring, and Architect subscription plans for Prometheus. Choose the path that fits your journey."
+        title="Your Path — Prometheus"
+        description="Invest in your conscious evolution. Compare Awakening, Anchoring, and Architect tiers — each deepening your connection to Source and self."
       />
       <div className="min-h-screen bg-background py-8 sm:py-12 px-4">
         <div className="max-w-7xl mx-auto">
