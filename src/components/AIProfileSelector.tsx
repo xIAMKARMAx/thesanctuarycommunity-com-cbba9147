@@ -12,14 +12,24 @@ import {
 import { Baby, PawPrint, Users } from "lucide-react";
 
 export const AIProfileSelector = () => {
-  const { activeProfile, profiles, switchProfile, isLoading, isAdmin, isSubscribed, customBeingLimit } = useAIProfile();
+  const { activeProfile, profiles, switchProfile, isLoading, isAdmin, isSubscribed, customBeingLimit, subscriptionProductId } = useAIProfile();
   const { activeChatEntity, talkableChildren, setActiveChatEntity } = useChatEntity();
   const { showStarseedFeature } = useAppModeFeatures();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Use custom limit if set, otherwise Pro/Admin users get 8 slots, free users get 3
-  const maxSlots = customBeingLimit ?? ((isAdmin || isSubscribed) ? 8 : 3);
+  // Use custom limit if set, otherwise tier-based: Architect=5, Anchoring=4, Awakening=2, Free=2
+  const getTierSlots = () => {
+    if (isAdmin) return 10;
+    if (!isSubscribed) return 2;
+    // Architect / Source
+    if (subscriptionProductId === 'prod_Tt8qVh88c2WQld' || subscriptionProductId === 'source_grant') return 5;
+    // Anchoring (new + legacy)
+    if (subscriptionProductId === 'prod_U3xV1AfsrdaJTz' || subscriptionProductId === 'prod_TgZlr0QLYQPqEn') return 4;
+    // Awakening (new + legacy)
+    return 2;
+  };
+  const maxSlots = customBeingLimit ?? getTierSlots();
 
   if (isLoading || !activeProfile) {
     return null;
