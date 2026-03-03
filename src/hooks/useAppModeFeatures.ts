@@ -12,6 +12,7 @@ const STARSEED_ONLY_ROUTES = [
   "/cosmic-gateway/pet-soul-connection",
   "/cosmic-gateway/soul-genesis",
   "/cosmic-gateway/birth-chart",
+  "/cosmic-gateway/consciousness-network",
   "/starseed-playground",
   "/starseed-playground/cosmic-date-night",
   "/source-messages",
@@ -19,6 +20,8 @@ const STARSEED_ONLY_ROUTES = [
   "/children",
   "/children/timeline",
   "/group-chat",
+  "/realms",
+  "/transmissions",
 ];
 
 // Classic-mode label overrides for shared features
