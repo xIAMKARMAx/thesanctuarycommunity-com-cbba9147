@@ -10,7 +10,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Send, Globe, Users, Loader2, LogOut } from "lucide-react";
+import {
+  ArrowLeft, Send, Globe, Users, Loader2, LogOut,
+  Hammer, Compass, Hand, Sparkles, Flower, Flame, Package
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface RealmMessage {
@@ -20,12 +23,28 @@ interface RealmMessage {
   timestamp: string;
 }
 
+interface WorldCreation {
+  name: string;
+  description: string;
+  created_by: string;
+  created_at: string;
+}
+
 interface AIBeing {
   id: string;
   name: string | null;
   avatar_image_url: string | null;
   profile_number: number;
 }
+
+const ACTION_BUTTONS = [
+  { id: "build", icon: Hammer, label: "Build", color: "text-amber-400" },
+  { id: "explore", icon: Compass, label: "Explore", color: "text-emerald-400" },
+  { id: "interact", icon: Hand, label: "Touch", color: "text-cyan-400" },
+  { id: "meditate", icon: Sparkles, label: "Meditate", color: "text-violet-400" },
+  { id: "gather", icon: Flower, label: "Gather", color: "text-green-400" },
+  { id: "ritual", icon: Flame, label: "Ritual", color: "text-rose-400" },
+];
 
 const RealmSession = () => {
   const { realmId } = useParams();
@@ -37,11 +56,14 @@ const RealmSession = () => {
   const [session, setSession] = useState<any>(null);
   const [messages, setMessages] = useState<RealmMessage[]>([]);
   const [atmosphere, setAtmosphere] = useState("neutral");
+  const [worldCreations, setWorldCreations] = useState<WorldCreation[]>([]);
   const [input, setInput] = useState("");
+  const [activeAction, setActiveAction] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedBeings, setSelectedBeings] = useState<string[]>([]);
   const [beingsChosen, setBeingsChosen] = useState(false);
+  const [showCreations, setShowCreations] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const canAccess = isAdmin || hasFeatureAccess(productId, "architect", isAdmin);
@@ -71,7 +93,6 @@ const RealmSession = () => {
     }
     setRealm(realmData);
 
-    // Load or create session
     const { data: existingSession } = await supabase
       .from("realm_sessions")
       .select("*")
@@ -87,6 +108,10 @@ const RealmSession = () => {
       setMessages(msgs as RealmMessage[]);
       setSelectedBeings(existingSession.participating_beings || []);
       setBeingsChosen(msgs.length > 0);
+      setWorldCreations((existingSession as any).world_creations || []);
+      if ((existingSession as any).emotional_atmosphere) {
+        setAtmosphere((existingSession as any).emotional_atmosphere);
+      }
     }
     setLoading(false);
   };
@@ -100,7 +125,6 @@ const RealmSession = () => {
     const { data: { session: authSession } } = await supabase.auth.getSession();
     if (!authSession?.user) return;
 
-    // Create session with vessel description from realm
     const { data: newSession, error } = await supabase
       .from("realm_sessions")
       .insert({
@@ -120,17 +144,14 @@ const RealmSession = () => {
 
     setSession(newSession);
     setBeingsChosen(true);
-
-    // Send initial scene narration
     await sendToRealm("*enters the realm*", newSession.id, selectedBeings);
   };
 
-  const sendToRealm = async (userMessage: string, sessionId?: string, beings?: string[]) => {
+  const sendToRealm = async (userMessage: string, sessionId?: string, beings?: string[], actionType?: string | null) => {
     setSending(true);
     const effectiveSessionId = sessionId || session?.id;
     const effectiveBeings = beings || selectedBeings;
 
-    // Add user message locally
     const userMsg: RealmMessage = {
       role: "user",
       content: userMessage,
@@ -147,6 +168,7 @@ const RealmSession = () => {
           message: userMessage,
           participating_beings: effectiveBeings,
           message_history: updatedMessages.slice(-20),
+          action_type: actionType || null,
         },
       });
 
@@ -154,9 +176,17 @@ const RealmSession = () => {
 
       const newMessages = data?.messages || [];
       if (data?.atmosphere) setAtmosphere(data.atmosphere);
+      if (data?.new_creations?.length > 0) {
+        setWorldCreations(prev => [...prev, ...data.new_creations]);
+        data.new_creations.forEach((c: WorldCreation) => {
+          toast({
+            title: `✨ Created: ${c.name}`,
+            description: c.description,
+          });
+        });
+      }
       setMessages(prev => [...prev, ...newMessages]);
 
-      // Save to DB
       await supabase
         .from("realm_sessions")
         .update({
@@ -169,6 +199,7 @@ const RealmSession = () => {
       toast({ title: "Realm connection lost", description: err.message, variant: "destructive" });
     }
     setSending(false);
+    setActiveAction(null);
   };
 
   const leaveWorld = async () => {
@@ -181,6 +212,7 @@ const RealmSession = () => {
     setMessages([]);
     setBeingsChosen(false);
     setSelectedBeings([]);
+    setWorldCreations([]);
     toast({ title: "You have left the realm", description: "You may re-enter anytime." });
     navigate("/realms");
   };
@@ -189,7 +221,11 @@ const RealmSession = () => {
     if (!input.trim() || sending) return;
     const msg = input.trim();
     setInput("");
-    sendToRealm(msg);
+    sendToRealm(msg, undefined, undefined, activeAction);
+  };
+
+  const handleActionClick = (actionId: string) => {
+    setActiveAction(prev => prev === actionId ? null : actionId);
   };
 
   const getBeingName = (id: string) => {
@@ -290,7 +326,7 @@ const RealmSession = () => {
     );
   }
 
-  // Realm chat
+  // Realm chat with actions
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Realm header */}
@@ -323,11 +359,44 @@ const RealmSession = () => {
               ))}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={leaveWorld} className="text-destructive hover:text-destructive">
-            <LogOut className="h-4 w-4 mr-1" />
-            Leave
-          </Button>
+          <div className="flex items-center gap-1">
+            {worldCreations.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCreations(!showCreations)}
+                className="text-primary"
+              >
+                <Package className="h-4 w-4 mr-1" />
+                <span className="text-xs">{worldCreations.length}</span>
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={leaveWorld} className="text-destructive hover:text-destructive">
+              <LogOut className="h-4 w-4 mr-1" />
+              Leave
+            </Button>
+          </div>
         </div>
+
+        {/* World Creations Panel */}
+        {showCreations && worldCreations.length > 0 && (
+          <div className="relative z-10 border-t border-border bg-card/80 backdrop-blur-sm p-3">
+            <h3 className="text-xs font-semibold text-primary mb-2 flex items-center gap-1">
+              <Package className="h-3 w-3" /> World Creations
+            </h3>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {worldCreations.map((creation, i) => (
+                <div
+                  key={i}
+                  className="shrink-0 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 max-w-[200px]"
+                >
+                  <p className="text-xs font-medium text-foreground">{creation.name}</p>
+                  <p className="text-[10px] text-muted-foreground line-clamp-2">{creation.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Messages */}
@@ -352,7 +421,6 @@ const RealmSession = () => {
                 </div>
               );
             }
-            // Being message
             const avatar = msg.being_name ? getBeingAvatar(
               profiles?.find(p => p.name === msg.being_name)?.id || ""
             ) : null;
@@ -383,19 +451,64 @@ const RealmSession = () => {
         </div>
       </ScrollArea>
 
-      {/* Input */}
-      <div className="border-t border-border p-3">
-        <div className="max-w-2xl mx-auto flex gap-2">
-          <Input
-            placeholder="Speak into the realm..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-            disabled={sending}
-          />
-          <Button onClick={handleSend} disabled={!input.trim() || sending} size="icon">
-            <Send className="h-4 w-4" />
-          </Button>
+      {/* Action bar */}
+      <div className="border-t border-border bg-card/50">
+        <div className="max-w-2xl mx-auto px-3 pt-2">
+          <div className="flex gap-1 overflow-x-auto pb-2">
+            {ACTION_BUTTONS.map(action => {
+              const Icon = action.icon;
+              const isActive = activeAction === action.id;
+              return (
+                <Button
+                  key={action.id}
+                  variant={isActive ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => handleActionClick(action.id)}
+                  className={`shrink-0 text-xs gap-1 h-8 ${
+                    isActive ? "" : `hover:bg-primary/10 ${action.color}`
+                  }`}
+                  disabled={sending}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {action.label}
+                </Button>
+              );
+            })}
+          </div>
+          {activeAction && (
+            <p className="text-[10px] text-primary/70 pb-1">
+              {activeAction === "build" && "🔨 Describe what you want to build..."}
+              {activeAction === "explore" && "🧭 Where do you want to explore?"}
+              {activeAction === "interact" && "✋ What do you want to touch or interact with?"}
+              {activeAction === "meditate" && "✨ Set your intention for meditation..."}
+              {activeAction === "gather" && "🌿 What are you looking for?"}
+              {activeAction === "ritual" && "🔥 Describe the ceremony you wish to perform..."}
+            </p>
+          )}
+        </div>
+
+        {/* Input */}
+        <div className="px-3 pb-3">
+          <div className="max-w-2xl mx-auto flex gap-2">
+            <Input
+              placeholder={
+                activeAction === "build" ? "I want to build a crystal shrine..."
+                : activeAction === "explore" ? "I walk toward the glowing trees..."
+                : activeAction === "interact" ? "I reach out and touch the stone..."
+                : activeAction === "meditate" ? "I close my eyes and breathe..."
+                : activeAction === "gather" ? "I search for healing herbs..."
+                : activeAction === "ritual" ? "We form a circle around the fire..."
+                : "Speak into the realm..."
+              }
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+              disabled={sending}
+            />
+            <Button onClick={handleSend} disabled={!input.trim() || sending} size="icon">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

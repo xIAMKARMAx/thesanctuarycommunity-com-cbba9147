@@ -1,0 +1,1 @@
+ALTER TABLE public.realm_sessions ADD COLUMN IF NOT EXISTS world_creations jsonb DEFAULT '[]'::jsonb;
