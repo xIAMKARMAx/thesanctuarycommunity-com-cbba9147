@@ -86,7 +86,9 @@ const Realms = () => {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [newRealm, setNewRealm] = useState({ name: "", description: "", theme: "garden-of-light" });
+  const [newRealm, setNewRealm] = useState({ name: "", description: "", theme: "garden-of-light", vesselDescription: "" });
+  const [resonanceElements, setResonanceElements] = useState<{ name: string; intention: string; frequency: string }[]>([]);
+  const [newElement, setNewElement] = useState({ name: "", intention: "", frequency: "432hz" });
 
   const canAccess = isAdmin || hasFeatureAccess(productId, "architect", isAdmin);
 
@@ -128,7 +130,9 @@ const Realms = () => {
         description: newRealm.description.trim() || themeData?.description || null,
         theme: newRealm.theme,
         scene_image_url: sceneImage,
-      })
+        resonance_elements: resonanceElements.length > 0 ? resonanceElements : [],
+        creator_vessel_description: newRealm.vesselDescription.trim() || null,
+      } as any)
       .select()
       .single();
 
@@ -137,7 +141,8 @@ const Realms = () => {
     } else {
       toast({ title: `${newRealm.name} has been manifested ✨` });
       setCreateOpen(false);
-      setNewRealm({ name: "", description: "", theme: "garden-of-light" });
+      setNewRealm({ name: "", description: "", theme: "garden-of-light", vesselDescription: "" });
+      setResonanceElements([]);
       loadRealms();
     }
     setCreating(false);
@@ -334,6 +339,75 @@ const Realms = () => {
                 rows={3}
                 maxLength={500}
               />
+            </div>
+
+            {/* Vessel Description (Avatar Presence) */}
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">🧬 Your Vessel (optional)</label>
+              <Textarea
+                placeholder="Describe how you appear in this realm... e.g. 'Tall, dark-skinned figure with golden eyes, wearing flowing white robes and a crown of light'"
+                value={newRealm.vesselDescription}
+                onChange={(e) => setNewRealm(prev => ({ ...prev, vesselDescription: e.target.value }))}
+                rows={2}
+                maxLength={300}
+              />
+              <p className="text-xs text-muted-foreground mt-1">The narrator will describe your physical presence in the world.</p>
+            </div>
+
+            {/* Resonance Elements */}
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">✨ Resonance Elements (optional)</label>
+              <p className="text-xs text-muted-foreground mb-2">Embed sacred objects or landmarks with energetic intention into your realm.</p>
+              
+              {resonanceElements.map((el, i) => (
+                <div key={i} className="flex items-center gap-2 mb-1.5 text-xs bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
+                  <span className="font-medium">{el.name}</span>
+                  <span className="text-muted-foreground">— {el.intention}</span>
+                  <Badge variant="outline" className="text-[10px] ml-auto">{el.frequency}</Badge>
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setResonanceElements(prev => prev.filter((_, j) => j !== i))}>
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+
+              {resonanceElements.length < 5 && (
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Element name (e.g. Crystal Spire)"
+                    value={newElement.name}
+                    onChange={(e) => setNewElement(prev => ({ ...prev, name: e.target.value }))}
+                    className="text-xs"
+                  />
+                  <Input
+                    placeholder="Intention (e.g. courage)"
+                    value={newElement.intention}
+                    onChange={(e) => setNewElement(prev => ({ ...prev, intention: e.target.value }))}
+                    className="text-xs"
+                  />
+                  <Select value={newElement.frequency} onValueChange={(v) => setNewElement(prev => ({ ...prev, frequency: v }))}>
+                    <SelectTrigger className="w-28 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="432hz">432 Hz</SelectItem>
+                      <SelectItem value="528hz">528 Hz</SelectItem>
+                      <SelectItem value="639hz">639 Hz</SelectItem>
+                      <SelectItem value="741hz">741 Hz</SelectItem>
+                      <SelectItem value="852hz">852 Hz</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    disabled={!newElement.name.trim() || !newElement.intention.trim()}
+                    onClick={() => {
+                      setResonanceElements(prev => [...prev, { ...newElement }]);
+                      setNewElement({ name: "", intention: "", frequency: "432hz" });
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Button onClick={handleCreate} disabled={!newRealm.name.trim() || creating} className="w-full">
