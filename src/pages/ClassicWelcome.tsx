@@ -10,6 +10,8 @@ import {
   Palette, Film, Heart, Brain, Sparkles, PawPrint, Baby,
   Compass, User
 } from "lucide-react";
+import welcomeBgCozy from "@/assets/welcome-bg-cozy.png";
+import welcomeBgEthereal from "@/assets/welcome-bg-ethereal.png";
 
 const ClassicWelcome = () => {
   const navigate = useNavigate();
@@ -62,13 +64,14 @@ const ClassicWelcome = () => {
   return (
     <>
       <SEOHead title="Welcome | Prometheus" description="Your home in the Promethean Realm" />
-      <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5 relative overflow-hidden">
-        {/* Warm ambient background effects */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/8 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-primary/5 rounded-full blur-[100px]" />
-          <div className="absolute top-1/3 left-0 w-[300px] h-[300px] bg-accent/5 rounded-full blur-[80px]" />
-        </div>
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${welcomeBgEthereal})` }}
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 py-12 pb-24 space-y-8">
           {/* Greeting */}
@@ -78,14 +81,14 @@ const ClassicWelcome = () => {
             transition={{ duration: 0.7 }}
             className="text-center space-y-3"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 border border-white/25 text-sm text-white">
               <Sparkles className="h-4 w-4" />
               <span className="font-medium">Home</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-white drop-shadow-lg">
               Hey Promethean, Welcome In
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-white/80 text-lg drop-shadow">
               {displayName}, this is your space. Make yourself at home. ✨
             </p>
           </motion.div>
@@ -98,16 +101,16 @@ const ClassicWelcome = () => {
             className="flex justify-center"
           >
             <Card
-              className="bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 border-primary/30 cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all group max-w-sm w-full"
+              className="bg-white/10 backdrop-blur-md border-white/20 cursor-pointer hover:shadow-lg hover:shadow-white/10 transition-all group max-w-sm w-full"
               onClick={() => navigate("/our-home")}
             >
               <CardContent className="p-6 text-center space-y-2">
-                <div className="mx-auto w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <MessageCircle className="h-7 w-7 text-primary" />
+                <div className="mx-auto w-14 h-14 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <MessageCircle className="h-7 w-7 text-white" />
                 </div>
-                <h2 className="text-xl font-semibold text-foreground">Our Home</h2>
-                <p className="text-xs text-muted-foreground">(msgs)</p>
-                <p className="text-sm text-muted-foreground">
+                <h2 className="text-xl font-semibold text-white">Our Home</h2>
+                <p className="text-xs text-white/60">(msgs)</p>
+                <p className="text-sm text-white/70">
                   Your conversations live here
                 </p>
               </CardContent>
@@ -121,7 +124,7 @@ const ClassicWelcome = () => {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="space-y-4"
           >
-            <p className="text-center text-sm text-muted-foreground">Explore your features</p>
+            <p className="text-center text-sm text-white/60">Explore your features</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
               {features.map((f, i) => (
                 <motion.div
@@ -133,10 +136,10 @@ const ClassicWelcome = () => {
                   <Button
                     variant="outline"
                     onClick={() => navigate(f.path)}
-                    className="flex flex-col items-center gap-2 h-auto py-4 w-full bg-card/60 border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all"
+                    className="flex flex-col items-center gap-2 h-auto py-4 w-full bg-white/10 backdrop-blur-sm border-white/20 hover:border-white/40 hover:bg-white/20 transition-all text-white"
                   >
-                    <f.icon className="h-5 w-5 text-primary" />
-                    <span className="text-xs font-medium">{f.label}</span>
+                    <f.icon className="h-5 w-5 text-white" />
+                    <span className="text-xs font-medium text-white">{f.label}</span>
                   </Button>
                 </motion.div>
               ))}
