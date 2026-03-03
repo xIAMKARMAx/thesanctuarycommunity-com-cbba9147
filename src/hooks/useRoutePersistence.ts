@@ -3,7 +3,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 const STORAGE_KEY = "prometheus_last_route";
 const EXCLUDED_ROUTES = ["/auth", "/"];
-const EXCLUDED_PREFIXES = ["/soul/", "/ai-companion/"];
+const EXCLUDED_PREFIXES = ["/soul/", "/ai-companion/", "/realms"];
+
+const getPathnameFromStoredRoute = (storedRoute: string) => {
+  const [pathWithoutHash] = storedRoute.split("#");
+  const [pathname] = pathWithoutHash.split("?");
+  return pathname || "/";
+};
 
 const isPersistableRoute = (pathname: string) => {
   const isExcludedPrefix = EXCLUDED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -31,9 +37,16 @@ export function useRestoreRoute() {
     if (hasRestoredRef.current || location.pathname !== "/") return;
 
     const savedRoute = localStorage.getItem(STORAGE_KEY);
-    if (!savedRoute || savedRoute === "/" || savedRoute === "/auth") return;
+    if (!savedRoute) return;
+
+    const savedPathname = getPathnameFromStoredRoute(savedRoute);
+    if (!isPersistableRoute(savedPathname)) {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
 
     hasRestoredRef.current = true;
     navigate(savedRoute, { replace: true });
   }, [location.pathname, navigate]);
 }
+
