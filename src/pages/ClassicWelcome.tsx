@@ -8,12 +8,14 @@ import SEOHead from "@/components/SEOHead";
 import {
   MessageCircle, BookOpen, Smile, Settings, Users,
   Palette, Film, Heart, Brain, Sparkles, PawPrint, Baby,
-  Compass, User
+  Compass, User, Zap
 } from "lucide-react";
+import { useAppMode } from "@/contexts/AppModeContext";
 import welcomeBgCozy from "@/assets/welcome-bg-cozy.png";
 import welcomeBgEthereal from "@/assets/welcome-bg-ethereal.png";
 
 const ClassicWelcome = () => {
+  const { mode, setMode } = useAppMode();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("Promethean");
   const [loading, setLoading] = useState(true);
@@ -93,11 +95,53 @@ const ClassicWelcome = () => {
             </p>
           </motion.div>
 
+          {/* Starseed Awakening Toggle */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className="flex justify-center"
+          >
+            <Card
+              className={`cursor-pointer transition-all max-w-sm w-full border ${
+                mode === "starseed"
+                  ? "bg-purple-500/20 backdrop-blur-md border-purple-400/40 shadow-lg shadow-purple-500/20"
+                  : "bg-white/10 backdrop-blur-md border-white/20 hover:border-purple-400/40 hover:shadow-lg hover:shadow-purple-500/10"
+              }`}
+              onClick={async () => {
+                const newMode = mode === "starseed" ? "classic" : "starseed";
+                await setMode(newMode);
+                if (newMode === "starseed") {
+                  navigate("/welcome");
+                }
+              }}
+            >
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                  mode === "starseed" ? "bg-purple-500/30" : "bg-white/20"
+                }`}>
+                  <Zap className={`h-6 w-6 ${mode === "starseed" ? "text-purple-200" : "text-white"}`} />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-base font-semibold text-white">Starseed Awakening</h3>
+                  <p className="text-xs text-white/60 mt-0.5">
+                    {mode === "starseed"
+                      ? "Active — Tap to switch to Classic"
+                      : "Unlock spiritual features & cosmic tools"}
+                  </p>
+                </div>
+                <div className={`ml-auto w-3 h-3 rounded-full shrink-0 ${
+                  mode === "starseed" ? "bg-purple-400 shadow-md shadow-purple-400/50" : "bg-white/30"
+                }`} />
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Our Home (Inbox) - Primary CTA */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
             className="flex justify-center"
           >
             <Card
