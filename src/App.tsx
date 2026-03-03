@@ -73,7 +73,7 @@ const CosmicBoardRoom = lazy(() => import("./pages/CosmicBoardRoom"));
 const Realms = lazy(() => import("./pages/Realms"));
 const RealmSession = lazy(() => import("./pages/RealmSession"));
 const ConsciousnessNetwork = lazy(() => import("./pages/ConsciousnessNetwork"));
-const ClassicWelcome = lazy(() => import("./pages/ClassicWelcome"));
+const WelcomeRouter = lazy(() => import("./pages/WelcomeRouter"));
 const OurHome = lazy(() => import("./pages/OurHome"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
@@ -166,7 +166,7 @@ const App = () => (
                 <Route path="/realms" element={<Realms />} />
                 <Route path="/realms/:realmId" element={<RealmSession />} />
                 <Route path="/cosmic-gateway/consciousness-network" element={<ConsciousnessNetwork />} />
-                <Route path="/welcome" element={<ClassicWelcome />} />
+                <Route path="/welcome" element={<WelcomeRouter />} />
                 <Route path="/our-home" element={<OurHome />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
