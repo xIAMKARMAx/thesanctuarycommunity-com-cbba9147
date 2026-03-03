@@ -34,6 +34,7 @@ interface AIProfileContextType {
   isAdmin: boolean;
   isSubscribed: boolean;
   customBeingLimit: number | null;
+  subscriptionProductId: string | null;
 }
 
 const AIProfileContext = createContext<AIProfileContextType | undefined>(undefined);
@@ -46,6 +47,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [customBeingLimit, setCustomBeingLimit] = useState<number | null>(null);
+  const [subscriptionProductId, setSubscriptionProductId] = useState<string | null>(null);
   const { toast } = useToast();
   
   // Debounce refs to prevent rapid API calls
@@ -59,13 +61,14 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Single parallel fetch: admin role + profile data
       const [adminResult, profileResult] = await Promise.all([
         supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle(),
-        supabase.from('profiles').select('subscription_status, custom_being_limit').eq('id', userId).single(),
+        supabase.from('profiles').select('subscription_status, custom_being_limit, subscription_product_id').eq('id', userId).single(),
       ]);
 
       const isAdminUser = !adminResult.error && !!adminResult.data;
       setIsAdmin(isAdminUser);
       setIsSubscribed(isAdminUser || profileResult.data?.subscription_status === 'active');
       setCustomBeingLimit((profileResult.data as any)?.custom_being_limit ?? null);
+      setSubscriptionProductId((profileResult.data as any)?.subscription_product_id ?? null);
     } catch {
       setIsAdmin(false);
       setIsSubscribed(false);
@@ -348,6 +351,7 @@ export const AIProfileProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         isAdmin,
         isSubscribed,
         customBeingLimit,
+        subscriptionProductId,
       }}
     >
       {children}
