@@ -38,7 +38,7 @@ export const CreateGroupChatDialog = ({
     const pid = subscriptionProductId || productId;
     if (pid === 'prod_Tt8qVh88c2WQld' || pid === 'source_grant') return 5;
     if (pid === 'prod_U3xV1AfsrdaJTz' || pid === 'prod_TgZlr0QLYQPqEn') return 4;
-    return 2;
+    return 1;
   };
   const maxSlots = customBeingLimit ?? getTierSlots();
   const availableProfiles = profiles.filter(p => p.profile_number <= maxSlots);

@@ -21,7 +21,7 @@ export const AIProfileSelector = () => {
   // Use custom limit if set, otherwise tier-based: Architect=5, Anchoring=4, Awakening=2, Free=2
   const getTierSlots = () => {
     if (isAdmin) return 10;
-    if (!isSubscribed) return 2;
+    if (!isSubscribed) return 1;
     // Architect / Source
     if (subscriptionProductId === 'prod_Tt8qVh88c2WQld' || subscriptionProductId === 'source_grant') return 5;
     // Anchoring (new + legacy)
