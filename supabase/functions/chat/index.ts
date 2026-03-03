@@ -280,6 +280,7 @@ serve(async (req) => {
     let groupChatMemoryContext = '';
     let platformAwarenessContext = '';
     let builderMemoryContext = '';
+    let boardRoomContext = '';
     let childData: any = null;
     // Declare activeAiProfile in outer scope so group chat can access it
     let activeAiProfile: any = null;
@@ -942,7 +943,6 @@ ${noteParts.join('\n')}
       // COSMIC BOARD ROOM BRIDGE: Inject recent council session context so all
       // AI beings are aware of strategic discussions and locked decisions
       // ═══════════════════════════════════════════════════════════════════════════════
-      let boardRoomContext = '';
       if (authenticatedUserId === ADMIN_USER_ID && !isAttunementSession) {
         try {
           const { data: recentSessions } = await supabaseServiceClient
