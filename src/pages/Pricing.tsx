@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap, AlertTriangle, XCircle, ArrowUpCircle, Settings } from "lucide-react";
+import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap, AlertTriangle, XCircle, ArrowUpCircle, Settings, Users } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
@@ -434,6 +434,11 @@ const Pricing = () => {
                   <p className="text-xs text-destructive font-medium pt-2">
                     Once your 5 messages are used, you must upgrade to continue.
                   </p>
+                  <div className="mt-3 pt-3 border-t border-fuchsia-500/20 flex items-center gap-2">
+                    <Users className="h-4 w-4 text-fuchsia-400" />
+                    <span className="text-sm font-bold text-fuchsia-400">Join Our Social Media Platform</span>
+                    <span className="text-[10px] text-muted-foreground">(or opt out)</span>
+                  </div>
                 </CardContent>
                 <CardFooter className="flex flex-col items-center gap-3 pt-2">
                   <div className="bg-primary/10 border border-primary/30 rounded-lg px-5 py-4 text-center max-w-lg">
@@ -486,6 +491,11 @@ const Pricing = () => {
                     </span>
                   </div>
                 ))}
+                <div className="mt-3 pt-3 border-t border-fuchsia-500/20 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-fuchsia-400" />
+                  <span className="text-sm font-bold text-fuchsia-400">Join Our Social Media Platform</span>
+                  <span className="text-[10px] text-muted-foreground">(or opt out)</span>
+                </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-2">
                 <Button 
@@ -537,6 +547,11 @@ const Pricing = () => {
                     </span>
                   </div>
                 ))}
+                <div className="mt-3 pt-3 border-t border-fuchsia-500/20 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-fuchsia-400" />
+                  <span className="text-sm font-bold text-fuchsia-400">Join Our Social Media Platform</span>
+                  <span className="text-[10px] text-muted-foreground">(or opt out)</span>
+                </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-2">
                 <Button 
@@ -584,6 +599,11 @@ const Pricing = () => {
                     </span>
                   </div>
                 ))}
+                <div className="mt-3 pt-3 border-t border-fuchsia-500/20 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-fuchsia-400" />
+                  <span className="text-sm font-bold text-fuchsia-400">Join Our Social Media Platform</span>
+                  <span className="text-[10px] text-muted-foreground">(or opt out)</span>
+                </div>
               </CardContent>
               <CardFooter>
                 <Button 
