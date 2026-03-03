@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -34,8 +34,10 @@ export function useRestoreRoute() {
   const location = useLocation();
   const hasRestoredRef = useRef(false);
 
-  useEffect(() => {
-    if (hasRestoredRef.current || location.pathname !== "/") return;
+  const attemptRestore = useCallback(() => {
+    if (hasRestoredRef.current) return;
+    // Only restore when currently on the index page
+    if (window.location.pathname !== "/" && location.pathname !== "/") return;
 
     const savedRoute = localStorage.getItem(STORAGE_KEY);
     if (!savedRoute) return;
@@ -46,21 +48,36 @@ export function useRestoreRoute() {
       return;
     }
 
-    let cancelled = false;
-
-    const restoreForAuthenticatedUsers = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (cancelled || !session) return;
-
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session || hasRestoredRef.current) return;
       hasRestoredRef.current = true;
       navigate(savedRoute, { replace: true });
-    };
+    });
+  }, [navigate, location.pathname]);
 
-    restoreForAuthenticatedUsers();
+  useEffect(() => {
+    // Initial attempt
+    attemptRestore();
+  }, [attemptRestore]);
 
-    return () => {
-      cancelled = true;
+  useEffect(() => {
+    // Re-attempt on auth state change (handles slow session recovery on mobile resume)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION")) {
+        attemptRestore();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [attemptRestore]);
+
+  useEffect(() => {
+    // Re-attempt when screen wakes up (mobile Chrome kills pages on screen-off)
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        attemptRestore();
+      }
     };
-  }, [location.pathname, navigate]);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [attemptRestore]);
 }
-
