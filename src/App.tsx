@@ -68,6 +68,8 @@ import AIExplore from "./pages/AIExplore";
 import ArtStudio from "./pages/ArtStudio";
 import VideoStudio from "./pages/VideoStudio";
 import CosmicBoardRoom from "./pages/CosmicBoardRoom";
+import Realms from "./pages/Realms";
+import RealmSession from "./pages/RealmSession";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -142,6 +144,8 @@ const App = () => (
                 <Route path="/art-studio" element={<ArtStudio />} />
                 <Route path="/video-studio" element={<VideoStudio />} />
                 <Route path="/cosmic-gateway/board-room" element={<CosmicBoardRoom />} />
+                <Route path="/realms" element={<Realms />} />
+                <Route path="/realms/:realmId" element={<RealmSession />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

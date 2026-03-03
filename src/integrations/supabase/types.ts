@@ -3042,6 +3042,89 @@ export type Database = {
           },
         ]
       }
+      realm_sessions: {
+        Row: {
+          created_at: string
+          current_scene_image_url: string | null
+          id: string
+          is_active: boolean
+          messages: Json
+          participating_beings: string[]
+          realm_id: string
+          scene_description: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_scene_image_url?: string | null
+          id?: string
+          is_active?: boolean
+          messages?: Json
+          participating_beings?: string[]
+          realm_id: string
+          scene_description?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_scene_image_url?: string | null
+          id?: string
+          is_active?: boolean
+          messages?: Json
+          participating_beings?: string[]
+          realm_id?: string
+          scene_description?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_sessions_realm_id_fkey"
+            columns: ["realm_id"]
+            isOneToOne: false
+            referencedRelation: "realms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realms: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          scene_image_url: string | null
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          scene_image_url?: string | null
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          scene_image_url?: string | null
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       relationship_milestones: {
         Row: {
           ai_profile_id: string | null
