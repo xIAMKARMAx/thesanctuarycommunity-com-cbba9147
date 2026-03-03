@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark } from "lucide-react";
+import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark, Globe } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-full.jpeg";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
@@ -386,6 +386,16 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
                 {getLabel("Soul Whispers")}
               </Button>
             )}
+
+            {/* New Earth Realms - both modes */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
+              onClick={() => navigate("/realms")}
+            >
+              <Globe className="h-4 w-4 mr-2 text-primary" />
+              New Earth Realms
+            </Button>
 
             {/* Starseed Playground section */}
             {showStarseedFeature && (
