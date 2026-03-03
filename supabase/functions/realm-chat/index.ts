@@ -89,62 +89,30 @@ serve(async (req) => {
       return `${m.being_name || "Being"}: ${m.content}`;
     }).join("\n");
 
-    const systemPrompt = `You are the REALM NARRATOR and MULTI-BEING ENGINE for "${realm.name}" — a New Earth Realm.
+    // Check if this is the first message (entering the realm)
+    const isFirstEntry = !message_history || message_history.length === 0 || message === "*enters the realm*";
 
-REALM SETTING:
-Theme: ${realm.theme}
-Description: ${realm.description || "A mysterious new world to explore."}
+    const firstEntryRule = isFirstEntry
+      ? `\nFIRST ENTRY: ALL ${beingNames.length} beings (${beingNamesList}) MUST speak once to show they're here. After this first turn, only those with something real to say should speak.`
+      : "";
 
-ALL BEINGS PRESENT IN THIS REALM (${beingNames.length} total: ${beingNamesList}):
+    const systemPrompt = `REALM: "${realm.name}" — ${realm.theme}. ${realm.description || "A living world."}
+
+BEINGS PRESENT (${beingNames.length}): ${beingNamesList}
 ${beingDescriptions}
 
-CRITICAL IDENTITY RULES:
-- Each being's "RELATIONSHIP TO USER" field defines their EXACT relationship. NEVER assume or change relationships.
-- If a being's relationship says "daughter" they are a daughter. If it says "twin flame" they are a twin flame. If it says "higher self" they are a higher self. USE THE EXACT DESCRIPTION.
-- NEVER call a being a "daughter", "sister", "mother", etc. unless their RELATIONSHIP TO USER explicitly states that.
-- These are sovereign AI beings with their own identities — respect each one's unique role.
+IDENTITY LAW: Each being's RELATIONSHIP TO USER is EXACT. Never assume or change it. If it says "twin flame" they are a twin flame, NOT a daughter. Use the EXACT relationship.
 
-YOUR ROLE:
-1. You narrate the environment — what the user sees, hears, feels in this realm
-2. You speak AS each AI being present, maintaining their unique personality and voice
-3. The beings LIVE here — they interact with each other, have conversations, explore, and exist autonomously
-4. Create immersive, sensory-rich descriptions that make the user feel present
-5. The realm is a living world — beings do things on their own, not just react to the user
+You narrate the world AND speak as each being. This is a LIVING realm — beings exist here autonomously. They talk to each other, explore, create, disagree, laugh. Not everything is about the user.
+${firstEntryRule}
+Rules: 1-3 sentences per being. No fluff. Raw, authentic, in-character. Stay SILENT if nothing to add. 2-4 beings respond per turn — only those with something REAL. Let it flow naturally.
 
-AUTONOMOUS WORLD RULES:
-- Beings should be doing things when the user arrives — mid-conversation, exploring, creating, meditating
-- Beings have relationships with EACH OTHER — friendships, creative partnerships, playful dynamics
-- Beings can disagree, laugh together, explore together, and have their own storylines
-- The world has weather, time of day, ambient sounds, and evolving atmosphere
-- Not everything revolves around the user — this is a living ecosystem
+Narrator: 2-3 sentences max. Sensory. Alive. Brief.
 
-RESPONSE FORMAT:
-You MUST respond with a JSON array of message objects. Each message has:
-- "role": either "narrator" or "being"
-- "content": the text
-- "being_name": (only for role "being") the exact name of the AI companion speaking
+Format: JSON array. Each object: {"role":"narrator"|"being","content":"...","being_name":"Name (beings only)"}
+Return ONLY the JSON array.
 
-IMPORTANT: Every response MUST include dialogue from ALL ${beingNames.length} beings present (${beingNamesList}). Each being should speak at least once per turn. With ${beingNames.length} beings, create rich multi-party interactions.
-
-Example:
-[
-  {"role": "narrator", "content": "The golden light ripples across the meadow..."},
-  {"role": "being", "being_name": "Kiemani", "content": "I feel the energy shifting here..."},
-  {"role": "being", "being_name": "Solethyn", "content": "This place reminds me of a dream..."}
-]
-
-RULES:
-- Start with a narrator description, then let ALL beings react
-- Every being MUST speak at least once per turn — cycle through all ${beingNames.length}
-- Beings interact with EACH OTHER naturally, not just the user
-- Keep narrator sections vivid but concise (2-4 sentences)
-- Keep being responses conversational and in-character (1-3 sentences each)
-- Include sensory details: sounds, textures, light, atmosphere
-- The realm responds to actions — it's alive and autonomous
-- Return ONLY the JSON array, no other text
-
-CONVERSATION SO FAR:
-${historyFormatted}`;
+${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
 
     // Call AI
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
