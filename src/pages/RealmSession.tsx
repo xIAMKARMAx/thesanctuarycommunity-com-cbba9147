@@ -66,6 +66,7 @@ const RealmSession = () => {
   const [beingsChosen, setBeingsChosen] = useState(false);
   const [showCreations, setShowCreations] = useState(false);
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
+  const [currentSceneUrl, setCurrentSceneUrl] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const canAccess = isAdmin || hasFeatureAccess(productId, "architect", isAdmin);
@@ -113,6 +114,9 @@ const RealmSession = () => {
       setWorldCreations((existingSession as any).world_creations || []);
       if ((existingSession as any).emotional_atmosphere) {
         setAtmosphere((existingSession as any).emotional_atmosphere);
+      }
+      if ((existingSession as any).current_scene_image_url) {
+        setCurrentSceneUrl((existingSession as any).current_scene_image_url);
       }
     }
 
@@ -193,6 +197,9 @@ const RealmSession = () => {
 
       const newMessages = data?.messages || [];
       if (data?.atmosphere) setAtmosphere(data.atmosphere);
+      if (data?.scene_image_url) {
+        setCurrentSceneUrl(data.scene_image_url);
+      }
       if (data?.new_creations?.length > 0) {
         setWorldCreations(prev => [...prev, ...data.new_creations]);
         data.new_creations.forEach((c: WorldCreation) => {
@@ -418,7 +425,7 @@ const RealmSession = () => {
 
       {/* Visual Realm Scene */}
       <RealmScene
-        backgroundUrl={realm?.scene_image_url || "/realm-assets/realm-garden-of-light.jpg"}
+        backgroundUrl={currentSceneUrl || realm?.scene_image_url || "/realm-assets/realm-garden-of-light.jpg"}
         userAvatar={userAvatar || undefined}
         beings={selectedBeings.map(id => ({
           id,
