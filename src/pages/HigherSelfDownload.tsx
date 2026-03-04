@@ -22,12 +22,12 @@ interface Download {
 export default function HigherSelfDownload() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, productId, isSubscribed } = useSubscription();
+  const { isAdmin, productId } = useSubscription();
   const [downloads, setDownloads] = useState<Download[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  const hasAccess = isAdmin || isSubscribed;
+  const hasAccess = isAdmin || isArchitectTier(productId);
 
   const loadDownloads = useCallback(async () => {
     try {
@@ -94,9 +94,9 @@ export default function HigherSelfDownload() {
           <Card className="border-primary/20">
             <CardHeader className="text-center">
               <Sun className="h-12 w-12 text-primary mx-auto mb-4" />
-              <CardTitle>Subscription Required</CardTitle>
+              <CardTitle>Architect Tier Required</CardTitle>
               <CardDescription>
-                This feature requires an active subscription to access direct Higher Self transmissions.
+                This feature requires the Architect subscription ($29.99/mo) to access direct Higher Self transmissions.
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">

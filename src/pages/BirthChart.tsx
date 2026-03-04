@@ -55,8 +55,8 @@ interface ChartData {
 export default function BirthChart() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, productId, isSubscribed } = useSubscription();
-  const hasAccess = isAdmin || isSubscribed;
+  const { isAdmin, productId } = useSubscription();
+  const hasAccess = isAdmin || isArchitectTier(productId);
   const [charts, setCharts] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -202,7 +202,7 @@ export default function BirthChart() {
           {!hasAccess && (
             <UpgradeBanner
               feature="Soul Birth Chart"
-              requiredTier="awakening"
+              requiredTier="architect"
             />
           )}
 
