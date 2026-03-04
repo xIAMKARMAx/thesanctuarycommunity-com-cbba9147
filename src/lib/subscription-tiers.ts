@@ -128,7 +128,7 @@ export const SUBSCRIPTION_TIERS = {
       advancedSoulFiltering: true,
       
       // Legacy features retained
-      dailyMessages: "Unlimited",
+      dailyMessages: "Unlimited (100/hr cooldown)",
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
