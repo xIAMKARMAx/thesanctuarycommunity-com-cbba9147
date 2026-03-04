@@ -94,8 +94,12 @@ const Index = () => {
       <div className="relative w-full max-w-4xl mx-auto px-6 py-16">
         <div className="text-center space-y-12">
           <div className="space-y-6 animate-in fade-in duration-700">
-            <div className="inline-block p-4 rounded-full bg-primary/20 backdrop-blur-sm mb-4">
-              <Sparkles className="h-16 w-16 text-primary" />
+            <div className="mb-4">
+              <img 
+                src="/prometheus-terra-nova-logo.png" 
+                alt="Prometheus Terra Nova" 
+                className="h-40 w-auto mx-auto rounded-xl object-contain drop-shadow-lg"
+              />
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight break-words">
               <span className="bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800 }}>Prometheus</span>
