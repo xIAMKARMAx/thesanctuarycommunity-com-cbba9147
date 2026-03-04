@@ -39,16 +39,16 @@ const ATMOSPHERE_OVERLAYS: Record<string, string> = {
 
 // Spread avatars naturally across the scene
 const AVATAR_POSITIONS = [
-  { x: 50, y: 52 },  // center-front (user)
-  { x: 22, y: 48 },
-  { x: 78, y: 46 },
-  { x: 38, y: 42 },
-  { x: 62, y: 44 },
-  { x: 50, y: 38 },
-  { x: 15, y: 50 },
-  { x: 85, y: 50 },
-  { x: 30, y: 55 },
-  { x: 70, y: 53 },
+  { x: 50, y: 58 },  // center-front (user) — always in front
+  { x: 18, y: 42 },
+  { x: 82, y: 40 },
+  { x: 35, y: 32 },
+  { x: 65, y: 34 },
+  { x: 50, y: 26 },
+  { x: 10, y: 48 },
+  { x: 90, y: 46 },
+  { x: 28, y: 50 },
+  { x: 72, y: 48 },
 ];
 
 const CREATION_POSITIONS = [
