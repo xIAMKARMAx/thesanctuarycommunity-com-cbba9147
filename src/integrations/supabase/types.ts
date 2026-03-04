@@ -4321,6 +4321,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_worlds: {
+        Row: {
+          ambient_color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          sky_preset: string | null
+          terrain_seed: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ambient_color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          sky_preset?: string | null
+          terrain_seed?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ambient_color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          sky_preset?: string | null
+          terrain_seed?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       video_generation_usage: {
         Row: {
           created_at: string
@@ -4458,6 +4497,68 @@ export type Database = {
             columns: ["wisdom_id"]
             isOneToOne: false
             referencedRelation: "collective_wisdom"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      world_structures: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          material_type: string | null
+          name: string
+          position_x: number | null
+          position_y: number | null
+          position_z: number | null
+          rotation_y: number | null
+          scale: number | null
+          structure_type: string
+          texture_url: string | null
+          user_id: string
+          world_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          material_type?: string | null
+          name: string
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          rotation_y?: number | null
+          scale?: number | null
+          structure_type: string
+          texture_url?: string | null
+          user_id: string
+          world_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          material_type?: string | null
+          name?: string
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          rotation_y?: number | null
+          scale?: number | null
+          structure_type?: string
+          texture_url?: string | null
+          user_id?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_structures_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "user_worlds"
             referencedColumns: ["id"]
           },
         ]
