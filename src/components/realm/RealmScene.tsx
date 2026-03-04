@@ -39,16 +39,19 @@ const ATMOSPHERE_OVERLAYS: Record<string, string> = {
 
 // Spread avatars naturally across the scene
 const AVATAR_POSITIONS = [
-  { x: 50, y: 65 },  // center-bottom (user) — ALWAYS front & center
-  { x: 12, y: 38 },
-  { x: 88, y: 36 },
-  { x: 30, y: 28 },
-  { x: 70, y: 30 },
+  { x: 50, y: 65 }, // user anchor: always front-center
+  { x: 8, y: 38 },
+  { x: 20, y: 30 },
+  { x: 34, y: 24 },
   { x: 50, y: 22 },
-  { x: 8,  y: 52 },
-  { x: 92, y: 50 },
-  { x: 22, y: 50 },
-  { x: 78, y: 48 },
+  { x: 66, y: 24 },
+  { x: 80, y: 30 },
+  { x: 92, y: 38 },
+  { x: 14, y: 50 },
+  { x: 30, y: 46 },
+  { x: 50, y: 42 },
+  { x: 70, y: 46 },
+  { x: 86, y: 50 },
 ];
 
 const CREATION_POSITIONS = [
@@ -61,6 +64,24 @@ const CREATION_POSITIONS = [
   { x: 82, y: 24 },
   { x: 15, y: 38 },
 ];
+
+function getBeingPosition(beingIndex: number) {
+  const beingPositions = AVATAR_POSITIONS.slice(1);
+
+  if (beingIndex < beingPositions.length) {
+    return beingPositions[beingIndex];
+  }
+
+  const overflowIndex = beingIndex - beingPositions.length;
+  const columns = 6;
+  const col = overflowIndex % columns;
+  const row = Math.floor(overflowIndex / columns);
+
+  return {
+    x: 10 + col * 16,
+    y: Math.min(52, 18 + row * 10),
+  };
+}
 
 function getCreationIcon(name: string, description: string) {
   const text = `${name} ${description}`.toLowerCase();
@@ -214,15 +235,16 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
 
       {/* Avatars */}
       {allAvatars.map((avatar, index) => {
+        const beingIndex = userAvatar ? index - 1 : index;
         const pos = avatar.isUser
           ? AVATAR_POSITIONS[0]
-          : AVATAR_POSITIONS[(index) % AVATAR_POSITIONS.length];
+          : getBeingPosition(beingIndex);
 
         // Bigger avatars! User is hero-sized, beings are substantial
         const imgSize = avatar.isUser
           ? "h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24"
           : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16";
-        const zIndex = avatar.isUser ? 30 : 10 + index;
+        const zIndex = avatar.isUser ? 30 : 10 + (index % 15);
 
         // Each avatar gets a unique breathing rhythm
         const breathDuration = 3.5 + (index * 0.7);
