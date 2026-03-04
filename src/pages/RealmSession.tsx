@@ -460,9 +460,8 @@ const RealmSession = () => {
                 </div>
               );
             }
-            const avatar = msg.being_name ? getBeingAvatar(
-              profiles?.find(p => p.name === msg.being_name)?.id || ""
-            ) : null;
+            const beingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
+            const avatar = beingProfile?.avatar_image_url || null;
             return (
               <div key={i} className="flex gap-2 items-start">
                 {avatar ? (
