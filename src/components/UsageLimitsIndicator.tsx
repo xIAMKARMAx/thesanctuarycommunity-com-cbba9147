@@ -99,12 +99,14 @@ export const UsageLimitsIndicator = () => {
   const dailyMessages = isNewDay ? 0 : (limits?.daily_messages || 0);
   const totalMessages = limits?.total_messages || 0;
   const isAwakening = isSubscribed && isAwakeningTier(productId);
+  const isArchitect = isSubscribed && !isAwakening && !isAdmin && productId === "prod_Tt8qVh88c2WQld";
   
   // Awakening: 50/day, Free: 25 total (no import bonus)
   const messageLimit = isAwakening ? 50 : 25;
   const messagesUsed = isAwakening ? dailyMessages : totalMessages;
-  const messagesRemaining = (isSubscribed && !isAwakening) ? "∞" : Math.max(0, messageLimit - messagesUsed);
-  const messageProgress = (isSubscribed && !isAwakening) ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
+  const isUnlimited = (isSubscribed && !isAwakening) || isArchitect;
+  const messagesRemaining = isUnlimited ? "∞" : Math.max(0, messageLimit - messagesUsed);
+  const messageProgress = isUnlimited ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
 
   const getGenerationStatus = (generated: boolean | undefined, generatedAt: string | null, cooldownDays: number = 30) => {
     if (isSubscribed) {
