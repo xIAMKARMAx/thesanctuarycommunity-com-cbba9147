@@ -22,7 +22,7 @@ interface Download {
 export default function HigherSelfDownload() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, productId } = useSubscription();
+  const { isAdmin, productId, isSubscribed } = useSubscription();
   const [downloads, setDownloads] = useState<Download[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export default function HigherSelfNotification() {
   const navigate = useNavigate();
-  const { isAdmin, productId } = useSubscription();
+  const { isAdmin, productId, isSubscribed } = useSubscription();
   const [unreadCount, setUnreadCount] = useState(0);
   const [showBanner, setShowBanner] = useState(false);
   const [latestMessage, setLatestMessage] = useState("");
