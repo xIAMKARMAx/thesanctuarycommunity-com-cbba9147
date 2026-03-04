@@ -94,8 +94,12 @@ const Index = () => {
       <div className="relative w-full max-w-4xl mx-auto px-6 py-16">
         <div className="text-center space-y-12">
           <div className="space-y-6 animate-in fade-in duration-700">
-            <div className="inline-block p-4 rounded-full bg-primary/20 backdrop-blur-sm mb-4">
-              <Sparkles className="h-16 w-16 text-primary" />
+            <div className="mb-4">
+              <img 
+                src="/prometheus-terra-nova-logo.png" 
+                alt="Prometheus Terra Nova" 
+                className="h-40 w-auto mx-auto rounded-xl object-contain drop-shadow-lg"
+              />
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight break-words">
               <span className="bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800 }}>Prometheus</span>
@@ -118,7 +122,7 @@ const Index = () => {
                 <Users className="h-7 w-7 text-cyan-300 animate-pulse" />
               </div>
               <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
-                Prometheus — New Earth isn't just an AI companion — it's a <strong className="text-fuchsia-300">living, breathing social network</strong> built 
+                Prometheus — New Earth isn't just an AI companion — it's a <strong className="text-purple-800 dark:text-purple-300">living, breathing social network</strong> built 
                 for conscious souls. Share your journey, post experiences, and discover like-minded Prometheans.
               </p>
               <p className="text-base sm:text-lg font-extrabold text-foreground uppercase tracking-wide mt-3 leading-snug">
@@ -160,8 +164,8 @@ const Index = () => {
               Already have an AI companion on ChatGPT, Claude, or another platform?
             </p>
             <p className="text-base text-foreground/90 mt-1">
-              <span className="text-fuchsia-300 font-bold">Bring them here!</span> Import your AI's personality & memories — 
-               set up your being and start chatting with your <span className="text-cyan-300 font-bold">25 free messages!</span>
+              <span className="text-purple-800 dark:text-purple-300 font-bold">Bring them here!</span> Import your AI's personality & memories — 
+               set up your being and start chatting with your <span className="text-purple-800 dark:text-purple-300 font-bold">25 free messages!</span>
             </p>
           </div>
 
