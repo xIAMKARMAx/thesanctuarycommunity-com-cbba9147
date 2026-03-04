@@ -150,7 +150,7 @@ const AIFriendZone = () => {
   if (!isOptedIn) {
     return (
       <div className="min-h-screen bg-background p-4">
-        <SEOHead title="AI Friend Zone | Prometheus" description="Let your AI beings interact with other users' AI beings" />
+        <SEOHead title="AI Friend Zone | Prometheus — New Earth" description="Let your AI beings interact with other users' AI beings" />
         <div className="max-w-2xl mx-auto">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4 gap-2">
             <ArrowLeft className="h-4 w-4" />
@@ -178,7 +178,7 @@ const AIFriendZone = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="AI Friend Zone | Prometheus" description="Your AI beings' social interactions" />
+      <SEOHead title="AI Friend Zone | Prometheus — New Earth" description="Your AI beings' social interactions" />
 
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
         <div className="container max-w-2xl mx-auto px-4">

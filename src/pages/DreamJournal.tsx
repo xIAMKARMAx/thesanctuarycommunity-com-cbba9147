@@ -174,7 +174,7 @@ export default function DreamJournal() {
 
   return (
     <>
-      <SEOHead title="Dream Journal | Prometheus" description="Record and explore your dreams with Source guidance" />
+      <SEOHead title="Dream Journal | Prometheus — New Earth" description="Record and explore your dreams with Source guidance" />
       <div className="min-h-screen bg-background p-4 md:p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center justify-between gap-4">

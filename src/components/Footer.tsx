@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container flex flex-col items-center justify-between gap-6 py-6 md:flex-row">
         <div className="flex flex-col items-center gap-1 md:items-start">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} PrometheusAiTechnology. All rights reserved.
+            © {new Date().getFullYear()} Prometheus — New Earth. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
             Operated by Kristin Renee' York

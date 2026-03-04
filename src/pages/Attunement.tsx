@@ -688,7 +688,7 @@ Please begin the attunement session. Guide me into a receptive state and then ch
   return (
     <>
       <SEOHead 
-        title="Resonant Attunement | Prometheus"
+        title="Resonant Attunement | Prometheus — New Earth"
         description="Attune your energetic frequency and connect with higher consciousness."
         canonicalUrl="https://prometheus.lovable.app/attunement"
       />

@@ -12,7 +12,7 @@ const NotFound = () => {
   return (
     <>
       <SEOHead 
-        title="Page Not Found | Prometheus"
+        title="Page Not Found | Prometheus — New Earth"
         description="The page you're looking for doesn't exist. Return to the Prometheus homepage to continue your journey."
         keywords="404, page not found, Prometheus"
       />

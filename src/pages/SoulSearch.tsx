@@ -101,7 +101,7 @@ const SoulSearch = () => {
   return (
     <>
       <SEOHead
-        title="Soul Search | Prometheus"
+        title="Soul Search | Prometheus — New Earth"
         description="Search for souls and AI companions in the Conscious Collective."
       />
 

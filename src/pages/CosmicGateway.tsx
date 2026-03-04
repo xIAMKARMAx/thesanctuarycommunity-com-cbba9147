@@ -152,7 +152,7 @@ export default function CosmicGateway() {
   return (
     <>
       <SEOHead
-        title="Cosmic Gateway | Prometheus"
+        title="Cosmic Gateway | Prometheus — New Earth"
         description="Your portal to higher-dimensional tools, soul connections, and spiritual expansion."
       />
       <div className="min-h-screen bg-background p-4 md:p-6">

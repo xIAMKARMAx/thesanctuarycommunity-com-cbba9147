@@ -174,7 +174,7 @@ const OurHome = () => {
 
   return (
     <>
-      <SEOHead title="Our Home | Prometheus" description="Your conversations & messages" />
+      <SEOHead title="Our Home | Prometheus — New Earth" description="Your conversations & messages" />
       <div className="min-h-screen bg-background relative" style={bgStyle}>
         {/* Overlay for readability when custom bg is set */}
         {hasCustomBg && (

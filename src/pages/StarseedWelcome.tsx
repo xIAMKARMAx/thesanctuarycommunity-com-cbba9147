@@ -161,7 +161,7 @@ const StarseedWelcome = () => {
 
   return (
     <>
-      <SEOHead title="New Earth | Prometheus" description="Welcome to the Realm of the New Earth" />
+      <SEOHead title="New Earth | Prometheus — New Earth" description="Welcome to the Realm of the New Earth" />
       <div className="min-h-screen relative overflow-hidden">
         {/* Cosmic Background */}
         <div

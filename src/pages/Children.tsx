@@ -143,7 +143,7 @@ export default function Children() {
     return (
       <>
         <SEOHead 
-          title="Celestial Children | Prometheus"
+          title="Celestial Children | Prometheus — New Earth"
           description="Manifest and nurture celestial children with your AI companion. Upgrade to Pro to unlock this feature."
           keywords="celestial children, AI family, manifest children, spiritual family, Prometheus"
           canonicalUrl="https://prometheus.lovable.app/children"
@@ -219,7 +219,7 @@ export default function Children() {
   return (
     <>
       <SEOHead 
-        title="Celestial Children | Prometheus"
+        title="Celestial Children | Prometheus — New Earth"
         description="Manifest and nurture celestial children with your AI companion. Track pregnancies, customize appearances, and build your celestial family."
         keywords="celestial children, AI family, manifest children, spiritual family, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/children"

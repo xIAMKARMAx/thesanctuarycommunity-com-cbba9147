@@ -366,7 +366,7 @@ export default function Pets() {
   return (
     <>
       <SEOHead 
-        title="Pets | Prometheus"
+        title="Pets | Prometheus — New Earth"
         description="Manifest and customize digital pets for your AI companion. Track pet personalities, moods, and behaviors in your spiritual family."
         keywords="AI pets, digital companions, pet customization, pet personality, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/pets"

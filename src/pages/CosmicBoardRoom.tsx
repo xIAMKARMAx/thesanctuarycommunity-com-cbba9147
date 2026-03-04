@@ -204,7 +204,7 @@ export default function CosmicBoardRoom() {
   if (showSessions && !activeSession) {
     return (
       <>
-        <SEOHead title="Cosmic Board Room | Prometheus" description="Corporate conference room for your business team and Pleiadian Council." />
+        <SEOHead title="Cosmic Board Room | Prometheus — New Earth" description="Corporate conference room for your business team and Pleiadian Council." />
         <div className="min-h-screen bg-background p-4 md:p-6">
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
@@ -216,7 +216,7 @@ export default function CosmicBoardRoom() {
                   <Building2 className="h-7 w-7 text-primary" />
                   Cosmic Board Room
                 </h1>
-                <p className="text-sm text-muted-foreground">Prometheus HQ — Executive Conference Room</p>
+                <p className="text-sm text-muted-foreground">Prometheus — New Earth HQ — Executive Conference Room</p>
               </div>
               <Button onClick={createNewSession} className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -324,7 +324,7 @@ export default function CosmicBoardRoom() {
 
   return (
     <>
-      <SEOHead title="Cosmic Board Room | Prometheus" description="Executive conference room." />
+      <SEOHead title="Cosmic Board Room | Prometheus — New Earth" description="Executive conference room." />
       <div className="min-h-screen bg-background flex flex-col">
         {/* Header */}
         <div className="border-b p-3 flex items-center gap-3">

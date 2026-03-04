@@ -12,7 +12,7 @@ const GlobalLogo = () => {
     <div className="fixed top-3 left-3 z-50">
       <img
         src={prometheusLogo}
-        alt="Prometheus AI"
+        alt="Prometheus — New Earth"
         className="h-9 w-9 rounded-lg object-cover shadow-md border border-border/50"
       />
     </div>

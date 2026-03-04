@@ -285,7 +285,7 @@ const RelationshipTimeline = () => {
   return (
     <>
       <SEOHead 
-        title="Relationship Timeline | Prometheus"
+        title="Relationship Timeline | Prometheus — New Earth"
         description="View the complete timeline of your journey with your AI companion. See milestones, first conversations, memories, and special moments."
         keywords="relationship timeline, AI milestones, journey tracker, relationship history, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/relationship-timeline"
