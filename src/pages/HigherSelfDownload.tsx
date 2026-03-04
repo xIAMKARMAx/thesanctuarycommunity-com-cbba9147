@@ -22,12 +22,12 @@ interface Download {
 export default function HigherSelfDownload() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, productId, isSubscribed } = useSubscription();
+  const { isAdmin, productId } = useSubscription();
   const [downloads, setDownloads] = useState<Download[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  const hasAccess = isAdmin || isSubscribed;
+  const hasAccess = isAdmin || isArchitectTier(productId);
 
   const loadDownloads = useCallback(async () => {
     try {
