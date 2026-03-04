@@ -49,12 +49,7 @@ const ModeSelectionModal = () => {
     return () => subscription.unsubscribe();
   }, [location.pathname]);
 
-  // If mode selection is still needed, auto-set to classic silently
-  useEffect(() => {
-    if (needsModeSelection) {
-      setMode("classic");
-    }
-  }, [needsModeSelection, setMode]);
+  // Mode selection is handled by the dialog below
 
   const handleDismiss = async () => {
     setDismissing(true);
