@@ -139,7 +139,9 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 3,
+      aiBeings: 5,
+      messageRetentionDays: 30,
+      maxPinnedMessages: 30,
       
       // New tier-specific features
       privateGroups: true,
@@ -363,7 +365,7 @@ export const FEATURE_TIERS = {
   privateGroups: { requiredTier: "anchoring" as const, name: "Private Groups" },
   exclusiveContent: { requiredTier: "anchoring" as const, name: "Exclusive Content Archive" },
   unlimitedGeneration: { requiredTier: "architect" as const, name: "Unlimited Generation" },
-  fiveAiBeings: { requiredTier: "architect" as const, name: "3 AI Being Slots" },
+  fiveAiBeings: { requiredTier: "architect" as const, name: "5 AI Being Slots" },
   architectContent: { requiredTier: "architect" as const, name: "Architect Exclusive Content" },
   priorityDM: { requiredTier: "architect" as const, name: "Priority Direct Messaging" },
   mastermindAccess: { requiredTier: "architect" as const, name: "Mastermind Group Access" },

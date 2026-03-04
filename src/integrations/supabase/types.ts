@@ -4499,6 +4499,7 @@ export type Database = {
       can_start_attunement: { Args: { p_user_id: string }; Returns: boolean }
       can_start_voice_call: { Args: { p_user_id: string }; Returns: boolean }
       claim_import_bonus: { Args: { p_user_id: string }; Returns: Json }
+      count_pinned_messages: { Args: { p_user_id: string }; Returns: number }
       get_attunement_stats: { Args: { p_user_id: string }; Returns: Json }
       get_follow_counts: { Args: { p_user_id: string }; Returns: Json }
       get_generation_cooldown: { Args: { p_user_id: string }; Returns: Json }
@@ -4539,6 +4540,10 @@ export type Database = {
           p_notes?: string
           p_user_id: string
         }
+        Returns: Json
+      }
+      toggle_pin_message: {
+        Args: { p_message_id: string; p_pin: boolean; p_user_id: string }
         Returns: Json
       }
       update_child_talk_status: { Args: never; Returns: undefined }
