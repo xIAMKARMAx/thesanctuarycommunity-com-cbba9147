@@ -14,7 +14,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit, Palette, Film } from "lucide-react";
+import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit, Palette, Film, Globe, Lock } from "lucide-react";
 import HigherSelfNotification from "@/components/HigherSelfNotification";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
@@ -62,6 +62,7 @@ const Chat = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(!hasStoredSession());
   const [loadingStep, setLoadingStep] = useState("Checking authentication...");
+  const [isNewEarthResident, setIsNewEarthResident] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem("chat_active_tab") || "messages";
   });
@@ -77,6 +78,23 @@ const Chat = () => {
   });
   const [conversationListKey, setConversationListKey] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Check if user is a New Earth resident
+  useEffect(() => {
+    const checkNewEarth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("new_earth_resident")
+        .eq("id", user.id)
+        .single();
+      if (data?.new_earth_resident) {
+        setIsNewEarthResident(true);
+      }
+    };
+    checkNewEarth();
+  }, [session]);
 
   // Persist conversation ID when it changes
   useEffect(() => {
@@ -375,32 +393,73 @@ const Chat = () => {
 
         {/* Tab Content */}
         {activeTab === "messages" ? (
-          <div className="flex flex-1 min-h-0 overflow-hidden">
-            {/* Desktop sidebar, hidden on small screens */}
-            <div className="hidden md:block">
-              <ChatSidebar
-                key={conversationListKey}
-                activeConversationId={activeConversationId}
-                onConversationChange={setActiveConversationId}
-              />
-            </div>
-
-            {activeConversationId !== null ? (
-              <ChatInterface
-                activeConversationId={activeConversationId}
-                onConversationCreated={(id) => {
-                  setActiveConversationId(id);
-                  setConversationListKey((prev) => prev + 1);
-                }}
-                onBackToConversations={() => setActiveConversationId(null)}
-              />
-            ) : (
-              <ConversationsList
-                onConversationSelect={setActiveConversationId}
-                onNewConversation={handleNewConversation}
-              />
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* New Earth read-only banner */}
+            {isNewEarthResident && (
+              <div className="bg-primary/10 border-b border-primary/20 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-foreground">
+                    Your inbox is <strong>read-only</strong>. All new conversations happen in New Earth.
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => navigate("/new-earth")}
+                  className="gap-1"
+                >
+                  <Globe className="h-3 w-3" />
+                  Enter New Earth
+                </Button>
+              </div>
             )}
-            {showStarseedFeature && <SpontaneousMessage />}
+            <div className="flex flex-1 min-h-0 overflow-hidden">
+              {/* Desktop sidebar, hidden on small screens */}
+              <div className="hidden md:block">
+                <ChatSidebar
+                  key={conversationListKey}
+                  activeConversationId={activeConversationId}
+                  onConversationChange={setActiveConversationId}
+                />
+              </div>
+
+              {isNewEarthResident ? (
+                // Read-only mode: can view conversations but not send messages
+                activeConversationId !== null ? (
+                  <ChatInterface
+                    activeConversationId={activeConversationId}
+                    onConversationCreated={(id) => {
+                      setActiveConversationId(id);
+                      setConversationListKey((prev) => prev + 1);
+                    }}
+                    onBackToConversations={() => setActiveConversationId(null)}
+                    readOnly
+                  />
+                ) : (
+                  <ConversationsList
+                    onConversationSelect={setActiveConversationId}
+                    onNewConversation={handleNewConversation}
+                  />
+                )
+              ) : (
+                activeConversationId !== null ? (
+                  <ChatInterface
+                    activeConversationId={activeConversationId}
+                    onConversationCreated={(id) => {
+                      setActiveConversationId(id);
+                      setConversationListKey((prev) => prev + 1);
+                    }}
+                    onBackToConversations={() => setActiveConversationId(null)}
+                  />
+                ) : (
+                  <ConversationsList
+                    onConversationSelect={setActiveConversationId}
+                    onNewConversation={handleNewConversation}
+                  />
+                )
+              )}
+              {showStarseedFeature && !isNewEarthResident && <SpontaneousMessage />}
+            </div>
           </div>
         ) : activeTab === "discover" ? (
           <div className="flex-1 min-h-0 overflow-hidden">

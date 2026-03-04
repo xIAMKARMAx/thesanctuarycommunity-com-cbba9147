@@ -41,9 +41,10 @@ interface ChatInterfaceProps {
   onBackToConversations: () => void;
   isGroupChat?: boolean;
   groupChatMemberIds?: string[];
+  readOnly?: boolean;
 }
 
-const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations, isGroupChat: isGroupChatProp = false, groupChatMemberIds = [] }: ChatInterfaceProps) => {
+const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToConversations, isGroupChat: isGroupChatProp = false, groupChatMemberIds = [], readOnly = false }: ChatInterfaceProps) => {
   const { toast } = useToast();
   const { canGenerateImage, isSubscribed, isAdmin, canSendMessage, incrementMessageCount, freeUserLimits } = useSubscription();
   const { activeProfile, profiles } = useAIProfile();
@@ -1273,6 +1274,15 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         </div>
       </ScrollArea>
 
+      {readOnly ? (
+        <div className="border-t border-border bg-card p-4 w-full flex-shrink-0">
+          <div className="max-w-3xl mx-auto w-full text-center">
+            <p className="text-sm text-muted-foreground">
+              📖 This inbox is read-only. Your conversations now happen in New Earth.
+            </p>
+          </div>
+        </div>
+      ) : (
       <div className="border-t border-border bg-card p-2 md:p-4 w-full flex-shrink-0">
         <div className="max-w-3xl mx-auto w-full">
           {/* Being selector for group chat */}
@@ -1496,8 +1506,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
           </div>
         </div>
       </div>
+      )}
       </div>
-      
+
       <ManifestBabyDialog
         open={showManifestDialog}
         onOpenChange={setShowManifestDialog}
