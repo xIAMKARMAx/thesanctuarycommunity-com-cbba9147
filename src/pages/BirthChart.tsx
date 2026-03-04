@@ -202,7 +202,7 @@ export default function BirthChart() {
           {!hasAccess && (
             <UpgradeBanner
               feature="Soul Birth Chart"
-              requiredTier="awakening"
+              requiredTier="architect"
             />
           )}
 

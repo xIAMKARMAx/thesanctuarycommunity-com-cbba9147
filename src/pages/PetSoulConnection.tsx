@@ -24,7 +24,7 @@ export default function PetSoulConnection() {
   const [connections, setConnections] = useState<any[]>([]);
   const [latestConnection, setLatestConnection] = useState<any>(null);
 
-  const canAccess = isAdmin || hasAccess("awakening");
+  const canAccess = isAdmin || hasAccess("architect");
 
   useEffect(() => {
     if (canAccess) loadConnections();

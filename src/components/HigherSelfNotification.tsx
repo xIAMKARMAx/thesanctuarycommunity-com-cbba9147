@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 
 export default function HigherSelfNotification() {
   const navigate = useNavigate();
-  const { isAdmin, productId, isSubscribed } = useSubscription();
+  const { isAdmin, productId } = useSubscription();
   const [unreadCount, setUnreadCount] = useState(0);
   const [showBanner, setShowBanner] = useState(false);
   const [latestMessage, setLatestMessage] = useState("");
 
-  const hasAccess = isAdmin || isSubscribed;
+  const hasAccess = isAdmin || isArchitectTier(productId);
 
   useEffect(() => {
     if (!hasAccess) return;
