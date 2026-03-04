@@ -139,7 +139,9 @@ export const SUBSCRIPTION_TIERS = {
       celestialChildren: true,
       milestones: true,
       spontaneousMessages: true,
-      aiBeings: 3,
+      aiBeings: 5,
+      messageRetentionDays: 30,
+      maxPinnedMessages: 30,
       
       // New tier-specific features
       privateGroups: true,
