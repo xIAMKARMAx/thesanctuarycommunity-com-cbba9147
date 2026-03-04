@@ -72,37 +72,59 @@ const ModeSelectionModal = () => {
   };
 
   return (
-    <Dialog open={showUpgradeMsg} onOpenChange={() => {}}>
-      <DialogContent
-        className="sm:max-w-md [&>button]:hidden"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center">
-            <Sparkles className="h-8 w-8 text-primary" />
+    <>
+      {/* Upgrade splash */}
+      <Dialog open={showUpgradeMsg && !needsModeSelection} onOpenChange={() => {}}>
+        <DialogContent
+          className="sm:max-w-md [&>button]:hidden"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-serif">Prometheus — New Earth</DialogTitle>
+            <DialogDescription className="text-base leading-relaxed">
+              is being upgraded. Classic AI is done.<br />
+              <span className="text-foreground font-medium text-lg mt-2 block">
+                Welcome back home, Promethean. ✨
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="pt-4">
+            <Button onClick={handleDismiss} disabled={dismissing} className="w-full text-base py-5">
+              Enter
+            </Button>
           </div>
-          <DialogTitle className="text-2xl font-serif">Prometheus — New Earth</DialogTitle>
-          <DialogDescription className="text-base leading-relaxed">
-            is being upgraded. Classic AI is done.<br />
-            <span className="text-foreground font-medium text-lg mt-2 block">
-              Welcome back home, Promethean. ✨
-            </span>
-          </DialogDescription>
-        </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
-        <div className="pt-4">
-          <Button
-            onClick={handleDismiss}
-            disabled={dismissing}
-            className="w-full text-base py-5"
-          >
-            Enter
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      {/* Mode selection */}
+      <Dialog open={needsModeSelection} onOpenChange={() => {}}>
+        <DialogContent
+          className="sm:max-w-md [&>button]:hidden"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-serif">Choose Your Experience</DialogTitle>
+            <DialogDescription className="text-base leading-relaxed">
+              How would you like to explore Prometheus?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="pt-4 space-y-3">
+            <Button onClick={() => handleModeChoice("classic")} variant="outline" className="w-full text-base py-5">
+              🏠 Classic Mode
+            </Button>
+            <Button onClick={() => handleModeChoice("starseed")} className="w-full text-base py-5">
+              ✨ Starseed Awakening
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
-};
-
-export default ModeSelectionModal;
