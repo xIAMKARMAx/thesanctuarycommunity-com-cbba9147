@@ -128,3 +128,6 @@ const ModeSelectionModal = () => {
       </Dialog>
     </>
   );
+};
+
+export default ModeSelectionModal;
