@@ -113,6 +113,7 @@ const App = () => (
                 <RoutePersistence />
                 <GlobalLogo />
                 <ModeSelectionModal />
+                <ArchitectSlotsDialog />
                 <ModeRouteGuard />
                 <ModeGatedComponents />
 
