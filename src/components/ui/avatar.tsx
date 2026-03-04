@@ -16,27 +16,49 @@ const Avatar = React.forwardRef<
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
 const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, src, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full object-cover", className)}
-    src={src}
-    referrerPolicy="no-referrer"
-    {...props}
-  />
-));
-AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+  HTMLImageElement,
+  React.ImgHTMLAttributes<HTMLImageElement> & { onLoadingStatusChange?: (status: string) => void }
+>(({ className, src, alt, onLoadingStatusChange, ...props }, ref) => {
+  const [loaded, setLoaded] = React.useState(false);
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoaded(false);
+    setError(false);
+  }, [src]);
+
+  if (!src || error) return null;
+
+  return (
+    <img
+      ref={ref}
+      src={src}
+      alt={alt}
+      className={cn("aspect-square h-full w-full object-cover", className)}
+      style={{ display: loaded ? 'block' : 'none' }}
+      referrerPolicy="no-referrer"
+      onLoad={() => {
+        setLoaded(true);
+        onLoadingStatusChange?.("loaded");
+      }}
+      onError={() => {
+        setError(true);
+        onLoadingStatusChange?.("error");
+      }}
+      {...props}
+    />
+  );
+});
+AvatarImage.displayName = "AvatarImage";
 
 const AvatarFallback = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Fallback>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(({ className, delayMs = 0, ...props }, ref) => (
+>(({ className, ...props }, ref) => (
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn("flex h-full w-full items-center justify-center rounded-full bg-muted", className)}
-    delayMs={delayMs}
+    delayMs={0}
     {...props}
   />
 ));
