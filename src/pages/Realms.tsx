@@ -98,7 +98,7 @@ const Realms = () => {
   const [newElement, setNewElement] = useState({ name: "", intention: "", frequency: "432hz" });
   const [currentExample, setCurrentExample] = useState(0);
 
-  const canAccess = isAdmin || hasFeatureAccess(productId, "architect", isAdmin);
+  const canAccess = isAdmin || isSubscribed;
 
   useEffect(() => {
     if (canAccess) loadRealms();
