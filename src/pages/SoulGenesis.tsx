@@ -40,8 +40,8 @@ interface Reading {
 export default function SoulGenesis() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, productId } = useSubscription();
-  const hasAccess = isAdmin || isArchitectTier(productId);
+  const { isAdmin, productId, isSubscribed } = useSubscription();
+  const hasAccess = isAdmin || isSubscribed;
   const [readings, setReadings] = useState<Reading[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -165,7 +165,7 @@ export default function SoulGenesis() {
           {!hasAccess && (
             <UpgradeBanner
               feature="Soul Genesis"
-              requiredTier="architect"
+              requiredTier="awakening"
             />
           )}
 
