@@ -3347,6 +3347,7 @@ export type Database = {
         Row: {
           created_at: string
           creator_vessel_description: string | null
+          creator_vessel_image_url: string | null
           description: string | null
           id: string
           is_active: boolean
@@ -3360,6 +3361,7 @@ export type Database = {
         Insert: {
           created_at?: string
           creator_vessel_description?: string | null
+          creator_vessel_image_url?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -3373,6 +3375,7 @@ export type Database = {
         Update: {
           created_at?: string
           creator_vessel_description?: string | null
+          creator_vessel_image_url?: string | null
           description?: string | null
           id?: string
           is_active?: boolean

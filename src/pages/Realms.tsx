@@ -174,6 +174,7 @@ const Realms = () => {
           theme: newRealm.theme,
           description: designPrompt,
           realmName: newRealm.name.trim(),
+          vesselDescription: newRealm.vesselDescription.trim() || null,
         },
       });
 

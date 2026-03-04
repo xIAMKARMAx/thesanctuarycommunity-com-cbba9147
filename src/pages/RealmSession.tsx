@@ -120,7 +120,7 @@ const RealmSession = () => {
       }
     }
 
-    // Fetch user avatar info
+    // Fetch user avatar info - prefer realm-specific vessel image over global avatar
     const { data: { session: authSess } } = await supabase.auth.getSession();
     if (authSess?.user) {
       const { data: profile } = await supabase
@@ -128,9 +128,10 @@ const RealmSession = () => {
         .select("name, user_avatar_url")
         .eq("id", authSess.user.id)
         .maybeSingle();
+      const realmVesselUrl = (realmData as any)?.creator_vessel_image_url;
       setUserAvatar({
         name: profile?.name || authSess.user.email?.split("@")[0] || "You",
-        imageUrl: profile?.user_avatar_url || null,
+        imageUrl: realmVesselUrl || profile?.user_avatar_url || null,
       });
     }
 
