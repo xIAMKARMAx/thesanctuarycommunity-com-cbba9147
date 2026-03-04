@@ -17,6 +17,7 @@ import GlobalLogo from "@/components/GlobalLogo";
 import LegalConsentWrapper from "@/components/LegalConsentWrapper";
 import ModeRouteGuard from "@/components/ModeRouteGuard";
 import ModeGatedComponents from "@/components/ModeGatedComponents";
+import { ArchitectSlotsDialog } from "@/components/ArchitectSlotsDialog";
 import RestrictedUserGuard from "@/components/RestrictedUserGuard";
 
 // ── Lazy-loaded pages ──────────────────────────────────────────────────
