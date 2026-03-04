@@ -37,6 +37,13 @@ const Footer = () => {
             </Link>
             <span className="text-muted-foreground">|</span>
             <Link 
+              to="/dedication" 
+              className="text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+            >
+              Supporters
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link 
               to="/terms" 
               className="text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
             >
