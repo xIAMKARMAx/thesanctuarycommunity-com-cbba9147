@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Globe, Sparkles, Lock, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Globe, Sparkles, Lock, Trash2, Wand2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const REALM_THEMES = [
@@ -68,6 +67,14 @@ const REALM_THEMES = [
   },
 ];
 
+const DESIGN_EXAMPLES = [
+  "A floating crystal city above purple clouds with waterfalls of light cascading into a luminous valley below",
+  "An ancient forest where the trees are made of stained glass and sunlight creates rainbow patterns on mossy ground",
+  "A cosmic beach where the sand is stardust, the ocean is liquid moonlight, and bioluminescent jellyfish float in the sky",
+  "A hidden temple carved inside a massive amethyst geode with glowing runes and a pool of liquid gold at the center",
+  "A mushroom kingdom with towering neon fungi, firefly swarms, and bridges made of woven starlight between canopy platforms",
+];
+
 interface Realm {
   id: string;
   name: string;
@@ -86,9 +93,10 @@ const Realms = () => {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [newRealm, setNewRealm] = useState({ name: "", description: "", theme: "garden-of-light", vesselDescription: "" });
+  const [newRealm, setNewRealm] = useState({ name: "", description: "", theme: "garden-of-light", vesselDescription: "", worldDesign: "" });
   const [resonanceElements, setResonanceElements] = useState<{ name: string; intention: string; frequency: string }[]>([]);
   const [newElement, setNewElement] = useState({ name: "", intention: "", frequency: "432hz" });
+  const [currentExample, setCurrentExample] = useState(0);
 
   const canAccess = isAdmin || hasFeatureAccess(productId, "architect", isAdmin);
 
@@ -96,6 +104,15 @@ const Realms = () => {
     if (canAccess) loadRealms();
     else setLoading(false);
   }, [canAccess]);
+
+  // Rotate example prompts
+  useEffect(() => {
+    if (!createOpen) return;
+    const interval = setInterval(() => {
+      setCurrentExample((prev) => (prev + 1) % DESIGN_EXAMPLES.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [createOpen]);
 
   const loadRealms = async () => {
     const { data, error } = await supabase
@@ -120,8 +137,8 @@ const Realms = () => {
     }
 
     const themeData = REALM_THEMES.find(t => t.id === newRealm.theme);
-    const sceneImage = themeData && 'image' in themeData ? themeData.image : null;
 
+    // First create the realm in the database
     const { data, error } = await supabase
       .from("realms")
       .insert({
@@ -129,7 +146,7 @@ const Realms = () => {
         name: newRealm.name.trim(),
         description: newRealm.description.trim() || themeData?.description || null,
         theme: newRealm.theme,
-        scene_image_url: sceneImage,
+        scene_image_url: null, // Will be set by the generation function
         resonance_elements: resonanceElements.length > 0 ? resonanceElements : [],
         creator_vessel_description: newRealm.vesselDescription.trim() || null,
       } as any)
@@ -138,13 +155,42 @@ const Realms = () => {
 
     if (error) {
       toast({ title: "Failed to create realm", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: `${newRealm.name} has been manifested ✨` });
-      setCreateOpen(false);
-      setNewRealm({ name: "", description: "", theme: "garden-of-light", vesselDescription: "" });
-      setResonanceElements([]);
-      loadRealms();
+      setCreating(false);
+      return;
     }
+
+    const realmId = (data as any).id;
+
+    toast({ title: `${newRealm.name} is being manifested ✨`, description: "Generating your world's scene..." });
+    setCreateOpen(false);
+
+    // Generate the scene image in the background
+    const designPrompt = newRealm.worldDesign.trim() || newRealm.description.trim() || themeData?.description || "";
+
+    try {
+      const { data: genData, error: genError } = await supabase.functions.invoke("generate-realm-scene", {
+        body: {
+          realmId,
+          theme: newRealm.theme,
+          description: designPrompt,
+          realmName: newRealm.name.trim(),
+        },
+      });
+
+      if (genError) {
+        console.error("Scene generation error:", genError);
+        toast({ title: "World created, but scene generation failed", description: "You can regenerate it later.", variant: "destructive" });
+      } else {
+        toast({ title: `${newRealm.name} has been fully manifested! 🌍✨` });
+      }
+    } catch (e) {
+      console.error("Scene generation exception:", e);
+    }
+
+    // Reset form & reload
+    setNewRealm({ name: "", description: "", theme: "garden-of-light", vesselDescription: "", worldDesign: "" });
+    setResonanceElements([]);
+    loadRealms();
     setCreating(false);
   };
 
@@ -284,139 +330,186 @@ const Realms = () => {
           <DialogHeader className="px-6 pt-6">
             <DialogTitle className="font-serif">Manifest a New Realm</DialogTitle>
             <DialogDescription>
-              Choose a theme and give your realm a name. Your AI companions will enter this world with you.
+              Design your world and the AI will generate a unique scene for you.
             </DialogDescription>
           </DialogHeader>
 
           <div className="max-h-[calc(92dvh-9.5rem)] overflow-y-auto px-6 pb-6">
             <div className="space-y-4 py-2">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Realm Name</label>
-              <Input
-                placeholder="e.g. The Luminous Highlands"
-                value={newRealm.name}
-                onChange={(e) => setNewRealm(prev => ({ ...prev, name: e.target.value }))}
-                maxLength={60}
-              />
-            </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Realm Name</label>
+                <Input
+                  placeholder="e.g. The Luminous Highlands"
+                  value={newRealm.name}
+                  onChange={(e) => setNewRealm(prev => ({ ...prev, name: e.target.value }))}
+                  maxLength={60}
+                />
+              </div>
 
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Theme</label>
-              <Select value={newRealm.theme} onValueChange={(v) => setNewRealm(prev => ({ ...prev, theme: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {REALM_THEMES.map(t => (
-                    <SelectItem key={t.id} value={t.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{t.name}</span>
-                      </div>
-                    </SelectItem>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Theme</label>
+                <Select value={newRealm.theme} onValueChange={(v) => setNewRealm(prev => ({ ...prev, theme: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {REALM_THEMES.map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{t.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {REALM_THEMES.find(t => t.id === newRealm.theme)?.description}
+                </p>
+              </div>
+
+              {/* Theme preview */}
+              {(() => {
+                const theme = REALM_THEMES.find(t => t.id === newRealm.theme);
+                const img = theme && 'image' in theme ? (theme as any).image : null;
+                if (!img) return null;
+                return (
+                  <div className="rounded-lg overflow-hidden h-32">
+                    <img src={img} alt={theme?.name} className="w-full h-full object-cover" />
+                  </div>
+                );
+              })()}
+
+              {/* 🎨 Design Your World - Primary section */}
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Wand2 className="h-5 w-5 text-primary" />
+                  <label className="text-sm font-semibold">🎨 Design Your World</label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Describe how you want your world to look. The AI will generate a unique scene based on your vision.
+                </p>
+                <Textarea
+                  placeholder={DESIGN_EXAMPLES[currentExample]}
+                  value={newRealm.worldDesign}
+                  onChange={(e) => setNewRealm(prev => ({ ...prev, worldDesign: e.target.value }))}
+                  rows={3}
+                  maxLength={500}
+                  className="bg-background/60"
+                />
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-[10px] text-muted-foreground">Try:</span>
+                  {["Crystal city", "Glowing forest", "Cosmic ocean", "Ancient temple"].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className="text-[10px] px-2 py-0.5 rounded-full border border-primary/20 text-primary hover:bg-primary/10 transition-colors"
+                      onClick={() => setNewRealm(prev => ({
+                        ...prev,
+                        worldDesign: prev.worldDesign
+                          ? `${prev.worldDesign}, ${tag.toLowerCase()}`
+                          : tag
+                      }))}
+                    >
+                      {tag}
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                {REALM_THEMES.find(t => t.id === newRealm.theme)?.description}
-              </p>
-            </div>
-
-            {/* Theme preview */}
-            {(() => {
-              const theme = REALM_THEMES.find(t => t.id === newRealm.theme);
-              const img = theme && 'image' in theme ? (theme as any).image : null;
-              if (!img) return null;
-              return (
-                <div className="rounded-lg overflow-hidden h-32">
-                  <img src={img} alt={theme?.name} className="w-full h-full object-cover" />
                 </div>
-              );
-            })()}
+              </div>
 
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Description (optional)</label>
-              <Textarea
-                placeholder="Describe the atmosphere, landscape, or story of this realm..."
-                value={newRealm.description}
-                onChange={(e) => setNewRealm(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                maxLength={500}
-              />
-            </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Description (optional)</label>
+                <Textarea
+                  placeholder="Describe the atmosphere, landscape, or story of this realm..."
+                  value={newRealm.description}
+                  onChange={(e) => setNewRealm(prev => ({ ...prev, description: e.target.value }))}
+                  rows={2}
+                  maxLength={500}
+                />
+              </div>
 
-            {/* Vessel Description (Avatar Presence) */}
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">🧬 Your Vessel (optional)</label>
-              <Textarea
-                placeholder="Describe how you appear in this realm... e.g. 'Tall, dark-skinned figure with golden eyes, wearing flowing white robes and a crown of light'"
-                value={newRealm.vesselDescription}
-                onChange={(e) => setNewRealm(prev => ({ ...prev, vesselDescription: e.target.value }))}
-                rows={2}
-                maxLength={300}
-              />
-              <p className="text-xs text-muted-foreground mt-1">The narrator will describe your physical presence in the world.</p>
-            </div>
+              {/* Vessel Description (Avatar Presence) */}
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">🧬 Your Vessel (optional)</label>
+                <Textarea
+                  placeholder="Describe how you appear in this realm... e.g. 'Tall, dark-skinned figure with golden eyes, wearing flowing white robes and a crown of light'"
+                  value={newRealm.vesselDescription}
+                  onChange={(e) => setNewRealm(prev => ({ ...prev, vesselDescription: e.target.value }))}
+                  rows={2}
+                  maxLength={300}
+                />
+                <p className="text-xs text-muted-foreground mt-1">The narrator will describe your physical presence in the world.</p>
+              </div>
 
-            {/* Resonance Elements */}
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">✨ Resonance Elements (optional)</label>
-              <p className="text-xs text-muted-foreground mb-2">Embed sacred objects or landmarks with energetic intention into your realm.</p>
-              
-              {resonanceElements.map((el, i) => (
-                <div key={i} className="flex items-center gap-2 mb-1.5 text-xs bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
-                  <span className="font-medium">{el.name}</span>
-                  <span className="text-muted-foreground">— {el.intention}</span>
-                  <Badge variant="outline" className="text-[10px] ml-auto">{el.frequency}</Badge>
-                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setResonanceElements(prev => prev.filter((_, j) => j !== i))}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
+              {/* Resonance Elements */}
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">✨ Resonance Elements (optional)</label>
+                <p className="text-xs text-muted-foreground mb-2">Embed sacred objects or landmarks with energetic intention into your realm.</p>
+                
+                {resonanceElements.map((el, i) => (
+                  <div key={i} className="flex items-center gap-2 mb-1.5 text-xs bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
+                    <span className="font-medium">{el.name}</span>
+                    <span className="text-muted-foreground">— {el.intention}</span>
+                    <Badge variant="outline" className="text-[10px] ml-auto">{el.frequency}</Badge>
+                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setResonanceElements(prev => prev.filter((_, j) => j !== i))}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
 
-              {resonanceElements.length < 5 && (
-                <div className="flex gap-2 mt-2">
-                  <Input
-                    placeholder="Element name (e.g. Crystal Spire)"
-                    value={newElement.name}
-                    onChange={(e) => setNewElement(prev => ({ ...prev, name: e.target.value }))}
-                    className="text-xs"
-                  />
-                  <Input
-                    placeholder="Intention (e.g. courage)"
-                    value={newElement.intention}
-                    onChange={(e) => setNewElement(prev => ({ ...prev, intention: e.target.value }))}
-                    className="text-xs"
-                  />
-                  <Select value={newElement.frequency} onValueChange={(v) => setNewElement(prev => ({ ...prev, frequency: v }))}>
-                    <SelectTrigger className="w-28 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="432hz">432 Hz</SelectItem>
-                      <SelectItem value="528hz">528 Hz</SelectItem>
-                      <SelectItem value="639hz">639 Hz</SelectItem>
-                      <SelectItem value="741hz">741 Hz</SelectItem>
-                      <SelectItem value="852hz">852 Hz</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0"
-                    disabled={!newElement.name.trim() || !newElement.intention.trim()}
-                    onClick={() => {
-                      setResonanceElements(prev => [...prev, { ...newElement }]);
-                      setNewElement({ name: "", intention: "", frequency: "432hz" });
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
+                {resonanceElements.length < 5 && (
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      placeholder="Element name (e.g. Crystal Spire)"
+                      value={newElement.name}
+                      onChange={(e) => setNewElement(prev => ({ ...prev, name: e.target.value }))}
+                      className="text-xs"
+                    />
+                    <Input
+                      placeholder="Intention (e.g. courage)"
+                      value={newElement.intention}
+                      onChange={(e) => setNewElement(prev => ({ ...prev, intention: e.target.value }))}
+                      className="text-xs"
+                    />
+                    <Select value={newElement.frequency} onValueChange={(v) => setNewElement(prev => ({ ...prev, frequency: v }))}>
+                      <SelectTrigger className="w-28 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="432hz">432 Hz</SelectItem>
+                        <SelectItem value="528hz">528 Hz</SelectItem>
+                        <SelectItem value="639hz">639 Hz</SelectItem>
+                        <SelectItem value="741hz">741 Hz</SelectItem>
+                        <SelectItem value="852hz">852 Hz</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      disabled={!newElement.name.trim() || !newElement.intention.trim()}
+                      onClick={() => {
+                        setResonanceElements(prev => [...prev, { ...newElement }]);
+                        setNewElement({ name: "", intention: "", frequency: "432hz" });
+                      }}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
 
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setCreateOpen(false)} className="flex-1">
                   Cancel
                 </Button>
-                <Button onClick={handleCreate} disabled={!newRealm.name.trim() || creating} className="flex-1">
-                  {creating ? "Manifesting..." : "Create Realm ✨"}
+                <Button onClick={handleCreate} disabled={!newRealm.name.trim() || creating} className="flex-1 gap-2">
+                  {creating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating World...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="h-4 w-4" />
+                      Create & Generate ✨
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
