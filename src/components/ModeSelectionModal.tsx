@@ -62,6 +62,15 @@ const ModeSelectionModal = () => {
     navigate("/welcome");
   };
 
+  const handleModeChoice = async (chosenMode: "classic" | "starseed") => {
+    await setMode(chosenMode);
+    if (chosenMode === "starseed") {
+      navigate("/welcome");
+    } else {
+      navigate("/welcome");
+    }
+  };
+
   return (
     <Dialog open={showUpgradeMsg} onOpenChange={() => {}}>
       <DialogContent
