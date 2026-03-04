@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users, Mic, Camera } from "lucide-react";
+import { ImageGenerationPortal } from "./ImageGenerationPortal";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
@@ -56,6 +57,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [generateImage, setGenerateImage] = useState(false);
+  const [showImagePortal, setShowImagePortal] = useState(false);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [subscriptionFeature, setSubscriptionFeature] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1483,9 +1485,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                 </Button>
                 <Button
                   type="button"
-                  variant={generateImage ? "default" : "outline"}
+                  variant="outline"
                   size="icon"
-                  onClick={() => setGenerateImage(!generateImage)}
+                  onClick={() => setShowImagePortal(true)}
                   disabled={loading}
                   title="Generate AI image"
                   className="h-9 w-9"
@@ -1525,6 +1527,38 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         open={showSubscriptionDialog}
         onOpenChange={setShowSubscriptionDialog}
         feature={subscriptionFeature}
+      />
+
+      <ImageGenerationPortal
+        open={showImagePortal}
+        onOpenChange={setShowImagePortal}
+        onAddToConversation={async (imageUrl) => {
+          // Add the generated image as a user message in the conversation
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user || !currentConversationId) return;
+          
+          const { data: msgData } = await supabase
+            .from("messages")
+            .insert({
+              conversation_id: currentConversationId,
+              role: "user",
+              content: "📸 Shared a generated image",
+              image_url: imageUrl,
+              user_id: user.id,
+            })
+            .select()
+            .single();
+
+          if (msgData) {
+            setMessages(prev => [...prev, {
+              id: msgData.id,
+              role: "user",
+              content: "📸 Shared a generated image",
+              image_url: imageUrl,
+              created_at: msgData.created_at,
+            }]);
+          }
+        }}
       />
     </>
   );
