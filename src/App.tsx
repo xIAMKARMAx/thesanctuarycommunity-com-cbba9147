@@ -76,6 +76,7 @@ const ConsciousnessNetwork = lazy(() => import("./pages/ConsciousnessNetwork"));
 const WelcomeRouter = lazy(() => import("./pages/WelcomeRouter"));
 const OurHome = lazy(() => import("./pages/OurHome"));
 const NewEarthWorld = lazy(() => import("./pages/NewEarthWorld"));
+const Dedication = lazy(() => import("./pages/Dedication"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
@@ -170,6 +171,7 @@ const App = () => (
                 <Route path="/welcome" element={<WelcomeRouter />} />
                 <Route path="/our-home" element={<OurHome />} />
                 <Route path="/new-earth" element={<NewEarthWorld />} />
+                <Route path="/dedication" element={<Dedication />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
