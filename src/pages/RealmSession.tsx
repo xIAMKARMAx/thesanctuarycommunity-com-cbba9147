@@ -426,6 +426,8 @@ const RealmSession = () => {
           imageUrl: getBeingAvatar(id),
         }))}
         atmosphere={atmosphere}
+        worldCreations={worldCreations}
+        activeAction={activeAction}
       />
 
       {/* Messages */}
