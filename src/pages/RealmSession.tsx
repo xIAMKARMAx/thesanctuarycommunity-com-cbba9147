@@ -51,7 +51,7 @@ const RealmSession = () => {
   const { realmId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, isSubscribed, productId } = useSubscription();
+  const { isAdmin, isSubscribed, productId, loading: subscriptionLoading } = useSubscription();
   const { profiles } = useAIProfile();
   const [realm, setRealm] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
@@ -68,13 +68,40 @@ const RealmSession = () => {
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
   const [currentSceneUrl, setCurrentSceneUrl] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [accessVerified, setAccessVerified] = useState(false);
 
-  const canAccess = isAdmin || isSubscribed;
+  // Wait for subscription context, then do a DB fallback if needed
+  useEffect(() => {
+    if (subscriptionLoading) return;
+    
+    if (isAdmin || isSubscribed) {
+      setAccessVerified(true);
+      return;
+    }
+    
+    const verifyAccess = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_status, subscription_product_id")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile?.subscription_status === 'active' || profile?.subscription_product_id === 'source_grant') {
+        setAccessVerified(true);
+      }
+    };
+    verifyAccess();
+  }, [subscriptionLoading, isSubscribed, isAdmin]);
+
+  const canAccess = isAdmin || isSubscribed || accessVerified;
 
   useEffect(() => {
     if (canAccess && realmId) loadRealm();
-    else setLoading(false);
-  }, [canAccess, realmId]);
+    else if (!subscriptionLoading) setLoading(false);
+  }, [canAccess, realmId, subscriptionLoading]);
 
   useEffect(() => {
     if (scrollRef.current) {

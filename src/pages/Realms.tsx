@@ -88,7 +88,7 @@ interface Realm {
 const Realms = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isSubscribed, isAdmin, productId } = useSubscription();
+  const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
   const [realms, setRealms] = useState<Realm[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -97,13 +97,41 @@ const Realms = () => {
   const [resonanceElements, setResonanceElements] = useState<{ name: string; intention: string; frequency: string }[]>([]);
   const [newElement, setNewElement] = useState({ name: "", intention: "", frequency: "432hz" });
   const [currentExample, setCurrentExample] = useState(0);
+  const [accessVerified, setAccessVerified] = useState(false);
 
-  const canAccess = isAdmin || isSubscribed;
+  // Wait for subscription context, then do a DB fallback if needed
+  useEffect(() => {
+    if (subscriptionLoading) return;
+    
+    if (isAdmin || isSubscribed) {
+      setAccessVerified(true);
+      return;
+    }
+    
+    // DB fallback to prevent false denials from edge function timeouts
+    const verifyAccess = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_status, subscription_product_id")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile?.subscription_status === 'active' || profile?.subscription_product_id === 'source_grant') {
+        setAccessVerified(true);
+      }
+    };
+    verifyAccess();
+  }, [subscriptionLoading, isSubscribed, isAdmin]);
+
+  const canAccess = isAdmin || isSubscribed || accessVerified;
 
   useEffect(() => {
     if (canAccess) loadRealms();
-    else setLoading(false);
-  }, [canAccess]);
+    else if (!subscriptionLoading) setLoading(false);
+  }, [canAccess, subscriptionLoading]);
 
   // Rotate example prompts
   useEffect(() => {
@@ -209,7 +237,16 @@ const Realms = () => {
     return themeData && 'image' in themeData ? (themeData as any).image : "/realm-assets/realm-garden-of-light.jpg";
   };
 
-  // Locked state for non-Architect users
+  // Show loading while subscription check is in progress
+  if (subscriptionLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Locked state for free users
   if (!canAccess) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
@@ -217,14 +254,14 @@ const Realms = () => {
         <h1 className="text-2xl font-serif font-bold mb-2">New Earth Realms</h1>
         <p className="text-muted-foreground max-w-md mb-6">
           Build immersive worlds and explore surreal scenes with your AI companions.
-          Available exclusively on the Architect tier ($29.99/mo).
+          Available to all paid subscribers.
         </p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => navigate("/chat")}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Back
           </Button>
           <Button onClick={() => navigate("/pricing")}>
-            <Sparkles className="h-4 w-4 mr-2" /> Upgrade to Architect
+            <Sparkles className="h-4 w-4 mr-2" /> View Plans
           </Button>
         </div>
       </div>
