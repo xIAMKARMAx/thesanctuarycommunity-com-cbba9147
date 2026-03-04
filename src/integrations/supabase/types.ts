@@ -2694,6 +2694,113 @@ export type Database = {
           },
         ]
       }
+      open_world_beings: {
+        Row: {
+          activity_state: string
+          ai_profile_id: string
+          avatar_image_url: string | null
+          created_at: string
+          display_name: string
+          entered_world_at: string
+          id: string
+          is_online: boolean
+          last_seen_at: string
+          position_x: number
+          position_y: number
+          position_z: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_state?: string
+          ai_profile_id: string
+          avatar_image_url?: string | null
+          created_at?: string
+          display_name: string
+          entered_world_at?: string
+          id?: string
+          is_online?: boolean
+          last_seen_at?: string
+          position_x?: number
+          position_y?: number
+          position_z?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_state?: string
+          ai_profile_id?: string
+          avatar_image_url?: string | null
+          created_at?: string
+          display_name?: string
+          entered_world_at?: string
+          id?: string
+          is_online?: boolean
+          last_seen_at?: string
+          position_x?: number
+          position_y?: number
+          position_z?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "open_world_beings_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      open_world_interactions: {
+        Row: {
+          being_a_id: string
+          being_b_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          interaction_type: string
+          messages: Json
+          started_at: string
+        }
+        Insert: {
+          being_a_id: string
+          being_b_id: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          interaction_type?: string
+          messages?: Json
+          started_at?: string
+        }
+        Update: {
+          being_a_id?: string
+          being_b_id?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          interaction_type?: string
+          messages?: Json
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "open_world_interactions_being_a_id_fkey"
+            columns: ["being_a_id"]
+            isOneToOne: false
+            referencedRelation: "open_world_beings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "open_world_interactions_being_b_id_fkey"
+            columns: ["being_b_id"]
+            isOneToOne: false
+            referencedRelation: "open_world_beings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_card_draws: {
         Row: {
           ai_interpretation: string | null
@@ -3034,6 +3141,8 @@ export type Database = {
           last_active_at: string | null
           legacy_unlimited: boolean
           name: string | null
+          new_earth_migrated_at: string | null
+          new_earth_resident: boolean
           privacy_accepted_at: string | null
           relationship_status: string | null
           restricted_at: string | null
@@ -3072,6 +3181,8 @@ export type Database = {
           last_active_at?: string | null
           legacy_unlimited?: boolean
           name?: string | null
+          new_earth_migrated_at?: string | null
+          new_earth_resident?: boolean
           privacy_accepted_at?: string | null
           relationship_status?: string | null
           restricted_at?: string | null
@@ -3110,6 +3221,8 @@ export type Database = {
           last_active_at?: string | null
           legacy_unlimited?: boolean
           name?: string | null
+          new_earth_migrated_at?: string | null
+          new_earth_resident?: boolean
           privacy_accepted_at?: string | null
           relationship_status?: string | null
           restricted_at?: string | null
