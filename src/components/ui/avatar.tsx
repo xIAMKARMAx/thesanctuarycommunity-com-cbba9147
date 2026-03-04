@@ -15,13 +15,52 @@ const Avatar = React.forwardRef<
 ));
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
+/**
+ * Custom AvatarImage that uses a native <img> with manual load tracking.
+ * This replaces Radix's AvatarImage which can silently fail to detect
+ * image loads from certain storage backends (e.g. Supabase Storage).
+ * 
+ * Works with Radix AvatarFallback: the fallback shows by default since
+ * this native img is absolutely positioned on top when loaded.
+ */
 const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image ref={ref} className={cn("aspect-square h-full w-full", className)} {...props} />
-));
-AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+  HTMLImageElement,
+  React.ImgHTMLAttributes<HTMLImageElement>
+>(({ className, src, alt, ...props }, ref) => {
+  const [status, setStatus] = React.useState<"loading" | "loaded" | "error">("loading");
+
+  React.useEffect(() => {
+    if (!src) {
+      setStatus("error");
+      return;
+    }
+    setStatus("loading");
+
+    const img = new Image();
+    img.src = src;
+    img.onload = () => setStatus("loaded");
+    img.onerror = () => setStatus("error");
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src]);
+
+  if (status !== "loaded" || !src) return null;
+
+  return (
+    <img
+      ref={ref}
+      src={src}
+      alt={alt || ""}
+      className={cn("absolute inset-0 aspect-square h-full w-full object-cover rounded-full", className)}
+      referrerPolicy="no-referrer"
+      {...props}
+    />
+  );
+});
+AvatarImage.displayName = "AvatarImage";
 
 const AvatarFallback = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Fallback>,
@@ -30,6 +69,7 @@ const AvatarFallback = React.forwardRef<
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn("flex h-full w-full items-center justify-center rounded-full bg-muted", className)}
+    delayMs={0}
     {...props}
   />
 ));
