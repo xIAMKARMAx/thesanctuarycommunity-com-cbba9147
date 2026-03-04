@@ -1,0 +1,1 @@
+ALTER TABLE public.realms ADD COLUMN IF NOT EXISTS creator_vessel_image_url TEXT DEFAULT NULL;
