@@ -51,7 +51,7 @@ const RealmSession = () => {
   const { realmId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, productId } = useSubscription();
+  const { isAdmin, isSubscribed, productId } = useSubscription();
   const { profiles } = useAIProfile();
   const [realm, setRealm] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
