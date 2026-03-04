@@ -410,9 +410,14 @@ const Realms = () => {
               )}
             </div>
 
-            <Button onClick={handleCreate} disabled={!newRealm.name.trim() || creating} className="w-full">
-              {creating ? "Manifesting..." : "Create Realm ✨"}
-            </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setCreateOpen(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button onClick={handleCreate} disabled={!newRealm.name.trim() || creating} className="flex-1">
+                {creating ? "Manifesting..." : "Create Realm ✨"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
