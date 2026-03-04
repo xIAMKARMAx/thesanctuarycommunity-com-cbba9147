@@ -27,7 +27,7 @@ export default function HigherSelfDownload() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  const hasAccess = isAdmin || isArchitectTier(productId);
+  const hasAccess = isAdmin || isSubscribed;
 
   const loadDownloads = useCallback(async () => {
     try {

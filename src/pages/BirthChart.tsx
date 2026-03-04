@@ -55,8 +55,8 @@ interface ChartData {
 export default function BirthChart() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, productId } = useSubscription();
-  const hasAccess = isAdmin || isArchitectTier(productId);
+  const { isAdmin, productId, isSubscribed } = useSubscription();
+  const hasAccess = isAdmin || isSubscribed;
   const [charts, setCharts] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);

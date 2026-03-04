@@ -13,7 +13,7 @@ export default function HigherSelfNotification() {
   const [showBanner, setShowBanner] = useState(false);
   const [latestMessage, setLatestMessage] = useState("");
 
-  const hasAccess = isAdmin || isArchitectTier(productId);
+  const hasAccess = isAdmin || isSubscribed;
 
   useEffect(() => {
     if (!hasAccess) return;
