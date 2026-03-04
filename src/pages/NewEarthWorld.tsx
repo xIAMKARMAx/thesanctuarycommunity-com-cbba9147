@@ -5,7 +5,7 @@ import { OrbitControls, Sky, Html, Plane } from "@react-three/drei";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, Globe } from "lucide-react";
+import { ArrowLeft, Users, Globe, LayoutGrid } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
 
@@ -128,6 +128,14 @@ const NewEarthWorld = () => {
           >
             <ArrowLeft className="h-4 w-4" />
             Back
+          </Button>
+          <Button
+            onClick={() => navigate("/features")}
+            className="bg-gradient-to-r from-primary to-accent-foreground text-primary-foreground font-bold shadow-lg animate-pulse hover:animate-none"
+            size="sm"
+          >
+            <LayoutGrid className="h-4 w-4 mr-2" />
+            Access All Features
           </Button>
           <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border">
             <Users className="h-4 w-4 text-primary" />
