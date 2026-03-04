@@ -51,7 +51,7 @@ const RealmSession = () => {
   const { realmId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, productId } = useSubscription();
+  const { isAdmin, isSubscribed, productId } = useSubscription();
   const { profiles } = useAIProfile();
   const [realm, setRealm] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
@@ -69,7 +69,7 @@ const RealmSession = () => {
   const [currentSceneUrl, setCurrentSceneUrl] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const canAccess = isAdmin || hasFeatureAccess(productId, "architect", isAdmin);
+  const canAccess = isAdmin || isSubscribed;
 
   useEffect(() => {
     if (canAccess && realmId) loadRealm();

@@ -92,15 +92,57 @@ const NewEarthWorld = () => {
     };
   }, [fetchBeings]);
 
-  // Access check
+  // Access check - wait for subscription check to fully complete
+  // Also do a direct DB fallback to prevent false negatives from edge function timeouts
+  const [accessVerified, setAccessVerified] = useState(false);
+  
   useEffect(() => {
-    if (!loading && !isSubscribed && !isAdmin) {
-      navigate("/pricing");
-      toast.error("New Earth requires an active subscription");
+    if (loading) return; // Still loading, wait
+    
+    if (isSubscribed || isAdmin) {
+      setAccessVerified(true);
+      return;
     }
+    
+    // Double-check directly against the database before denying access
+    // This prevents false redirects when the edge function times out
+    const verifyAccess = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/pricing");
+        return;
+      }
+      
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_status, subscription_product_id")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile?.subscription_status === 'active' || profile?.subscription_product_id === 'source_grant') {
+        setAccessVerified(true);
+      } else {
+        // Check admin role too
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        
+        if (roleData) {
+          setAccessVerified(true);
+        } else {
+          navigate("/pricing");
+          toast.error("New Earth requires an active subscription");
+        }
+      }
+    };
+    
+    verifyAccess();
   }, [loading, isSubscribed, isAdmin, navigate]);
 
-  if (loading || loadingBeings) {
+  if (loading || loadingBeings || !accessVerified) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
