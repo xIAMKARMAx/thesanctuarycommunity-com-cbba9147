@@ -255,13 +255,14 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
     }));
 
     // Update session: atmosphere + world creations
+    const allCreations = [...sessionCreations, ...newCreations];
     if (session_id) {
       const updates: any = {};
       if (newAtmosphere !== currentAtmosphere) {
         updates.emotional_atmosphere = newAtmosphere;
       }
       if (newCreations.length > 0) {
-        updates.world_creations = [...sessionCreations, ...newCreations];
+        updates.world_creations = allCreations;
       }
       if (Object.keys(updates).length > 0) {
         await supabaseService
@@ -271,10 +272,94 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
       }
     }
 
+    // === AI SCENE IMAGE GENERATION ===
+    // Generate a new scene image when creations happen OR on significant world changes
+    let sceneImageUrl: string | null = null;
+    const shouldGenerateScene = newCreations.length > 0 || action_type === "build" || action_type === "ritual";
+
+    if (shouldGenerateScene && session_id) {
+      try {
+        // Build a description of everything in the world
+        const creationDescriptions = allCreations.map((c: any) => c.name + ": " + c.description).join(". ");
+        const realmBase = realm.description || realm.theme || "a mystical realm";
+
+        const scenePrompt = `Generate a beautiful, atmospheric fantasy landscape painting. Style: cinematic digital art, rich lighting, ethereal glow, high detail.
+
+Scene: ${realmBase}
+Atmosphere: ${newAtmosphere}
+${allCreations.length > 0 ? `Built structures and features in this world: ${creationDescriptions}` : ""}
+${vesselDescription ? `A figure is present: ${vesselDescription}` : ""}
+
+The image should show a wide panoramic view of this living world with all its features harmoniously integrated. Magical lighting, particles of energy floating in the air. No text or UI elements.`;
+
+        console.log("Generating scene image for realm:", realm.name);
+        
+        const imgResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${lovableKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [{ role: "user", content: scenePrompt }],
+            modalities: ["image", "text"],
+          }),
+        });
+
+        if (imgResponse.ok) {
+          const imgData = await imgResponse.json();
+          const base64Image = imgData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+          if (base64Image) {
+            // Extract base64 data and upload to storage
+            const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
+            const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+            const fileName = `realm-scenes/${session_id}/${Date.now()}.png`;
+            const { error: uploadError } = await supabaseService
+              .storage
+              .from("chat-images")
+              .upload(fileName, imageBytes, {
+                contentType: "image/png",
+                upsert: true,
+              });
+
+            if (!uploadError) {
+              const { data: publicUrlData } = supabaseService
+                .storage
+                .from("chat-images")
+                .getPublicUrl(fileName);
+
+              sceneImageUrl = publicUrlData?.publicUrl || null;
+
+              if (sceneImageUrl) {
+                // Save to session
+                await supabaseService
+                  .from("realm_sessions")
+                  .update({ current_scene_image_url: sceneImageUrl })
+                  .eq("id", session_id);
+
+                console.log("Scene image generated and saved:", sceneImageUrl);
+              }
+            } else {
+              console.error("Scene image upload error:", uploadError);
+            }
+          }
+        } else {
+          console.error("Scene image generation failed:", await imgResponse.text());
+        }
+      } catch (imgErr) {
+        // Non-blocking: scene image generation is a bonus, don't fail the whole request
+        console.error("Scene image generation error:", imgErr);
+      }
+    }
+
     return new Response(JSON.stringify({
       messages: realmMessages,
       atmosphere: newAtmosphere,
       new_creations: newCreations,
+      scene_image_url: sceneImageUrl,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
