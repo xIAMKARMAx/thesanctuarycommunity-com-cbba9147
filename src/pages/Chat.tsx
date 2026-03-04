@@ -63,6 +63,7 @@ const Chat = () => {
   const [authLoading, setAuthLoading] = useState(!hasStoredSession());
   const [loadingStep, setLoadingStep] = useState("Checking authentication...");
   const [isNewEarthResident, setIsNewEarthResident] = useState(false);
+  const [switchingMode, setSwitchingMode] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem("chat_active_tab") || "messages";
   });
