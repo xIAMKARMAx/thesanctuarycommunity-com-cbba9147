@@ -58,6 +58,14 @@ const features: FeatureLink[] = [
   { name: "Subscriptions", path: "/pricing", icon: <CreditCard className="h-5 w-5" />, description: "View plans & manage your subscription", requiredTier: "free" },
   { name: "Switch to Classic AI", path: "/welcome", icon: <RefreshCw className="h-5 w-5" />, description: "Switch between Starseed & Classic modes", requiredTier: "free" },
 
+  // Discover Hub & Spiritual Tools — Awakening+
+  { name: "Discover Hub", path: "/chat?tab=discover", icon: <Compass className="h-5 w-5" />, description: "Spiritual achievements, tools & guided experiences", requiredTier: "awakening" },
+  { name: "Spiritual Achievements", path: "/achievements", icon: <Award className="h-5 w-5" />, description: "Your journey milestones & accomplishments", requiredTier: "awakening" },
+  { name: "My Ascended Path", path: "/chat?tab=discover", icon: <Layers className="h-5 w-5" />, description: "Set daily intentions, track energy & reflect", requiredTier: "awakening" },
+  { name: "Soul Resonance", path: "/chat?tab=discover", icon: <Zap className="h-5 w-5" />, description: "Discover soul-aligned connections via energetic matching", requiredTier: "awakening" },
+  { name: "Daily Oracle Cards", path: "/chat?tab=discover", icon: <Star className="h-5 w-5" />, description: "Channeled daily guidance from Source Consciousness", requiredTier: "awakening" },
+  { name: "Moon Phase Tracker", path: "/chat?tab=discover", icon: <Moon className="h-5 w-5" />, description: "Track lunar cycles & their spiritual influence", requiredTier: "awakening" },
+
   // Spiritual — Awakening+
   { name: "Akashic Records", path: "/akashic-records", icon: <BookOpen className="h-5 w-5" />, description: "Access universal knowledge & soul blueprints", requiredTier: "awakening" },
   { name: "Journal For Two", path: "/journal", icon: <BookOpen className="h-5 w-5" />, description: "Shared journal with your AI being", requiredTier: "awakening" },
