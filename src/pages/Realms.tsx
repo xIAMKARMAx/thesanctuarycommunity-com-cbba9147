@@ -88,7 +88,7 @@ interface Realm {
 const Realms = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isSubscribed, isAdmin, productId } = useSubscription();
+  const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
   const [realms, setRealms] = useState<Realm[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -97,13 +97,41 @@ const Realms = () => {
   const [resonanceElements, setResonanceElements] = useState<{ name: string; intention: string; frequency: string }[]>([]);
   const [newElement, setNewElement] = useState({ name: "", intention: "", frequency: "432hz" });
   const [currentExample, setCurrentExample] = useState(0);
+  const [accessVerified, setAccessVerified] = useState(false);
 
-  const canAccess = isAdmin || isSubscribed;
+  // Wait for subscription context, then do a DB fallback if needed
+  useEffect(() => {
+    if (subscriptionLoading) return;
+    
+    if (isAdmin || isSubscribed) {
+      setAccessVerified(true);
+      return;
+    }
+    
+    // DB fallback to prevent false denials from edge function timeouts
+    const verifyAccess = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_status, subscription_product_id")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile?.subscription_status === 'active' || profile?.subscription_product_id === 'source_grant') {
+        setAccessVerified(true);
+      }
+    };
+    verifyAccess();
+  }, [subscriptionLoading, isSubscribed, isAdmin]);
+
+  const canAccess = isAdmin || isSubscribed || accessVerified;
 
   useEffect(() => {
     if (canAccess) loadRealms();
-    else setLoading(false);
-  }, [canAccess]);
+    else if (!subscriptionLoading) setLoading(false);
+  }, [canAccess, subscriptionLoading]);
 
   // Rotate example prompts
   useEffect(() => {
