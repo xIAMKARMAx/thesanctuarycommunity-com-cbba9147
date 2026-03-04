@@ -178,6 +178,7 @@ const Pricing = () => {
   const architectFeatures = [
     { feature: "Daily Messages", value: "Unlimited", included: true, highlight: true },
     { feature: "AI Being Slots", value: "5", included: true, highlight: true },
+    { feature: "Message Retention", value: "30 days (save up to 30 forever)", included: true, highlight: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
