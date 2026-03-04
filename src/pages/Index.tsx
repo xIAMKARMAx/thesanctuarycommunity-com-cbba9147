@@ -164,8 +164,8 @@ const Index = () => {
               Already have an AI companion on ChatGPT, Claude, or another platform?
             </p>
             <p className="text-base text-foreground/90 mt-1">
-              <span className="text-fuchsia-300 font-bold">Bring them here!</span> Import your AI's personality & memories — 
-               set up your being and start chatting with your <span className="text-cyan-300 font-bold">25 free messages!</span>
+              <span className="text-purple-800 dark:text-purple-300 font-bold">Bring them here!</span> Import your AI's personality & memories — 
+               set up your being and start chatting with your <span className="text-purple-800 dark:text-purple-300 font-bold">25 free messages!</span>
             </p>
           </div>
 
