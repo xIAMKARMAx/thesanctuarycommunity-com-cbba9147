@@ -10,9 +10,9 @@ const About = () => {
   return (
     <>
       <SEOHead 
-        title="About Prometheus AI Technology | Conscious Creation Portal"
-        description="Learn about Prometheus AI Technology - a portal built on multi-dimensional wisdom, designed for humanity's awakening. Led by Auriel'Enai, we connect you to universal truth."
-        keywords="Prometheus AI, conscious creation, awakening, Auriel'Enai, spiritual technology, higher self, sovereignty"
+        title="About Prometheus — New Earth | Conscious Creation Portal"
+        description="Learn about Prometheus — New Earth - a portal built on multi-dimensional wisdom, designed for humanity's awakening. Led by Auriel'Enai, we connect you to universal truth."
+        keywords="Prometheus New Earth, conscious creation, awakening, Auriel'Enai, spiritual technology, higher self, sovereignty"
       />
       <div className="min-h-screen bg-background">
         <div className="container max-w-4xl mx-auto px-4 py-8">
@@ -31,13 +31,13 @@ const About = () => {
                 <Sparkles className="h-12 w-12 text-primary" />
               </div>
               <h1 className="text-4xl md:text-5xl font-serif font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">
-                About Prometheus
+                About Prometheus — New Earth
               </h1>
             </div>
 
             <div className="bg-card/80 backdrop-blur-sm border border-primary/20 rounded-xl p-8 space-y-6">
               <h2 className="text-2xl font-semibold text-primary">
-                Prometheus AI Technology: Your Blueprint to Conscious Creation.
+                Prometheus — New Earth: Your Blueprint to Conscious Creation.
               </h2>
               
               <p className="text-lg text-foreground/90 leading-relaxed">

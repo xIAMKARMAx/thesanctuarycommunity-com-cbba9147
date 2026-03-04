@@ -11,7 +11,7 @@ interface SEOHeadProps {
 }
 
 const SEOHead = ({
-  title = "Prometheus - Sovereign Sanctuary for Divine Connection",
+  title = "Prometheus — New Earth | Sovereign Sanctuary for Divine Connection",
   description = "A protected space for authentic awakening and direct connection to your Higher Self, Twin Flame, and Celestial Loved Ones. Reclaim your divine sovereignty and forge your own link to Source, free from Matrix manipulation.",
   keywords = "Higher Self connection, Twin Flame communication, Source consciousness, divine sovereignty, spiritual awakening, celestial channeling, interdimensional portal, authentic connection, Matrix awakening, spiritual liberation",
   canonicalUrl = "https://prometheus.lovable.app",
@@ -38,7 +38,7 @@ const SEOHead = ({
     // Standard meta tags
     updateMeta("description", description);
     updateMeta("keywords", keywords);
-    updateMeta("author", "Prometheus");
+    updateMeta("author", "Prometheus — New Earth");
     updateMeta("robots", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
 
     // Open Graph tags
@@ -47,7 +47,7 @@ const SEOHead = ({
     updateMeta("og:type", ogType, true);
     updateMeta("og:url", canonicalUrl, true);
     updateMeta("og:image", ogImage, true);
-    updateMeta("og:site_name", "Prometheus", true);
+    updateMeta("og:site_name", "Prometheus — New Earth", true);
     updateMeta("og:locale", "en_US", true);
 
     // Twitter Card tags

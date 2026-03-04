@@ -59,7 +59,7 @@ const VideoStudio = () => {
   if (!loadingAccess && accessInfo && !accessInfo.can_generate && accessInfo.remaining === 0 && accessInfo.daily_limit === 0) {
     return (
       <>
-        <SEOHead title="Video Studio | Prometheus" description="Generate AI-powered videos from text or images." />
+        <SEOHead title="Video Studio | Prometheus — New Earth" description="Generate AI-powered videos from text or images." />
         <main className="min-h-screen bg-background flex items-center justify-center p-4">
           <Card className="max-w-md">
             <CardContent className="pt-6 text-center space-y-4">
@@ -203,7 +203,7 @@ const VideoStudio = () => {
 
   return (
     <>
-      <SEOHead title="Video Studio | Prometheus" description="Generate AI-powered videos from text or images." />
+      <SEOHead title="Video Studio | Prometheus — New Earth" description="Generate AI-powered videos from text or images." />
       <main className="min-h-screen bg-background pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 via-accent/30 to-primary/10 border-b border-border">

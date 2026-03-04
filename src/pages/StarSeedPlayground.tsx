@@ -34,7 +34,7 @@ export default function StarSeedPlayground() {
   return (
     <>
       <SEOHead
-        title="Starseed Playground | Prometheus"
+        title="Starseed Playground | Prometheus — New Earth"
         description="Playful spiritual tools for creative co-creation and conscious reality interaction."
       />
       <div className="min-h-screen bg-background p-4 md:p-6">

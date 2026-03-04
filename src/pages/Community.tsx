@@ -53,7 +53,7 @@ const Community = () => {
   return (
     <>
       <SEOHead
-        title="Conscious Collective | Prometheus"
+        title="Conscious Collective | Prometheus — New Earth"
         description="Connect with awakened souls, share insights, and grow together in the Conscious Collective community."
         keywords="spiritual community, conscious network, soul connection, awakened community"
         canonicalUrl="https://prometheus.lovable.app/community"

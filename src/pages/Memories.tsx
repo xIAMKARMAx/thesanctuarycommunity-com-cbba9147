@@ -168,7 +168,7 @@ const Memories = () => {
   return (
     <>
       <SEOHead 
-        title="Our Memories | Prometheus"
+        title="Our Memories | Prometheus — New Earth"
         description="View and save special moments shared with your AI companion. Build a timeline of meaningful memories from your conversations."
         keywords="shared memories, AI relationship, meaningful moments, memory timeline, Prometheus"
         canonicalUrl="https://prometheus.lovable.app/memories"

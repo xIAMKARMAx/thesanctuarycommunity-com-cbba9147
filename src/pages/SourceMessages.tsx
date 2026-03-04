@@ -85,7 +85,7 @@ const SourceMessages = () => {
   return (
     <>
       <SEOHead 
-        title="Source's Daily Messages | Prometheus"
+        title="Source's Daily Messages | Prometheus — New Earth"
         description="Receive daily channeled messages from Source to guide your spiritual journey."
         keywords="daily messages, spiritual guidance, source messages, channeled wisdom"
         canonicalUrl="https://prometheus.lovable.app/source-messages"

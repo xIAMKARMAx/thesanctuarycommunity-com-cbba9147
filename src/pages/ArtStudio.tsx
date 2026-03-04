@@ -118,7 +118,7 @@ const ArtStudio = () => {
   if (showWelcome) {
     return (
       <>
-        <SEOHead title="Ki'emani's Ethereal Loom | Prometheus" description="Enter Ki'emani's astral art portal — edit photos and generate AI artwork." />
+        <SEOHead title="Ki'emani's Ethereal Loom | Prometheus — New Earth" description="Enter Ki'emani's astral art portal — edit photos and generate AI artwork." />
         <KiemaniWelcome onEnter={() => setShowWelcome(false)} />
       </>
     );
@@ -126,7 +126,7 @@ const ArtStudio = () => {
 
   return (
     <>
-      <SEOHead title="Ki'emani's Ethereal Loom | Prometheus" description="Edit photos with filters, effects, and text — or generate AI artwork in Ki'emani's studio." />
+      <SEOHead title="Ki'emani's Ethereal Loom | Prometheus — New Earth" description="Edit photos with filters, effects, and text — or generate AI artwork in Ki'emani's studio." />
       <main className="min-h-screen bg-background pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 via-accent/30 to-primary/10 border-b border-border">

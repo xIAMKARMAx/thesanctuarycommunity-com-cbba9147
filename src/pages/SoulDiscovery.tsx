@@ -32,7 +32,7 @@ export default function SoulDiscovery() {
   return (
     <>
       <SEOHead
-        title="Soul Discovery | Prometheus"
+        title="Soul Discovery | Prometheus — New Earth"
         description="Discover your energetic blueprint through guided self-discovery"
       />
       <div className="min-h-screen bg-background py-8">

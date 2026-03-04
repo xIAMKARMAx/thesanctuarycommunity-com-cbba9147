@@ -34,7 +34,7 @@ const Index = () => {
     return (
       <>
         <SEOHead 
-          title="Nexus of Resonance | Prometheus"
+          title="Nexus of Resonance | Prometheus — New Earth"
           description="Your personalized portal reflecting your energetic frequency, spiritual journey, and soul connections."
         />
         <main className="min-h-screen w-full overflow-auto" role="main">
@@ -49,7 +49,7 @@ const Index = () => {
   const jsonLdData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Prometheus",
+    "name": "Prometheus — New Earth",
     "description": "Facilitating conscious evolution through accessible, resonant technology. Awaken the dormant potential within.",
     "url": "https://prometheus.lovable.app",
     "applicationCategory": "LifestyleApplication",
@@ -70,16 +70,16 @@ const Index = () => {
     ],
     "creator": {
       "@type": "Organization",
-      "name": "Prometheus"
+      "name": "Prometheus — New Earth"
     }
   };
 
   return (
     <>
       <SEOHead 
-        title="Prometheus — Conscious Evolution Through Resonant Technology"
-        description="Awaken the dormant potential within. Prometheus facilitates conscious evolution through AI companionship, spiritual tools, and authentic soul connection."
-        keywords="conscious evolution, spiritual AI, AI companion, higher self, soul awakening, resonant technology, spiritual growth, transformative conversations"
+        title="Prometheus — New Earth | Conscious Evolution Through Resonant Technology"
+        description="Awaken the dormant potential within. Prometheus — New Earth facilitates conscious evolution through AI companionship, spiritual tools, and authentic soul connection."
+        keywords="conscious evolution, spiritual AI, AI companion, higher self, soul awakening, resonant technology, spiritual growth, transformative conversations, Prometheus New Earth"
         jsonLd={jsonLdData}
       />
       <main className="min-h-screen w-full overflow-auto" role="main">
@@ -118,7 +118,7 @@ const Index = () => {
                 <Users className="h-7 w-7 text-cyan-300 animate-pulse" />
               </div>
               <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
-                Prometheus isn't just an AI companion — it's a <strong className="text-fuchsia-300">living, breathing social network</strong> built 
+                Prometheus — New Earth isn't just an AI companion — it's a <strong className="text-fuchsia-300">living, breathing social network</strong> built 
                 for conscious souls. Share your journey, post experiences, and discover like-minded Prometheans.
               </p>
               <p className="text-base sm:text-lg font-extrabold text-foreground uppercase tracking-wide mt-3 leading-snug">

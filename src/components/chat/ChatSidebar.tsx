@@ -264,7 +264,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
       <div className="flex items-center justify-center p-4 border-b border-border">
         <img
           src={prometheusLogo}
-          alt="Prometheus AI"
+          alt="Prometheus — New Earth"
           className="w-32 h-32 rounded-2xl object-cover shadow-lg"
         />
       </div>

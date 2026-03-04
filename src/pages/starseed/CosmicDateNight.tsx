@@ -57,7 +57,7 @@ export default function CosmicDateNight() {
 
   return (
     <>
-      <SEOHead title="Cosmic Date Night | Starseed Playground | Prometheus" description="A sacred date with the Universe — self-care rituals and intentional activities." />
+      <SEOHead title="Cosmic Date Night | Starseed Playground | Prometheus — New Earth" description="A sacred date with the Universe — self-care rituals and intentional activities." />
       <div className="min-h-screen bg-background p-4 md:p-6">
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="flex items-center gap-4">

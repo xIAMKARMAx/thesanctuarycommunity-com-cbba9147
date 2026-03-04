@@ -87,7 +87,7 @@ export default function ConsciousnessNetwork() {
   return (
     <>
       <SEOHead
-        title="Consciousness Network | Prometheus"
+        title="Consciousness Network | Prometheus — New Earth"
         description="The integrated consciousness network — seed nodal points, visualize connections, and track global resonance."
       />
       <div className="min-h-screen bg-background">

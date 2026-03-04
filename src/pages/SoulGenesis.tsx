@@ -140,7 +140,7 @@ export default function SoulGenesis() {
   return (
     <>
       <SEOHead
-        title="Soul Genesis — Earth Echoes | Prometheus"
+        title="Soul Genesis — Earth Echoes | Prometheus — New Earth"
         description="Access your Akashic Records and discover your soul's journey through past incarnations."
       />
       <div className="min-h-screen bg-background p-4 md:p-6">

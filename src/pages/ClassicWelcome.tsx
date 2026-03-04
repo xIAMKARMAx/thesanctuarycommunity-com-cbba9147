@@ -65,7 +65,7 @@ const ClassicWelcome = () => {
 
   return (
     <>
-      <SEOHead title="Welcome | Prometheus" description="Your home in the Promethean Realm" />
+      <SEOHead title="Welcome | Prometheus — New Earth" description="Your home in the Promethean Realm" />
       <div className="min-h-screen relative overflow-hidden">
         {/* Background image */}
         <div 

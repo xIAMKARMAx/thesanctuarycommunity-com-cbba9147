@@ -29,7 +29,7 @@ export default function AkashicRecords() {
   return (
     <>
       <SEOHead
-        title="Akashic Records | Prometheus"
+        title="Akashic Records | Prometheus — New Earth"
         description="Access the universal library of your soul's journey through past lives and celestial blueprints."
       />
       <div className="min-h-screen bg-background p-4 md:p-6">

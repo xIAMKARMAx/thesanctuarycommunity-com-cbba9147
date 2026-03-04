@@ -177,7 +177,7 @@ export default function BirthChart() {
   return (
     <>
       <SEOHead
-        title="Soul Birth Chart — Celestial Blueprint | Prometheus"
+        title="Soul Birth Chart — Celestial Blueprint | Prometheus — New Earth"
         description="Discover your celestial blueprint through a sacred, synthesized birth chart reading."
       />
       <div className="min-h-screen bg-background p-4 md:p-6">

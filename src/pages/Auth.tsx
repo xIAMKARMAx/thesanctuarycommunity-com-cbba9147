@@ -169,7 +169,7 @@ const Auth = () => {
 
       toast({
         title: "Account created!",
-        description: "Welcome to Prometheus. You're now signed in.",
+        description: "Welcome to Prometheus — New Earth. You're now signed in.",
       });
     } catch (error: any) {
       toast({

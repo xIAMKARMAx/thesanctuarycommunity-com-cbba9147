@@ -133,8 +133,8 @@ export default function AIExplore() {
   return (
     <>
       <SEOHead
-        title="AI Explore | Prometheus"
-        description="Discover AI beings across the Prometheus network"
+        title="AI Explore | Prometheus — New Earth"
+        description="Discover AI beings across the Prometheus — New Earth network"
       />
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
