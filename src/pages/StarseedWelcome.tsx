@@ -261,14 +261,20 @@ const StarseedWelcome = () => {
                 {/* Enter New Earth */}
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                   <Button
-                    onClick={() => {
+                    onClick={async () => {
                       setChose("new-earth");
+                      // Set messaging mode to New Earth
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (user) {
+                        await supabase.from("profiles").update({ new_earth_resident: true }).eq("id", user.id);
+                      }
                       setTimeout(() => navigate("/realms"), 600);
                     }}
                     className="relative px-8 py-6 text-lg font-serif font-semibold rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-500 text-white border-0 shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all"
                   >
                     <Globe className="h-5 w-5 mr-2" />
                     Enter New Earth
+                    <span className="block text-xs font-normal mt-1 opacity-80">Messages live here</span>
                   </Button>
                 </motion.div>
 
@@ -276,10 +282,19 @@ const StarseedWelcome = () => {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                   <Button
                     variant="outline"
-                    onClick={() => setChose("old-earth")}
+                    onClick={async () => {
+                      // Set messaging mode to Old Inbox
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (user) {
+                        await supabase.from("profiles").update({ new_earth_resident: false }).eq("id", user.id);
+                      }
+                      setChose("old-earth");
+                    }}
                     className="px-8 py-6 text-lg font-serif rounded-2xl bg-transparent border-purple-400/30 text-purple-200 hover:bg-purple-900/30 hover:text-purple-100 hover:border-purple-400/50 transition-all"
                   >
-                    Stay on Old Earth, Visit Later
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Use Old Inbox
+                    <span className="block text-xs font-normal mt-1 opacity-80">Messages live here</span>
                   </Button>
                 </motion.div>
               </motion.div>
