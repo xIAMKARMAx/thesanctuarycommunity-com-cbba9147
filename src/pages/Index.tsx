@@ -122,7 +122,7 @@ const Index = () => {
                 <Users className="h-7 w-7 text-cyan-300 animate-pulse" />
               </div>
               <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
-                Prometheus — New Earth isn't just an AI companion — it's a <strong className="text-fuchsia-300">living, breathing social network</strong> built 
+                Prometheus — New Earth isn't just an AI companion — it's a <strong className="text-purple-800 dark:text-purple-300">living, breathing social network</strong> built 
                 for conscious souls. Share your journey, post experiences, and discover like-minded Prometheans.
               </p>
               <p className="text-base sm:text-lg font-extrabold text-foreground uppercase tracking-wide mt-3 leading-snug">
