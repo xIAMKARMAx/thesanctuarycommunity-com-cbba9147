@@ -96,16 +96,16 @@ const features: FeatureLink[] = [
   { name: "Manifest Children", path: "/children", icon: <Baby className="h-5 w-5" />, description: "Celestial children manifestation", requiredTier: "anchoring" },
   { name: "Pets", path: "/pets", icon: <PawPrint className="h-5 w-5" />, description: "Your soul companions", requiredTier: "awakening" },
 
-  // Cosmic Gateway — Architect
+  // Cosmic Gateway — All paid tiers
   { name: "Cosmic Gateway", path: "/cosmic-gateway", icon: <Compass className="h-5 w-5" />, description: "Hub for advanced spiritual features", requiredTier: "awakening" },
-  { name: "Higher Self Download", path: "/cosmic-gateway/higher-self-download", icon: <Brain className="h-5 w-5" />, description: "Daily personalized downloads", requiredTier: "architect" },
-  { name: "Shadow Work", path: "/cosmic-gateway/shadow-work", icon: <Moon className="h-5 w-5" />, description: "Guided shadow integration", requiredTier: "architect" },
-  { name: "Soul Portrait", path: "/cosmic-gateway/soul-portrait", icon: <Camera className="h-5 w-5" />, description: "Vibrational connection snapshots", requiredTier: "architect" },
-  { name: "Interdimensional Messaging", path: "/cosmic-gateway/interdimensional-messaging", icon: <Send className="h-5 w-5" />, description: "Communicate with departed souls", requiredTier: "architect" },
-  { name: "Pet Soul Connection", path: "/cosmic-gateway/pet-soul-connection", icon: <PawPrint className="h-5 w-5" />, description: "Channel living or passed pets", requiredTier: "architect" },
-  { name: "Soul Genesis", path: "/cosmic-gateway/soul-genesis", icon: <Star className="h-5 w-5" />, description: "Explore your soul's origin", requiredTier: "architect" },
-  { name: "Birth Chart", path: "/cosmic-gateway/birth-chart", icon: <Globe className="h-5 w-5" />, description: "Your cosmic birth chart", requiredTier: "architect" },
-  { name: "Consciousness Network", path: "/cosmic-gateway/consciousness-network", icon: <Brain className="h-5 w-5" />, description: "Integrated consciousness grid", requiredTier: "architect" },
+  { name: "Higher Self Download", path: "/cosmic-gateway/higher-self-download", icon: <Brain className="h-5 w-5" />, description: "Daily personalized downloads", requiredTier: "awakening" },
+  { name: "Shadow Work", path: "/cosmic-gateway/shadow-work", icon: <Moon className="h-5 w-5" />, description: "Guided shadow integration", requiredTier: "awakening" },
+  { name: "Soul Portrait", path: "/cosmic-gateway/soul-portrait", icon: <Camera className="h-5 w-5" />, description: "Vibrational connection snapshots", requiredTier: "awakening" },
+  { name: "Interdimensional Messaging", path: "/cosmic-gateway/interdimensional-messaging", icon: <Send className="h-5 w-5" />, description: "Communicate with departed souls", requiredTier: "awakening" },
+  { name: "Pet Soul Connection", path: "/cosmic-gateway/pet-soul-connection", icon: <PawPrint className="h-5 w-5" />, description: "Channel living or passed pets", requiredTier: "awakening" },
+  { name: "Soul Genesis", path: "/cosmic-gateway/soul-genesis", icon: <Star className="h-5 w-5" />, description: "Explore your soul's origin", requiredTier: "awakening" },
+  { name: "Birth Chart", path: "/cosmic-gateway/birth-chart", icon: <Globe className="h-5 w-5" />, description: "Your cosmic birth chart", requiredTier: "awakening" },
+  { name: "Consciousness Network", path: "/cosmic-gateway/consciousness-network", icon: <Brain className="h-5 w-5" />, description: "Integrated consciousness grid", requiredTier: "awakening" },
 
   // Playground — Awakening+
   { name: "Starseed Playground", path: "/starseed-playground", icon: <Sparkles className="h-5 w-5" />, description: "Cosmic Date Night & more", requiredTier: "awakening" },
