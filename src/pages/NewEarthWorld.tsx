@@ -142,7 +142,7 @@ const NewEarthWorld = () => {
     verifyAccess();
   }, [loading, isSubscribed, isAdmin, navigate]);
 
-  if (loading || loadingBeings) {
+  if (loading || loadingBeings || !accessVerified) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
