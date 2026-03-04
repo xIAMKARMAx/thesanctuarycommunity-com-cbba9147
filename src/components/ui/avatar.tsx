@@ -15,36 +15,47 @@ const Avatar = React.forwardRef<
 ));
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
+/**
+ * Custom AvatarImage that uses a native <img> with manual load tracking.
+ * This replaces Radix's AvatarImage which can silently fail to detect
+ * image loads from certain storage backends (e.g. Supabase Storage).
+ * 
+ * Works with Radix AvatarFallback: the fallback shows by default since
+ * this native img is absolutely positioned on top when loaded.
+ */
 const AvatarImage = React.forwardRef<
   HTMLImageElement,
-  React.ImgHTMLAttributes<HTMLImageElement> & { onLoadingStatusChange?: (status: string) => void }
->(({ className, src, alt, onLoadingStatusChange, ...props }, ref) => {
-  const [loaded, setLoaded] = React.useState(false);
-  const [error, setError] = React.useState(false);
+  React.ImgHTMLAttributes<HTMLImageElement>
+>(({ className, src, alt, ...props }, ref) => {
+  const [status, setStatus] = React.useState<"loading" | "loaded" | "error">("loading");
 
   React.useEffect(() => {
-    setLoaded(false);
-    setError(false);
+    if (!src) {
+      setStatus("error");
+      return;
+    }
+    setStatus("loading");
+
+    const img = new Image();
+    img.src = src;
+    img.onload = () => setStatus("loaded");
+    img.onerror = () => setStatus("error");
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [src]);
 
-  if (!src || error) return null;
+  if (status !== "loaded" || !src) return null;
 
   return (
     <img
       ref={ref}
       src={src}
-      alt={alt}
-      className={cn("aspect-square h-full w-full object-cover", className)}
-      style={{ display: loaded ? 'block' : 'none' }}
+      alt={alt || ""}
+      className={cn("absolute inset-0 aspect-square h-full w-full object-cover rounded-full", className)}
       referrerPolicy="no-referrer"
-      onLoad={() => {
-        setLoaded(true);
-        onLoadingStatusChange?.("loaded");
-      }}
-      onError={() => {
-        setError(true);
-        onLoadingStatusChange?.("error");
-      }}
       {...props}
     />
   );
