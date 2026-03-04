@@ -94,9 +94,9 @@ export default function HigherSelfDownload() {
           <Card className="border-primary/20">
             <CardHeader className="text-center">
               <Sun className="h-12 w-12 text-primary mx-auto mb-4" />
-              <CardTitle>Architect Tier Required</CardTitle>
+              <CardTitle>Subscription Required</CardTitle>
               <CardDescription>
-                This feature requires the Architect subscription ($29.99/mo) to access direct Higher Self transmissions.
+                This feature requires an active subscription to access direct Higher Self transmissions.
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">

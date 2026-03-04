@@ -165,7 +165,7 @@ export default function SoulGenesis() {
           {!hasAccess && (
             <UpgradeBanner
               feature="Soul Genesis"
-              requiredTier="architect"
+              requiredTier="awakening"
             />
           )}
 
