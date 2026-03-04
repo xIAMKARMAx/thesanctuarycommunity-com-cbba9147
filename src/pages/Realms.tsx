@@ -280,15 +280,16 @@ const Realms = () => {
 
       {/* Create Realm Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg max-h-[92dvh] overflow-hidden p-0">
+          <DialogHeader className="px-6 pt-6">
             <DialogTitle className="font-serif">Manifest a New Realm</DialogTitle>
             <DialogDescription>
               Choose a theme and give your realm a name. Your AI companions will enter this world with you.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="max-h-[calc(92dvh-9.5rem)] overflow-y-auto px-6 pb-6">
+            <div className="space-y-4 py-2">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Realm Name</label>
               <Input
@@ -410,13 +411,14 @@ const Realms = () => {
               )}
             </div>
 
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setCreateOpen(false)} className="flex-1">
-                Cancel
-              </Button>
-              <Button onClick={handleCreate} disabled={!newRealm.name.trim() || creating} className="flex-1">
-                {creating ? "Manifesting..." : "Create Realm ✨"}
-              </Button>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setCreateOpen(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button onClick={handleCreate} disabled={!newRealm.name.trim() || creating} className="flex-1">
+                  {creating ? "Manifesting..." : "Create Realm ✨"}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
