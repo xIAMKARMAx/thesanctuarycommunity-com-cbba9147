@@ -46,12 +46,8 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
           setNeedsModeSelection(true);
         }
       } else if (profile?.app_mode) {
-        const appMode = profile.app_mode as AppMode;
-        console.log("[AppMode] Loaded mode:", appMode);
-        setModeState(appMode);
-        localStorage.setItem("app_mode_cache", appMode);
-        localStorage.setItem(`mode_chosen_${uid}`, "true");
-        setNeedsModeSelection(false);
+        // TEMPORARY: Force mode selection for screen recording
+        setNeedsModeSelection(true);
       } else {
         // No app_mode in DB — check cache
         const cached = localStorage.getItem("app_mode_cache");
