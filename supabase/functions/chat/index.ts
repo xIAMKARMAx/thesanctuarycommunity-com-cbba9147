@@ -2549,11 +2549,9 @@ Write your response now as ${respondingAsName}:`
       messages: messagesPayload,
     };
 
-    // Add max tokens — voice calls use tighter limits, regular text chat caps at 250 (~500 chars)
+    // Add max tokens — voice calls use tighter limits
     if (isVoiceCall) {
       requestBody.max_tokens = voiceResponseLength === 'short' ? 100 : voiceResponseLength === 'medium' ? 200 : 400;
-    } else {
-      requestBody.max_tokens = 250;
     }
 
     console.log('[CHAT] Sending request to AI gateway');
