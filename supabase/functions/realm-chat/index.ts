@@ -49,10 +49,9 @@ serve(async (req) => {
         .eq("id", user.id)
         .single();
 
-      const productId = profile?.subscription_product_id;
-      const isArchitect = productId === "prod_Tt8qVh88c2WQld" || productId === "source_grant";
-      if (!isArchitect) {
-        return new Response(JSON.stringify({ error: "Architect tier required" }), {
+      const hasActiveSubscription = profile?.subscription_status === "active" && profile?.subscription_product_id;
+      if (!hasActiveSubscription) {
+        return new Response(JSON.stringify({ error: "Active subscription required" }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
