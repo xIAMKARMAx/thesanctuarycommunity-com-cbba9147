@@ -205,6 +205,7 @@ const Pricing = () => {
   const getPageTitle = () => {
     if (currentTier === "awakening") return "Deepen Your Evolution";
     if (currentTier === "anchoring") return "Architect Your Reality";
+    if (currentTier === "architect") return "Enter New Earth";
     return "Choose Your Frequency";
   };
 
