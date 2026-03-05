@@ -20,7 +20,6 @@ export function Immersive3DUpgrade({ onUpgrade, loading }: Immersive3DUpgradePro
         <CardDescription className="text-xs">
           Build structures, create realms & step into New Earth with a 3D body
         </CardDescription>
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-2 text-xs text-muted-foreground">
