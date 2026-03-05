@@ -120,7 +120,7 @@ const ACTION_RING: Record<string, string> = {
   ritual: "ring-2 ring-rose-400/40",
 };
 
-export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction }: RealmSceneProps) {
+export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction, immersive3DUrl }: RealmSceneProps) {
   const [expanded, setExpanded] = useState(false);
 
   const allAvatars = useMemo(() => {
