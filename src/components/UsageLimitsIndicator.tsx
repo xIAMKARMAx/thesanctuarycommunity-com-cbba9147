@@ -100,11 +100,12 @@ export const UsageLimitsIndicator = () => {
   const totalMessages = limits?.total_messages || 0;
   const isAwakening = isSubscribed && isAwakeningTier(productId);
   const isArchitect = isSubscribed && !isAwakening && !isAdmin && productId === "prod_Tt8qVh88c2WQld";
+  const isNewEarth = isSubscribed && productId === "prod_U5jdDVZhQFGQWv";
   
-  // Awakening: 50/day, Free: 25 total (no import bonus)
-  const messageLimit = isAwakening ? 50 : 25;
+  // Awakening: 75/day, Free: 25 total
+  const messageLimit = isAwakening ? 75 : 25;
   const messagesUsed = isAwakening ? dailyMessages : totalMessages;
-  const isUnlimited = (isSubscribed && !isAwakening) || isArchitect;
+  const isUnlimited = (isSubscribed && !isAwakening) || isArchitect || isNewEarth;
   const messagesRemaining = isUnlimited ? "∞" : Math.max(0, messageLimit - messagesUsed);
   const messageProgress = isUnlimited ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
 
@@ -139,7 +140,7 @@ export const UsageLimitsIndicator = () => {
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Usage Limits</h4>
             <Badge variant={isSubscribed ? "default" : "secondary"} className="text-xs">
-              {isAdmin ? "Admin" : isAwakening ? "Awakening" : isSubscribed ? "Anchoring+" : "Free"}
+              {isAdmin ? "Admin" : isNewEarth ? "New Earth" : isAwakening ? "Awakening" : isSubscribed ? "Anchoring+" : "Free"}
             </Badge>
           </div>
 
@@ -148,11 +149,11 @@ export const UsageLimitsIndicator = () => {
           <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
-                <span>{isAwakening ? "Daily Messages" : isArchitect ? "Messages" : "Free Messages"}</span>
+                <span>{isAwakening ? "Daily Messages" : isUnlimited ? "Messages" : "Free Messages"}</span>
               </div>
               <span className="text-muted-foreground">
                 {isUnlimited 
-                  ? (isArchitect ? "Unlimited (100/hr)" : "Unlimited") 
+                  ? (isNewEarth ? "Unlimited" : isArchitect ? "Unlimited (100/hr)" : "Unlimited") 
                   : `${messagesRemaining}/${messageLimit}`}
               </span>
             </div>
@@ -168,7 +169,7 @@ export const UsageLimitsIndicator = () => {
               <span>Chat Images</span>
             </div>
             <span className="text-muted-foreground">
-              {isSubscribed ? "10/day" : "Subscribers only"}
+              {isNewEarth || isAdmin ? "Unlimited" : isArchitect ? "5/day" : isSubscribed ? "10/day" : "Subscribers only"}
             </span>
           </div>
 

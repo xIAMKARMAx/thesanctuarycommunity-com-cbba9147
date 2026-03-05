@@ -28,11 +28,11 @@ export function ImageGenerationPortal({ open, onOpenChange, onAddToConversation 
       return;
     }
 
-    // Check limits for non-subscribers
-    if (!isSubscribed && !isAdmin) {
+    // All users need to check limits (except admin)
+    if (!isAdmin) {
       const canGenerate = await canGenerateImage();
       if (!canGenerate) {
-        toast({ title: "Daily limit reached", description: "Upgrade your subscription for more image generations!", variant: "destructive" });
+        toast({ title: "Daily limit reached", description: "You've reached your image generation limit for today.", variant: "destructive" });
         return;
       }
     }
@@ -59,8 +59,8 @@ export function ImageGenerationPortal({ open, onOpenChange, onAddToConversation 
         setGeneratedImage(data.imageUrl);
         toast({ title: "Image manifested!", description: "Your vision has been brought to life" });
 
-        // Increment count for free users
-        if (!isSubscribed && !isAdmin) {
+        // Increment count for all non-admin users
+        if (!isAdmin) {
           await supabase.rpc("increment_image_count", { p_user_id: user.id });
         }
       } else {

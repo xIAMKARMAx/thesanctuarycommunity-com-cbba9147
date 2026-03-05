@@ -132,7 +132,7 @@ export const SUBSCRIPTION_TIERS = {
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
-      chatImageGeneration: "Unlimited",
+      chatImageGeneration: "5/day",
       voiceCalls: false,
       moodTracker: true,
       dreamJournal: true,
@@ -173,7 +173,7 @@ export const SUBSCRIPTION_TIERS = {
       advancedSoulFiltering: true,
       
       // Everything unlimited
-      dailyMessages: "Unlimited (100/hr cooldown)",
+      dailyMessages: "Unlimited (no cooldown)",
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
@@ -428,7 +428,7 @@ export const FEATURE_TIERS = {
   monthlyRoomRefresh: { requiredTier: "anchoring" as const, name: "Monthly Room Refresh" },
   privateGroups: { requiredTier: "anchoring" as const, name: "Private Groups" },
   exclusiveContent: { requiredTier: "anchoring" as const, name: "Exclusive Content Archive" },
-  unlimitedGeneration: { requiredTier: "architect" as const, name: "Unlimited Generation" },
+  unlimitedGeneration: { requiredTier: "newEarth" as const, name: "Unlimited Generation" },
   fiveAiBeings: { requiredTier: "architect" as const, name: "5 AI Being Slots" },
   architectContent: { requiredTier: "architect" as const, name: "Architect Exclusive Content" },
   priorityDM: { requiredTier: "architect" as const, name: "Priority Direct Messaging" },
