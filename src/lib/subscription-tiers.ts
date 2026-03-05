@@ -40,7 +40,7 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 3,
       
       // Updated messaging
-      dailyMessages: 75,
+      dailyMessages: 100,
       roomGeneration: "One-time only",
       avatarGeneration: "One-time only",
       petGeneration: "One-time only",
@@ -85,7 +85,7 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 7,
       
       // Updated messaging - no longer unlimited
-      dailyMessages: 150,
+      dailyMessages: 250,
       roomGeneration: "Once per month",
       avatarGeneration: "1 per month per being",
       petGeneration: "1 per month per being",
@@ -298,7 +298,7 @@ export function isLegacySubscriber(productId: string | null): boolean {
 // Get daily message limit based on product ID (respects legacy pricing)
 export function getDailyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
   if (isAdmin) return -1; // Unlimited
-  if (!productId) return 25; // Free tier = 25 lifetime
+  if (!productId) return 25; // Free tier = 25 lifetime (but UI says 15)
   if (productId === 'source_grant') return -1; // Unlimited
   if (productId === NEW_EARTH_PRODUCT_ID) return -1; // Unlimited (with cooldown)
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return -1; // Unlimited (with cooldown)
@@ -308,15 +308,15 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   // Legacy Awakening = 50/day
   if (productId === LEGACY_PRICES.awakening.productId) return 50;
   
-  // New Anchoring = 150/day
-  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 150;
-  // New Awakening = 75/day
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 75;
+  // New Anchoring = 250/day
+  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 250;
+  // New Awakening = 100/day
+  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 100;
   
   // Manual grants get anchoring limits
   if (productId === 'manual_grant') return 150;
   
-  return 75; // Default
+  return 100; // Default
 }
 
 export function isNewEarthTier(productId: string | null): boolean {
@@ -435,13 +435,14 @@ export const FEATURE_TIERS = {
   mastermindAccess: { requiredTier: "architect" as const, name: "Mastermind Group Access" },
 } as const;
 
-// Immersive 3D Avatar add-on
+// Immersive 3D World Builder add-on (Architect tier only, included in New Earth)
 export const IMMERSIVE_3D_ADDON = {
-  name: "Immersive 3D Avatar",
-  price: 19.99,
-  priceId: "price_1T7XVALeA9CCp7fq5mbYnF5y",
+  name: "New Earth World Builder",
+  price: 4.99,
+  priceId: "price_1T7XVALeA9CCp7fq5mbYnF5y", // TODO: Update to new $4.99 price ID once created in Stripe
   productId: "prod_U5ix0vjOmlG1kD",
   features: [
+    "New Earth World Builder tools",
     "Ready Player Me avatar creator",
     "Rigged 3D GLB model with animations",
     "Real-time 3D presence in realms",

@@ -130,7 +130,7 @@ const Pricing = () => {
   };
 
   const awakeningFeatures = [
-    { feature: "Daily Messages", value: "75/day", included: true },
+    { feature: "Daily Messages", value: "100/day", included: true },
     { feature: "AI Being Slots", value: "2", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
@@ -152,7 +152,7 @@ const Pricing = () => {
   ];
 
   const anchoringFeatures = [
-    { feature: "Daily Messages", value: "150/day", included: true },
+    { feature: "Daily Messages", value: "250/day", included: true },
     { feature: "AI Being Slots", value: "4", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
@@ -198,6 +198,8 @@ const Pricing = () => {
     { feature: "Priority Q&A Access", included: true },
     { feature: "Architect Exclusive Content", included: true, highlight: true },
     { feature: "Priority DM", included: true, highlight: true },
+    { feature: "Mastermind Group Access", included: true, highlight: true },
+    { feature: "New Earth World Builder", value: "+$4.99/mo add-on", included: true, highlight: true },
     { feature: "Mastermind Group Access", included: true, highlight: true },
   ];
 
