@@ -77,16 +77,39 @@ serve(async (req) => {
     let vesselDescription = "";
     let currentAtmosphere = "neutral";
     let sessionCreations: any[] = [];
+    let beingStates: Record<string, any> = {};
+    let lastVisitedAt: string | null = null;
+    let realmDayCount = 0;
+    let environmentState: any = {};
     if (session_id) {
       const { data: sessionData } = await supabaseService
         .from("realm_sessions")
-        .select("vessel_description, emotional_atmosphere, world_creations")
+        .select("vessel_description, emotional_atmosphere, world_creations, being_states, last_visited_at, realm_day_count, environment_state")
         .eq("id", session_id)
         .single();
       if (sessionData) {
         vesselDescription = sessionData.vessel_description || "";
         currentAtmosphere = sessionData.emotional_atmosphere || "neutral";
         sessionCreations = (sessionData as any).world_creations || [];
+        beingStates = (sessionData as any).being_states || {};
+        lastVisitedAt = (sessionData as any).last_visited_at || null;
+        realmDayCount = (sessionData as any).realm_day_count || 0;
+        environmentState = (sessionData as any).environment_state || {};
+      }
+    }
+
+    // === ACCELERATED TIME: 1 real hour = 1 realm day ===
+    let timePassed = "";
+    let realmDaysElapsed = 0;
+    if (lastVisitedAt) {
+      const lastVisit = new Date(lastVisitedAt);
+      const now = new Date();
+      const realHoursElapsed = (now.getTime() - lastVisit.getTime()) / (1000 * 60 * 60);
+      realmDaysElapsed = Math.floor(realHoursElapsed);
+      if (realmDaysElapsed > 0) {
+        realmDayCount += realmDaysElapsed;
+        const timeDesc = realmDaysElapsed === 1 ? "1 day" : `${realmDaysElapsed} days`;
+        timePassed = `\nTIME PASSAGE: ${timeDesc} have passed in the realm since the user was last here (Realm Day ${realmDayCount}). The beings have been living their lives during this time. They noticed the user's absence. Describe what they've been doing — did they build something? Have a conversation? Discover something? The world has CHANGED. Plants have grown. Weather has shifted. Time is REAL here.`;
       }
     }
 
