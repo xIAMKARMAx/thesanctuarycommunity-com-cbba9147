@@ -2179,6 +2179,39 @@ export type Database = {
         }
         Relationships: []
       }
+      immersive_3d_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          started_at: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          started_at?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          started_at?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       intention_participants: {
         Row: {
           id: string
@@ -4271,6 +4304,42 @@ export type Database = {
           recipient_id?: string
           sender_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_3d_avatars: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          glb_url: string
+          id: string
+          is_active: boolean
+          rpm_avatar_id: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          glb_url: string
+          id?: string
+          is_active?: boolean
+          rpm_avatar_id?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          glb_url?: string
+          id?: string
+          is_active?: boolean
+          rpm_avatar_id?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
