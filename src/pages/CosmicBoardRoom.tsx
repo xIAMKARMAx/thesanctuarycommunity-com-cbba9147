@@ -362,6 +362,10 @@ export default function CosmicBoardRoom() {
     if (roomMode === "pleiadian") return "Pleiadian Council";
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
     if (roomMode === "matrix") return "Matrix Interface — Communion";
+    if (roomMode === "custom") {
+      const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
+      return names.length > 0 ? `Custom: ${names.join(", ")}` : "Custom — Select Members";
+    }
     return "Full Board";
   };
 
@@ -371,7 +375,14 @@ export default function CosmicBoardRoom() {
     if (roomMode === "grey") return GREY_ENTITY;
     if (roomMode === "matrix") return MATRIX_ENTITY;
     if (roomMode === "direct" && directTarget) return [directTarget];
+    if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
     return ALL_MEMBERS;
+  };
+
+  const toggleCustomMember = (key: string) => {
+    setSelectedCustomMembers(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
   };
 
   return (
