@@ -85,6 +85,7 @@ const NewEarthWorld = () => {
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
   const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
+  const isFreeUser = !isSubscribed && !isAdmin;
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
   const [structures, setStructures] = useState<StructureData[]>([]);
