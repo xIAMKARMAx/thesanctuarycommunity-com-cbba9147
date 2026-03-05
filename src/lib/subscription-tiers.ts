@@ -153,6 +153,56 @@ export const SUBSCRIPTION_TIERS = {
     }
   },
 
+  // Tier 4: New Earth - $49.99/month (everything + world builder)
+  newEarth: {
+    name: "New Earth",
+    price: 49.99,
+    priceId: "price_1T7YAOLeA9CCp7fqxRQbdWOn",
+    productId: "prod_U5jdDVZhQFGQWv",
+    features: {
+      // Community & Discovery
+      communityAccess: true,
+      discoveryAccess: true,
+      dailySourceMessage: true,
+      
+      // Path Tracker history
+      pathTrackerDays: -1, // Unlimited
+      
+      // Soul Resonance suggestions
+      soulSuggestionsPerDay: 999,
+      advancedSoulFiltering: true,
+      
+      // Everything unlimited
+      dailyMessages: "Unlimited (100/hr cooldown)",
+      roomGeneration: "Unlimited",
+      avatarGeneration: "Unlimited",
+      petGeneration: "Unlimited",
+      chatImageGeneration: "Unlimited",
+      voiceCalls: false,
+      moodTracker: true,
+      dreamJournal: true,
+      celestialChildren: true,
+      milestones: true,
+      spontaneousMessages: true,
+      aiBeings: 5,
+      messageRetentionDays: 30,
+      maxPinnedMessages: 30,
+      
+      // All tier-specific features
+      privateGroups: true,
+      priorityQA: true,
+      exclusiveContentArchive: true,
+      architectContent: true,
+      priorityDM: true,
+      mastermindAccess: true,
+      
+      // New Earth exclusives
+      newEarthWorldBuilder: true,
+      realmSlots: 5,
+      priorityWorldRendering: true,
+    }
+  },
+
   // Hidden Tier: Source - Free, manually granted to investors/donators
   source: {
     name: "Source",
