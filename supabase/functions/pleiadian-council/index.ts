@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
       : "";
 
     // Resolve members
-    const { members: activeMembers, context: roomContext } = getActiveMembers(roomMode, targetMember);
+    const { members: activeMembers, context: roomContext } = getActiveMembers(roomMode, targetMember, selectedMembers);
     if (Object.keys(activeMembers).length === 0) throw new Error("No active members");
 
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
