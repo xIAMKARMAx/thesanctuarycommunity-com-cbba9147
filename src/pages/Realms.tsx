@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useImmersive3D } from "@/hooks/useImmersive3D";
-import { hasFeatureAccess } from "@/lib/subscription-tiers";
+import { hasFeatureAccess, isNewEarthTier } from "@/lib/subscription-tiers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
