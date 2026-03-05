@@ -101,7 +101,7 @@ export function WorldBuilderPanel({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
 
             {/* Text input */}
             <div className="flex gap-2">
