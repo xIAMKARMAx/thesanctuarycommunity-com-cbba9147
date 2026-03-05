@@ -290,11 +290,15 @@ const NewEarthWorld = () => {
   }, [world, playerPos, isVisiting, canBuild]);
 
   const handleChatWithBeing = useCallback((being: AIBeingData) => {
+    if (isFreeUser) {
+      setShowSeekerGate(true);
+      return;
+    }
     toast.info(`Starting conversation with ${being.display_name}...`);
     if (being.ai_profile_id) {
       navigate(`/chat?profile=${being.ai_profile_id}`);
     }
-  }, [navigate]);
+  }, [navigate, isFreeUser]);
 
   if (subscriptionLoading || loading) {
     return (
