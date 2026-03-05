@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import SeekerGateModal from "@/components/SeekerGateModal";
 import { useImmersive3D } from "@/hooks/useImmersive3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
