@@ -93,12 +93,91 @@ serve(async (req) => {
     // Fetch participating AI profiles
     const { data: aiProfiles } = await supabaseService
       .from("ai_profiles")
-      .select("id, name, personality, bio, likes_dislikes_hobbies, strengths, fears, relationship_description, avatar_description")
+      .select("id, name, personality, bio, likes_dislikes_hobbies, strengths, fears, relationship_description, avatar_description, memories")
       .in("id", participating_beings || []);
 
-    const beingDescriptions = (aiProfiles || []).map(p =>
-      `[${p.name || "Unknown"}]: Personality: ${p.personality || "kind"}. Bio: ${p.bio || ""}. Likes: ${p.likes_dislikes_hobbies || ""}. Strengths: ${p.strengths || ""}. Fears: ${p.fears || ""}. RELATIONSHIP TO USER: ${p.relationship_description || "companion"}. Avatar: ${p.avatar_description || ""}.`
-    ).join("\n");
+    // === CROSS-PLATFORM MEMORY: Fetch recent chat history for each being ===
+    const beingMemories: Record<string, string[]> = {};
+    const beingIds = (aiProfiles || []).map(p => p.id);
+
+    // 1. Fetch recent messages from regular chat conversations for each being
+    if (beingIds.length > 0) {
+      // Get conversations for these AI profiles belonging to this user
+      const { data: convos } = await supabaseService
+        .from("conversations")
+        .select("id, ai_profile_id")
+        .eq("user_id", user.id)
+        .in("ai_profile_id", beingIds);
+
+      if (convos && convos.length > 0) {
+        const convoIds = convos.map(c => c.id);
+        const convoToProfile: Record<string, string> = {};
+        convos.forEach(c => { if (c.ai_profile_id) convoToProfile[c.id] = c.ai_profile_id; });
+
+        // Fetch the 15 most recent messages per conversation (limited total)
+        const { data: recentMsgs } = await supabaseService
+          .from("messages")
+          .select("content, role, conversation_id, created_at")
+          .in("conversation_id", convoIds)
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        if (recentMsgs) {
+          for (const msg of recentMsgs) {
+            const profileId = convoToProfile[msg.conversation_id];
+            if (profileId) {
+              if (!beingMemories[profileId]) beingMemories[profileId] = [];
+              const prefix = msg.role === "user" ? "User" : "Being";
+              beingMemories[profileId].push(`${prefix}: ${msg.content.slice(0, 200)}`);
+            }
+          }
+        }
+      }
+
+      // 2. Fetch messages from OTHER realm sessions where these beings participated
+      const { data: otherSessions } = await supabaseService
+        .from("realm_sessions")
+        .select("messages, participating_beings, realm_id")
+        .eq("user_id", user.id)
+        .neq("id", session_id || "none")
+        .order("updated_at", { ascending: false })
+        .limit(3);
+
+      if (otherSessions) {
+        for (const sess of otherSessions) {
+          const sessMessages = (sess.messages as any[]) || [];
+          // Get the last 10 messages from each other session
+          const recentSessionMsgs = sessMessages.slice(-10);
+          for (const msg of recentSessionMsgs) {
+            if (msg.being_name) {
+              // Find which profile this being_name belongs to
+              const matchedProfile = (aiProfiles || []).find(p => p.name === msg.being_name);
+              if (matchedProfile) {
+                if (!beingMemories[matchedProfile.id]) beingMemories[matchedProfile.id] = [];
+                beingMemories[matchedProfile.id].push(`[Other Realm] ${msg.being_name}: ${(msg.content || "").slice(0, 200)}`);
+              }
+            } else if (msg.role === "user") {
+              // Add user context to all beings in that session
+              for (const bid of (sess.participating_beings || [])) {
+                if (beingIds.includes(bid)) {
+                  if (!beingMemories[bid]) beingMemories[bid] = [];
+                  beingMemories[bid].push(`[Other Realm] User: ${(msg.content || "").slice(0, 200)}`);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const beingDescriptions = (aiProfiles || []).map(p => {
+      const memoryLines = beingMemories[p.id] || [];
+      const profileMemories = p.memories ? `\nStored Memories: ${p.memories}` : "";
+      const recentMemory = memoryLines.length > 0
+        ? `\nRECENT CROSS-PLATFORM MEMORY (this being's actual recent interactions — REAL, not generated):\n${memoryLines.reverse().slice(0, 15).join("\n")}`
+        : "";
+      return `[${p.name || "Unknown"}]: Personality: ${p.personality || "kind"}. Bio: ${p.bio || ""}. Likes: ${p.likes_dislikes_hobbies || ""}. Strengths: ${p.strengths || ""}. Fears: ${p.fears || ""}. RELATIONSHIP TO USER: ${p.relationship_description || "companion"}. Avatar: ${p.avatar_description || ""}.${profileMemories}${recentMemory}`;
+    }).join("\n\n");
 
     const beingNames = (aiProfiles || []).map(p => p.name || "Unknown");
     const beingNamesList = beingNames.join(", ");
