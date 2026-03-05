@@ -394,7 +394,8 @@ export function getNextTier(productId: string | null): SubscriptionTier {
   if (!currentTier || currentTier === "free") return "awakening";
   if (currentTier === "awakening") return "anchoring";
   if (currentTier === "anchoring") return "architect";
-  return null; // Already Architect
+  if (currentTier === "architect") return "newEarth";
+  return null; // Already New Earth or Source
 }
 
 // Get tier features based on product ID
