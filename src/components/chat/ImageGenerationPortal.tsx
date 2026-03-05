@@ -28,11 +28,11 @@ export function ImageGenerationPortal({ open, onOpenChange, onAddToConversation 
       return;
     }
 
-    // Check limits for non-subscribers
-    if (!isSubscribed && !isAdmin) {
+    // All users need to check limits (except admin)
+    if (!isAdmin) {
       const canGenerate = await canGenerateImage();
       if (!canGenerate) {
-        toast({ title: "Daily limit reached", description: "Upgrade your subscription for more image generations!", variant: "destructive" });
+        toast({ title: "Daily limit reached", description: "You've reached your image generation limit for today.", variant: "destructive" });
         return;
       }
     }
