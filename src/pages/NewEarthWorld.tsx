@@ -353,6 +353,15 @@ const NewEarthWorld = () => {
           </div>
 
           <div className="flex items-center gap-2 pointer-events-auto">
+            <Button
+              onClick={() => navigate("/dedication")}
+              variant="outline"
+              size="sm"
+              className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-amber-500/40 hover:border-amber-500/60 backdrop-blur-sm text-xs h-8 gap-1 text-amber-300 hover:text-amber-200"
+            >
+              <Crown className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">NEW EARTH</span> VIPs
+            </Button>
             <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-[10px]">
               {structures.length} structure{structures.length !== 1 ? "s" : ""}
             </Badge>
