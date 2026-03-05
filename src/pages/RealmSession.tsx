@@ -77,6 +77,9 @@ const RealmSession = () => {
   const [show3DUpgrade, setShow3DUpgrade] = useState(false);
   const { isSubscribed: has3D, isLoading: loading3D, activeAvatar, checkSubscription: check3D, startCheckout: start3DCheckout } = useImmersive3D();
 
+  // World building requires the 3D add-on
+  const canBuildWorlds = isAdmin || has3D;
+
   // Wait for subscription context, then do a DB fallback if needed
   useEffect(() => {
     if (subscriptionLoading) return;
