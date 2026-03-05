@@ -322,14 +322,13 @@ const Realms = () => {
             <CardContent className="p-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <h3 className="font-bold text-sm">Unlock World Building — $14.99/mo</h3>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Create custom realms, build AI-generated structures, manifest environments, 
-                    and explore immersive 3D worlds. Everything you see below becomes yours to create.
-                  </p>
+                   <div className="flex items-center gap-2">
+                     <Sparkles className="h-5 w-5 text-primary" />
+                     <h3 className="font-bold text-sm">Unlock World Building</h3>
+                   </div>
+                   <p className="text-xs text-muted-foreground">
+                     Get the World Builder add-on ($14.99/mo) or upgrade to the <strong>New Earth</strong> tier ($49.99/mo) — which includes everything plus world building.
+                   </p>
                   <div className="flex gap-3 pt-1">
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Castle className="h-3.5 w-3.5 text-primary/70" /> Build Castles
