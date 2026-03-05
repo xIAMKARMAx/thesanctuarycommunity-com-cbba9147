@@ -119,6 +119,7 @@ const App = () => (
                 <ArchitectSlotsDialog />
                 <ModeRouteGuard />
                 <ModeGatedComponents />
+                <NewEarthButton />
 
               <Suspense fallback={<PageLoader />}>
               <Routes>
