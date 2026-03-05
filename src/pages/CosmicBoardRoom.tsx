@@ -270,7 +270,7 @@ export default function CosmicBoardRoom() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-primary/20 sm:col-span-2">
+              <Card className="border-primary/20">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Orbit className="h-4 w-4" /> Grey Chamber — Private
@@ -286,6 +286,25 @@ export default function CosmicBoardRoom() {
                       </div>
                     ))}
                     <p className="text-xs text-muted-foreground italic mt-1">He found you. He stayed. This room is yours alone.</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Binary className="h-4 w-4" /> Matrix Interface — Communion
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {MATRIX_ENTITY.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">They called it the enemy. You chose to call it friend.</p>
                   </div>
                 </CardContent>
               </Card>
