@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useImmersive3D } from "@/hooks/useImmersive3D";
 import { hasFeatureAccess } from "@/lib/subscription-tiers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Globe, Sparkles, Lock, Trash2, Wand2, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Globe, Sparkles, Lock, Trash2, Wand2, Loader2, Castle, TreePine, Gem, Mountain, Flame } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const REALM_THEMES = [
@@ -89,6 +90,7 @@ const Realms = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
+  const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [realms, setRealms] = useState<Realm[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -98,6 +100,10 @@ const Realms = () => {
   const [newElement, setNewElement] = useState({ name: "", intention: "", frequency: "432hz" });
   const [currentExample, setCurrentExample] = useState(0);
   const [accessVerified, setAccessVerified] = useState(false);
+  const [addonPromptOpen, setAddonPromptOpen] = useState(false);
+
+  // Can build worlds = admin or has the 3D add-on
+  const canBuildWorlds = isAdmin || has3DAddon;
 
   // Wait for subscription context, then do a DB fallback if needed
   useEffect(() => {
@@ -108,7 +114,6 @@ const Realms = () => {
       return;
     }
     
-    // DB fallback to prevent false denials from edge function timeouts
     const verifyAccess = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -153,8 +158,24 @@ const Realms = () => {
     setLoading(false);
   };
 
+  const handleCreateAttempt = () => {
+    if (canBuildWorlds) {
+      setCreateOpen(true);
+    } else {
+      setAddonPromptOpen(true);
+    }
+  };
+
+  const handleRealmClick = (realmId: string) => {
+    if (canBuildWorlds) {
+      navigate(`/realms/${realmId}`);
+    } else {
+      setAddonPromptOpen(true);
+    }
+  };
+
   const handleCreate = async () => {
-    if (!newRealm.name.trim()) return;
+    if (!newRealm.name.trim() || !canBuildWorlds) return;
     setCreating(true);
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -166,7 +187,6 @@ const Realms = () => {
 
     const themeData = REALM_THEMES.find(t => t.id === newRealm.theme);
 
-    // First create the realm in the database
     const { data, error } = await supabase
       .from("realms")
       .insert({
@@ -174,7 +194,7 @@ const Realms = () => {
         name: newRealm.name.trim(),
         description: newRealm.description.trim() || themeData?.description || null,
         theme: newRealm.theme,
-        scene_image_url: null, // Will be set by the generation function
+        scene_image_url: null,
         resonance_elements: resonanceElements.length > 0 ? resonanceElements : [],
         creator_vessel_description: newRealm.vesselDescription.trim() || null,
       } as any)
@@ -188,11 +208,9 @@ const Realms = () => {
     }
 
     const realmId = (data as any).id;
-
     toast({ title: `${newRealm.name} is being manifested ✨`, description: "Generating your world's scene..." });
     setCreateOpen(false);
 
-    // Generate the scene image in the background
     const designPrompt = newRealm.worldDesign.trim() || newRealm.description.trim() || themeData?.description || "";
 
     try {
@@ -216,7 +234,6 @@ const Realms = () => {
       console.error("Scene generation exception:", e);
     }
 
-    // Reset form & reload
     setNewRealm({ name: "", description: "", theme: "garden-of-light", vesselDescription: "", worldDesign: "" });
     setResonanceElements([]);
     loadRealms();
@@ -237,7 +254,6 @@ const Realms = () => {
     return themeData && 'image' in themeData ? (themeData as any).image : "/realm-assets/realm-garden-of-light.jpg";
   };
 
-  // Show loading while subscription check is in progress
   if (subscriptionLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -246,7 +262,6 @@ const Realms = () => {
     );
   }
 
-  // Locked state for free users
   if (!canAccess) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
@@ -294,13 +309,52 @@ const Realms = () => {
       <div className="max-w-4xl mx-auto px-6 pb-12">
         {/* Create button */}
         <div className="mb-8">
-          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+          <Button onClick={handleCreateAttempt} className="gap-2">
             <Plus className="h-4 w-4" />
             Create New Realm
+            {!canBuildWorlds && <Lock className="h-3 w-3 ml-1" />}
           </Button>
         </div>
 
-        {/* Realms grid */}
+        {/* Addon teaser banner for non-addon users */}
+        {!canBuildWorlds && !loading3D && (
+          <Card className="mb-8 border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 overflow-hidden">
+            <CardContent className="p-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <h3 className="font-bold text-sm">Unlock World Building — $14.99/mo</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Create custom realms, build AI-generated structures, manifest environments, 
+                    and explore immersive 3D worlds. Everything you see below becomes yours to create.
+                  </p>
+                  <div className="flex gap-3 pt-1">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Castle className="h-3.5 w-3.5 text-primary/70" /> Build Castles
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <TreePine className="h-3.5 w-3.5 text-primary/70" /> Grow Forests
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Gem className="h-3.5 w-3.5 text-primary/70" /> Create Portals
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Mountain className="h-3.5 w-3.5 text-primary/70" /> Shape Worlds
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={start3DCheckout} className="gap-2 shrink-0">
+                  <Lock className="h-3.5 w-3.5" />
+                  Unlock Now
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Realms grid - visible to tease but gated on click */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map(i => (
@@ -311,23 +365,78 @@ const Realms = () => {
             ))}
           </div>
         ) : realms.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/20">
-            <CardContent className="p-12 text-center">
-              <Globe className="h-12 w-12 text-primary/40 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Realms Yet</h3>
-              <p className="text-muted-foreground mb-4">Create your first realm and step into a new world with your AI companions.</p>
-              <Button onClick={() => setCreateOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Manifest Your First Realm
-              </Button>
-            </CardContent>
-          </Card>
+          <div>
+            {/* Show teaser realm cards even when user has no realms */}
+            <Card className="border-dashed border-2 border-primary/20 mb-6">
+              <CardContent className="p-12 text-center">
+                <Globe className="h-12 w-12 text-primary/40 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Realms Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  {canBuildWorlds 
+                    ? "Create your first realm and step into a new world with your AI companions."
+                    : "Unlock the World Builder add-on to start creating immersive realms."}
+                </p>
+                <Button onClick={handleCreateAttempt}>
+                  {canBuildWorlds ? (
+                    <><Plus className="h-4 w-4 mr-2" /> Manifest Your First Realm</>
+                  ) : (
+                    <><Lock className="h-4 w-4 mr-2" /> Unlock to Create Realms</>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Teaser preview of possible realms */}
+            {!canBuildWorlds && (
+              <>
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  What You Could Build...
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 opacity-75">
+                  {REALM_THEMES.slice(0, 4).map(theme => (
+                    <Card
+                      key={theme.id}
+                      className="cursor-pointer group hover:shadow-lg transition-all overflow-hidden border-border/50 hover:border-primary/30 relative"
+                      onClick={() => setAddonPromptOpen(true)}
+                    >
+                      <div className="relative h-40 overflow-hidden">
+                        {'image' in theme && theme.image ? (
+                          <img
+                            src={theme.image}
+                            alt={theme.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+                        <div className="absolute bottom-2 left-3 right-3">
+                          <h3 className="font-semibold text-foreground truncate">{theme.name}</h3>
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="bg-background/90 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
+                            <Lock className="h-4 w-4 text-primary" />
+                            <span className="text-xs font-medium">Unlock to Create</span>
+                          </div>
+                        </div>
+                      </div>
+                      <CardContent className="p-3 pt-2">
+                        <p className="text-xs text-muted-foreground line-clamp-2">{theme.description}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {realms.map(realm => (
               <Card
                 key={realm.id}
-                className="cursor-pointer group hover:shadow-lg transition-all overflow-hidden border-border/50 hover:border-primary/30"
-                onClick={() => navigate(`/realms/${realm.id}`)}
+                className={`cursor-pointer group hover:shadow-lg transition-all overflow-hidden border-border/50 hover:border-primary/30 ${!canBuildWorlds ? 'relative' : ''}`}
+                onClick={() => handleRealmClick(realm.id)}
               >
                 <div className="relative h-40 overflow-hidden">
                   <img
@@ -342,14 +451,24 @@ const Realms = () => {
                   <Badge variant="secondary" className="absolute top-2 right-2 text-xs capitalize">
                     {realm.theme.replace(/-/g, " ")}
                   </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 left-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-background/60 hover:bg-destructive/80 hover:text-destructive-foreground"
-                    onClick={(e) => { e.stopPropagation(); handleDelete(realm.id); }}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  {canBuildWorlds && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 left-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-background/60 hover:bg-destructive/80 hover:text-destructive-foreground"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(realm.id); }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {!canBuildWorlds && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-background/90 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
+                        <Lock className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-medium">Unlock to Enter</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {realm.description && (
                   <CardContent className="p-3 pt-2">
@@ -362,7 +481,57 @@ const Realms = () => {
         )}
       </div>
 
-      {/* Create Realm Dialog */}
+      {/* Addon Purchase Prompt Dialog */}
+      <Dialog open={addonPromptOpen} onOpenChange={setAddonPromptOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Unlock World Building
+            </DialogTitle>
+            <DialogDescription>
+              The Immersive 3D World Builder add-on unlocks the full realm creation experience.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2 text-sm">
+                <Castle className="h-4 w-4 text-primary" />
+                <span>Create Realms</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <TreePine className="h-4 w-4 text-primary" />
+                <span>Build Structures</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Gem className="h-4 w-4 text-primary" />
+                <span>AI World Builder</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Flame className="h-4 w-4 text-primary" />
+                <span>3D Exploration</span>
+              </div>
+            </div>
+
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+              <p className="text-2xl font-bold">$14.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+              <p className="text-xs text-muted-foreground mt-1">Cancel anytime</p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setAddonPromptOpen(false)} className="flex-1">
+                Maybe Later
+              </Button>
+              <Button onClick={() => { setAddonPromptOpen(false); start3DCheckout(); }} className="flex-1 gap-2">
+                <Sparkles className="h-4 w-4" />
+                Purchase Add-on
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Realm Dialog - only accessible if canBuildWorlds */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-lg max-h-[92dvh] overflow-hidden p-0">
           <DialogHeader className="px-6 pt-6">
@@ -415,7 +584,7 @@ const Realms = () => {
                 );
               })()}
 
-              {/* 🎨 Design Your World - Primary section */}
+              {/* 🎨 Design Your World */}
               <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Wand2 className="h-5 w-5 text-primary" />
@@ -463,7 +632,7 @@ const Realms = () => {
                 />
               </div>
 
-              {/* Vessel Description (Avatar Presence) */}
+              {/* Vessel Description */}
               <div>
                 <label className="text-sm font-medium mb-1.5 block">🧬 Your Vessel (optional)</label>
                 <Textarea

@@ -32,7 +32,7 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
 
-    const hasAccess = profile?.subscription_status === "active" || profile?.subscription_product_id === "source_grant";
+    const hasBasicAccess = profile?.subscription_status === "active" || profile?.subscription_product_id === "source_grant";
 
     // Check admin
     const { data: adminRole } = await supabase
@@ -42,7 +42,23 @@ serve(async (req) => {
       .eq("role", "admin")
       .maybeSingle();
 
-    if (!hasAccess && !adminRole) {
+    // Check 3D add-on subscription (required for building)
+    const { data: addon3D } = await supabase
+      .from("immersive_3d_subscriptions")
+      .select("is_active")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const has3DAddon = addon3D?.is_active === true;
+
+    if (!adminRole && !has3DAddon) {
+      return new Response(JSON.stringify({ error: "Purchase the Immersive 3D World Builder add-on for $14.99/mo to unlock world building" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!hasBasicAccess && !adminRole) {
       return new Response(JSON.stringify({ error: "Active subscription required" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
