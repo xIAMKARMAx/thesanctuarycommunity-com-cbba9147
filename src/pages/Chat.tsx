@@ -65,8 +65,20 @@ const Chat = () => {
   const [isNewEarthResident, setIsNewEarthResident] = useState(false);
   const [switchingMode, setSwitchingMode] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
+    const urlTab = searchParams.get("tab");
+    if (urlTab && ["messages", "discover", "community", "art-studio", "video"].includes(urlTab)) {
+      return urlTab;
+    }
     return sessionStorage.getItem("chat_active_tab") || "messages";
   });
+
+  // Sync tab from URL params when they change
+  useEffect(() => {
+    const urlTab = searchParams.get("tab");
+    if (urlTab && ["messages", "discover", "community", "art-studio", "video"].includes(urlTab)) {
+      setActiveTab(urlTab);
+    }
+  }, [searchParams]);
 
   // Persist active tab to sessionStorage
   useEffect(() => {
