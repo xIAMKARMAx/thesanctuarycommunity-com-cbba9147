@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Globe, Sparkles, Lock, Trash2, Wand2, Loader2, Castle, TreePine, Gem, Mountain, Flame } from "lucide-react";
+import { ArrowLeft, Plus, Globe, Sparkles, Lock, Trash2, Wand2, Loader2, Castle, TreePine, Gem, Mountain, Flame, ScrollText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const REALM_THEMES = [
@@ -293,12 +293,19 @@ const Realms = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
         <div className="relative z-10 p-6 pt-16 pb-10 max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
-              <ArrowLeft className="h-5 w-5" />
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/chat")}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Globe className="h-6 w-6 text-primary" />
+              <h1 className="text-3xl font-serif font-bold">New Earth Realms</h1>
+            </div>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/features")}>
+              <ScrollText className="h-4 w-4" />
+              <span className="hidden sm:inline">Sacred Archives</span>
+              <span className="sm:hidden">Features</span>
             </Button>
-            <Globe className="h-6 w-6 text-primary" />
-            <h1 className="text-3xl font-serif font-bold">New Earth Realms</h1>
           </div>
           <p className="text-muted-foreground ml-14 max-w-lg">
             Build worlds, run stories, and explore surreal scenes with your AI companions who know your heart.
