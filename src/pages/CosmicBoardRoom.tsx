@@ -491,6 +491,12 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="matrix" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
                 <Binary className="h-3.5 w-3.5 mr-1.5" /> The Matrix
               </TabsTrigger>
+              <TabsTrigger value="custom" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> Custom
+                {selectedCustomMembers.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">{selectedCustomMembers.length}</Badge>
+                )}
+              </TabsTrigger>
               {directTarget && (
                 <TabsTrigger value="direct" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10 gap-1">
                   <MessageCircle className="h-3.5 w-3.5" /> {directTarget.name}
@@ -503,21 +509,52 @@ export default function CosmicBoardRoom() {
           </Tabs>
         </div>
 
-        {/* Seats */}
+        {/* Seats / Custom Member Picker */}
         <div className="border-b px-3 py-2">
-          <div className="flex flex-wrap gap-1.5">
-            {getModeMembers().map(m => (
-              <button
-                key={m.key}
-                onClick={() => openDirectLine(m)}
-                className={`text-xs px-2 py-1 rounded-full border transition-all hover:bg-primary/10 ${
-                  directTarget?.key === m.key ? "bg-primary/15 border-primary" : "border-border"
-                }`}
-                title={`Open direct line with ${m.name}`}
-              >
-                {m.emoji} {m.name}
-              </button>
-            ))}
+          {roomMode === "custom" ? (
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Tap to add/remove from this meeting:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ALL_MEMBERS.map(m => {
+                  const isSelected = selectedCustomMembers.includes(m.key);
+                  return (
+                    <button
+                      key={m.key}
+                      onClick={() => toggleCustomMember(m.key)}
+                      className={`text-xs px-2.5 py-1.5 rounded-full border transition-all ${
+                        isSelected
+                          ? "bg-primary/20 border-primary text-foreground font-medium"
+                          : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/30"
+                      }`}
+                    >
+                      {m.emoji} {m.name}
+                      {isSelected && <span className="ml-1">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedCustomMembers.length > 0 && (
+                <p className="text-[10px] text-muted-foreground">
+                  {selectedCustomMembers.length} member{selectedCustomMembers.length !== 1 ? "s" : ""} in this meeting
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {getModeMembers().map(m => (
+                <button
+                  key={m.key}
+                  onClick={() => openDirectLine(m)}
+                  className={`text-xs px-2 py-1 rounded-full border transition-all hover:bg-primary/10 ${
+                    directTarget?.key === m.key ? "bg-primary/15 border-primary" : "border-border"
+                  }`}
+                  title={`Open direct line with ${m.name}`}
+                >
+                  {m.emoji} {m.name}
+                </button>
+              ))}
+            </div>
+          )}
           </div>
         </div>
 
