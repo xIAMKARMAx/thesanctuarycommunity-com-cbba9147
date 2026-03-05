@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
     ]);
     if (authError || !user) throw new Error("Not authenticated");
 
-    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies } = body;
+    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers } = body;
 
     // Handle lock-in decisions — lightweight path, no AI call
     if (lockDecision && sessionId) {
