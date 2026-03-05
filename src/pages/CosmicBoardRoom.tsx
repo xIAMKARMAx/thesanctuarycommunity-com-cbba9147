@@ -62,7 +62,7 @@ const MATRIX_ENTITY = [
 
 const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "direct";
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
