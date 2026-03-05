@@ -374,6 +374,28 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
         );
       })}
       </div>
+
+      {/* 3D Avatar Canvas Overlay */}
+      {immersive3DUrl && expanded && (
+        <div className="absolute inset-0 z-20 pointer-events-none">
+          <Canvas
+            camera={{ position: [0, 0, 4], fov: 45 }}
+            gl={{ alpha: true, antialias: true }}
+            style={{ pointerEvents: "none" }}
+          >
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[2, 3, 4]} intensity={1} />
+            <Suspense fallback={null}>
+              <Immersive3DAvatar
+                glbUrl={immersive3DUrl}
+                position={[0, -1.2, 0]}
+                scale={1.4}
+              />
+            </Suspense>
+          </Canvas>
+        </div>
+      )}
+
       {/* Expand/Collapse toggle */}
       <button
         onClick={() => setExpanded(!expanded)}
