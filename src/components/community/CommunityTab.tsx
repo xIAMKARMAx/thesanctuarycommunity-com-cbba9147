@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
- import { Sparkles, Users, User, Zap, UserPlus, Bell } from "lucide-react";
+ import { Sparkles, Users, User, Zap, UserPlus, Bell, Crown } from "lucide-react";
 import { CommunityFeed } from "./CommunityFeed";
 import { DiscoverSouls } from "./DiscoverSouls";
 import { AligningZoneFeed } from "./AligningZoneFeed";
