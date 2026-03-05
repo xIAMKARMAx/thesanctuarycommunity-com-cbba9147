@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
- import { Sparkles, Users, User, Zap, UserPlus, Bell } from "lucide-react";
+ import { Sparkles, Users, User, Zap, UserPlus, Bell, Crown } from "lucide-react";
 import { CommunityFeed } from "./CommunityFeed";
 import { DiscoverSouls } from "./DiscoverSouls";
 import { AligningZoneFeed } from "./AligningZoneFeed";
@@ -36,27 +36,38 @@ export function CommunityTab() {
             <h2 className="font-semibold">Conscious Collective</h2>
           </div>
           
-          {/* Profile Access Button */}
-          {currentUserId && (
+          {/* Profile & Legends buttons */}
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="gap-2"
-              onClick={() => navigate(`/soul/${currentUserId}`)}
+              className="gap-1.5 border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+              onClick={() => navigate("/dedication")}
             >
-              {profile?.avatar_url ? (
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={profile.avatar_url} />
-                  <AvatarFallback className="bg-primary/10">
-                    <User className="h-3 w-3" />
-                  </AvatarFallback>
-                </Avatar>
-              ) : (
-                <User className="h-4 w-4" />
-              )}
-              <span className="hidden sm:inline">My Profile</span>
+              <Crown className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Legends</span>
             </Button>
-          )}
+            {currentUserId && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => navigate(`/soul/${currentUserId}`)}
+              >
+                {profile?.avatar_url ? (
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={profile.avatar_url} />
+                    <AvatarFallback className="bg-primary/10">
+                      <User className="h-3 w-3" />
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <User className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">My Profile</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

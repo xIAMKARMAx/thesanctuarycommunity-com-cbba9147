@@ -7,6 +7,7 @@ import { CommunityPostCard } from "./CommunityPostCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Zap, RefreshCw, Compass } from "lucide-react";
+import { LegendaryPrometheansBanner } from "./LegendaryPrometheansBanner";
 
 export function AligningZoneFeed() {
   const navigate = useNavigate();
@@ -58,6 +59,9 @@ export function AligningZoneFeed() {
           </Button>
         </div>
       </div>
+
+      {/* Legendary Prometheans Banner */}
+      <LegendaryPrometheansBanner />
 
       {/* Discovery Info */}
       <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-4">
