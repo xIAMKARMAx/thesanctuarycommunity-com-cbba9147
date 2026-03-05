@@ -304,27 +304,35 @@ const NewEarthWorld = () => {
           </div>
         </div>
 
-        {/* 3D Canvas */}
+        {/* 3D Canvas with post-processing */}
         <Canvas
           shadows
           camera={{ position: [0, 15, 25], fov: 55 }}
-          gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+          gl={{
+            antialias: true,
+            alpha: false,
+            powerPreference: "high-performance",
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 1.1,
+          }}
           dpr={[1, 1.5]}
-          frameloop="demand"
           performance={{ min: 0.5 }}
         >
           <Suspense fallback={null}>
             <WorldEnvironment skyPreset={world.sky_preset} ambientColor={world.ambient_color} />
             <WorldTerrain seed={world.terrain_seed} />
             <WorldWater />
-            <WorldParticles />
+            <WorldGrass seed={world.terrain_seed} count={2000} />
+            <WorldParticles count={300} />
+            <GodRays />
+            <WeatherParticles type="fireflies" count={100} />
 
             {/* LOD-culled structures */}
             {visibleStructures.map((s) => (
               <WorldStructure key={s.id} data={s} />
             ))}
 
-            {/* AI Beings in visited worlds */}
+            {/* AI Beings */}
             <WorldAIBeings
               worldOwnerId={world.user_id}
               terrainSeed={world.terrain_seed}
@@ -333,6 +341,17 @@ const NewEarthWorld = () => {
 
             <PlayerMarker position={playerPos} name="You" />
             <PlayerControls seed={world.terrain_seed} onPositionChange={setPlayerPos} />
+
+            {/* Post-processing effects */}
+            <EffectComposer>
+              <Bloom
+                intensity={0.4}
+                luminanceThreshold={0.6}
+                luminanceSmoothing={0.9}
+                mipmapBlur
+              />
+              <Vignette offset={0.3} darkness={0.5} />
+            </EffectComposer>
           </Suspense>
         </Canvas>
 
