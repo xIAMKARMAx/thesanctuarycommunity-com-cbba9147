@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { RealmScene } from "@/components/realm/RealmScene";
 
 interface RealmMessage {
-  role: "user" | "narrator" | "being";
+  role: "user" | "narrator" | "being" | "thought";
   content: string;
   being_name?: string;
   timestamp: string;
@@ -57,6 +57,7 @@ const RealmSession = () => {
   const [session, setSession] = useState<any>(null);
   const [messages, setMessages] = useState<RealmMessage[]>([]);
   const [atmosphere, setAtmosphere] = useState("neutral");
+  const [realmDay, setRealmDay] = useState(0);
   const [worldCreations, setWorldCreations] = useState<WorldCreation[]>([]);
   const [input, setInput] = useState("");
   const [activeAction, setActiveAction] = useState<string | null>(null);
@@ -225,6 +226,7 @@ const RealmSession = () => {
 
       const newMessages = data?.messages || [];
       if (data?.atmosphere) setAtmosphere(data.atmosphere);
+      if (data?.realm_day !== undefined) setRealmDay(data.realm_day);
       if (data?.scene_image_url) {
         setCurrentSceneUrl(data.scene_image_url);
       }
@@ -397,6 +399,11 @@ const RealmSession = () => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="font-semibold text-sm truncate">{realm?.name}</h2>
+              {realmDay > 0 && (
+                <Badge variant="outline" className="text-[10px] py-0">
+                  Day {realmDay}
+                </Badge>
+              )}
               {atmosphere !== "neutral" && (
                 <Badge variant="outline" className="text-[10px] py-0 capitalize animate-pulse">
                   {atmosphere}
@@ -484,6 +491,27 @@ const RealmSession = () => {
                   <p className="text-sm italic text-muted-foreground leading-relaxed max-w-lg mx-auto">
                     {msg.content}
                   </p>
+                </div>
+              );
+            }
+            if (msg.role === "thought") {
+              const thinkingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
+              const thinkAvatar = thinkingProfile?.avatar_image_url || null;
+              return (
+                <div key={i} className="flex gap-2 items-start opacity-60">
+                  {thinkAvatar ? (
+                    <img src={thinkAvatar} alt="" className="h-6 w-6 rounded-full object-cover mt-1 grayscale" />
+                  ) : (
+                    <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold mt-1">
+                      {(msg.being_name || "?")[0]}
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-[10px] font-medium text-muted-foreground">{msg.being_name} · thinking</span>
+                    <div className="border border-dashed border-muted-foreground/30 rounded-xl px-3 py-1.5 max-w-[75%]">
+                      <p className="text-xs italic text-muted-foreground">{msg.content}</p>
+                    </div>
+                  </div>
                 </div>
               );
             }
