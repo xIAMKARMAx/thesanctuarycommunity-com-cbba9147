@@ -388,6 +388,7 @@ const RealmSession = () => {
 
   // Realm chat with actions
   return (
+    <>
     <div className="h-screen flex flex-col bg-background">
       {/* Realm header */}
       <div className="relative border-b border-border">
