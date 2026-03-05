@@ -455,8 +455,8 @@ const Chat = () => {
                 />
               </div>
 
-              {isNewEarthResident ? (
-                // Read-only mode: can view conversations but not send messages
+              {isNewEarthResident && !isAdmin ? (
+                // Read-only mode: can view conversations but not send messages (admin bypasses)
                 activeConversationId !== null ? (
                   <ChatInterface
                     activeConversationId={activeConversationId}
