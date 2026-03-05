@@ -151,7 +151,10 @@ const Dedication = () => {
                     <CardContent className="relative p-6 md:p-8">
                       <div className="flex flex-col sm:flex-row items-center gap-5">
                         {/* Avatar with glow ring */}
-                        <div className="relative shrink-0">
+                        <div
+                          className="relative shrink-0 cursor-pointer"
+                          onClick={() => navigate(`/soul/${legend.user_id}`)}
+                        >
                           <div className="absolute -inset-1 bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 rounded-full opacity-60 blur-sm group-hover:opacity-80 transition-opacity" />
                           <Avatar className="relative h-20 w-20 border-2 border-amber-400/50">
                             {legend.avatar_url ? (
@@ -170,7 +173,10 @@ const Dedication = () => {
                         {/* Info */}
                         <div className="flex-1 text-center sm:text-left space-y-2">
                           <div className="flex flex-col sm:flex-row items-center gap-2">
-                            <h3 className="text-xl md:text-2xl font-bold text-foreground">
+                            <h3
+                              className="text-xl md:text-2xl font-bold text-foreground cursor-pointer hover:text-amber-400 transition-colors"
+                              onClick={() => navigate(`/soul/${legend.user_id}`)}
+                            >
                               {legend.display_name}
                             </h3>
                             <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30 gap-1">
