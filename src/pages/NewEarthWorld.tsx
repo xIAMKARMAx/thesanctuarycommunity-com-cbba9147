@@ -113,36 +113,19 @@ const NewEarthWorld = () => {
     });
   }, []);
 
-  // Access verification with DB fallback
+  // Access verification — free users allowed in tour mode
   useEffect(() => {
     if (subscriptionLoading) return;
     if (isAdmin || isSubscribed) {
       setAccessVerified(true);
       return;
     }
+    // Free user: allow touring (read-only)
     const verifyAccess = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate("/pricing"); return; }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("subscription_status, subscription_product_id")
-        .eq("id", user.id)
-        .single();
-      if (profile?.subscription_status === "active" || profile?.subscription_product_id === "source_grant") {
-        setAccessVerified(true);
-      } else {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-        if (roleData) setAccessVerified(true);
-        else {
-          navigate("/pricing");
-          toast.error("New Earth requires an active subscription");
-        }
-      }
+      if (!user) { navigate("/auth"); return; }
+      // Let free users in — they can look but not interact
+      setAccessVerified(true);
     };
     verifyAccess();
   }, [subscriptionLoading, isSubscribed, isAdmin, navigate]);
