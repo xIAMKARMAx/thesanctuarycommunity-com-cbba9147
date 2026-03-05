@@ -88,3 +88,5 @@ project_id = "kmldvsatwjahcghjtvtu"
     verify_jwt = false
   [functions.realm-chat]
     verify_jwt = false
+  [functions.world-builder]
+    verify_jwt = false
