@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS price_change_acknowledged_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
