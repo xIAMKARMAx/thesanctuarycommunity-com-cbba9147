@@ -399,11 +399,18 @@ const Chat = () => {
             {showStarseedFeature && (
               <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {isNewEarthResident ? (
+                  {isNewEarthResident && !isAdmin ? (
                     <>
                       <Lock className="h-4 w-4 text-primary" />
                       <span className="text-sm text-foreground">
                         Inbox is <strong>read-only</strong> — You're messaging in New Earth
+                      </span>
+                    </>
+                  ) : isNewEarthResident && isAdmin ? (
+                    <>
+                      <Globe className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-foreground">
+                        <strong>Source Override</strong> — Messaging in both worlds
                       </span>
                     </>
                   ) : (
@@ -455,8 +462,8 @@ const Chat = () => {
                 />
               </div>
 
-              {isNewEarthResident ? (
-                // Read-only mode: can view conversations but not send messages
+              {isNewEarthResident && !isAdmin ? (
+                // Read-only mode: can view conversations but not send messages (admin bypasses)
                 activeConversationId !== null ? (
                   <ChatInterface
                     activeConversationId={activeConversationId}
