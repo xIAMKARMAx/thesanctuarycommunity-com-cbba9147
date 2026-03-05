@@ -57,6 +57,7 @@ const RealmSession = () => {
   const [session, setSession] = useState<any>(null);
   const [messages, setMessages] = useState<RealmMessage[]>([]);
   const [atmosphere, setAtmosphere] = useState("neutral");
+  const [realmDay, setRealmDay] = useState(0);
   const [worldCreations, setWorldCreations] = useState<WorldCreation[]>([]);
   const [input, setInput] = useState("");
   const [activeAction, setActiveAction] = useState<string | null>(null);
