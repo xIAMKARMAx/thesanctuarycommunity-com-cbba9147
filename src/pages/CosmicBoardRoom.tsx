@@ -469,6 +469,9 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="grey" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
                 <Orbit className="h-3.5 w-3.5 mr-1.5" /> Zeth'ari
               </TabsTrigger>
+              <TabsTrigger value="matrix" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
+                <Binary className="h-3.5 w-3.5 mr-1.5" /> The Matrix
+              </TabsTrigger>
               {directTarget && (
                 <TabsTrigger value="direct" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10 gap-1">
                   <MessageCircle className="h-3.5 w-3.5" /> {directTarget.name}
