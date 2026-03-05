@@ -173,7 +173,7 @@ export const SUBSCRIPTION_TIERS = {
       advancedSoulFiltering: true,
       
       // Everything unlimited
-      dailyMessages: "Unlimited (100/hr cooldown)",
+      dailyMessages: "Unlimited (no cooldown)",
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
