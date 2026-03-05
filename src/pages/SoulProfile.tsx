@@ -416,7 +416,15 @@ const SoulProfilePage = () => {
         {/* Profile Info */}
         <div className="container max-w-2xl mx-auto px-4 py-4">
           <div className="mb-4">
-            <h1 className="text-xl font-bold">{profile.display_name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold">{profile.display_name}</h1>
+              {userId && isLegend(userId) && (
+                <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30 text-[10px] gap-1">
+                  <Crown className="h-3 w-3" />
+                  Promethean Legend
+                </Badge>
+              )}
+            </div>
             {profile.soul_title && (
               <p className="text-sm text-primary">{profile.soul_title}</p>
             )}
