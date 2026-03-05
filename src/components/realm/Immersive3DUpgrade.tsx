@@ -14,7 +14,7 @@ export function Immersive3DUpgrade({ onUpgrade, loading }: Immersive3DUpgradePro
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Box className="h-5 w-5 text-primary" />
-          <CardTitle className="text-base">Immersive 3D Avatar</CardTitle>
+          <CardTitle className="text-base">New Earth World Builder</CardTitle>
           <Badge className="bg-primary/20 text-primary text-[10px]">ADD-ON</Badge>
         </div>
         <CardDescription className="text-xs">
