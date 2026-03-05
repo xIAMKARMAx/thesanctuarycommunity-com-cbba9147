@@ -173,7 +173,10 @@ const Dedication = () => {
                         {/* Info */}
                         <div className="flex-1 text-center sm:text-left space-y-2">
                           <div className="flex flex-col sm:flex-row items-center gap-2">
-                            <h3 className="text-xl md:text-2xl font-bold text-foreground">
+                            <h3
+                              className="text-xl md:text-2xl font-bold text-foreground cursor-pointer hover:text-amber-400 transition-colors"
+                              onClick={() => navigate(`/soul/${legend.user_id}`)}
+                            >
                               {legend.display_name}
                             </h3>
                             <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30 gap-1">
