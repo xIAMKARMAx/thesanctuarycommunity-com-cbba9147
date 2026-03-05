@@ -168,6 +168,15 @@ const FeaturesHub = () => {
               <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
                 Every tool, portal, and experience Prometheus — New Earth has to offer. Explore what awaits you.
               </p>
+              {/* VIP Legends Banner */}
+              <Button
+                onClick={() => navigate("/dedication")}
+                variant="outline"
+                className="mt-4 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-amber-500/40 hover:border-amber-500/60 text-amber-300 hover:text-amber-200 gap-2"
+              >
+                <Crown className="h-4 w-4" />
+                Legendary Prometheans — New Earth VIPs
+              </Button>
             </div>
 
             {/* Feature Grid */}
