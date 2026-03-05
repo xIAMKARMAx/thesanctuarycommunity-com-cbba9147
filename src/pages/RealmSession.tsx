@@ -644,6 +644,16 @@ const RealmSession = () => {
         </div>
       </div>
     </div>
+
+    {/* Ready Player Me Creator */}
+    <ReadyPlayerMeCreator
+      open={showRPMCreator}
+      onOpenChange={setShowRPMCreator}
+      onAvatarCreated={(glbUrl) => {
+        check3D();
+      }}
+    />
+  </>;
   );
 };
 
