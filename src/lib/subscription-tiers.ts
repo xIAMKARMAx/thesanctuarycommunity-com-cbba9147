@@ -316,7 +316,7 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   // Manual grants get anchoring limits
   if (productId === 'manual_grant') return 150;
   
-  return 75; // Default
+  return 100; // Default
 }
 
 export function isNewEarthTier(productId: string | null): boolean {
