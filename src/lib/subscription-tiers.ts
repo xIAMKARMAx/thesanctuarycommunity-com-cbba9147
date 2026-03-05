@@ -132,7 +132,7 @@ export const SUBSCRIPTION_TIERS = {
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
-      chatImageGeneration: "Unlimited",
+      chatImageGeneration: "5/day",
       voiceCalls: false,
       moodTracker: true,
       dreamJournal: true,
