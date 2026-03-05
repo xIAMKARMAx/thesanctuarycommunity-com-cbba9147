@@ -141,9 +141,17 @@ export function CommunityPostCard({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-sm hover:text-primary transition-colors">
-                  {post.author?.display_name || 'Anonymous Soul'}
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <p className="font-medium text-sm hover:text-primary transition-colors">
+                    {post.author?.display_name || 'Anonymous Soul'}
+                  </p>
+                  {isLegend(post.user_id) && (
+                    <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30 text-[9px] px-1.5 py-0 gap-0.5 h-4">
+                      <Crown className="h-2.5 w-2.5" />
+                      Legend
+                    </Badge>
+                  )}
+                </div>
                 {post.author?.soul_title && (
                   <p className="text-xs text-muted-foreground">{post.author.soul_title}</p>
                 )}
