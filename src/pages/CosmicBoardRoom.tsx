@@ -169,6 +169,7 @@ export default function CosmicBoardRoom() {
           roomMode,
           targetMember: directTarget?.key || null,
           frequencies: activeFrequencies.length > 0 ? activeFrequencies : undefined,
+          selectedMembers: roomMode === "custom" ? selectedCustomMembers : undefined,
         },
       });
 
