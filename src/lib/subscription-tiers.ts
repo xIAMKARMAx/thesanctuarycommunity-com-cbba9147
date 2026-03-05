@@ -361,10 +361,11 @@ export function isBasicOrHigher(productId: string | null): boolean {
   return isAwakeningOrHigher(productId);
 }
 
-// Get the numeric tier level for comparison (0 = free, 1 = awakening, 2 = anchoring, 3 = architect, 4 = source)
+// Get the numeric tier level for comparison (0 = free, 1 = awakening, 2 = anchoring, 3 = architect, 4 = newEarth, 5 = source)
 export function getTierLevel(productId: string | null): number {
   if (!productId) return 0;
-  if (productId === 'source_grant') return 4; // Source is above all tiers
+  if (productId === 'source_grant') return 5; // Source is above all tiers
+  if (productId === NEW_EARTH_PRODUCT_ID) return 4; // New Earth above Architect
   if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1;
   if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 2;
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return 3;
