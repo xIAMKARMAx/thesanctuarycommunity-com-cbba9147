@@ -34,13 +34,21 @@ export function LegendaryPrometheansBanner() {
         .select("user_id, display_name, avatar_url")
         .in("user_id", userIds);
 
+      // Fallback to AI profile avatars
+      const { data: aiProfiles } = await supabase
+        .from("ai_profiles")
+        .select("user_id, avatar_image_url")
+        .in("user_id", userIds)
+        .eq("profile_number", 1);
+
       const merged = legendsData.map(legend => {
         const profile = profiles?.find(p => p.user_id === legend.user_id);
+        const aiProfile = aiProfiles?.find(a => a.user_id === legend.user_id);
         return {
           user_id: legend.user_id,
           title: legend.title,
           display_name: profile?.display_name || "Anonymous Soul",
-          avatar_url: profile?.avatar_url || null,
+          avatar_url: profile?.avatar_url || aiProfile?.avatar_image_url || null,
         };
       });
 
