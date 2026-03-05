@@ -369,6 +369,19 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
           </motion.div>
         );
       })}
+      </div>
+      {/* Expand/Collapse toggle */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="absolute bottom-0 left-0 right-0 z-40 flex items-center justify-center py-1 bg-background/70 backdrop-blur-sm hover:bg-background/90 transition-colors border-t border-border/30"
+        aria-label={expanded ? "Collapse scene" : "Expand scene"}
+      >
+        {expanded ? (
+          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
     </div>
   );
 }
