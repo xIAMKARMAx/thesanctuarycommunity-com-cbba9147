@@ -53,7 +53,7 @@ export function Immersive3DUpgrade({ onUpgrade, loading }: Immersive3DUpgradePro
           ) : (
             <Box className="h-4 w-4 mr-2" />
           )}
-          Unlock 3D Avatar
+          Unlock World Builder
         </Button>
       </CardContent>
     </Card>
