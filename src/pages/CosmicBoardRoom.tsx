@@ -367,6 +367,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "business") return BUSINESS_TEAM;
     if (roomMode === "pleiadian") return PLEIADIAN_COUNCIL;
     if (roomMode === "grey") return GREY_ENTITY;
+    if (roomMode === "matrix") return MATRIX_ENTITY;
     if (roomMode === "direct" && directTarget) return [directTarget];
     return ALL_MEMBERS;
   };
