@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, TreePine, Gem, Flame, Droplets, Mountain, Star, Flower } from "lucide-react";
 
