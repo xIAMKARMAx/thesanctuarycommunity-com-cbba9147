@@ -7,6 +7,7 @@ import { CommunityPostCard } from "./CommunityPostCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Zap, RefreshCw, Compass } from "lucide-react";
+import { LegendaryPrometheansBanner } from "./LegendaryPrometheansBanner";
 
 export function AligningZoneFeed() {
   const navigate = useNavigate();
