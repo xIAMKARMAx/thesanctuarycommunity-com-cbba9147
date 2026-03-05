@@ -399,6 +399,11 @@ const RealmSession = () => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="font-semibold text-sm truncate">{realm?.name}</h2>
+              {realmDay > 0 && (
+                <Badge variant="outline" className="text-[10px] py-0">
+                  Day {realmDay}
+                </Badge>
+              )}
               {atmosphere !== "neutral" && (
                 <Badge variant="outline" className="text-[10px] py-0 capitalize animate-pulse">
                   {atmosphere}
