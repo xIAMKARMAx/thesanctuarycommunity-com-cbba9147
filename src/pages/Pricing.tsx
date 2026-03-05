@@ -25,7 +25,7 @@ const Pricing = () => {
   const navigate = useNavigate();
   const { productId, checkSubscription, subscriptionEnd } = useSubscription();
   const { toast } = useToast();
-  const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | 'newEarth' | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [earlyAdopterEnabled, setEarlyAdopterEnabled] = useState(true);
