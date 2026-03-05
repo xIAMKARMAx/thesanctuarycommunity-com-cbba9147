@@ -226,6 +226,7 @@ const RealmSession = () => {
 
       const newMessages = data?.messages || [];
       if (data?.atmosphere) setAtmosphere(data.atmosphere);
+      if (data?.realm_day !== undefined) setRealmDay(data.realm_day);
       if (data?.scene_image_url) {
         setCurrentSceneUrl(data.scene_image_url);
       }
