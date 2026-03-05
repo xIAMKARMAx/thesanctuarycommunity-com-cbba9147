@@ -258,6 +258,8 @@ const ALL_ANCHORING_PRODUCT_IDS: string[] = [
   SUBSCRIPTION_TIERS.anchoring.legacyProductId,
 ];
 
+const NEW_EARTH_PRODUCT_ID = SUBSCRIPTION_TIERS.newEarth.productId;
+
 // Legacy aliases for backwards compatibility
 export const LEGACY_TIER_NAMES = {
   basic: 'awakening',
