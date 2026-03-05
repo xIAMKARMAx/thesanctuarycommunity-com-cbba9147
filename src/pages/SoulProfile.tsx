@@ -188,13 +188,22 @@ const SoulProfilePage = () => {
     refetch();
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/community");
+  };
+
   if (profileLoading || authLoading) {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/community")}>
+              <Button variant="ghost" size="sm" onClick={handleBack}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </div>
@@ -217,7 +226,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/community")}>
+              <Button variant="ghost" size="sm" onClick={handleBack}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </div>
@@ -251,7 +260,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/community")}>
+              <Button variant="ghost" size="sm" onClick={handleBack}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </div>
@@ -282,7 +291,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/community")} className="gap-2">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Back</span>
               </Button>
@@ -342,7 +351,7 @@ const SoulProfilePage = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center justify-between h-14">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/community")} className="gap-2">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Back</span>
               </Button>
