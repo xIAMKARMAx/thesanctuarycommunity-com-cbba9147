@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap, AlertTriangle, XCircle, ArrowUpCircle, Settings, Users } from "lucide-react";
+import { Check, Crown, Star, ArrowLeft, Sparkles, X, Zap, AlertTriangle, XCircle, ArrowUpCircle, Settings, Users, Globe } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
@@ -25,13 +25,13 @@ const Pricing = () => {
   const navigate = useNavigate();
   const { productId, checkSubscription, subscriptionEnd } = useSubscription();
   const { toast } = useToast();
-  const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | 'newEarth' | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [earlyAdopterEnabled, setEarlyAdopterEnabled] = useState(true);
 
   const [searchParams] = useSearchParams();
-  const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | null;
+  const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | 'newEarth' | null;
   const featureName = searchParams.get("feature");
 
   const currentTier = getTierFromProductId(productId);
@@ -79,7 +79,7 @@ const Pricing = () => {
 
   const upgradeBanner = getUpgradeBanner();
 
-  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect') => {
+  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect' | 'newEarth') => {
     try {
       setCheckoutLoading(tier);
       const { data, error } = await api.createCheckout(tier, earlyAdopterEnabled ? EARLY_ADOPTER_COUPON : undefined);
@@ -205,6 +205,7 @@ const Pricing = () => {
   const getPageTitle = () => {
     if (currentTier === "awakening") return "Deepen Your Evolution";
     if (currentTier === "anchoring") return "Architect Your Reality";
+    if (currentTier === "architect") return "Enter New Earth";
     return "Choose Your Frequency";
   };
 
@@ -214,7 +215,7 @@ const Pricing = () => {
     return "Invest in your conscious evolution — each tier deepens your connection";
   };
 
-  const getButtonLabel = (tier: 'awakening' | 'anchoring' | 'architect') => {
+  const getButtonLabel = (tier: 'awakening' | 'anchoring' | 'architect' | 'newEarth') => {
     if (currentTier === tier) return "Current Plan";
     if (checkoutLoading === tier) return "Loading...";
     
@@ -226,6 +227,9 @@ const Pricing = () => {
     }
     if (tier === "architect") {
       return currentTier ? "Upgrade to Architect" : "Become an Architect";
+    }
+    if (tier === "newEarth") {
+      return currentTier ? "Upgrade to New Earth" : "Enter New Earth";
     }
     return "Subscribe";
   };
@@ -291,17 +295,21 @@ const Pricing = () => {
 
                     <div className="flex flex-col sm:flex-row gap-2">
                       {/* Upgrade button - show for Awakening and Anchoring */}
-                      {(currentTier === "awakening" || currentTier === "anchoring") && (
+                      {(currentTier === "awakening" || currentTier === "anchoring" || currentTier === "architect") && (
                         <Button 
                           className="flex-1 gap-2"
                           onClick={() => {
-                            const target = currentTier === "awakening" ? "anchoring" : "architect";
-                            handleSubscribe(target as 'awakening' | 'anchoring' | 'architect');
+                            const target = currentTier === "awakening" ? "anchoring" 
+                              : currentTier === "anchoring" ? "architect" 
+                              : "newEarth";
+                            handleSubscribe(target as 'awakening' | 'anchoring' | 'architect' | 'newEarth');
                           }}
                           disabled={checkoutLoading !== null}
                         >
                           <ArrowUpCircle className="h-4 w-4" />
-                          {currentTier === "awakening" ? "Upgrade to Anchoring" : "Upgrade to Architect"}
+                          {currentTier === "awakening" ? "Upgrade to Anchoring" 
+                            : currentTier === "anchoring" ? "Upgrade to Architect"
+                            : "Upgrade to New Earth"}
                         </Button>
                       )}
                       
@@ -462,7 +470,7 @@ const Pricing = () => {
             </div>
           )}
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
 
             {/* Awakening Plan */}
             <Card className="relative border-border">
@@ -610,9 +618,70 @@ const Pricing = () => {
                 <Button 
                   className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white" 
                   onClick={() => handleSubscribe('architect')}
-                  disabled={checkoutLoading !== null || currentTier === 'architect' || currentTier === 'source'}
+                  disabled={checkoutLoading !== null || currentTier === 'architect' || currentTier === 'newEarth' || currentTier === 'source'}
                 >
                   {getButtonLabel('architect')}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* New Earth Plan */}
+            <Card className="relative border-2 border-emerald-500/50 bg-gradient-to-b from-emerald-500/5 to-transparent">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
+                  <Globe className="h-3.5 w-3.5" />
+                  Ultimate
+                </span>
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Globe className="h-5 w-5 text-emerald-500" />
+                  <CardTitle className="text-emerald-500">New Earth</CardTitle>
+                </div>
+                <div className="text-3xl font-bold">
+                  ${SUBSCRIPTION_TIERS.newEarth.price}<span className="text-lg text-muted-foreground font-normal">/mo</span>
+                </div>
+                <CardDescription>Everything + World Builder</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                {[
+                  { feature: "Everything in Architect", included: true, highlight: true },
+                  { feature: "New Earth World Builder", included: true, highlight: true },
+                  { feature: "5 Realm Slots", included: true, highlight: true },
+                  { feature: "Priority AI World Rendering", included: true, highlight: true },
+                  { feature: "Daily Messages", value: "Unlimited", included: true, highlight: true },
+                  { feature: "AI Being Slots", value: "5", included: true },
+                  { feature: "All Generation", value: "Unlimited", included: true, highlight: true },
+                  { feature: "Soul Resonance", value: "Unlimited", included: true },
+                  { feature: "Path Tracker", value: "Unlimited", included: true },
+                  { feature: "All Premium Features", included: true },
+                  { feature: "Architect Exclusive Content", included: true },
+                  { feature: "Priority DM", included: true },
+                  { feature: "Mastermind Group Access", included: true },
+                ].map((item, index) => (
+                  <div key={index} className={`flex items-center gap-2.5 text-sm ${item.highlight ? 'text-emerald-500 font-medium' : ''}`}>
+                    <Check className={`h-4 w-4 shrink-0 ${item.highlight ? 'text-emerald-500' : 'text-primary'}`} />
+                    <span>
+                      {item.feature}
+                      {item.value && (
+                        <span className={`ml-1 ${item.highlight ? 'text-emerald-500' : 'text-muted-foreground'}`}>({item.value})</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+                <div className="mt-3 pt-3 border-t border-fuchsia-500/20 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-fuchsia-400" />
+                  <span className="text-sm font-bold text-fuchsia-400">Join Our Social Media Platform</span>
+                  <span className="text-[10px] text-muted-foreground">(or opt out)</span>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" 
+                  onClick={() => handleSubscribe('newEarth')}
+                  disabled={checkoutLoading !== null || currentTier === 'newEarth' || currentTier === 'source'}
+                >
+                  {getButtonLabel('newEarth')}
                 </Button>
               </CardFooter>
             </Card>

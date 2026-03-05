@@ -10,6 +10,7 @@ const PRICE_IDS: Record<string, string> = {
   awakening: "price_1T5pakLeA9CCp7fqv5xWPnnm",
   anchoring: "price_1T5paqLeA9CCp7fqrbBoAuCz",
   architect: "price_1SvMYWLeA9CCp7fqCZW21kS0",
+  newEarth: "price_1T7YAOLeA9CCp7fqxRQbdWOn",
   basic: "price_1T5pakLeA9CCp7fqv5xWPnnm",
   pro: "price_1T5paqLeA9CCp7fqrbBoAuCz",
   vip: "price_1SvMYWLeA9CCp7fqCZW21kS0",

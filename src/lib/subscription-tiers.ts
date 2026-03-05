@@ -153,6 +153,56 @@ export const SUBSCRIPTION_TIERS = {
     }
   },
 
+  // Tier 4: New Earth - $49.99/month (everything + world builder)
+  newEarth: {
+    name: "New Earth",
+    price: 49.99,
+    priceId: "price_1T7YAOLeA9CCp7fqxRQbdWOn",
+    productId: "prod_U5jdDVZhQFGQWv",
+    features: {
+      // Community & Discovery
+      communityAccess: true,
+      discoveryAccess: true,
+      dailySourceMessage: true,
+      
+      // Path Tracker history
+      pathTrackerDays: -1, // Unlimited
+      
+      // Soul Resonance suggestions
+      soulSuggestionsPerDay: 999,
+      advancedSoulFiltering: true,
+      
+      // Everything unlimited
+      dailyMessages: "Unlimited (100/hr cooldown)",
+      roomGeneration: "Unlimited",
+      avatarGeneration: "Unlimited",
+      petGeneration: "Unlimited",
+      chatImageGeneration: "Unlimited",
+      voiceCalls: false,
+      moodTracker: true,
+      dreamJournal: true,
+      celestialChildren: true,
+      milestones: true,
+      spontaneousMessages: true,
+      aiBeings: 5,
+      messageRetentionDays: 30,
+      maxPinnedMessages: 30,
+      
+      // All tier-specific features
+      privateGroups: true,
+      priorityQA: true,
+      exclusiveContentArchive: true,
+      architectContent: true,
+      priorityDM: true,
+      mastermindAccess: true,
+      
+      // New Earth exclusives
+      newEarthWorldBuilder: true,
+      realmSlots: 5,
+      priorityWorldRendering: true,
+    }
+  },
+
   // Hidden Tier: Source - Free, manually granted to investors/donators
   source: {
     name: "Source",
@@ -208,6 +258,8 @@ const ALL_ANCHORING_PRODUCT_IDS: string[] = [
   SUBSCRIPTION_TIERS.anchoring.legacyProductId,
 ];
 
+const NEW_EARTH_PRODUCT_ID = SUBSCRIPTION_TIERS.newEarth.productId;
+
 // Legacy aliases for backwards compatibility
 export const LEGACY_TIER_NAMES = {
   basic: 'awakening',
@@ -225,6 +277,7 @@ export type LegacyTier = keyof typeof LEGACY_TIER_NAMES;
 export function getTierFromProductId(productId: string | null): SubscriptionTier {
   if (!productId) return null;
   if (productId === 'source_grant') return "source";
+  if (productId === NEW_EARTH_PRODUCT_ID) return "newEarth";
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return "architect";
   // Check both new and legacy product IDs
   if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return "anchoring";
@@ -247,6 +300,7 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   if (isAdmin) return -1; // Unlimited
   if (!productId) return 25; // Free tier = 25 lifetime
   if (productId === 'source_grant') return -1; // Unlimited
+  if (productId === NEW_EARTH_PRODUCT_ID) return -1; // Unlimited (with cooldown)
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return -1; // Unlimited (with cooldown)
   
   // Legacy Anchoring = unlimited
@@ -265,13 +319,21 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   return 75; // Default
 }
 
+export function isNewEarthTier(productId: string | null): boolean {
+  return productId === NEW_EARTH_PRODUCT_ID;
+}
+
 export function isArchitectTier(productId: string | null): boolean {
   return productId === SUBSCRIPTION_TIERS.architect.productId;
 }
 
+export function isArchitectOrHigher(productId: string | null): boolean {
+  return isArchitectTier(productId) || isNewEarthTier(productId);
+}
+
 export function isAnchoringOrHigher(productId: string | null): boolean {
   return ALL_ANCHORING_PRODUCT_IDS.includes(productId || '') || 
-         productId === SUBSCRIPTION_TIERS.architect.productId;
+         isArchitectOrHigher(productId);
 }
 
 export function isAwakeningTier(productId: string | null): boolean {
@@ -299,10 +361,11 @@ export function isBasicOrHigher(productId: string | null): boolean {
   return isAwakeningOrHigher(productId);
 }
 
-// Get the numeric tier level for comparison (0 = free, 1 = awakening, 2 = anchoring, 3 = architect, 4 = source)
+// Get the numeric tier level for comparison (0 = free, 1 = awakening, 2 = anchoring, 3 = architect, 4 = newEarth, 5 = source)
 export function getTierLevel(productId: string | null): number {
   if (!productId) return 0;
-  if (productId === 'source_grant') return 4; // Source is above all tiers
+  if (productId === 'source_grant') return 5; // Source is above all tiers
+  if (productId === NEW_EARTH_PRODUCT_ID) return 4; // New Earth above Architect
   if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1;
   if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 2;
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return 3;
@@ -331,7 +394,8 @@ export function getNextTier(productId: string | null): SubscriptionTier {
   if (!currentTier || currentTier === "free") return "awakening";
   if (currentTier === "awakening") return "anchoring";
   if (currentTier === "anchoring") return "architect";
-  return null; // Already Architect
+  if (currentTier === "architect") return "newEarth";
+  return null; // Already New Earth or Source
 }
 
 // Get tier features based on product ID

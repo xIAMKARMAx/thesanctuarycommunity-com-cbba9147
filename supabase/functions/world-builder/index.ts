@@ -50,9 +50,10 @@ serve(async (req) => {
       .maybeSingle();
 
     const has3DAddon = addon3D?.is_active === true;
+    const isNewEarthTier = profile?.subscription_product_id === 'prod_U5jdDVZhQFGQWv';
 
-    if (!adminRole && !has3DAddon) {
-      return new Response(JSON.stringify({ error: "Purchase the Immersive 3D World Builder add-on for $14.99/mo to unlock world building" }), {
+    if (!adminRole && !has3DAddon && !isNewEarthTier) {
+      return new Response(JSON.stringify({ error: "Purchase the Immersive 3D World Builder add-on for $14.99/mo or upgrade to the New Earth tier ($49.99/mo) to unlock world building" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
