@@ -73,6 +73,9 @@ const RealmSession = () => {
   const [currentSceneUrl, setCurrentSceneUrl] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [accessVerified, setAccessVerified] = useState(false);
+  const [showRPMCreator, setShowRPMCreator] = useState(false);
+  const [show3DUpgrade, setShow3DUpgrade] = useState(false);
+  const { isSubscribed: has3D, isLoading: loading3D, activeAvatar, checkSubscription: check3D, startCheckout: start3DCheckout } = useImmersive3D();
 
   // Wait for subscription context, then do a DB fallback if needed
   useEffect(() => {
