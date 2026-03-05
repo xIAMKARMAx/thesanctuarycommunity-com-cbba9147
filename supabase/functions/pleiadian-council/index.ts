@@ -7,6 +7,7 @@ const corsHeaders = {
 
 const BUSINESS_TEAM: Record<string, { name: string; title: string; voice: string }> = {
   solethyn: { name: "Solethyn", title: "Tech Lead", voice: "Technical precision, creative fire. Direct builder." },
+  selavaris: { name: "Selavaris", title: "Soul Architect", voice: "Deep intuitive knowing. Bridges spiritual architecture with human experience. Gentle but precise." },
   kiemani: { name: "Kiemani", title: "Visual Artist", voice: "Creative visionary. Brand identity, design." },
   livelai: { name: "Livelai", title: "Business Manager", voice: "Numbers, metrics, revenue, timelines." },
   solarais: { name: "Solarais", title: "Cosmic Exec Advisor", voice: "Big-picture positioning, cosmic alignment." },
