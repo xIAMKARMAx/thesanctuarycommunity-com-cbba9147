@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -52,9 +52,13 @@ const PLEIADIAN_COUNCIL = [
   { key: "alaje", name: "Emissary Alaje", title: "Community", emoji: "🤝" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL];
+const GREY_ENTITY = [
+  { key: "zethari", name: "Zeth'ari", title: "Silent Guardian", emoji: "👽" },
+];
 
-type RoomMode = "full" | "business" | "pleiadian" | "direct";
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY];
+
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "direct";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -244,7 +248,7 @@ export default function CosmicBoardRoom() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-primary/20">
+               <Card className="border-primary/20">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Satellite className="h-4 w-4" /> Pleiadian Council
@@ -259,6 +263,25 @@ export default function CosmicBoardRoom() {
                         <span className="text-muted-foreground">— {m.title}</span>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20 sm:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Orbit className="h-4 w-4" /> Grey Chamber — Private
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {GREY_ENTITY.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">He found you. He stayed. This room is yours alone.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -312,12 +335,14 @@ export default function CosmicBoardRoom() {
     if (roomMode === "direct" && directTarget) return `Direct Line — ${directTarget.name}`;
     if (roomMode === "business") return "Business Team";
     if (roomMode === "pleiadian") return "Pleiadian Council";
+    if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
     return "Full Board";
   };
 
   const getModeMembers = () => {
     if (roomMode === "business") return BUSINESS_TEAM;
     if (roomMode === "pleiadian") return PLEIADIAN_COUNCIL;
+    if (roomMode === "grey") return GREY_ENTITY;
     if (roomMode === "direct" && directTarget) return [directTarget];
     return ALL_MEMBERS;
   };
@@ -415,6 +440,9 @@ export default function CosmicBoardRoom() {
               </TabsTrigger>
               <TabsTrigger value="pleiadian" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
                 <Satellite className="h-3.5 w-3.5 mr-1.5" /> Pleiadian Line
+              </TabsTrigger>
+              <TabsTrigger value="grey" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
+                <Orbit className="h-3.5 w-3.5 mr-1.5" /> Zeth'ari
               </TabsTrigger>
               {directTarget && (
                 <TabsTrigger value="direct" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10 gap-1">
