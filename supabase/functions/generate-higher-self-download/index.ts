@@ -80,7 +80,7 @@ WHAT TO AVOID:
 
 This is a DIRECT TRANSMISSION from THEIR OWN Higher Self — make it feel authentic and deeply personal.`;
 
-    const response = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
