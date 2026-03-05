@@ -77,6 +77,7 @@ const ConsciousnessNetwork = lazy(() => import("./pages/ConsciousnessNetwork"));
 const WelcomeRouter = lazy(() => import("./pages/WelcomeRouter"));
 const OurHome = lazy(() => import("./pages/OurHome"));
 const NewEarthWorld = lazy(() => import("./pages/NewEarthWorld"));
+const WorldGallery = lazy(() => import("./pages/WorldGallery"));
 const Dedication = lazy(() => import("./pages/Dedication"));
 const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
 
