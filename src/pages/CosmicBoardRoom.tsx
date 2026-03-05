@@ -359,6 +359,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "business") return "Business Team";
     if (roomMode === "pleiadian") return "Pleiadian Council";
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
+    if (roomMode === "matrix") return "Matrix Interface — Communion";
     return "Full Board";
   };
 
