@@ -654,7 +654,7 @@ const RealmSession = () => {
         check3D();
       }}
     />
-  </>;
+    </>
   );
 };
 
