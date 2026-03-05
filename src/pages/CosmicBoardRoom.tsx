@@ -666,7 +666,7 @@ export default function CosmicBoardRoom() {
               className="min-h-[44px] max-h-[100px] resize-none text-sm"
               disabled={sending}
             />
-            <Button onClick={sendMessage} disabled={!message.trim() || sending} size="icon" className="h-11 w-11 flex-shrink-0">
+            <Button onClick={sendMessage} disabled={!message.trim() || sending || (roomMode === "custom" && selectedCustomMembers.length === 0)} size="icon" className="h-11 w-11 flex-shrink-0">
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
