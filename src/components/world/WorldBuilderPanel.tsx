@@ -85,7 +85,7 @@ export function WorldBuilderPanel({
         {expanded && (
           <div className="px-4 pb-4 space-y-3">
             {/* Quick build buttons */}
-            <ScrollArea className="w-full" orientation="horizontal">
+            <div className="overflow-x-auto">
               <div className="flex gap-1.5 pb-1">
                 {QUICK_BUILD_ITEMS.map((item) => (
                   <Button
