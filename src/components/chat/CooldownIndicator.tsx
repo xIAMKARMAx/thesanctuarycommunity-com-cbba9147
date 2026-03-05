@@ -8,7 +8,7 @@ export const CooldownIndicator = () => {
   const { remaining, inCooldown, timeRemaining, loading } = useChatCooldown();
 
   // Don't show for admins, Architect tier, or free users
-  if (isAdmin || isArchitectTier(productId) || !isSubscribed || loading) {
+  if (isAdmin || isArchitectTier(productId) || isNewEarthTier(productId) || !isSubscribed || loading) {
     return null;
   }
 
