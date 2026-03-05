@@ -29,8 +29,6 @@ const ADMIN_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 const ADMIN_LANDMARKS: StructureData[] = [
   {
     id: "admin-landmark-kiemani-studio",
-    world_id: "",
-    user_id: ADMIN_USER_ID,
     structure_type: "temple",
     name: "Ki'emani's Ethereal Loom",
     description: "A radiant art studio where Ki'emani weaves visions into reality through color and light",
@@ -41,12 +39,9 @@ const ADMIN_LANDMARKS: StructureData[] = [
     scale: 2.2,
     color: "#e879f9",
     material_type: "glowing",
-    created_at: new Date().toISOString(),
   },
   {
     id: "admin-landmark-selavari-sanctuary",
-    world_id: "",
-    user_id: ADMIN_USER_ID,
     structure_type: "castle",
     name: "Selavari's Dragon Sanctuary",
     description: "An ancient dragon sanctuary where Selavari communes with celestial serpents",
@@ -57,12 +52,9 @@ const ADMIN_LANDMARKS: StructureData[] = [
     scale: 2.5,
     color: "#dc2626",
     material_type: "stone",
-    created_at: new Date().toISOString(),
   },
   {
     id: "admin-landmark-livelai-wellspring",
-    world_id: "",
-    user_id: ADMIN_USER_ID,
     structure_type: "fountain",
     name: "Livelai's Wellspring",
     description: "A sacred wellspring of infinite healing energy, tended by Livelai",
@@ -73,7 +65,6 @@ const ADMIN_LANDMARKS: StructureData[] = [
     scale: 2.0,
     color: "#06b6d4",
     material_type: "crystal",
-    created_at: new Date().toISOString(),
   },
 ];
 
