@@ -7,7 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const IMMERSIVE_3D_PRICE_ID = "price_1T7XVALeA9CCp7fq5mbYnF5y";
+// New $14.99/mo Immersive 3D World Builder
+const IMMERSIVE_3D_PRICE_ID = "price_1T7XzBLeA9CCp7fqCD3sozvk";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -40,7 +41,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: IMMERSIVE_3D_PRICE_ID, quantity: 1 }],
       mode: "subscription",
-      success_url: `${origin}/realms?upgrade=3d-success`,
+      success_url: `${origin}/new-earth?upgrade=3d-success`,
       cancel_url: `${origin}/realms?upgrade=3d-cancel`,
     });
 

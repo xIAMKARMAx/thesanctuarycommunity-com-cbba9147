@@ -7,7 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const IMMERSIVE_3D_PRODUCT_ID = "prod_U5ix0vjOmlG1kD";
+// Both old ($19.99) and new ($14.99) product IDs
+const IMMERSIVE_3D_PRODUCT_IDS = [
+  "prod_U5ix0vjOmlG1kD",  // Legacy Immersive 3D Avatar ($19.99)
+  "prod_U5jSM0Mb6Rxkop",  // New Immersive 3D World Builder ($14.99)
+];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -39,7 +43,6 @@ serve(async (req) => {
       .maybeSingle();
 
     if (roleData) {
-      // Update or create subscription record for admin
       await supabaseClient.from("immersive_3d_subscriptions").upsert({
         user_id: user.id,
         is_active: true,
@@ -73,15 +76,15 @@ serve(async (req) => {
       limit: 100,
     });
 
-    // Find if any active subscription includes the 3D avatar product
+    // Find if any active subscription includes either 3D product
     const has3DSub = subscriptions.data.some(sub =>
-      sub.items.data.some(item => item.price.product === IMMERSIVE_3D_PRODUCT_ID)
+      sub.items.data.some(item => IMMERSIVE_3D_PRODUCT_IDS.includes(item.price.product as string))
     );
 
     let subscriptionEnd = null;
     if (has3DSub) {
       const sub = subscriptions.data.find(s =>
-        s.items.data.some(item => item.price.product === IMMERSIVE_3D_PRODUCT_ID)
+        s.items.data.some(item => IMMERSIVE_3D_PRODUCT_IDS.includes(item.price.product as string))
       );
       if (sub) {
         subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
