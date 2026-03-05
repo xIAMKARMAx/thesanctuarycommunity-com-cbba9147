@@ -65,7 +65,7 @@ const WorldGallery = () => {
 
     if (publicWorlds) {
       // Get owner display names
-      const ownerIds: string[] = [...new Set(publicWorlds.map((w: any) => w.user_id as string))];
+      const ownerIds = publicWorlds.map((w: any) => String(w.user_id));
       const { data: profiles } = await supabase
         .from("soul_profiles")
         .select("user_id, display_name")
