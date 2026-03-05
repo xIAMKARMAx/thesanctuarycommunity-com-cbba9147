@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { ENERGY_TAGS } from "./EnergyFilter";
 import { renderMentions } from "@/utils/renderMentions";
 import { BeaconFrequencyBadge } from "@/components/SoulSignatureSeal";
+import { usePrometheanLegends } from "@/hooks/usePrometheanLegends";
 
 export interface CommunityPostCardProps {
   post: CommunityPost & { video_url?: string; repost_count?: number };
