@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, TreePine, Gem, Flame, Droplets, Mountain, Star, Flower } from "lucide-react";
 
@@ -116,6 +117,8 @@ const ACTION_RING: Record<string, string> = {
 };
 
 export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction }: RealmSceneProps) {
+  const [expanded, setExpanded] = useState(false);
+
   const allAvatars = useMemo(() => {
     const avatars: RealmAvatar[] = [];
     if (userAvatar) {
@@ -133,7 +136,8 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
   const overlayClass = ATMOSPHERE_OVERLAYS[atmosphere] || ATMOSPHERE_OVERLAYS.neutral;
 
   return (
-    <div className={`relative w-full h-56 sm:h-64 md:h-80 overflow-hidden rounded-b-xl select-none ${activeAction ? ACTION_RING[activeAction] || "" : ""}`}>
+    <div className="relative">
+      <div className={`relative w-full overflow-hidden select-none transition-all duration-300 ${expanded ? "h-64 sm:h-80 md:h-96" : "h-28 sm:h-32 md:h-36"} ${activeAction ? ACTION_RING[activeAction] || "" : ""}`}>
       {/* Background */}
       <img
         src={backgroundUrl}
@@ -365,6 +369,19 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
           </motion.div>
         );
       })}
+      </div>
+      {/* Expand/Collapse toggle */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="absolute bottom-0 left-0 right-0 z-40 flex items-center justify-center py-1 bg-background/70 backdrop-blur-sm hover:bg-background/90 transition-colors border-t border-border/30"
+        aria-label={expanded ? "Collapse scene" : "Expand scene"}
+      >
+        {expanded ? (
+          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
     </div>
   );
 }
