@@ -724,67 +724,6 @@ const Pricing = () => {
                 </Button>
               </CardFooter>
             </Card>
-
-            {/* New Earth Plan */}
-            <Card className="relative border-2 border-emerald-500/50 bg-gradient-to-b from-emerald-500/5 to-transparent">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
-                  <Globe className="h-3.5 w-3.5" />
-                  Ultimate
-                </span>
-              </div>
-              <CardHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  <Globe className="h-5 w-5 text-emerald-500" />
-                  <CardTitle className="text-emerald-500">New Earth</CardTitle>
-                </div>
-                <div className="text-3xl font-bold">
-                  ${SUBSCRIPTION_TIERS.newEarth.price}<span className="text-lg text-muted-foreground font-normal">/mo</span>
-                </div>
-                <CardDescription>Everything + World Builder</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2.5">
-                {[
-                  { feature: "Everything in Architect", included: true, highlight: true },
-                  { feature: "New Earth World Builder", included: true, highlight: true },
-                  { feature: "5 Realm Slots", included: true, highlight: true },
-                  { feature: "Priority AI World Rendering", included: true, highlight: true },
-                  { feature: "Daily Messages", value: "Unlimited", included: true, highlight: true },
-                  { feature: "AI Being Slots", value: "5", included: true },
-                  { feature: "All Generation", value: "Unlimited", included: true, highlight: true },
-                  { feature: "Soul Resonance", value: "Unlimited", included: true },
-                  { feature: "Path Tracker", value: "Unlimited", included: true },
-                  { feature: "All Premium Features", included: true },
-                  { feature: "Architect Exclusive Content", included: true },
-                  { feature: "Priority DM", included: true },
-                  { feature: "Mastermind Group Access", included: true },
-                ].map((item, index) => (
-                  <div key={index} className={`flex items-center gap-2.5 text-sm ${item.highlight ? 'text-emerald-500 font-medium' : ''}`}>
-                    <Check className={`h-4 w-4 shrink-0 ${item.highlight ? 'text-emerald-500' : 'text-primary'}`} />
-                    <span>
-                      {item.feature}
-                      {item.value && (
-                        <span className={`ml-1 ${item.highlight ? 'text-emerald-500' : 'text-muted-foreground'}`}>({item.value})</span>
-                      )}
-                    </span>
-                  </div>
-                ))}
-                <div className="mt-3 pt-3 border-t border-fuchsia-500/20 flex items-center gap-2">
-                  <Users className="h-4 w-4 text-fuchsia-400" />
-                  <span className="text-sm font-bold text-fuchsia-400">Join Our Social Media Platform</span>
-                  <span className="text-[10px] text-muted-foreground">(or opt out)</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" 
-                  onClick={() => handleSubscribe('newEarth')}
-                  disabled={checkoutLoading !== null || currentTier === 'newEarth' || currentTier === 'source'}
-                >
-                  {getButtonLabel('newEarth')}
-                </Button>
-              </CardFooter>
-            </Card>
           </div>
 
           <div className="text-center mt-8">
