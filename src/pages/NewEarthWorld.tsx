@@ -2,12 +2,17 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useImmersive3D } from "@/hooks/useImmersive3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Globe, LayoutGrid, Loader2, Users, Map } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  ArrowLeft, Globe, LayoutGrid, Loader2, Users, Map, Lock,
+  Sparkles, Palette, Flame, Droplets
+} from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
 import { WorldTerrain, WorldWater, WorldGrass, getTerrainHeight } from "@/components/world/WorldTerrain";
@@ -17,6 +22,51 @@ import { PlayerControls, PlayerMarker } from "@/components/world/PlayerControls"
 import { WorldBuilderPanel } from "@/components/world/WorldBuilderPanel";
 import { useStructureCulling } from "@/components/world/WorldStructureLOD";
 import { WorldAIBeings, AIBeingData } from "@/components/world/WorldAIBeings";
+
+const ADMIN_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
+
+// Admin-only special landmarks for the admin's world
+const ADMIN_LANDMARKS: StructureData[] = [
+  {
+    id: "admin-landmark-kiemani-studio",
+    structure_type: "temple",
+    name: "Ki'emani's Ethereal Loom",
+    description: "A radiant art studio where Ki'emani weaves visions into reality through color and light",
+    position_x: -20,
+    position_y: 0,
+    position_z: -15,
+    rotation_y: 0.5,
+    scale: 2.2,
+    color: "#e879f9",
+    material_type: "glowing",
+  },
+  {
+    id: "admin-landmark-selavari-sanctuary",
+    structure_type: "castle",
+    name: "Selavari's Dragon Sanctuary",
+    description: "An ancient dragon sanctuary where Selavari communes with celestial serpents",
+    position_x: 25,
+    position_y: 0,
+    position_z: -25,
+    rotation_y: -0.3,
+    scale: 2.5,
+    color: "#dc2626",
+    material_type: "stone",
+  },
+  {
+    id: "admin-landmark-livelai-wellspring",
+    structure_type: "fountain",
+    name: "Livelai's Wellspring",
+    description: "A sacred wellspring of infinite healing energy, tended by Livelai",
+    position_x: 0,
+    position_y: 0,
+    position_z: -30,
+    rotation_y: 0,
+    scale: 2.0,
+    color: "#06b6d4",
+    material_type: "crystal",
+  },
+];
 
 interface UserWorld {
   id: string;
@@ -34,6 +84,7 @@ const NewEarthWorld = () => {
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
   const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
+  const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
   const [structures, setStructures] = useState<StructureData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,9 +94,21 @@ const NewEarthWorld = () => {
   const [accessVerified, setAccessVerified] = useState(false);
   const [isVisiting, setIsVisiting] = useState(false);
   const [worldOwnerName, setWorldOwnerName] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showBuildTeaser, setShowBuildTeaser] = useState(false);
+
+  // Can this user build? Only if admin or has the 3D add-on
+  const canBuild = isAdmin || has3DAddon;
 
   // LOD-based structure culling
   const visibleStructures = useStructureCulling(structures, playerPos);
+
+  // Get current user ID
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCurrentUserId(user.id);
+    });
+  }, []);
 
   // Access verification with DB fallback
   useEffect(() => {
@@ -107,9 +170,8 @@ const NewEarthWorld = () => {
 
     setWorld(visitWorld as UserWorld);
     setIsVisiting(true);
-    loadStructures(visitWorld.id, visitWorld.terrain_seed);
+    loadStructures(visitWorld.id, visitWorld.terrain_seed, visitWorld.user_id);
 
-    // Get owner name
     const { data: profile } = await supabase
       .from("soul_profiles")
       .select("display_name")
@@ -133,7 +195,7 @@ const NewEarthWorld = () => {
 
     if (existingWorld) {
       setWorld(existingWorld as UserWorld);
-      loadStructures(existingWorld.id, existingWorld.terrain_seed);
+      loadStructures(existingWorld.id, existingWorld.terrain_seed, user.id);
     } else {
       const { data: newWorld, error } = await supabase
         .from("user_worlds")
@@ -148,29 +210,49 @@ const NewEarthWorld = () => {
 
       if (!error && newWorld) {
         setWorld(newWorld as UserWorld);
+        // Add admin landmarks if admin
+        if (user.id === ADMIN_USER_ID) {
+          const landmarks = ADMIN_LANDMARKS.map(l => ({
+            ...l,
+            position_y: getTerrainHeight(l.position_x, l.position_z, (newWorld as any).terrain_seed),
+          }));
+          setStructures(landmarks);
+        }
       }
     }
     setLoading(false);
   };
 
-  const loadStructures = async (worldId: string, seed: number) => {
+  const loadStructures = async (worldId: string, seed: number, ownerId: string) => {
     const { data } = await supabase
       .from("world_structures")
       .select("*")
       .eq("world_id", worldId)
       .order("created_at", { ascending: true });
 
+    let allStructures: StructureData[] = [];
     if (data) {
-      const adjusted = data.map((s: any) => ({
+      allStructures = data.map((s: any) => ({
         ...s,
         position_y: getTerrainHeight(s.position_x, s.position_z, seed),
       }));
-      setStructures(adjusted as StructureData[]);
     }
+
+    // Add admin landmarks if this is the admin's world
+    if (ownerId === ADMIN_USER_ID) {
+      const landmarks = ADMIN_LANDMARKS.map(l => ({
+        ...l,
+        world_id: worldId,
+        position_y: getTerrainHeight(l.position_x, l.position_z, seed),
+      }));
+      allStructures = [...landmarks, ...allStructures];
+    }
+
+    setStructures(allStructures);
   };
 
   const handleBuild = useCallback(async (prompt: string) => {
-    if (!world || isVisiting) return;
+    if (!world || isVisiting || !canBuild) return;
     setBuilding(true);
     try {
       const { data, error } = await supabase.functions.invoke("world-builder", {
@@ -193,10 +275,10 @@ const NewEarthWorld = () => {
     } finally {
       setBuilding(false);
     }
-  }, [world, playerPos, isVisiting]);
+  }, [world, playerPos, isVisiting, canBuild]);
 
   const handleQuickBuild = useCallback(async (type: string) => {
-    if (!world || isVisiting) return;
+    if (!world || isVisiting || !canBuild) return;
     setBuilding(true);
     try {
       const { data, error } = await supabase.functions.invoke("world-builder", {
@@ -219,11 +301,10 @@ const NewEarthWorld = () => {
     } finally {
       setBuilding(false);
     }
-  }, [world, playerPos, isVisiting]);
+  }, [world, playerPos, isVisiting, canBuild]);
 
   const handleChatWithBeing = useCallback((being: AIBeingData) => {
     toast.info(`Starting conversation with ${being.display_name}...`);
-    // Navigate to chat with this being's AI profile
     if (being.ai_profile_id) {
       navigate(`/chat?profile=${being.ai_profile_id}`);
     }
@@ -356,8 +437,8 @@ const NewEarthWorld = () => {
           </Suspense>
         </Canvas>
 
-        {/* World Builder Panel - only show if not visiting */}
-        {!isVisiting && (
+        {/* World Builder Panel - show if not visiting AND has build access */}
+        {!isVisiting && canBuild && (
           <WorldBuilderPanel
             onBuild={handleBuild}
             onQuickBuild={handleQuickBuild}
@@ -366,6 +447,81 @@ const NewEarthWorld = () => {
             showStructures={showStructures}
             onToggleStructures={() => setShowStructures(!showStructures)}
           />
+        )}
+
+        {/* Build Teaser for non-subscribers - show when not visiting and can't build */}
+        {!isVisiting && !canBuild && !loading3D && (
+          <div className="absolute bottom-0 left-0 right-0 z-20">
+            {showBuildTeaser && (
+              <div className="mx-4 mb-2">
+                <Card className="bg-background/95 backdrop-blur-md border-primary/30">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="text-center space-y-2">
+                      <div className="flex items-center justify-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        <h3 className="font-bold text-sm">Unlock World Building</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                        Build temples, castles, crystal gardens, portals & more using AI. 
+                        Describe anything and watch it appear in your world.
+                      </p>
+                      
+                      {/* Teaser preview of buildable items */}
+                      <div className="flex justify-center gap-3 py-2">
+                        <div className="text-center opacity-60">
+                          <div className="h-10 w-10 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto">
+                            <Flame className="h-5 w-5 text-amber-400" />
+                          </div>
+                          <span className="text-[9px] text-muted-foreground">Shrine</span>
+                        </div>
+                        <div className="text-center opacity-60">
+                          <div className="h-10 w-10 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center mx-auto">
+                            <Sparkles className="h-5 w-5 text-violet-400" />
+                          </div>
+                          <span className="text-[9px] text-muted-foreground">Portal</span>
+                        </div>
+                        <div className="text-center opacity-60">
+                          <div className="h-10 w-10 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto">
+                            <Palette className="h-5 w-5 text-emerald-400" />
+                          </div>
+                          <span className="text-[9px] text-muted-foreground">Garden</span>
+                        </div>
+                        <div className="text-center opacity-60">
+                          <div className="h-10 w-10 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto">
+                            <Droplets className="h-5 w-5 text-cyan-400" />
+                          </div>
+                          <span className="text-[9px] text-muted-foreground">Fountain</span>
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={start3DCheckout}
+                        className="w-full gap-2"
+                        size="sm"
+                      >
+                        <Lock className="h-3.5 w-3.5" />
+                        Unlock Immersive 3D Add-on
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <div className="bg-background/95 backdrop-blur-md border-t border-border">
+              <button
+                onClick={() => setShowBuildTeaser(!showBuildTeaser)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">World Building — Unlock to Create</span>
+                <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+              </button>
+              <p className="text-[10px] text-muted-foreground text-center pb-2">
+                WASD or arrow keys to move • Mouse to look around
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Visiting footer */}
