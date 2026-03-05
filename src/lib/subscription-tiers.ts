@@ -300,6 +300,7 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   if (isAdmin) return -1; // Unlimited
   if (!productId) return 25; // Free tier = 25 lifetime
   if (productId === 'source_grant') return -1; // Unlimited
+  if (productId === NEW_EARTH_PRODUCT_ID) return -1; // Unlimited (with cooldown)
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return -1; // Unlimited (with cooldown)
   
   // Legacy Anchoring = unlimited
