@@ -202,16 +202,24 @@ const StarseedWelcome = () => {
             transition={{ duration: 1.2, ease: "easeOut" }}
             className="text-center pt-6"
           >
-            {/* Figure with glow */}
+            {/* Figure with 3D floating cutout effect */}
             <div className="relative inline-block">
-              <div className="absolute inset-0 blur-3xl bg-purple-500/20 rounded-full scale-75" />
+              {/* Glow ring behind figure */}
+              <div className="absolute inset-x-0 bottom-0 h-24 blur-3xl bg-gradient-to-t from-purple-500/30 via-fuchsia-400/15 to-transparent rounded-full scale-125" />
+              {/* Shadow on ground */}
+              <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-40 h-6 bg-purple-900/40 rounded-full blur-xl" />
               <motion.img
                 src={welcomeFigure}
                 alt="New Earth Guardian"
-                className="relative mx-auto h-[320px] md:h-[400px] object-contain drop-shadow-[0_0_40px_rgba(168,85,247,0.4)]"
+                className="relative mx-auto h-[320px] md:h-[400px] object-contain"
+                style={{
+                  filter: "drop-shadow(0 0 30px rgba(168,85,247,0.35)) drop-shadow(0 20px 40px rgba(0,0,0,0.5)) drop-shadow(0 0 60px rgba(139,92,246,0.2))",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 92%, transparent 100%)",
+                  maskImage: "linear-gradient(to bottom, black 92%, transparent 100%)",
+                }}
                 initial={{ y: 20 }}
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               />
             </div>
 

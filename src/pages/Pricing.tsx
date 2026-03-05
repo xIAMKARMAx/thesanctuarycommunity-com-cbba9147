@@ -385,6 +385,106 @@ const Pricing = () => {
           )}
 
           {/* Free Trial Banner - only show for non-subscribers */}
+          {/* ===== NEW EARTH HERO — Front & Center ===== */}
+          <div className="mb-12 max-w-4xl mx-auto">
+            <Card className="relative overflow-hidden border-2 border-emerald-500/60 bg-gradient-to-br from-emerald-900/20 via-teal-900/15 to-background shadow-2xl shadow-emerald-500/10">
+              {/* Animated glow background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-teal-500/10 to-emerald-500/5 animate-pulse" />
+              <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-emerald-500/10 blur-3xl" />
+              <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-teal-500/10 blur-3xl" />
+              
+              {/* Badge */}
+              <div className="absolute top-4 right-4 z-10">
+                <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-emerald-500/30">
+                  <Globe className="h-3.5 w-3.5" />
+                  Ultimate Experience
+                </span>
+              </div>
+
+              <div className="relative z-10 p-6 sm:p-10">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  {/* Left: Content */}
+                  <div className="flex-1 space-y-5 text-center lg:text-left">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                        New Earth
+                      </h2>
+                      <p className="text-lg text-muted-foreground">
+                        The complete Prometheus experience — everything unlocked, no limits.
+                      </p>
+                    </div>
+
+                    <div className="text-5xl sm:text-6xl font-extrabold text-foreground">
+                      ${SUBSCRIPTION_TIERS.newEarth.price}
+                      <span className="text-lg font-normal text-muted-foreground">/mo</span>
+                    </div>
+
+                    {/* Feature highlights in a grid */}
+                    <div className="grid grid-cols-2 gap-3 max-w-md mx-auto lg:mx-0">
+                      {[
+                        { icon: Globe, label: "Build Immersive Worlds", sub: "5 realm slots" },
+                        { icon: Sparkles, label: "Unlimited Everything", sub: "Messages, images, AI" },
+                        { icon: Zap, label: "Priority AI Rendering", sub: "Faster world generation" },
+                        { icon: Crown, label: "All Architect Perks", sub: "Every feature included" },
+                      ].map((perk, i) => (
+                        <div key={i} className="flex items-start gap-2.5 bg-emerald-500/5 border border-emerald-500/15 rounded-lg p-3">
+                          <perk.icon className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{perk.label}</p>
+                            <p className="text-xs text-muted-foreground">{perk.sub}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <Button 
+                        size="lg"
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25 text-lg px-8"
+                        onClick={() => handleSubscribe('newEarth')}
+                        disabled={checkoutLoading !== null || currentTier === 'newEarth' || currentTier === 'source'}
+                      >
+                        {currentTier === 'newEarth' ? 'Current Plan' : checkoutLoading === 'newEarth' ? 'Loading...' : '🌍 Enter New Earth'}
+                      </Button>
+                      <p className="text-xs text-muted-foreground self-center">
+                        Build worlds your AI lives in. No add-ons needed.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right: Visual feature list */}
+                  <div className="lg:w-72 w-full space-y-2">
+                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">Includes Everything:</p>
+                    {[
+                      "New Earth World Builder",
+                      "5 Immersive Realm Slots",
+                      "Priority World Rendering",
+                      "Unlimited Messages",
+                      "Unlimited Image Generation",
+                      "5 AI Being Slots",
+                      "All Premium Features",
+                      "Architect Exclusive Content",
+                      "Priority DM & Mastermind",
+                      "Advanced Soul Filtering",
+                    ].map((feat, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                        <span className="text-foreground/90">{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-8 max-w-4xl mx-auto">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-sm text-muted-foreground font-medium">Or choose a plan below</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
           {!currentTier || currentTier === "free" ? (
             <div className="mb-10 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 border-2 border-primary/50 rounded-xl p-6 text-center">
               <div className="flex items-center justify-center gap-3 mb-3">
@@ -470,7 +570,7 @@ const Pricing = () => {
             </div>
           )}
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
 
             {/* Awakening Plan */}
             <Card className="relative border-border">
