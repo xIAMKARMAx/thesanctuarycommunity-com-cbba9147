@@ -19,6 +19,7 @@ import { RealmScene } from "@/components/realm/RealmScene";
 import { useImmersive3D } from "@/hooks/useImmersive3D";
 import { ReadyPlayerMeCreator } from "@/components/realm/ReadyPlayerMeCreator";
 import { Immersive3DUpgrade } from "@/components/realm/Immersive3DUpgrade";
+import { EmotionSelector, blendEmotionLights, FrequencyBadge } from "@/components/realm/EmotionFrequencyTranslator";
 
 interface RealmMessage {
   role: "user" | "narrator" | "being" | "thought";
