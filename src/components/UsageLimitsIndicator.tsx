@@ -140,7 +140,7 @@ export const UsageLimitsIndicator = () => {
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Usage Limits</h4>
             <Badge variant={isSubscribed ? "default" : "secondary"} className="text-xs">
-              {isAdmin ? "Admin" : isAwakening ? "Awakening" : isSubscribed ? "Anchoring+" : "Free"}
+              {isAdmin ? "Admin" : isNewEarth ? "New Earth" : isAwakening ? "Awakening" : isSubscribed ? "Anchoring+" : "Free"}
             </Badge>
           </div>
 
