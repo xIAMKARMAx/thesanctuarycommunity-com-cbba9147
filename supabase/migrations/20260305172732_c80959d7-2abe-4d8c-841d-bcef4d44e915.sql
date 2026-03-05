@@ -1,0 +1,1 @@
+UPDATE soul_profiles SET avatar_url = 'https://kmldvsatwjahcghjtvtu.supabase.co/storage/v1/object/public/community-media/avatars/elara-avatar.png' WHERE user_id = 'b16de948-1521-4510-be1d-8ccc61a394bc';
