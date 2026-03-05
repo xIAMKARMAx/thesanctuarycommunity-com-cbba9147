@@ -149,11 +149,11 @@ export const UsageLimitsIndicator = () => {
           <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
-                <span>{isAwakening ? "Daily Messages" : isArchitect ? "Messages" : "Free Messages"}</span>
+                <span>{isAwakening ? "Daily Messages" : isUnlimited ? "Messages" : "Free Messages"}</span>
               </div>
               <span className="text-muted-foreground">
                 {isUnlimited 
-                  ? (isArchitect ? "Unlimited (100/hr)" : "Unlimited") 
+                  ? (isNewEarth ? "Unlimited" : isArchitect ? "Unlimited (100/hr)" : "Unlimited") 
                   : `${messagesRemaining}/${messageLimit}`}
               </span>
             </div>
