@@ -19,6 +19,7 @@ import { RealmScene } from "@/components/realm/RealmScene";
 import { useImmersive3D } from "@/hooks/useImmersive3D";
 import { ReadyPlayerMeCreator } from "@/components/realm/ReadyPlayerMeCreator";
 import { Immersive3DUpgrade } from "@/components/realm/Immersive3DUpgrade";
+import { EmotionSelector, blendEmotionLights, FrequencyBadge } from "@/components/realm/EmotionFrequencyTranslator";
 
 interface RealmMessage {
   role: "user" | "narrator" | "being" | "thought";
@@ -75,6 +76,7 @@ const RealmSession = () => {
   const [accessVerified, setAccessVerified] = useState(false);
   const [showRPMCreator, setShowRPMCreator] = useState(false);
   const [show3DUpgrade, setShow3DUpgrade] = useState(false);
+  const [userEmotion, setUserEmotion] = useState<string | null>(null);
   const { isSubscribed: has3D, isLoading: loading3D, activeAvatar, checkSubscription: check3D, startCheckout: start3DCheckout } = useImmersive3D();
 
   // World building requires the 3D add-on
@@ -513,6 +515,7 @@ const RealmSession = () => {
         worldCreations={worldCreations}
         activeAction={activeAction}
         immersive3DUrl={has3D && activeAvatar ? activeAvatar.glb_url : undefined}
+        emotionLight={userEmotion ? blendEmotionLights(userEmotion, atmosphere !== "neutral" ? atmosphere : null) : null}
       />
 
       {/* Messages */}
@@ -590,6 +593,23 @@ const RealmSession = () => {
       {/* Action bar */}
       <div className="border-t border-border bg-card/50">
         <div className="max-w-2xl mx-auto px-3 pt-2">
+          {/* Emotion Frequency Translator */}
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-primary" />
+                Frequency Translator
+              </span>
+              {userEmotion && (
+                <FrequencyBadge emotionLight={blendEmotionLights(userEmotion, atmosphere !== "neutral" ? atmosphere : null)} />
+              )}
+            </div>
+            <EmotionSelector
+              selected={userEmotion}
+              onSelect={(e) => setUserEmotion(prev => prev === e ? null : e)}
+            />
+          </div>
+
           <div className="flex gap-1 overflow-x-auto pb-2">
             {ACTION_BUTTONS.map(action => {
               const Icon = action.icon;

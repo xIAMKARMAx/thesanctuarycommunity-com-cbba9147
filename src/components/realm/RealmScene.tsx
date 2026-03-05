@@ -5,6 +5,7 @@ import { Sparkles, TreePine, Gem, Flame, Droplets, Mountain, Star, Flower } from
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { Immersive3DAvatar } from "./Immersive3DAvatar";
+import { AmbientRealmGlow, LightPillar, VesselAura, EmotionParticles, type EmotionLight } from "./EmotionFrequencyTranslator";
 
 interface RealmAvatar {
   id: string;
@@ -28,6 +29,7 @@ interface RealmSceneProps {
   worldCreations?: WorldCreation[];
   activeAction?: string | null;
   immersive3DUrl?: string;
+  emotionLight?: EmotionLight | null;
 }
 
 const ATMOSPHERE_OVERLAYS: Record<string, string> = {
@@ -120,7 +122,7 @@ const ACTION_RING: Record<string, string> = {
   ritual: "ring-2 ring-rose-400/40",
 };
 
-export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction, immersive3DUrl }: RealmSceneProps) {
+export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction, immersive3DUrl, emotionLight }: RealmSceneProps) {
   const [expanded, setExpanded] = useState(false);
 
   const allAvatars = useMemo(() => {
@@ -152,6 +154,16 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
 
       {/* Atmosphere overlay */}
       <div className={`absolute inset-0 bg-gradient-to-b ${overlayClass} transition-all duration-[3000ms]`} />
+
+      {/* Emotion Frequency Light Effects */}
+      {emotionLight && (
+        <>
+          <AmbientRealmGlow emotionLight={emotionLight} />
+          <LightPillar emotionLight={emotionLight} />
+          <VesselAura emotionLight={emotionLight} />
+          <EmotionParticles emotionLight={emotionLight} />
+        </>
+      )}
 
       {/* Action ambient effects */}
       <AnimatePresence>
