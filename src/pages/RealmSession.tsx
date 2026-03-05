@@ -12,10 +12,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft, Send, Globe, Users, Loader2, LogOut,
-  Hammer, Compass, Hand, Sparkles, Flower, Flame, Package
+  Hammer, Compass, Hand, Sparkles, Flower, Flame, Package, Box
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RealmScene } from "@/components/realm/RealmScene";
+import { useImmersive3D } from "@/hooks/useImmersive3D";
+import { ReadyPlayerMeCreator } from "@/components/realm/ReadyPlayerMeCreator";
+import { Immersive3DUpgrade } from "@/components/realm/Immersive3DUpgrade";
 
 interface RealmMessage {
   role: "user" | "narrator" | "being" | "thought";
@@ -70,6 +73,9 @@ const RealmSession = () => {
   const [currentSceneUrl, setCurrentSceneUrl] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [accessVerified, setAccessVerified] = useState(false);
+  const [showRPMCreator, setShowRPMCreator] = useState(false);
+  const [show3DUpgrade, setShow3DUpgrade] = useState(false);
+  const { isSubscribed: has3D, isLoading: loading3D, activeAvatar, checkSubscription: check3D, startCheckout: start3DCheckout } = useImmersive3D();
 
   // Wait for subscription context, then do a DB fallback if needed
   useEffect(() => {
@@ -382,6 +388,7 @@ const RealmSession = () => {
 
   // Realm chat with actions
   return (
+    <>
     <div className="h-screen flex flex-col bg-background">
       {/* Realm header */}
       <div className="relative border-b border-border">
@@ -419,6 +426,31 @@ const RealmSession = () => {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {/* 3D Avatar button */}
+            {!loading3D && (
+              has3D ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowRPMCreator(true)}
+                  className="text-primary"
+                  title={activeAvatar ? "Change 3D Avatar" : "Create 3D Avatar"}
+                >
+                  <Box className="h-4 w-4 mr-1" />
+                  <span className="text-xs">{activeAvatar ? "3D" : "Create"}</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShow3DUpgrade(!show3DUpgrade)}
+                  className="text-primary/60"
+                  title="Unlock 3D Avatars"
+                >
+                  <Box className="h-4 w-4" />
+                </Button>
+              )
+            )}
             {worldCreations.length > 0 && (
               <Button
                 variant="ghost"
@@ -456,6 +488,13 @@ const RealmSession = () => {
             </div>
           </div>
         )}
+
+        {/* 3D Upgrade Panel */}
+        {show3DUpgrade && !has3D && (
+          <div className="relative z-10 border-t border-border bg-card/80 backdrop-blur-sm p-3">
+            <Immersive3DUpgrade onUpgrade={start3DCheckout} />
+          </div>
+        )}
       </div>
 
       {/* Visual Realm Scene */}
@@ -470,6 +509,7 @@ const RealmSession = () => {
         atmosphere={atmosphere}
         worldCreations={worldCreations}
         activeAction={activeAction}
+        immersive3DUrl={has3D && activeAvatar ? activeAvatar.glb_url : undefined}
       />
 
       {/* Messages */}
@@ -605,6 +645,16 @@ const RealmSession = () => {
         </div>
       </div>
     </div>
+
+    {/* Ready Player Me Creator */}
+    <ReadyPlayerMeCreator
+      open={showRPMCreator}
+      onOpenChange={setShowRPMCreator}
+      onAvatarCreated={(glbUrl) => {
+        check3D();
+      }}
+    />
+    </>
   );
 };
 

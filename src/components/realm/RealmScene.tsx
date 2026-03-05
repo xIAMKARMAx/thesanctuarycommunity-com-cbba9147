@@ -1,7 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, TreePine, Gem, Flame, Droplets, Mountain, Star, Flower } from "lucide-react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { Immersive3DAvatar } from "./Immersive3DAvatar";
 
 interface RealmAvatar {
   id: string;
@@ -24,6 +27,7 @@ interface RealmSceneProps {
   atmosphere?: string;
   worldCreations?: WorldCreation[];
   activeAction?: string | null;
+  immersive3DUrl?: string;
 }
 
 const ATMOSPHERE_OVERLAYS: Record<string, string> = {
@@ -116,7 +120,7 @@ const ACTION_RING: Record<string, string> = {
   ritual: "ring-2 ring-rose-400/40",
 };
 
-export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction }: RealmSceneProps) {
+export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction, immersive3DUrl }: RealmSceneProps) {
   const [expanded, setExpanded] = useState(false);
 
   const allAvatars = useMemo(() => {
@@ -370,6 +374,28 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
         );
       })}
       </div>
+
+      {/* 3D Avatar Canvas Overlay */}
+      {immersive3DUrl && expanded && (
+        <div className="absolute inset-0 z-20 pointer-events-none">
+          <Canvas
+            camera={{ position: [0, 0, 4], fov: 45 }}
+            gl={{ alpha: true, antialias: true }}
+            style={{ pointerEvents: "none" }}
+          >
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[2, 3, 4]} intensity={1} />
+            <Suspense fallback={null}>
+              <Immersive3DAvatar
+                glbUrl={immersive3DUrl}
+                position={[0, -1.2, 0]}
+                scale={1.4}
+              />
+            </Suspense>
+          </Canvas>
+        </div>
+      )}
+
       {/* Expand/Collapse toggle */}
       <button
         onClick={() => setExpanded(!expanded)}

@@ -370,3 +370,17 @@ export const FEATURE_TIERS = {
   priorityDM: { requiredTier: "architect" as const, name: "Priority Direct Messaging" },
   mastermindAccess: { requiredTier: "architect" as const, name: "Mastermind Group Access" },
 } as const;
+
+// Immersive 3D Avatar add-on
+export const IMMERSIVE_3D_ADDON = {
+  name: "Immersive 3D Avatar",
+  price: 19.99,
+  priceId: "price_1T7XVALeA9CCp7fq5mbYnF5y",
+  productId: "prod_U5ix0vjOmlG1kD",
+  features: [
+    "Ready Player Me avatar creator",
+    "Rigged 3D GLB model with animations",
+    "Real-time 3D presence in realms",
+    "CDN-hosted avatar storage",
+  ],
+} as const;
