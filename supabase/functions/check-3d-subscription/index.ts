@@ -7,10 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Both old ($19.99) and new ($14.99) product IDs
+// Both old ($19.99) and new ($14.99) product IDs, plus the New Earth bundle
 const IMMERSIVE_3D_PRODUCT_IDS = [
   "prod_U5ix0vjOmlG1kD",  // Legacy Immersive 3D Avatar ($19.99)
   "prod_U5jSM0Mb6Rxkop",  // New Immersive 3D World Builder ($14.99)
+  "prod_U5jdDVZhQFGQWv",  // New Earth bundle ($49.99) — includes world builder
 ];
 
 serve(async (req) => {
