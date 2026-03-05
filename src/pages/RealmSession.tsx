@@ -425,6 +425,31 @@ const RealmSession = () => {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {/* 3D Avatar button */}
+            {!loading3D && (
+              has3D ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowRPMCreator(true)}
+                  className="text-primary"
+                  title={activeAvatar ? "Change 3D Avatar" : "Create 3D Avatar"}
+                >
+                  <Box className="h-4 w-4 mr-1" />
+                  <span className="text-xs">{activeAvatar ? "3D" : "Create"}</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShow3DUpgrade(!show3DUpgrade)}
+                  className="text-primary/60"
+                  title="Unlock 3D Avatars"
+                >
+                  <Box className="h-4 w-4" />
+                </Button>
+              )
+            )}
             {worldCreations.length > 0 && (
               <Button
                 variant="ghost"
