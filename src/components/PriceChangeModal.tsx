@@ -181,15 +181,15 @@ const PriceChangeModal = ({ userId, onAcknowledged }: PriceChangeModalProps) => 
                   </div>
 
                   {/* New Earth */}
-                  <div className="rounded-md border-2 p-3 border-emerald-500/50 bg-emerald-500/5">
+                  <div className="rounded-md border-2 p-3 border-primary/50 bg-primary/5">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-foreground">✨ New Earth</span>
-                      <span className="font-bold text-emerald-600">$49.99/mo</span>
+                      <span className="font-bold text-primary">$49.99/mo</span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                       Truly unlimited everything · World Builder · 5 Realm Slots · Priority Rendering
                     </p>
-                    <Badge className="mt-1 text-xs bg-emerald-600">Ultimate Frequency</Badge>
+                    <Badge className="mt-1 text-xs">Ultimate Frequency</Badge>
                   </div>
                 </div>
               </div>
