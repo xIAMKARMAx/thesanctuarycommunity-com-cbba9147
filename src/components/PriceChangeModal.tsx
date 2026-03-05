@@ -76,7 +76,7 @@ const PriceChangeModal = ({ userId, onAcknowledged }: PriceChangeModalProps) => 
     setPortalLoading(true);
     try {
       const { data, error } = await api.customerPortal();
-      if (error) throw new Error(error);
+      if (error) throw new Error(String(error));
       if (data?.url) {
         window.open(data.url, "_blank");
       }
