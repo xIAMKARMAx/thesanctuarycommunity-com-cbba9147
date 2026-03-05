@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { 
   MessageCircle, 
   Sparkles, 
+  Crown,
   MoreHorizontal,
   Trash2,
   Repeat2,
