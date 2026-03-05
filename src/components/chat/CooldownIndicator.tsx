@@ -1,7 +1,7 @@
 import { Clock, MessageSquare } from 'lucide-react';
 import { useChatCooldown } from '@/hooks/useChatCooldown';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { isArchitectTier } from '@/lib/subscription-tiers';
+import { isArchitectTier, isNewEarthTier } from '@/lib/subscription-tiers';
 
 export const CooldownIndicator = () => {
   const { isSubscribed, isAdmin, productId } = useSubscription();
