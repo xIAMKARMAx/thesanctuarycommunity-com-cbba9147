@@ -12,10 +12,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft, Send, Globe, Users, Loader2, LogOut,
-  Hammer, Compass, Hand, Sparkles, Flower, Flame, Package
+  Hammer, Compass, Hand, Sparkles, Flower, Flame, Package, Box
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RealmScene } from "@/components/realm/RealmScene";
+import { useImmersive3D } from "@/hooks/useImmersive3D";
+import { ReadyPlayerMeCreator } from "@/components/realm/ReadyPlayerMeCreator";
+import { Immersive3DUpgrade } from "@/components/realm/Immersive3DUpgrade";
 
 interface RealmMessage {
   role: "user" | "narrator" | "being" | "thought";
