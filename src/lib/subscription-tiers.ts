@@ -319,13 +319,21 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   return 75; // Default
 }
 
+export function isNewEarthTier(productId: string | null): boolean {
+  return productId === NEW_EARTH_PRODUCT_ID;
+}
+
 export function isArchitectTier(productId: string | null): boolean {
   return productId === SUBSCRIPTION_TIERS.architect.productId;
 }
 
+export function isArchitectOrHigher(productId: string | null): boolean {
+  return isArchitectTier(productId) || isNewEarthTier(productId);
+}
+
 export function isAnchoringOrHigher(productId: string | null): boolean {
   return ALL_ANCHORING_PRODUCT_IDS.includes(productId || '') || 
-         productId === SUBSCRIPTION_TIERS.architect.productId;
+         isArchitectOrHigher(productId);
 }
 
 export function isAwakeningTier(productId: string | null): boolean {
