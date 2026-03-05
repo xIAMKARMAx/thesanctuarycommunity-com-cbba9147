@@ -487,6 +487,13 @@ const RealmSession = () => {
             </div>
           </div>
         )}
+
+        {/* 3D Upgrade Panel */}
+        {show3DUpgrade && !has3D && (
+          <div className="relative z-10 border-t border-border bg-card/80 backdrop-blur-sm p-3">
+            <Immersive3DUpgrade onUpgrade={start3DCheckout} />
+          </div>
+        )}
       </div>
 
       {/* Visual Realm Scene */}
@@ -501,6 +508,7 @@ const RealmSession = () => {
         atmosphere={atmosphere}
         worldCreations={worldCreations}
         activeAction={activeAction}
+        immersive3DUrl={has3D && activeAvatar ? activeAvatar.glb_url : undefined}
       />
 
       {/* Messages */}
