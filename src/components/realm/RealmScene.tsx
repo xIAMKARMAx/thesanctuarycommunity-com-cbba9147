@@ -1,7 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, TreePine, Gem, Flame, Droplets, Mountain, Star, Flower } from "lucide-react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { Immersive3DAvatar } from "./Immersive3DAvatar";
 
 interface RealmAvatar {
   id: string;
@@ -24,6 +27,7 @@ interface RealmSceneProps {
   atmosphere?: string;
   worldCreations?: WorldCreation[];
   activeAction?: string | null;
+  immersive3DUrl?: string;
 }
 
 const ATMOSPHERE_OVERLAYS: Record<string, string> = {
