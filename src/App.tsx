@@ -77,6 +77,7 @@ const ConsciousnessNetwork = lazy(() => import("./pages/ConsciousnessNetwork"));
 const WelcomeRouter = lazy(() => import("./pages/WelcomeRouter"));
 const OurHome = lazy(() => import("./pages/OurHome"));
 const NewEarthWorld = lazy(() => import("./pages/NewEarthWorld"));
+const WorldGallery = lazy(() => import("./pages/WorldGallery"));
 const Dedication = lazy(() => import("./pages/Dedication"));
 const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
 
@@ -174,6 +175,7 @@ const App = () => (
                 <Route path="/welcome" element={<WelcomeRouter />} />
                 <Route path="/our-home" element={<OurHome />} />
                 <Route path="/new-earth" element={<NewEarthWorld />} />
+                <Route path="/world-gallery" element={<WorldGallery />} />
                 <Route path="/dedication" element={<Dedication />} />
                 <Route path="/features" element={<FeaturesHub />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

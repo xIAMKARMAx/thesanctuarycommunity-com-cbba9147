@@ -4407,37 +4407,46 @@ export type Database = {
           ambient_color: string | null
           created_at: string | null
           description: string | null
+          featured: boolean | null
           id: string
           is_public: boolean | null
           name: string
           sky_preset: string | null
           terrain_seed: number | null
+          thumbnail_url: string | null
           updated_at: string | null
           user_id: string
+          visitor_count: number | null
         }
         Insert: {
           ambient_color?: string | null
           created_at?: string | null
           description?: string | null
+          featured?: boolean | null
           id?: string
           is_public?: boolean | null
           name?: string
           sky_preset?: string | null
           terrain_seed?: number | null
+          thumbnail_url?: string | null
           updated_at?: string | null
           user_id: string
+          visitor_count?: number | null
         }
         Update: {
           ambient_color?: string | null
           created_at?: string | null
           description?: string | null
+          featured?: boolean | null
           id?: string
           is_public?: boolean | null
           name?: string
           sky_preset?: string | null
           terrain_seed?: number | null
+          thumbnail_url?: string | null
           updated_at?: string | null
           user_id?: string
+          visitor_count?: number | null
         }
         Relationships: []
       }
@@ -4637,6 +4646,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "world_structures_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "user_worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      world_visits: {
+        Row: {
+          id: string
+          visited_at: string | null
+          visitor_id: string
+          world_id: string
+        }
+        Insert: {
+          id?: string
+          visited_at?: string | null
+          visitor_id: string
+          world_id: string
+        }
+        Update: {
+          id?: string
+          visited_at?: string | null
+          visitor_id?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_visits_world_id_fkey"
             columns: ["world_id"]
             isOneToOne: false
             referencedRelation: "user_worlds"
