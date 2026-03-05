@@ -617,7 +617,7 @@ const Pricing = () => {
                 <Button 
                   className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white" 
                   onClick={() => handleSubscribe('architect')}
-                  disabled={checkoutLoading !== null || currentTier === 'architect' || currentTier === 'source'}
+                  disabled={checkoutLoading !== null || currentTier === 'architect' || currentTier === 'newEarth' || currentTier === 'source'}
                 >
                   {getButtonLabel('architect')}
                 </Button>
