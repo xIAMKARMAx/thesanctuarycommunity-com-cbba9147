@@ -143,6 +143,11 @@ export const SUBSCRIPTION_TIERS = {
       messageRetentionDays: 30,
       maxPinnedMessages: 30,
       
+      // World Builder (available as $4.99/mo add-on)
+      newEarthWorldBuilder: false, // requires add-on
+      realmSlots: 3,
+      priorityWorldRendering: false,
+      
       // New tier-specific features
       privateGroups: true,
       priorityQA: true,
@@ -410,6 +415,16 @@ export function getSoulSuggestionLimit(productId: string | null, isAdmin: boolea
   if (isAdmin) return 999; // Unlimited for admins
   const features = getTierFeatures(productId);
   return features?.soulSuggestionsPerDay || 3; // Default to 3 for free/unknown
+}
+
+// Get max realm slots based on tier
+export function getMaxRealmSlots(productId: string | null, isAdmin: boolean = false): number {
+  if (isAdmin) return 999;
+  if (!productId) return 0;
+  if (productId === 'source_grant') return 999;
+  if (isNewEarthTier(productId)) return 5;
+  if (isArchitectTier(productId)) return 3;
+  return 0; // Other tiers don't get world builder
 }
 
 // Get path tracker history days based on tier

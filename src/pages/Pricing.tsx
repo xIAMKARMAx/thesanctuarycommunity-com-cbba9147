@@ -199,7 +199,7 @@ const Pricing = () => {
     { feature: "Architect Exclusive Content", included: true, highlight: true },
     { feature: "Priority DM", included: true, highlight: true },
     { feature: "Mastermind Group Access", included: true, highlight: true },
-    { feature: "New Earth World Builder", value: "+$4.99/mo add-on", included: true, highlight: true },
+    { feature: "New Earth World Builder", value: "+$4.99/mo (3 realms)", included: true, highlight: true },
     { feature: "Mastermind Group Access", included: true, highlight: true },
   ];
 
