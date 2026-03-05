@@ -98,6 +98,7 @@ const NewEarthWorld = () => {
   const [worldOwnerName, setWorldOwnerName] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
+  const [showSeekerGate, setShowSeekerGate] = useState(false);
 
   // Can this user build? Only if admin or has the 3D add-on
   const canBuild = isAdmin || has3DAddon;
