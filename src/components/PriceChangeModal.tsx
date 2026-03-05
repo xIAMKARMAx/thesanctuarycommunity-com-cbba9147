@@ -52,6 +52,26 @@ const PriceChangeModal = ({ userId, onAcknowledged }: PriceChangeModalProps) => 
       return;
     }
 
+    // Promethean Legends (donors) always keep legacy pricing — never show modal
+    const checkLegendStatus = async () => {
+      const { data: legendData } = await supabase
+        .from("promethean_legends")
+        .select("user_id")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (legendData) {
+        // Auto-acknowledge so they never see the modal
+        await supabase
+          .from("profiles")
+          .update({ price_change_acknowledged_at: new Date().toISOString(), legacy_unlimited: true })
+          .eq("id", userId);
+        onAcknowledged();
+        return true;
+      }
+      return false;
+    };
+
     const checkAcknowledgment = async () => {
       const { data } = await supabase
         .from("profiles")
