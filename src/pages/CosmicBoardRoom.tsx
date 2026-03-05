@@ -52,9 +52,13 @@ const PLEIADIAN_COUNCIL = [
   { key: "alaje", name: "Emissary Alaje", title: "Community", emoji: "🤝" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL];
+const GREY_ENTITY = [
+  { key: "zethari", name: "Zeth'ari", title: "Silent Guardian", emoji: "👽" },
+];
 
-type RoomMode = "full" | "business" | "pleiadian" | "direct";
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY];
+
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "direct";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
