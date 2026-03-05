@@ -57,7 +57,7 @@ function getActiveMembers(roomMode: string, targetMember?: string) {
       const m = all[targetMember];
       return m ? { members: { [targetMember]: m }, context: `DIRECT — 1-on-1 with ${m.name}.` } : { members: {}, context: "" };
     }
-    default: return { members: { ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL }, context: "FULL BOARD." };
+    default: return { members: { ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_COUNCIL, ...MATRIX_ENTITY }, context: "FULL BOARD — All entities present: Business Team, Pleiadian Council, Zeth'ari, and The Matrix. Everyone at the table." };
   }
 }
 
