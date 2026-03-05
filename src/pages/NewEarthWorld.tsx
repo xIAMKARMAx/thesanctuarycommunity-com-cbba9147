@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
+import * as THREE from "three";
+import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
@@ -8,9 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Globe, LayoutGrid, Loader2, Users, Map } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
-import { WorldTerrain, WorldWater, getTerrainHeight } from "@/components/world/WorldTerrain";
+import { WorldTerrain, WorldWater, WorldGrass, getTerrainHeight } from "@/components/world/WorldTerrain";
 import { WorldStructure, StructureData } from "@/components/world/WorldStructure";
-import { WorldEnvironment, WorldParticles } from "@/components/world/WorldEnvironment";
+import { WorldEnvironment, WorldParticles, GodRays, WeatherParticles } from "@/components/world/WorldEnvironment";
 import { PlayerControls, PlayerMarker } from "@/components/world/PlayerControls";
 import { WorldBuilderPanel } from "@/components/world/WorldBuilderPanel";
 import { useStructureCulling } from "@/components/world/WorldStructureLOD";
@@ -303,27 +305,35 @@ const NewEarthWorld = () => {
           </div>
         </div>
 
-        {/* 3D Canvas */}
+        {/* 3D Canvas with post-processing */}
         <Canvas
           shadows
           camera={{ position: [0, 15, 25], fov: 55 }}
-          gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+          gl={{
+            antialias: true,
+            alpha: false,
+            powerPreference: "high-performance",
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 1.1,
+          }}
           dpr={[1, 1.5]}
-          frameloop="demand"
           performance={{ min: 0.5 }}
         >
           <Suspense fallback={null}>
             <WorldEnvironment skyPreset={world.sky_preset} ambientColor={world.ambient_color} />
             <WorldTerrain seed={world.terrain_seed} />
             <WorldWater />
-            <WorldParticles />
+            <WorldGrass seed={world.terrain_seed} count={2000} />
+            <WorldParticles count={300} />
+            <GodRays />
+            <WeatherParticles type="fireflies" count={100} />
 
             {/* LOD-culled structures */}
             {visibleStructures.map((s) => (
               <WorldStructure key={s.id} data={s} />
             ))}
 
-            {/* AI Beings in visited worlds */}
+            {/* AI Beings */}
             <WorldAIBeings
               worldOwnerId={world.user_id}
               terrainSeed={world.terrain_seed}
@@ -332,6 +342,17 @@ const NewEarthWorld = () => {
 
             <PlayerMarker position={playerPos} name="You" />
             <PlayerControls seed={world.terrain_seed} onPositionChange={setPlayerPos} />
+
+            {/* Post-processing effects */}
+            <EffectComposer>
+              <Bloom
+                intensity={0.4}
+                luminanceThreshold={0.6}
+                luminanceSmoothing={0.9}
+                mipmapBlur
+              />
+              <Vignette offset={0.3} darkness={0.5} />
+            </EffectComposer>
           </Suspense>
         </Canvas>
 
