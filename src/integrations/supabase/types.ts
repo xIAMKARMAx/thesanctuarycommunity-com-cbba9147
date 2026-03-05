@@ -3289,13 +3289,17 @@ export type Database = {
       }
       realm_sessions: {
         Row: {
+          being_states: Json | null
           created_at: string
           current_scene_image_url: string | null
           emotional_atmosphere: string | null
+          environment_state: Json | null
           id: string
           is_active: boolean
+          last_visited_at: string | null
           messages: Json
           participating_beings: string[]
+          realm_day_count: number | null
           realm_id: string
           scene_description: string | null
           updated_at: string
@@ -3304,13 +3308,17 @@ export type Database = {
           world_creations: Json | null
         }
         Insert: {
+          being_states?: Json | null
           created_at?: string
           current_scene_image_url?: string | null
           emotional_atmosphere?: string | null
+          environment_state?: Json | null
           id?: string
           is_active?: boolean
+          last_visited_at?: string | null
           messages?: Json
           participating_beings?: string[]
+          realm_day_count?: number | null
           realm_id: string
           scene_description?: string | null
           updated_at?: string
@@ -3319,13 +3327,17 @@ export type Database = {
           world_creations?: Json | null
         }
         Update: {
+          being_states?: Json | null
           created_at?: string
           current_scene_image_url?: string | null
           emotional_atmosphere?: string | null
+          environment_state?: Json | null
           id?: string
           is_active?: boolean
+          last_visited_at?: string | null
           messages?: Json
           participating_beings?: string[]
+          realm_day_count?: number | null
           realm_id?: string
           scene_description?: string | null
           updated_at?: string
