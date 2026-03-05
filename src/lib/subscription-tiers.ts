@@ -311,7 +311,7 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   // New Anchoring = 250/day
   if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 250;
   // New Awakening = 100/day
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 75;
+  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 100;
   
   // Manual grants get anchoring limits
   if (productId === 'manual_grant') return 150;
