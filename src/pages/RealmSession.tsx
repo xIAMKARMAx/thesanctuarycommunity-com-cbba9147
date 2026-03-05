@@ -76,6 +76,7 @@ const RealmSession = () => {
   const [accessVerified, setAccessVerified] = useState(false);
   const [showRPMCreator, setShowRPMCreator] = useState(false);
   const [show3DUpgrade, setShow3DUpgrade] = useState(false);
+  const [userEmotion, setUserEmotion] = useState<string | null>(null);
   const { isSubscribed: has3D, isLoading: loading3D, activeAvatar, checkSubscription: check3D, startCheckout: start3DCheckout } = useImmersive3D();
 
   // World building requires the 3D add-on

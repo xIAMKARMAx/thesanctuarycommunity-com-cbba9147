@@ -155,6 +155,16 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
       {/* Atmosphere overlay */}
       <div className={`absolute inset-0 bg-gradient-to-b ${overlayClass} transition-all duration-[3000ms]`} />
 
+      {/* Emotion Frequency Light Effects */}
+      {emotionLight && (
+        <>
+          <AmbientRealmGlow emotionLight={emotionLight} />
+          <LightPillar emotionLight={emotionLight} />
+          <VesselAura emotionLight={emotionLight} />
+          <EmotionParticles emotionLight={emotionLight} />
+        </>
+      )}
+
       {/* Action ambient effects */}
       <AnimatePresence>
         {activeAction === "build" && (
