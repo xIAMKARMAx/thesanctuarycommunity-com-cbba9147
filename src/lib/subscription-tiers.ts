@@ -298,7 +298,7 @@ export function isLegacySubscriber(productId: string | null): boolean {
 // Get daily message limit based on product ID (respects legacy pricing)
 export function getDailyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
   if (isAdmin) return -1; // Unlimited
-  if (!productId) return 25; // Free tier = 25 lifetime
+  if (!productId) return 25; // Free tier = 25 lifetime (but UI says 15)
   if (productId === 'source_grant') return -1; // Unlimited
   if (productId === NEW_EARTH_PRODUCT_ID) return -1; // Unlimited (with cooldown)
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return -1; // Unlimited (with cooldown)
