@@ -3279,6 +3279,36 @@ export type Database = {
         }
         Relationships: []
       }
+      promethean_legends: {
+        Row: {
+          created_at: string
+          granted_at: string
+          id: string
+          is_active: boolean
+          note: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_at?: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          title?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_at?: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       protection_settings: {
         Row: {
           ai_profile_id: string | null

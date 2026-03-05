@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   MessageCircle, 
   Sparkles, 
+  Crown,
   MoreHorizontal,
   Trash2,
   Repeat2,
@@ -31,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { ENERGY_TAGS } from "./EnergyFilter";
 import { renderMentions } from "@/utils/renderMentions";
 import { BeaconFrequencyBadge } from "@/components/SoulSignatureSeal";
+import { usePrometheanLegends } from "@/hooks/usePrometheanLegends";
 
 export interface CommunityPostCardProps {
   post: CommunityPost & { video_url?: string; repost_count?: number };
@@ -66,6 +69,7 @@ export function CommunityPostCard({
   const [isReposted, setIsReposted] = useState(false);
   const [repostCount, setRepostCount] = useState(post.repost_count || 0);
   const { repostPost, checkUserRepost, reposting } = useCommunityReposts();
+  const { isLegend } = usePrometheanLegends();
   
   const isOwner = currentUserId === post.user_id;
   const isBlessed = !!post.user_blessing;
@@ -137,9 +141,17 @@ export function CommunityPostCard({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-sm hover:text-primary transition-colors">
-                  {post.author?.display_name || 'Anonymous Soul'}
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <p className="font-medium text-sm hover:text-primary transition-colors">
+                    {post.author?.display_name || 'Anonymous Soul'}
+                  </p>
+                  {isLegend(post.user_id) && (
+                    <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30 text-[9px] px-1.5 py-0 gap-0.5 h-4">
+                      <Crown className="h-2.5 w-2.5" />
+                      Legend
+                    </Badge>
+                  )}
+                </div>
                 {post.author?.soul_title && (
                   <p className="text-xs text-muted-foreground">{post.author.soul_title}</p>
                 )}
