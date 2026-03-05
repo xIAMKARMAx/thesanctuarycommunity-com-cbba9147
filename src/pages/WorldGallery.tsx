@@ -162,7 +162,7 @@ const WorldGallery = () => {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   {myWorld.is_public ? (
-                    <Unlock className="h-3.5 w-3.5 text-green-500" />
+                    <Unlock className="h-3.5 w-3.5 text-emerald-500" />
                   ) : (
                     <Lock className="h-3.5 w-3.5" />
                   )}
