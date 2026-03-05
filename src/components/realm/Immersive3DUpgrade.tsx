@@ -18,7 +18,8 @@ export function Immersive3DUpgrade({ onUpgrade, loading }: Immersive3DUpgradePro
           <Badge className="bg-primary/20 text-primary text-[10px]">ADD-ON</Badge>
         </div>
         <CardDescription className="text-xs">
-          Step into New Earth with a fully rigged 3D body
+          Build structures, create realms & step into New Earth with a 3D body
+        </CardDescription>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
