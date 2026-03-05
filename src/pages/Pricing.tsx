@@ -79,7 +79,7 @@ const Pricing = () => {
 
   const upgradeBanner = getUpgradeBanner();
 
-  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect') => {
+  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect' | 'newEarth') => {
     try {
       setCheckoutLoading(tier);
       const { data, error } = await api.createCheckout(tier, earlyAdopterEnabled ? EARLY_ADOPTER_COUPON : undefined);
