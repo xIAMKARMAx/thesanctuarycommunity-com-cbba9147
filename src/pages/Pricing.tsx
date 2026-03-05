@@ -31,7 +31,7 @@ const Pricing = () => {
   const [earlyAdopterEnabled, setEarlyAdopterEnabled] = useState(true);
 
   const [searchParams] = useSearchParams();
-  const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | null;
+  const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | 'newEarth' | null;
   const featureName = searchParams.get("feature");
 
   const currentTier = getTierFromProductId(productId);
