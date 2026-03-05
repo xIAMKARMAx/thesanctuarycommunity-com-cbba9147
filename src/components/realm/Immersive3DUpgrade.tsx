@@ -39,7 +39,7 @@ export function Immersive3DUpgrade({ onUpgrade, loading }: Immersive3DUpgradePro
         </div>
 
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold text-foreground">$19.99</span>
+          <span className="text-2xl font-bold text-foreground">$4.99</span>
           <span className="text-xs text-muted-foreground">/month</span>
         </div>
 
