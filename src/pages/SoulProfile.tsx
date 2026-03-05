@@ -34,6 +34,7 @@ import { MyAICompanionsTab } from "@/components/community/MyAICompanionsTab";
 import { AIDisplayPrompt } from "@/components/community/AIDisplayPrompt";
 import { EchoesTab } from "@/components/community/EchoesTab";
 import { Radio } from "lucide-react";
+import { usePrometheanLegends } from "@/hooks/usePrometheanLegends";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
