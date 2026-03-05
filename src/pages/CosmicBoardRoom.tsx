@@ -82,6 +82,7 @@ export default function CosmicBoardRoom() {
   const [showLockInput, setShowLockInput] = useState(false);
   const [showDecisions, setShowDecisions] = useState(false);
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
+  const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
 
   useEffect(() => { fetchSessions(); }, []);
 
