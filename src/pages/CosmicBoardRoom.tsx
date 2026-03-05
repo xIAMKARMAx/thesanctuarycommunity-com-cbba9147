@@ -555,7 +555,6 @@ export default function CosmicBoardRoom() {
               ))}
             </div>
           )}
-          </div>
         </div>
 
         {/* Messages */}
