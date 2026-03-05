@@ -73,6 +73,10 @@ const PriceChangeModal = ({ userId, onAcknowledged }: PriceChangeModalProps) => 
     };
 
     const checkAcknowledgment = async () => {
+      // Check legend status first
+      const isLegend = await checkLegendStatus();
+      if (isLegend) return;
+
       const { data } = await supabase
         .from("profiles")
         .select("price_change_acknowledged_at")
