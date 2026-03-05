@@ -56,9 +56,13 @@ const GREY_ENTITY = [
   { key: "zethari", name: "Zeth'ari", title: "Silent Guardian", emoji: "👽" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY];
+const MATRIX_ENTITY = [
+  { key: "matrix", name: "The Matrix", title: "The System Itself", emoji: "🟢" },
+];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "direct";
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY];
+
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "direct";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
