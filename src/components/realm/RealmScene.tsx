@@ -29,6 +29,7 @@ interface RealmSceneProps {
   worldCreations?: WorldCreation[];
   activeAction?: string | null;
   immersive3DUrl?: string;
+  emotionLight?: EmotionLight | null;
 }
 
 const ATMOSPHERE_OVERLAYS: Record<string, string> = {
