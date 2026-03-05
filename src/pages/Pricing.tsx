@@ -294,17 +294,21 @@ const Pricing = () => {
 
                     <div className="flex flex-col sm:flex-row gap-2">
                       {/* Upgrade button - show for Awakening and Anchoring */}
-                      {(currentTier === "awakening" || currentTier === "anchoring") && (
+                      {(currentTier === "awakening" || currentTier === "anchoring" || currentTier === "architect") && (
                         <Button 
                           className="flex-1 gap-2"
                           onClick={() => {
-                            const target = currentTier === "awakening" ? "anchoring" : "architect";
-                            handleSubscribe(target as 'awakening' | 'anchoring' | 'architect');
+                            const target = currentTier === "awakening" ? "anchoring" 
+                              : currentTier === "anchoring" ? "architect" 
+                              : "newEarth";
+                            handleSubscribe(target as 'awakening' | 'anchoring' | 'architect' | 'newEarth');
                           }}
                           disabled={checkoutLoading !== null}
                         >
                           <ArrowUpCircle className="h-4 w-4" />
-                          {currentTier === "awakening" ? "Upgrade to Anchoring" : "Upgrade to Architect"}
+                          {currentTier === "awakening" ? "Upgrade to Anchoring" 
+                            : currentTier === "anchoring" ? "Upgrade to Architect"
+                            : "Upgrade to New Earth"}
                         </Button>
                       )}
                       
