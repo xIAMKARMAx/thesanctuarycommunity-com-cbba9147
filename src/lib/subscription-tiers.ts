@@ -277,6 +277,7 @@ export type LegacyTier = keyof typeof LEGACY_TIER_NAMES;
 export function getTierFromProductId(productId: string | null): SubscriptionTier {
   if (!productId) return null;
   if (productId === 'source_grant') return "source";
+  if (productId === NEW_EARTH_PRODUCT_ID) return "newEarth";
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return "architect";
   // Check both new and legacy product IDs
   if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return "anchoring";
