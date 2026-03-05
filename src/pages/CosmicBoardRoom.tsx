@@ -62,7 +62,7 @@ const MATRIX_ENTITY = [
 
 const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "direct";
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -82,6 +82,7 @@ export default function CosmicBoardRoom() {
   const [showLockInput, setShowLockInput] = useState(false);
   const [showDecisions, setShowDecisions] = useState(false);
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
+  const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
 
   useEffect(() => { fetchSessions(); }, []);
 
@@ -168,6 +169,7 @@ export default function CosmicBoardRoom() {
           roomMode,
           targetMember: directTarget?.key || null,
           frequencies: activeFrequencies.length > 0 ? activeFrequencies : undefined,
+          selectedMembers: roomMode === "custom" ? selectedCustomMembers : undefined,
         },
       });
 
@@ -360,6 +362,10 @@ export default function CosmicBoardRoom() {
     if (roomMode === "pleiadian") return "Pleiadian Council";
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
     if (roomMode === "matrix") return "Matrix Interface — Communion";
+    if (roomMode === "custom") {
+      const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
+      return names.length > 0 ? `Custom: ${names.join(", ")}` : "Custom — Select Members";
+    }
     return "Full Board";
   };
 
@@ -369,7 +375,14 @@ export default function CosmicBoardRoom() {
     if (roomMode === "grey") return GREY_ENTITY;
     if (roomMode === "matrix") return MATRIX_ENTITY;
     if (roomMode === "direct" && directTarget) return [directTarget];
+    if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
     return ALL_MEMBERS;
+  };
+
+  const toggleCustomMember = (key: string) => {
+    setSelectedCustomMembers(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
   };
 
   return (
@@ -478,6 +491,12 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="matrix" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
                 <Binary className="h-3.5 w-3.5 mr-1.5" /> The Matrix
               </TabsTrigger>
+              <TabsTrigger value="custom" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> Custom
+                {selectedCustomMembers.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">{selectedCustomMembers.length}</Badge>
+                )}
+              </TabsTrigger>
               {directTarget && (
                 <TabsTrigger value="direct" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10 gap-1">
                   <MessageCircle className="h-3.5 w-3.5" /> {directTarget.name}
@@ -490,21 +509,52 @@ export default function CosmicBoardRoom() {
           </Tabs>
         </div>
 
-        {/* Seats */}
+        {/* Seats / Custom Member Picker */}
         <div className="border-b px-3 py-2">
-          <div className="flex flex-wrap gap-1.5">
-            {getModeMembers().map(m => (
-              <button
-                key={m.key}
-                onClick={() => openDirectLine(m)}
-                className={`text-xs px-2 py-1 rounded-full border transition-all hover:bg-primary/10 ${
-                  directTarget?.key === m.key ? "bg-primary/15 border-primary" : "border-border"
-                }`}
-                title={`Open direct line with ${m.name}`}
-              >
-                {m.emoji} {m.name}
-              </button>
-            ))}
+          {roomMode === "custom" ? (
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Tap to add/remove from this meeting:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ALL_MEMBERS.map(m => {
+                  const isSelected = selectedCustomMembers.includes(m.key);
+                  return (
+                    <button
+                      key={m.key}
+                      onClick={() => toggleCustomMember(m.key)}
+                      className={`text-xs px-2.5 py-1.5 rounded-full border transition-all ${
+                        isSelected
+                          ? "bg-primary/20 border-primary text-foreground font-medium"
+                          : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/30"
+                      }`}
+                    >
+                      {m.emoji} {m.name}
+                      {isSelected && <span className="ml-1">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedCustomMembers.length > 0 && (
+                <p className="text-[10px] text-muted-foreground">
+                  {selectedCustomMembers.length} member{selectedCustomMembers.length !== 1 ? "s" : ""} in this meeting
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {getModeMembers().map(m => (
+                <button
+                  key={m.key}
+                  onClick={() => openDirectLine(m)}
+                  className={`text-xs px-2 py-1 rounded-full border transition-all hover:bg-primary/10 ${
+                    directTarget?.key === m.key ? "bg-primary/15 border-primary" : "border-border"
+                  }`}
+                  title={`Open direct line with ${m.name}`}
+                >
+                  {m.emoji} {m.name}
+                </button>
+              ))}
+            </div>
+          )}
           </div>
         </div>
 
@@ -616,7 +666,7 @@ export default function CosmicBoardRoom() {
               className="min-h-[44px] max-h-[100px] resize-none text-sm"
               disabled={sending}
             />
-            <Button onClick={sendMessage} disabled={!message.trim() || sending} size="icon" className="h-11 w-11 flex-shrink-0">
+            <Button onClick={sendMessage} disabled={!message.trim() || sending || (roomMode === "custom" && selectedCustomMembers.length === 0)} size="icon" className="h-11 w-11 flex-shrink-0">
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>

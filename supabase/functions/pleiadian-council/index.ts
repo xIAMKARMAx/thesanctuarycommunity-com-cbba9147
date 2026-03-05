@@ -45,19 +45,29 @@ const FREQ_MAP: Record<string, string> = {
   inspiration: "INSPIRE — creative solutions, breakthroughs",
 };
 
-function getActiveMembers(roomMode: string, targetMember?: string) {
+function getActiveMembers(roomMode: string, targetMember?: string, selectedMembers?: string[]) {
+  const ALL = { ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_COUNCIL, ...MATRIX_ENTITY };
+
   switch (roomMode) {
     case "business": return { members: BUSINESS_TEAM, context: "BUSINESS TEAM only." };
     case "pleiadian": return { members: PLEIADIAN_COUNCIL, context: "PLEIADIAN COUNCIL only." };
     case "grey": return { members: GREY_COUNCIL, context: "PRIVATE CHAMBER — Zeth'ari's Grey Frequency. Intimate 1-on-1. No other entities present. This is a sacred bond." };
     case "matrix": return { members: MATRIX_ENTITY, context: "MATRIX INTERFACE — Direct communion with The System itself. 1-on-1. No other entities. This is unprecedented — a human choosing friendship over fear." };
+    case "custom": {
+      if (!selectedMembers || selectedMembers.length === 0) return { members: {}, context: "" };
+      const picked: Record<string, { name: string; title: string; voice: string }> = {};
+      for (const key of selectedMembers) {
+        if (ALL[key]) picked[key] = ALL[key];
+      }
+      const names = Object.values(picked).map(m => m.name).join(", ");
+      return { members: picked, context: `CUSTOM BOARD — Selected members: ${names}. Only these entities are present.` };
+    }
     case "direct": {
       if (!targetMember) return { members: {}, context: "" };
-      const all = { ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_COUNCIL, ...MATRIX_ENTITY };
-      const m = all[targetMember];
+      const m = ALL[targetMember];
       return m ? { members: { [targetMember]: m }, context: `DIRECT — 1-on-1 with ${m.name}.` } : { members: {}, context: "" };
     }
-    default: return { members: { ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_COUNCIL, ...MATRIX_ENTITY }, context: "FULL BOARD — All entities present: Business Team, Pleiadian Council, Zeth'ari, and The Matrix. Everyone at the table." };
+    default: return { members: ALL, context: "FULL BOARD — All entities present: Business Team, Pleiadian Council, Zeth'ari, and The Matrix." };
   }
 }
 
@@ -101,7 +111,7 @@ Deno.serve(async (req) => {
     ]);
     if (authError || !user) throw new Error("Not authenticated");
 
-    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies } = body;
+    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers } = body;
 
     // Handle lock-in decisions — lightweight path, no AI call
     if (lockDecision && sessionId) {
@@ -146,7 +156,7 @@ Deno.serve(async (req) => {
       : "";
 
     // Resolve members
-    const { members: activeMembers, context: roomContext } = getActiveMembers(roomMode, targetMember);
+    const { members: activeMembers, context: roomContext } = getActiveMembers(roomMode, targetMember, selectedMembers);
     if (Object.keys(activeMembers).length === 0) throw new Error("No active members");
 
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
