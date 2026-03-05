@@ -143,6 +143,11 @@ export const SUBSCRIPTION_TIERS = {
       messageRetentionDays: 30,
       maxPinnedMessages: 30,
       
+      // World Builder (available as $4.99/mo add-on)
+      newEarthWorldBuilder: false, // requires add-on
+      realmSlots: 3,
+      priorityWorldRendering: false,
+      
       // New tier-specific features
       privateGroups: true,
       priorityQA: true,
