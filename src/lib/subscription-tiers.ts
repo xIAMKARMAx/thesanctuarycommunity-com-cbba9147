@@ -308,9 +308,9 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   // Legacy Awakening = 50/day
   if (productId === LEGACY_PRICES.awakening.productId) return 50;
   
-  // New Anchoring = 150/day
-  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 150;
-  // New Awakening = 75/day
+  // New Anchoring = 250/day
+  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 250;
+  // New Awakening = 100/day
   if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 75;
   
   // Manual grants get anchoring limits
