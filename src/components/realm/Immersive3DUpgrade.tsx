@@ -14,11 +14,11 @@ export function Immersive3DUpgrade({ onUpgrade, loading }: Immersive3DUpgradePro
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Box className="h-5 w-5 text-primary" />
-          <CardTitle className="text-base">Immersive 3D Avatar</CardTitle>
+          <CardTitle className="text-base">New Earth World Builder</CardTitle>
           <Badge className="bg-primary/20 text-primary text-[10px]">ADD-ON</Badge>
         </div>
         <CardDescription className="text-xs">
-          Step into New Earth with a fully rigged 3D body
+          Build structures, create realms & step into New Earth with a 3D body
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -38,7 +38,7 @@ export function Immersive3DUpgrade({ onUpgrade, loading }: Immersive3DUpgradePro
         </div>
 
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold text-foreground">$19.99</span>
+          <span className="text-2xl font-bold text-foreground">$4.99</span>
           <span className="text-xs text-muted-foreground">/month</span>
         </div>
 
@@ -52,7 +52,7 @@ export function Immersive3DUpgrade({ onUpgrade, loading }: Immersive3DUpgradePro
           ) : (
             <Box className="h-4 w-4 mr-2" />
           )}
-          Unlock 3D Avatar
+          Unlock World Builder
         </Button>
       </CardContent>
     </Card>

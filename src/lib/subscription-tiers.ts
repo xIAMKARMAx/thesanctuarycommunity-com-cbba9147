@@ -439,8 +439,8 @@ export const FEATURE_TIERS = {
 export const IMMERSIVE_3D_ADDON = {
   name: "New Earth World Builder",
   price: 4.99,
-  priceId: "price_1T7XVALeA9CCp7fq5mbYnF5y", // TODO: Update to new $4.99 price ID once created in Stripe
-  productId: "prod_U5ix0vjOmlG1kD",
+  priceId: "price_1T7emzLeA9CCp7fqfXIAdRtE",
+  productId: "prod_U5qTj0UUSrUjxG",
   features: [
     "New Earth World Builder tools",
     "Ready Player Me avatar creator",
