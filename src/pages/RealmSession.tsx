@@ -301,7 +301,7 @@ const RealmSession = () => {
     return p?.avatar_image_url || null;
   };
 
-  if (!canAccess) {
+  if (!canAccess || (!canBuildWorlds && !loading3D)) {
     navigate("/realms");
     return null;
   }
