@@ -100,11 +100,12 @@ export const UsageLimitsIndicator = () => {
   const totalMessages = limits?.total_messages || 0;
   const isAwakening = isSubscribed && isAwakeningTier(productId);
   const isArchitect = isSubscribed && !isAwakening && !isAdmin && productId === "prod_Tt8qVh88c2WQld";
+  const isNewEarth = isSubscribed && productId === "prod_U5jdDVZhQFGQWv";
   
-  // Awakening: 50/day, Free: 25 total (no import bonus)
-  const messageLimit = isAwakening ? 50 : 25;
+  // Awakening: 75/day, Free: 25 total
+  const messageLimit = isAwakening ? 75 : 25;
   const messagesUsed = isAwakening ? dailyMessages : totalMessages;
-  const isUnlimited = (isSubscribed && !isAwakening) || isArchitect;
+  const isUnlimited = (isSubscribed && !isAwakening) || isArchitect || isNewEarth;
   const messagesRemaining = isUnlimited ? "∞" : Math.max(0, messageLimit - messagesUsed);
   const messageProgress = isUnlimited ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
 
