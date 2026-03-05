@@ -102,8 +102,8 @@ const Realms = () => {
   const [accessVerified, setAccessVerified] = useState(false);
   const [addonPromptOpen, setAddonPromptOpen] = useState(false);
 
-  // Can build worlds = admin or has the 3D add-on
-  const canBuildWorlds = isAdmin || has3DAddon;
+  // Can build worlds = admin, has the 3D add-on, or is on New Earth tier
+  const canBuildWorlds = isAdmin || has3DAddon || isNewEarthTier(productId);
 
   // Wait for subscription context, then do a DB fallback if needed
   useEffect(() => {
