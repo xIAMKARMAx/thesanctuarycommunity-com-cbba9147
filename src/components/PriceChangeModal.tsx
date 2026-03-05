@@ -121,7 +121,7 @@ const PriceChangeModal = ({ userId, onAcknowledged }: PriceChangeModalProps) => 
 
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
                 <p className="font-semibold text-foreground text-center">
-                  ✨ If you're joining New Earth, your subscription will be changed to the new pricing.
+                  ✨ If you&apos;re joining New Earth, your subscription will be changed to the new pricing.
                 </p>
                 <p className="font-semibold text-foreground text-center">
                   🛡️ If you opt out of New Earth, you do NOT get the new features but your subscription price will stay the same.
