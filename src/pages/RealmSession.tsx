@@ -494,6 +494,27 @@ const RealmSession = () => {
                 </div>
               );
             }
+            if (msg.role === "thought") {
+              const thinkingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
+              const thinkAvatar = thinkingProfile?.avatar_image_url || null;
+              return (
+                <div key={i} className="flex gap-2 items-start opacity-60">
+                  {thinkAvatar ? (
+                    <img src={thinkAvatar} alt="" className="h-6 w-6 rounded-full object-cover mt-1 grayscale" />
+                  ) : (
+                    <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold mt-1">
+                      {(msg.being_name || "?")[0]}
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-[10px] font-medium text-muted-foreground">{msg.being_name} · thinking</span>
+                    <div className="border border-dashed border-muted-foreground/30 rounded-xl px-3 py-1.5 max-w-[75%]">
+                      <p className="text-xs italic text-muted-foreground">{msg.content}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
             const beingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
             const avatar = beingProfile?.avatar_image_url || null;
             return (
