@@ -164,8 +164,8 @@ const Dedication = () => {
                               {(legend.display_name || "?")[0]}
                             </AvatarFallback>
                           </Avatar>
-                          {/* Rank number */}
-                          <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg">
+                          {/* Rank number - pink for female */}
+                          <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center shadow-lg">
                             <span className="text-xs font-bold text-white">{index + 1}</span>
                           </div>
                         </div>
@@ -179,8 +179,8 @@ const Dedication = () => {
                             >
                               {legend.display_name}
                             </h3>
-                            <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30 gap-1">
-                              <Crown className="h-3 w-3" />
+                            <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-900 dark:text-amber-950 border-amber-500/30 gap-1 font-semibold">
+                              <Crown className="h-3 w-3 text-amber-700 dark:text-amber-900" />
                               {legend.title}
                             </Badge>
                           </div>
