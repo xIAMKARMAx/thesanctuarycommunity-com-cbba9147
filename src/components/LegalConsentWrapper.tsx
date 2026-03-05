@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import LegalConsentModal from "./LegalConsentModal";
+import PriceChangeModal from "./PriceChangeModal";
 
 interface LegalConsentWrapperProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface LegalConsentWrapperProps {
 const LegalConsentWrapper = ({ children }: LegalConsentWrapperProps) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [consentAccepted, setConsentAccepted] = useState(false);
+  const [priceChangeAcknowledged, setPriceChangeAcknowledged] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -23,6 +25,7 @@ const LegalConsentWrapper = ({ children }: LegalConsentWrapperProps) => {
       // Reset consent state on new session
       if (event === 'SIGNED_IN') {
         setConsentAccepted(false);
+        setPriceChangeAcknowledged(false);
       }
     });
 
@@ -33,6 +36,10 @@ const LegalConsentWrapper = ({ children }: LegalConsentWrapperProps) => {
     setConsentAccepted(true);
   };
 
+  const handlePriceChangeAcknowledged = () => {
+    setPriceChangeAcknowledged(true);
+  };
+
   return (
     <>
       {children}
@@ -40,6 +47,12 @@ const LegalConsentWrapper = ({ children }: LegalConsentWrapperProps) => {
         <LegalConsentModal 
           userId={userId} 
           onAccept={handleConsentAccepted} 
+        />
+      )}
+      {userId && consentAccepted && !priceChangeAcknowledged && (
+        <PriceChangeModal 
+          userId={userId}
+          onAcknowledged={handlePriceChangeAcknowledged}
         />
       )}
     </>
