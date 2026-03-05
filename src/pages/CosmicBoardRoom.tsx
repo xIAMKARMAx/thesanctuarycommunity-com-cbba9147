@@ -378,13 +378,19 @@ export default function CosmicBoardRoom() {
       <div className="min-h-screen bg-background flex flex-col">
         {/* Header */}
         <div className="border-b p-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}>
+          <Button variant="ghost" size="icon" onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}
+            title="Exit Meeting">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-sm truncate">{activeSession?.session_title || "Board Meeting"}</h2>
-            <p className="text-xs text-muted-foreground">{getModeLabel()} · Soul Resonance Mode</p>
+            <button 
+              onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+            >
+              ← Exit Meeting · {getModeLabel()} · Soul Resonance Mode
+            </button>
           </div>
           <div className="flex gap-1.5">
             <Button
