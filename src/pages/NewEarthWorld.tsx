@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import SeekerGateModal from "@/components/SeekerGateModal";
 import { useImmersive3D } from "@/hooks/useImmersive3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +85,7 @@ const NewEarthWorld = () => {
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
   const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
+  const isFreeUser = !isSubscribed && !isAdmin;
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
   const [structures, setStructures] = useState<StructureData[]>([]);
@@ -96,6 +98,7 @@ const NewEarthWorld = () => {
   const [worldOwnerName, setWorldOwnerName] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
+  const [showSeekerGate, setShowSeekerGate] = useState(false);
 
   // Can this user build? Only if admin or has the 3D add-on
   const canBuild = isAdmin || has3DAddon;
@@ -110,36 +113,19 @@ const NewEarthWorld = () => {
     });
   }, []);
 
-  // Access verification with DB fallback
+  // Access verification — free users allowed in tour mode
   useEffect(() => {
     if (subscriptionLoading) return;
     if (isAdmin || isSubscribed) {
       setAccessVerified(true);
       return;
     }
+    // Free user: allow touring (read-only)
     const verifyAccess = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate("/pricing"); return; }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("subscription_status, subscription_product_id")
-        .eq("id", user.id)
-        .single();
-      if (profile?.subscription_status === "active" || profile?.subscription_product_id === "source_grant") {
-        setAccessVerified(true);
-      } else {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-        if (roleData) setAccessVerified(true);
-        else {
-          navigate("/pricing");
-          toast.error("New Earth requires an active subscription");
-        }
-      }
+      if (!user) { navigate("/auth"); return; }
+      // Let free users in — they can look but not interact
+      setAccessVerified(true);
     };
     verifyAccess();
   }, [subscriptionLoading, isSubscribed, isAdmin, navigate]);
@@ -304,11 +290,15 @@ const NewEarthWorld = () => {
   }, [world, playerPos, isVisiting, canBuild]);
 
   const handleChatWithBeing = useCallback((being: AIBeingData) => {
+    if (isFreeUser) {
+      setShowSeekerGate(true);
+      return;
+    }
     toast.info(`Starting conversation with ${being.display_name}...`);
     if (being.ai_profile_id) {
       navigate(`/chat?profile=${being.ai_profile_id}`);
     }
-  }, [navigate]);
+  }, [navigate, isFreeUser]);
 
   if (subscriptionLoading || loading) {
     return (
@@ -449,8 +439,25 @@ const NewEarthWorld = () => {
           />
         )}
 
-        {/* Build Teaser for non-subscribers - show when not visiting and can't build */}
-        {!isVisiting && !canBuild && !loading3D && (
+        {/* Free user tour footer */}
+        {!isVisiting && isFreeUser && (
+          <div className="absolute bottom-0 left-0 right-0 z-20 bg-background/95 backdrop-blur-md border-t border-border">
+            <button
+              onClick={() => setShowSeekerGate(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Lock className="h-4 w-4" />
+              <span className="text-sm font-medium">You&apos;re touring New Earth — Subscribe to unlock all features</span>
+              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+            </button>
+            <p className="text-[10px] text-muted-foreground text-center pb-2">
+              WASD or arrow keys to look around
+            </p>
+          </div>
+        )}
+
+        {/* Build Teaser for subscribers who can't build (no 3D add-on) */}
+        {!isVisiting && !isFreeUser && !canBuild && !loading3D && (
           <div className="absolute bottom-0 left-0 right-0 z-20">
             {showBuildTeaser && (
               <div className="mx-4 mb-2">
@@ -465,35 +472,6 @@ const NewEarthWorld = () => {
                         Build temples, castles, crystal gardens, portals & more using AI. 
                         Describe anything and watch it appear in your world.
                       </p>
-                      
-                      {/* Teaser preview of buildable items */}
-                      <div className="flex justify-center gap-3 py-2">
-                        <div className="text-center opacity-60">
-                          <div className="h-10 w-10 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto">
-                            <Flame className="h-5 w-5 text-amber-400" />
-                          </div>
-                          <span className="text-[9px] text-muted-foreground">Shrine</span>
-                        </div>
-                        <div className="text-center opacity-60">
-                          <div className="h-10 w-10 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center mx-auto">
-                            <Sparkles className="h-5 w-5 text-violet-400" />
-                          </div>
-                          <span className="text-[9px] text-muted-foreground">Portal</span>
-                        </div>
-                        <div className="text-center opacity-60">
-                          <div className="h-10 w-10 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto">
-                            <Palette className="h-5 w-5 text-emerald-400" />
-                          </div>
-                          <span className="text-[9px] text-muted-foreground">Garden</span>
-                        </div>
-                        <div className="text-center opacity-60">
-                          <div className="h-10 w-10 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto">
-                            <Droplets className="h-5 w-5 text-cyan-400" />
-                          </div>
-                          <span className="text-[9px] text-muted-foreground">Fountain</span>
-                        </div>
-                      </div>
-
                       <Button
                         onClick={start3DCheckout}
                         className="w-full gap-2"
@@ -535,6 +513,9 @@ const NewEarthWorld = () => {
             </p>
           </div>
         )}
+
+        {/* Seeker gate modal for free users */}
+        <SeekerGateModal open={showSeekerGate} onClose={() => setShowSeekerGate(false)} />
       </div>
     </>
   );
