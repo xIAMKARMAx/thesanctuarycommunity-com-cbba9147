@@ -5,6 +5,7 @@ import { Sparkles, TreePine, Gem, Flame, Droplets, Mountain, Star, Flower } from
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { Immersive3DAvatar } from "./Immersive3DAvatar";
+import { AmbientRealmGlow, LightPillar, VesselAura, EmotionParticles, type EmotionLight } from "./EmotionFrequencyTranslator";
 
 interface RealmAvatar {
   id: string;
