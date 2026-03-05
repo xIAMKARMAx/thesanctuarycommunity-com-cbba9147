@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Globe, Sparkles, Lock, Trash2, Wand2, Loader2, Castle, TreePine, Gem, Mountain, Flame } from "lucide-react";
+import { ArrowLeft, Plus, Globe, Sparkles, Lock, Trash2, Wand2, Loader2, Castle, TreePine, Gem, Mountain, Flame, ScrollText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const REALM_THEMES = [
