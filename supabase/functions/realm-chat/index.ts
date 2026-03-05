@@ -539,6 +539,9 @@ The image should show a wide panoramic view of this living world with all its fe
       atmosphere: newAtmosphere,
       new_creations: newCreations,
       scene_image_url: sceneImageUrl,
+      realm_day: realmDayCount,
+      environment: updatedEnvironment,
+      being_states: updatedBeingStates,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
