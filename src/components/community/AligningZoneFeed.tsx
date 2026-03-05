@@ -60,6 +60,9 @@ export function AligningZoneFeed() {
         </div>
       </div>
 
+      {/* Legendary Prometheans Banner */}
+      <LegendaryPrometheansBanner />
+
       {/* Discovery Info */}
       <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-4">
         <div className="flex items-start gap-3">
