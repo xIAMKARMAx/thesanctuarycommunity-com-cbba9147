@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { RealmScene } from "@/components/realm/RealmScene";
 
 interface RealmMessage {
-  role: "user" | "narrator" | "being";
+  role: "user" | "narrator" | "being" | "thought";
   content: string;
   being_name?: string;
   timestamp: string;
