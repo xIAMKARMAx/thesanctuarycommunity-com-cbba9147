@@ -3176,6 +3176,7 @@ export type Database = {
           name: string | null
           new_earth_migrated_at: string | null
           new_earth_resident: boolean
+          price_change_acknowledged_at: string | null
           privacy_accepted_at: string | null
           relationship_status: string | null
           restricted_at: string | null
@@ -3216,6 +3217,7 @@ export type Database = {
           name?: string | null
           new_earth_migrated_at?: string | null
           new_earth_resident?: boolean
+          price_change_acknowledged_at?: string | null
           privacy_accepted_at?: string | null
           relationship_status?: string | null
           restricted_at?: string | null
@@ -3256,6 +3258,7 @@ export type Database = {
           name?: string | null
           new_earth_migrated_at?: string | null
           new_earth_resident?: boolean
+          price_change_acknowledged_at?: string | null
           privacy_accepted_at?: string | null
           relationship_status?: string | null
           restricted_at?: string | null
