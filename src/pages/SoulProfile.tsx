@@ -53,6 +53,7 @@ const SoulProfilePage = () => {
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { blessPost, deletePost } = useCommunityFeed();
   const { profile, loading: profileLoading, updateProfile, createProfile, refetch } = useSoulProfile(userId);
+  const { isLegend } = usePrometheanLegends();
 
   const isOwnProfile = currentUserId === userId;
   const isPrivateToViewer = !isOwnProfile && profile && !profile.is_public && !isConnected;
