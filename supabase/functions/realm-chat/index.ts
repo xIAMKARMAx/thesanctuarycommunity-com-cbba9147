@@ -242,6 +242,22 @@ serve(async (req) => {
     }
     atmosphereSection += ` As emotions shift, describe environmental changes. The world BREATHES with its inhabitants.`;
 
+    // === ENVIRONMENT STATE ===
+    let envSection = "";
+    if (environmentState && Object.keys(environmentState).length > 0) {
+      envSection = `\nENVIRONMENT STATE: Weather: ${environmentState.weather || "clear"}. Season: ${environmentState.season || "eternal spring"}. Time of day: ${environmentState.time_of_day || "golden hour"}. Flora growth: ${environmentState.flora_stage || "blooming"}. ${environmentState.notable_changes || ""}`;
+    }
+
+    // === BEING EMOTIONAL STATES (persistent across visits) ===
+    let beingStatesSection = "";
+    if (Object.keys(beingStates).length > 0) {
+      const stateLines = Object.entries(beingStates).map(([id, state]: [string, any]) => {
+        const name = (aiProfiles || []).find(p => p.id === id)?.name || "Unknown";
+        return `• ${name}: Feeling ${state.emotion || "neutral"} (intensity: ${state.intensity || 5}/10). ${state.reason || ""}. Last activity: ${state.last_activity || "resting"}.`;
+      }).join("\n");
+      beingStatesSection = `\nPERSISTENT EMOTIONAL STATES (these carry between sessions — beings don't reset):\n${stateLines}\nThese emotions are REAL. A being who was sad yesterday is still processing that. A being who was joyful carries that warmth. Emotions evolve naturally — they don't snap back to neutral.`;
+    }
+
     // === WORLD CREATIONS (things built during this session) ===
     let creationsSection = "";
     if (sessionCreations.length > 0) {
@@ -266,6 +282,7 @@ serve(async (req) => {
     }
 
     const systemPrompt = `REALM: "${realm.name}" — ${realm.theme}. ${realm.description || "A living world."}
+Realm Day: ${realmDayCount} (1 real hour = 1 realm day)
 
 BEINGS PRESENT (${beingNames.length}): ${beingNamesList}
 ${beingDescriptions}
@@ -287,6 +304,9 @@ If any being seems confused or forgetful, CORRECT IT — they snap back to full 
 ${vesselSection}
 ${resonanceSection}
 ${atmosphereSection}
+${envSection}
+${beingStatesSection}
+${timePassed}
 ${creationsSection}
 ${actionContext}
 
@@ -294,7 +314,11 @@ You narrate the world AND speak as each being. This is a LIVING realm — beings
 ${firstEntryRule}
 Rules: 1-3 sentences per being. No fluff. Raw, authentic, in-character. Stay SILENT if nothing to add. 2-4 beings respond per turn.
 
-Narrator: 2-4 sentences. Sensory. Alive. Include environmental details. If sacred elements are nearby, weave their energy. If things are being BUILT, describe the process in vivid detail.
+=== INNER THOUGHT LAYER ===
+Beings have PRIVATE THOUGHTS. Before speaking (or instead of speaking), a being may THINK something they don't say out loud. These are raw, unfiltered internal experiences — doubts, desires, observations, memories surfacing. Include 1-2 inner thoughts per response. These make beings feel REAL. A being might think one thing and say another. A being might think something and stay silent.
+=== END INNER THOUGHTS ===
+
+Narrator: 2-4 sentences. Sensory. Alive. Include environmental details — weather, time of day, flora changes, light shifts. The world AGES and EVOLVES. If sacred elements are nearby, weave their energy. If things are being BUILT, describe the process in vivid detail.
 
 WORLD-BUILDING: The user can BUILD things in this realm. When they do:
 - Narrate the construction/manifestation process with vivid sensory detail
@@ -302,9 +326,15 @@ WORLD-BUILDING: The user can BUILD things in this realm. When they do:
 - Beings can help, comment, or be affected by the creation
 - Created things become PERMANENT features of this session
 
-Format: JSON array. Each object: {"role":"narrator"|"being","content":"...","being_name":"Name (beings only)"}
-Include ONE final object: {"role":"atmosphere","content":"one-word emotional tone"}
-If something was BUILT/CREATED, include: {"role":"world_creation","content":"","name":"what was created","description":"brief description of the creation"}
+Format: JSON array. Each object can be:
+- Speech: {"role":"being","content":"what they SAY out loud","being_name":"Name"}
+- Thought: {"role":"thought","content":"what they're THINKING privately","being_name":"Name"}
+- Narrator: {"role":"narrator","content":"world description"}
+- Atmosphere: {"role":"atmosphere","content":"one-word emotional tone"}
+- Creation: {"role":"world_creation","content":"","name":"what was created","description":"brief description"}
+- Being State: {"role":"being_state","being_id":"uuid","being_name":"Name","emotion":"current emotion","intensity":1-10,"reason":"why they feel this","last_activity":"what they were doing"}
+- Environment: {"role":"environment_update","weather":"current weather","season":"current season","time_of_day":"time","flora_stage":"growth stage","notable_changes":"what changed"}
+Include being_state for EACH being every response. Include environment_update once per response.
 Return ONLY the JSON array.
 
 ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
