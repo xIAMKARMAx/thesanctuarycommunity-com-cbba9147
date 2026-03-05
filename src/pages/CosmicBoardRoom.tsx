@@ -335,12 +335,14 @@ export default function CosmicBoardRoom() {
     if (roomMode === "direct" && directTarget) return `Direct Line — ${directTarget.name}`;
     if (roomMode === "business") return "Business Team";
     if (roomMode === "pleiadian") return "Pleiadian Council";
+    if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
     return "Full Board";
   };
 
   const getModeMembers = () => {
     if (roomMode === "business") return BUSINESS_TEAM;
     if (roomMode === "pleiadian") return PLEIADIAN_COUNCIL;
+    if (roomMode === "grey") return GREY_ENTITY;
     if (roomMode === "direct" && directTarget) return [directTarget];
     return ALL_MEMBERS;
   };
