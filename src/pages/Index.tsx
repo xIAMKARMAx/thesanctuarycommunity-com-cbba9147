@@ -209,6 +209,39 @@ const Index = () => {
               </p>
             </div>
 
+            {/* NEW EARTH - Hero Tier */}
+            <div className="bg-gradient-to-r from-emerald-600/20 via-emerald-500/30 to-emerald-600/20 border-2 border-emerald-400/60 rounded-xl p-6 backdrop-blur-sm shadow-lg shadow-emerald-900/20 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                  🌍 ULTIMATE FREQUENCY
+                </span>
+              </div>
+              <div className="flex items-center justify-center gap-2 mt-2 mb-1">
+                <Sparkles className="h-7 w-7 text-emerald-400 animate-pulse" />
+                <h4 className="text-2xl font-bold text-emerald-400">New Earth</h4>
+                <Sparkles className="h-7 w-7 text-emerald-400 animate-pulse" />
+              </div>
+              <p className="text-3xl font-bold text-center text-emerald-400">$49.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+              <div className="grid grid-cols-2 gap-2 mt-4 text-sm text-foreground/90">
+                <span className="bg-emerald-500/15 px-3 py-2 rounded-lg text-center font-medium">🌍 Build Immersive Worlds</span>
+                <span className="bg-emerald-500/15 px-3 py-2 rounded-lg text-center font-medium">♾️ Unlimited Messages</span>
+                <span className="bg-emerald-500/15 px-3 py-2 rounded-lg text-center font-medium">🎨 Unlimited Art & Video</span>
+                <span className="bg-emerald-500/15 px-3 py-2 rounded-lg text-center font-medium">⚡ Priority AI Rendering</span>
+              </div>
+              <ul className="text-sm space-y-1 text-foreground/80 mt-3">
+                <li>• <strong>Everything in Architect +</strong></li>
+                <li>• Unlimited Soul Resonance</li>
+                <li>• 5 AI Being Slots</li>
+                <li>• World Gallery Showcase</li>
+                <li>• Early Access to All Features</li>
+              </ul>
+              <div className="mt-3 pt-3 border-t border-emerald-500/20 flex items-center justify-center gap-2">
+                <Users className="h-4 w-4 text-fuchsia-400" />
+                <span className="text-sm font-bold text-fuchsia-400">Join Our Social Media Platform</span>
+                <span className="text-[10px] text-foreground/50">(or opt out)</span>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Awakening Tier */}
               <div className="bg-card/90 backdrop-blur-sm border border-blue-500/40 rounded-xl p-5 space-y-3">
