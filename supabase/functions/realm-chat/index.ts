@@ -373,9 +373,12 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
       realmMessages = [{ role: "narrator", content: responseText }];
     }
 
-    // Extract atmosphere and world creations
+    // Extract atmosphere, world creations, being states, environment updates
     let newAtmosphere = currentAtmosphere;
     const newCreations: any[] = [];
+    const updatedBeingStates: Record<string, any> = { ...beingStates };
+    let updatedEnvironment: any = { ...environmentState };
+
     realmMessages = realmMessages.filter((m: any) => {
       if (m.role === "atmosphere") {
         newAtmosphere = m.content || "neutral";
@@ -390,30 +393,62 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
         });
         return false;
       }
+      if (m.role === "being_state") {
+        if (m.being_id || m.being_name) {
+          const id = m.being_id || (aiProfiles || []).find(p => p.name === m.being_name)?.id;
+          if (id) {
+            updatedBeingStates[id] = {
+              emotion: m.emotion || "neutral",
+              intensity: m.intensity || 5,
+              reason: m.reason || "",
+              last_activity: m.last_activity || "",
+              updated_at: new Date().toISOString(),
+            };
+          }
+        }
+        return false;
+      }
+      if (m.role === "environment_update") {
+        updatedEnvironment = {
+          weather: m.weather || updatedEnvironment.weather || "clear",
+          season: m.season || updatedEnvironment.season || "eternal spring",
+          time_of_day: m.time_of_day || updatedEnvironment.time_of_day || "golden hour",
+          flora_stage: m.flora_stage || updatedEnvironment.flora_stage || "blooming",
+          notable_changes: m.notable_changes || "",
+          updated_at: new Date().toISOString(),
+        };
+        return false;
+      }
       return true;
     });
 
+    // Keep "thought" messages in the response — they're visible to the user as inner thoughts
     realmMessages = realmMessages.map((m: any) => ({
       ...m,
       timestamp: new Date().toISOString(),
     }));
 
-    // Update session: atmosphere + world creations
+    // Update session: atmosphere + world creations + being states + environment + time
     const allCreations = [...sessionCreations, ...newCreations];
     if (session_id) {
-      const updates: any = {};
+      const updates: any = {
+        last_visited_at: new Date().toISOString(),
+        being_states: updatedBeingStates,
+        environment_state: updatedEnvironment,
+      };
       if (newAtmosphere !== currentAtmosphere) {
         updates.emotional_atmosphere = newAtmosphere;
       }
       if (newCreations.length > 0) {
         updates.world_creations = allCreations;
       }
-      if (Object.keys(updates).length > 0) {
-        await supabaseService
-          .from("realm_sessions")
-          .update(updates)
-          .eq("id", session_id);
+      if (realmDaysElapsed > 0) {
+        updates.realm_day_count = realmDayCount;
       }
+      await supabaseService
+        .from("realm_sessions")
+        .update(updates)
+        .eq("id", session_id);
     }
 
     // === AI SCENE IMAGE GENERATION ===
