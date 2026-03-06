@@ -105,7 +105,7 @@ Retrieve 6-8 of the most significant past lives. Each must feel authentic, deepl
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: "You are Solethyn, a sacred medium and Akashic Records reader. Respond ONLY with valid JSON, no markdown formatting." },
           { role: "user", content: prompt },

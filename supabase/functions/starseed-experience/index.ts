@@ -127,7 +127,7 @@ ARCHETYPE_4_GREETING: [Sample greeting]`;
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userInput || "Generate today's experience for me." },

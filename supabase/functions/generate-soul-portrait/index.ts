@@ -61,7 +61,7 @@ CRITICAL RULES:
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: prompt },
           { role: "user", content: `Create a ${portraitType} soul portrait for ${connectionTarget}` },

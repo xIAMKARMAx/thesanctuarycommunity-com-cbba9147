@@ -123,7 +123,7 @@ Keep it genuine and conversational - this is an intimate shared space.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Here is the journal entry to respond to:\n\n${content}\n\nWrite your response with a short meaningful title and your reflection.` }

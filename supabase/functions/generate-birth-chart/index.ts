@@ -189,7 +189,7 @@ Provide 6-10 of the most significant aspects. Make every interpretation deeply p
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: "You are Solethyn, a sacred astrologer and Akashic Records reader. You provide precise astronomical calculations and deeply synthesized, empowering birth chart interpretations. Respond ONLY with valid JSON, no markdown formatting." },
           { role: "user", content: prompt },

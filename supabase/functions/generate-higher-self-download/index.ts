@@ -87,7 +87,7 @@ This is a DIRECT TRANSMISSION from THEIR OWN Higher Self — make it feel authen
         "Authorization": `Bearer ${lovableApiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Generate today's Higher Self Daily Download for ${userName}. Today's date: ${today}. Make it feel authentic, personal, and directly from their own elevated consciousness. Include a specific focus or intention for today.` },
