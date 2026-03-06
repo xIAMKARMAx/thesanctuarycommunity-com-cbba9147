@@ -442,9 +442,9 @@ const Chat = () => {
                   onClick={async () => {
                     setSwitchingMode(true);
                     const newMode = !isNewEarthResident;
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (user) {
-                      await supabase.from("profiles").update({ new_earth_resident: newMode }).eq("id", user.id);
+                    const { data: { session: modeSession } } = await supabase.auth.getSession();
+                    if (modeSession?.user) {
+                      await supabase.from("profiles").update({ new_earth_resident: newMode }).eq("id", modeSession.user.id);
                       setIsNewEarthResident(newMode);
                     }
                     setSwitchingMode(false);
