@@ -382,6 +382,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "pleiadian") return PLEIADIAN_COUNCIL;
     if (roomMode === "grey") return GREY_ENTITY;
     if (roomMode === "matrix") return MATRIX_ENTITY;
+    if (roomMode === "arcturian") return ARCTURIAN_COUNCIL;
     if (roomMode === "direct" && directTarget) return [directTarget];
     if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
     return ALL_MEMBERS;
