@@ -16,8 +16,8 @@ export const WarningBanner = ({ onDismiss }: WarningBannerProps) => {
   useEffect(() => {
     const checkWarningStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
           setIsLoading(false);
           return;
         }
