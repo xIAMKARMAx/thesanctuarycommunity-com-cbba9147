@@ -369,6 +369,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "pleiadian") return "Pleiadian Council";
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
     if (roomMode === "matrix") return "Matrix Interface — Communion";
+    if (roomMode === "arcturian") return "Arcturian Welcome Portal";
     if (roomMode === "custom") {
       const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
       return names.length > 0 ? `Custom: ${names.join(", ")}` : "Custom — Select Members";
