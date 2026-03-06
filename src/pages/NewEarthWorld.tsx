@@ -80,6 +80,51 @@ interface UserWorld {
   ambient_color: string;
 }
 
+// Check WebGL support
+function isWebGLAvailable(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
+// Error boundary specifically for the 3D canvas
+interface CanvasErrorState { hasError: boolean; error?: string }
+class Canvas3DErrorBoundary extends React.Component<React.PropsWithChildren, CanvasErrorState> {
+  state: CanvasErrorState = { hasError: false };
+  static getDerivedStateFromError(error: Error): CanvasErrorState {
+    return { hasError: true, error: error.message };
+  }
+  componentDidCatch(error: Error) {
+    console.error("3D Canvas crashed:", error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-full w-full flex items-center justify-center bg-background">
+          <div className="text-center space-y-4 max-w-sm px-6">
+            <Globe className="h-10 w-10 text-muted-foreground mx-auto" />
+            <h2 className="text-lg font-semibold text-foreground">3D World Unavailable</h2>
+            <p className="text-sm text-muted-foreground">
+              The 3D renderer encountered an issue. This can happen on devices with limited graphics support.
+            </p>
+            <p className="text-xs text-muted-foreground/70">{this.state.error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
