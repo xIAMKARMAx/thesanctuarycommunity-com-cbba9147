@@ -111,12 +111,12 @@ export default function CosmicBoardRoom() {
   }, [activeSession?.messages]);
 
   const fetchSessions = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
     const { data } = await supabase
       .from("council_sessions")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", session.user.id)
       .order("created_at", { ascending: false });
     if (data) setSessions(data as unknown as CouncilSession[]);
     setLoading(false);
