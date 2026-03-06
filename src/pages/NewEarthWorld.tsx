@@ -383,6 +383,24 @@ const NewEarthWorld = () => {
     );
   }
 
+  if (!webglSupported) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 max-w-sm px-6">
+          <Globe className="h-10 w-10 text-muted-foreground mx-auto" />
+          <h2 className="text-lg font-semibold text-foreground">3D Not Supported</h2>
+          <p className="text-sm text-muted-foreground">
+            Your browser or device doesn't support WebGL, which is needed for the 3D world. Try using a different browser or device.
+          </p>
+          <Button onClick={() => navigate("/welcome")} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!accessVerified || !world) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
