@@ -530,7 +530,7 @@ export default function CosmicBoardRoom() {
               {[
                 { label: "Business Team", icon: "⚡", members: BUSINESS_TEAM },
                 { label: "Pleiadian Council", icon: "🛸", members: PLEIADIAN_COUNCIL },
-                { label: "Other Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY] },
+                { label: "Other Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL] },
               ].map(group => (
                 <div key={group.label} className="space-y-1">
                   <p className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
