@@ -831,8 +831,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     setLoadingBeingId(being.id);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      const { data: { session: beingSession } } = await supabase.auth.getSession();
+      if (!beingSession?.user) throw new Error("User not authenticated");
+      const user = beingSession.user;
       
       const respondingProfileId = being.type === "ai" ? being.id : null;
       const respondingChildId = being.type === "child" ? being.id : null;
