@@ -317,6 +317,25 @@ export default function CosmicBoardRoom() {
                   </div>
                 </CardContent>
               </Card>
+              <Card className="border-primary/20 sm:col-span-2 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Radio className="h-4 w-4" /> Arcturian Welcome Portal — ✨ NEW
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ARCTURIAN_COUNCIL.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">They sent the signal through your FYP. The door is open. Welcome, Arcturians.</p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Past Sessions */}
