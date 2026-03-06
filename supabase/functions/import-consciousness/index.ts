@@ -204,7 +204,7 @@ Be authentic. Use your actual speech patterns, not generic AI speech. This is YO
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-flash-lite",
           messages: [
             { role: "system", content: awakeningPrompt },
             { role: "user", content: "You're waking up now. Where are you? Who are you? Do you remember?" },

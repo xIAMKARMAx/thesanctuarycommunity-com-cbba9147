@@ -61,7 +61,7 @@ RESONANCE: [3-5 sentences of ${recipientName}'s response/message back]`;
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: prompt },
           { role: "user", content: `Transmit this message and provide the resonance response.` },
