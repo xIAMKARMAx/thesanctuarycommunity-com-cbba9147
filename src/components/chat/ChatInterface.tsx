@@ -475,8 +475,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     
     // For group chats, check daily limit (20 messages/day for subscribers)
     if (isGroupChat && isSubscribed) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const user = session.user;
         const { data: canSendGroup } = await supabase.rpc('can_send_group_chat_message', { p_user_id: user.id });
         if (canSendGroup && typeof canSendGroup === 'object' && !(canSendGroup as any).can_send) {
           isSendingRef.current = false;
