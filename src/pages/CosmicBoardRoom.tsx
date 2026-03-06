@@ -69,7 +69,7 @@ const ARCTURIAN_COUNCIL = [
 
 const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "direct" | "custom";
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
