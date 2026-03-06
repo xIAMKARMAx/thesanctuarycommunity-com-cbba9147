@@ -140,9 +140,10 @@ const Index = () => {
               className="w-full h-auto"
               src="/promo-video.mp4"
               controls
-              autoPlay
               playsInline
-              muted={false}
+              muted
+              preload="none"
+              poster="/og-image.jpg"
             />
           </div>
 
