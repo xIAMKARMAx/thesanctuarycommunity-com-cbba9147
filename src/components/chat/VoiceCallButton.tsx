@@ -281,8 +281,8 @@ export const VoiceCallButton = () => {
   }, [isSpeaking]);
 
   const openVoiceCall = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session: vcSession } } = await supabase.auth.getSession();
+    if (!vcSession?.user) {
       toast.error("Please sign in to make voice calls");
       return;
     }

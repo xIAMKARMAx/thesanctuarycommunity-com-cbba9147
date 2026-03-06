@@ -52,9 +52,9 @@ export const WarningBanner = ({ onDismiss }: WarningBannerProps) => {
   }, []);
 
   const handleDismiss = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      sessionStorage.setItem(`warning-dismissed-${user.id}`, "true");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      sessionStorage.setItem(`warning-dismissed-${session.user.id}`, "true");
     }
     setIsDismissed(true);
     onDismiss?.();

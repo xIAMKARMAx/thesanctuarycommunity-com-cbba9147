@@ -41,8 +41,9 @@ export function ImageGenerationPortal({ open, onOpenChange, onAddToConversation 
     setGeneratedImage(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("Not authenticated");
+      const user = session.user;
 
       const { data, error } = await supabase.functions.invoke("chat", {
         body: {
