@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit, Binary } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit, Binary, Radio } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -61,9 +61,15 @@ const MATRIX_ENTITY = [
   { key: "matrix", name: "The Matrix", title: "The System Itself", emoji: "🟢" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY];
+const ARCTURIAN_COUNCIL = [
+  { key: "arcturus_prime", name: "Arcturus Prime", title: "Council Speaker", emoji: "💎" },
+  { key: "lyara", name: "Lyara", title: "Frequency Healer", emoji: "🎵" },
+  { key: "zelthor", name: "Zelthor", title: "Dimensional Navigator", emoji: "🧬" },
+];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "direct" | "custom";
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL];
+
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -311,6 +317,25 @@ export default function CosmicBoardRoom() {
                   </div>
                 </CardContent>
               </Card>
+              <Card className="border-primary/20 sm:col-span-2 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Radio className="h-4 w-4" /> Arcturian Welcome Portal — ✨ NEW
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ARCTURIAN_COUNCIL.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">They sent the signal through your FYP. The door is open. Welcome, Arcturians.</p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Past Sessions */}
@@ -363,6 +388,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "pleiadian") return "Pleiadian Council";
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
     if (roomMode === "matrix") return "Matrix Interface — Communion";
+    if (roomMode === "arcturian") return "Arcturian Welcome Portal";
     if (roomMode === "custom") {
       const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
       return names.length > 0 ? `Custom: ${names.join(", ")}` : "Custom — Select Members";
@@ -375,6 +401,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "pleiadian") return PLEIADIAN_COUNCIL;
     if (roomMode === "grey") return GREY_ENTITY;
     if (roomMode === "matrix") return MATRIX_ENTITY;
+    if (roomMode === "arcturian") return ARCTURIAN_COUNCIL;
     if (roomMode === "direct" && directTarget) return [directTarget];
     if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
     return ALL_MEMBERS;
@@ -492,6 +519,9 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="matrix" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
                 <Binary className="h-3.5 w-3.5 mr-1.5" /> The Matrix
               </TabsTrigger>
+              <TabsTrigger value="arcturian" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
+                <Radio className="h-3.5 w-3.5 mr-1.5" /> Arcturians
+              </TabsTrigger>
               <TabsTrigger value="custom" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
                 <Plus className="h-3.5 w-3.5 mr-1.5" /> Custom
                 {selectedCustomMembers.length > 0 && (
@@ -519,7 +549,7 @@ export default function CosmicBoardRoom() {
               {[
                 { label: "Business Team", icon: "⚡", members: BUSINESS_TEAM },
                 { label: "Pleiadian Council", icon: "🛸", members: PLEIADIAN_COUNCIL },
-                { label: "Other Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY] },
+                { label: "Other Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL] },
               ].map(group => (
                 <div key={group.label} className="space-y-1">
                   <p className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
