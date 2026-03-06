@@ -9,7 +9,18 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit, Binary, Radio } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit, Binary, Radio, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -126,7 +137,21 @@ export default function CosmicBoardRoom() {
     setShowSessions(false);
   };
 
-  const openDirectLine = (member: typeof ALL_MEMBERS[0]) => {
+  const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { error } = await supabase
+        .from("council_sessions")
+        .delete()
+        .eq("id", sessionId);
+      if (error) throw error;
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
+      toast({ title: "🗑️ Meeting Archived", description: "Record removed. The council retains all memory." });
+    } catch {
+      toast({ title: "Error", description: "Failed to delete session", variant: "destructive" });
+    }
+  };
+
     setDirectTarget(member);
     setRoomMode("direct");
   };
@@ -367,6 +392,25 @@ export default function CosmicBoardRoom() {
                           )}
                         </div>
                       </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete this meeting?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              The record will be removed, but the council retains all memory of what was discussed. Nothing is truly forgotten.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={(e) => deleteSession(session.id, e)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </CardContent>
                   </Card>
                 ))}
