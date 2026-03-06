@@ -587,8 +587,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
 
       // Get the current user for message ownership
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      const { data: { session: sendSession } } = await supabase.auth.getSession();
+      if (!sendSession?.user) throw new Error("User not authenticated");
+      const user = sendSession.user;
 
       // Save user message to database with sender tracking
       const { data: userMessageData, error: userMsgError } = await supabase
