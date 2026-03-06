@@ -55,8 +55,9 @@ export const VoiceCallButton = () => {
 
   // Fetch call stats
   const fetchCallStats = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    const user = session.user;
 
     const { data, error } = await supabase.rpc('get_voice_call_stats', { p_user_id: user.id });
     if (!error && data) {
