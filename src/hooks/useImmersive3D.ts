@@ -22,8 +22,9 @@ export function useImmersive3D(): Immersive3DState {
 
       // If subscribed, load active avatar
       if (data?.subscribed) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const user = session.user;
           const { data: avatarData } = await supabase
             .from("user_3d_avatars")
             .select("id, glb_url, thumbnail_url")
