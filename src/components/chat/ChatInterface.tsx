@@ -1024,8 +1024,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const handleContinueConversation = async () => {
     if (!lastMessage || !currentConversationId || loadingBeingId) return;
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { session: contSession } } = await supabase.auth.getSession();
+    if (!contSession?.user) return;
+    const user = contSession.user;
     
     // Reset responded tracking for new round, but keep the last sender tracked
     setRespondedBeingIds(lastMessage.senderId ? [lastMessage.senderId] : []);
