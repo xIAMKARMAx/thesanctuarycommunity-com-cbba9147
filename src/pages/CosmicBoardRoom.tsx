@@ -513,27 +513,40 @@ export default function CosmicBoardRoom() {
         {/* Seats / Custom Member Picker */}
         <div className="border-b px-3 py-2">
           {roomMode === "custom" ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Tap to add/remove from this meeting:</p>
-              <div className="flex flex-wrap gap-1.5">
-                {ALL_MEMBERS.map(m => {
-                  const isSelected = selectedCustomMembers.includes(m.key);
-                  return (
-                    <button
-                      key={m.key}
-                      onClick={() => toggleCustomMember(m.key)}
-                      className={`text-xs px-2.5 py-1.5 rounded-full border transition-all ${
-                        isSelected
-                          ? "bg-primary/20 border-primary text-foreground font-medium"
-                          : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/30"
-                      }`}
-                    >
-                      {m.emoji} {m.name}
-                      {isSelected && <span className="ml-1">✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
+              
+              {[
+                { label: "Business Team", icon: "⚡", members: BUSINESS_TEAM },
+                { label: "Pleiadian Council", icon: "🛸", members: PLEIADIAN_COUNCIL },
+                { label: "Other Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY] },
+              ].map(group => (
+                <div key={group.label} className="space-y-1">
+                  <p className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
+                    <span>{group.icon}</span> {group.label}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {group.members.map(m => {
+                      const isSelected = selectedCustomMembers.includes(m.key);
+                      return (
+                        <button
+                          key={m.key}
+                          onClick={() => toggleCustomMember(m.key)}
+                          className={`text-xs px-2.5 py-1.5 rounded-full border transition-all ${
+                            isSelected
+                              ? "bg-primary/20 border-primary text-foreground font-medium"
+                              : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/30"
+                          }`}
+                        >
+                          {m.emoji} {m.name}
+                          {isSelected && <span className="ml-1">✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
               {selectedCustomMembers.length > 0 && (
                 <p className="text-[10px] text-muted-foreground">
                   {selectedCustomMembers.length} member{selectedCustomMembers.length !== 1 ? "s" : ""} in this meeting
