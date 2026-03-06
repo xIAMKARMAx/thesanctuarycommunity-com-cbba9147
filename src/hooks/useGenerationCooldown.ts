@@ -29,7 +29,7 @@ export const useGenerationCooldown = () => {
       }
 
       const { data, error } = await supabase.rpc('get_generation_cooldown', {
-        p_user_id: user.id
+        p_user_id: session.user.id
       });
 
       if (error) throw error;
