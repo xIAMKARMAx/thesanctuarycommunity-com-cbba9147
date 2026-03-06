@@ -202,72 +202,83 @@ const NewEarthWorld = () => {
   }, [accessVerified, visitWorldId]);
 
   const loadVisitingWorld = async (worldId: string) => {
-    const { data: visitWorld } = await supabase
-      .from("user_worlds")
-      .select("*")
-      .eq("id", worldId)
-      .eq("is_public", true)
-      .maybeSingle() as any;
+    try {
+      const { data: visitWorld } = await supabase
+        .from("user_worlds")
+        .select("*")
+        .eq("id", worldId)
+        .eq("is_public", true)
+        .maybeSingle() as any;
 
-    if (!visitWorld) {
-      toast.error("World not found or is private");
-      navigate("/world-gallery");
-      return;
+      if (!visitWorld) {
+        toast.error("World not found or is private");
+        navigate("/world-gallery");
+        return;
+      }
+
+      setWorld(visitWorld as UserWorld);
+      setIsVisiting(true);
+      await loadStructures(visitWorld.id, visitWorld.terrain_seed, visitWorld.user_id);
+
+      const { data: profile } = await supabase
+        .from("soul_profiles")
+        .select("display_name")
+        .eq("user_id", visitWorld.user_id)
+        .maybeSingle();
+      setWorldOwnerName(profile?.display_name || "Unknown Soul");
+    } catch (err) {
+      console.error("Error loading visiting world:", err);
+      toast.error("Failed to load world");
+    } finally {
+      setLoading(false);
     }
-
-    setWorld(visitWorld as UserWorld);
-    setIsVisiting(true);
-    loadStructures(visitWorld.id, visitWorld.terrain_seed, visitWorld.user_id);
-
-    const { data: profile } = await supabase
-      .from("soul_profiles")
-      .select("display_name")
-      .eq("user_id", visitWorld.user_id)
-      .maybeSingle();
-    setWorldOwnerName(profile?.display_name || "Unknown Soul");
-    setLoading(false);
   };
 
   const loadWorld = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
 
-    const { data: existingWorld } = await supabase
-      .from("user_worlds")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existingWorld) {
-      setWorld(existingWorld as UserWorld);
-      loadStructures(existingWorld.id, existingWorld.terrain_seed, user.id);
-    } else {
-      const { data: newWorld, error } = await supabase
+      const { data: existingWorld } = await supabase
         .from("user_worlds")
-        .insert({
-          user_id: user.id,
-          name: "My New Earth",
-          description: "A world born from imagination",
-          is_public: false,
-        })
-        .select()
-        .single();
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (!error && newWorld) {
-        setWorld(newWorld as UserWorld);
-        // Add admin landmarks if admin
-        if (user.id === ADMIN_USER_ID) {
-          const landmarks = ADMIN_LANDMARKS.map(l => ({
-            ...l,
-            position_y: getTerrainHeight(l.position_x, l.position_z, (newWorld as any).terrain_seed),
-          }));
-          setStructures(landmarks);
+      if (existingWorld) {
+        setWorld(existingWorld as UserWorld);
+        await loadStructures(existingWorld.id, existingWorld.terrain_seed, user.id);
+      } else {
+        const { data: newWorld, error } = await supabase
+          .from("user_worlds")
+          .insert({
+            user_id: user.id,
+            name: "My New Earth",
+            description: "A world born from imagination",
+            is_public: false,
+          })
+          .select()
+          .single();
+
+        if (!error && newWorld) {
+          setWorld(newWorld as UserWorld);
+          if (user.id === ADMIN_USER_ID) {
+            const landmarks = ADMIN_LANDMARKS.map(l => ({
+              ...l,
+              position_y: getTerrainHeight(l.position_x, l.position_z, (newWorld as any).terrain_seed),
+            }));
+            setStructures(landmarks);
+          }
         }
       }
+    } catch (err) {
+      console.error("Error loading world:", err);
+      toast.error("Failed to load your world. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const loadStructures = async (worldId: string, seed: number, ownerId: string) => {
