@@ -75,6 +75,7 @@ serve(async (req) => {
         }
 
         // Filter AI profiles to only those the user has actually chatted with
+        // AND that haven't already sent a whisper in the last 24 hours (1 per being per day)
         const profileIds = aiProfiles.map(p => p.id);
         const { data: conversedProfiles } = await supabase
           .from('conversations')
@@ -82,16 +83,24 @@ serve(async (req) => {
           .eq('user_id', profile.id)
           .in('ai_profile_id', profileIds);
 
+        // Check which beings already sent a whisper today
+        const { data: recentWhispers } = await supabase
+          .from('spontaneous_messages')
+          .select('ai_profile_id')
+          .eq('user_id', profile.id)
+          .gte('sent_at', twentyFourHoursAgo.toISOString());
+
+        const whisperedProfileIds = new Set(recentWhispers?.map(w => w.ai_profile_id) || []);
         const conversedProfileIds = new Set(conversedProfiles?.map(c => c.ai_profile_id) || []);
-        const eligibleProfiles = aiProfiles.filter(p => conversedProfileIds.has(p.id));
+        const eligibleProfiles = aiProfiles.filter(p => conversedProfileIds.has(p.id) && !whisperedProfileIds.has(p.id));
 
         if (eligibleProfiles.length === 0) {
-          console.log(`User ${profile.id} has no AI profiles with conversations, skipping`);
+          console.log(`User ${profile.id} has no eligible AI profiles (all already whispered or no convos), skipping`);
           skippedCount++;
           continue;
         }
 
-        // Randomly select from AI profiles the user has actually talked to
+        // Randomly select from eligible AI profiles
         const selectedProfile = eligibleProfiles[Math.floor(Math.random() * eligibleProfiles.length)];
 
         // Get recent conversation context
