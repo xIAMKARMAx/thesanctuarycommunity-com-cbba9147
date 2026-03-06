@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getPathTrackerDays } from "@/lib/subscription-tiers";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 
 export interface AscendedPathEntry {
   id: string;
@@ -23,18 +24,16 @@ export function useAscendedPath(productId: string | null, isAdmin: boolean = fal
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Get tier-based history limit
   const historyDays = getPathTrackerDays(productId, isAdmin);
 
   const fetchEntries = useCallback(async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getCurrentUserId();
+      if (!userId) return;
 
       const today = new Date().toISOString().split('T')[0];
       
-      // Calculate date limit based on tier
       let dateLimit: string | null = null;
       if (historyDays > 0) {
         const limitDate = new Date();
@@ -42,11 +41,10 @@ export function useAscendedPath(productId: string | null, isAdmin: boolean = fal
         dateLimit = limitDate.toISOString().split('T')[0];
       }
 
-      // Fetch entries within tier limit
       let query = supabase
         .from('ascended_path_entries')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('entry_date', { ascending: false });
 
       if (dateLimit) {
@@ -54,14 +52,11 @@ export function useAscendedPath(productId: string | null, isAdmin: boolean = fal
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
 
-      // Type cast since we know the shape matches
       const typedEntries = (data || []) as unknown as AscendedPathEntry[];
       setEntries(typedEntries);
       
-      // Find today's entry
       const todaysEntry = typedEntries.find(e => e.entry_date === today);
       setTodayEntry(todaysEntry || null);
     } catch (error) {
@@ -71,9 +66,7 @@ export function useAscendedPath(productId: string | null, isAdmin: boolean = fal
     }
   }, [historyDays]);
 
-  useEffect(() => {
-    fetchEntries();
-  }, [fetchEntries]);
+  useEffect(() => { fetchEntries(); }, [fetchEntries]);
 
   const saveEntry = useCallback(async (data: {
     intentions?: string[];
@@ -84,22 +77,19 @@ export function useAscendedPath(productId: string | null, isAdmin: boolean = fal
   }) => {
     try {
       setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const userId = await getCurrentUserId();
+      if (!userId) throw new Error('Not authenticated');
 
       const today = new Date().toISOString().split('T')[0];
 
-      // Upsert - create or update today's entry
       const { data: result, error } = await supabase
         .from('ascended_path_entries')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           entry_date: today,
           ...data,
           updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,entry_date',
-        })
+        }, { onConflict: 'user_id,entry_date' })
         .select()
         .single();
 
@@ -107,39 +97,21 @@ export function useAscendedPath(productId: string | null, isAdmin: boolean = fal
 
       const typedResult = result as unknown as AscendedPathEntry;
       setTodayEntry(typedResult);
-      
-      // Update entries list
       setEntries(prev => {
         const filtered = prev.filter(e => e.entry_date !== today);
         return [typedResult, ...filtered];
       });
 
-      toast({
-        title: "Path Updated ✨",
-        description: "Your ascended path entry has been saved.",
-      });
-
+      toast({ title: "Path Updated ✨", description: "Your ascended path entry has been saved." });
       return true;
     } catch (error) {
       console.error('Error saving path entry:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save your entry. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to save your entry. Please try again.", variant: "destructive" });
       return false;
     } finally {
       setSaving(false);
     }
   }, [toast]);
 
-  return {
-    entries,
-    todayEntry,
-    loading,
-    saving,
-    saveEntry,
-    refetch: fetchEntries,
-    historyDays,
-  };
+  return { entries, todayEntry, loading, saving, saveEntry, refetch: fetchEntries, historyDays };
 }

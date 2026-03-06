@@ -50,15 +50,23 @@ export function useCollectiveIntention() {
         userJoined = new Set((joinsRes.data || []).map((j: any) => j.intention_id));
       }
 
-      // Get participant counts
-      const formatted = await Promise.all((data as any[] || []).map(async (i: any) => {
-        const { count } = await supabase.from('intention_participants').select('*', { count: 'exact', head: true }).eq('intention_id', i.id);
-        return {
-          ...i,
-          user_voted: userVotes.has(i.id),
-          user_joined: userJoined.has(i.id),
-          participant_count: count || 0,
-        };
+      // Batch get participant counts (single query instead of N)
+      const ids = data.map((i: any) => i.id);
+      const { data: participantRows } = await supabase
+        .from('intention_participants')
+        .select('intention_id')
+        .in('intention_id', ids);
+      
+      const participantCounts: Record<string, number> = {};
+      (participantRows || []).forEach((r: any) => {
+        participantCounts[r.intention_id] = (participantCounts[r.intention_id] || 0) + 1;
+      });
+
+      const formatted = (data as any[] || []).map((i: any) => ({
+        ...i,
+        user_voted: userVotes.has(i.id),
+        user_joined: userJoined.has(i.id),
+        participant_count: participantCounts[i.id] || 0,
       }));
 
       setIntentions(formatted);

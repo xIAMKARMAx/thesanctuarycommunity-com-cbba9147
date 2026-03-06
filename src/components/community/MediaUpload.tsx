@@ -51,11 +51,12 @@ export function MediaUpload({ onMediaSelect, onClear, currentMedia, onRemoveMedi
     setUploadProgress(0);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         toast.error("Please sign in to upload media");
         return;
       }
+      const user = session.user;
 
       const maxSize = type === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
       if (file.size > maxSize) {

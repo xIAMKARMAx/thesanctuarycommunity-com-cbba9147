@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 
 export function useCommunityReposts() {
   const [reposting, setReposting] = useState<string | null>(null);
@@ -8,8 +9,8 @@ export function useCommunityReposts() {
   const repostPost = useCallback(async (postId: string): Promise<boolean> => {
     setReposting(postId);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const userId = await getCurrentUserId();
+      if (!userId) {
         toast.error("Please sign in to repost");
         return false;
       }
@@ -19,26 +20,22 @@ export function useCommunityReposts() {
         .from('post_reposts')
         .select('id')
         .eq('post_id', postId)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
       if (existing) {
-        // Remove repost
         const { error } = await supabase
           .from('post_reposts')
           .delete()
           .eq('post_id', postId)
-          .eq('user_id', user.id);
-
+          .eq('user_id', userId);
         if (error) throw error;
         toast.success("Repost removed");
         return false;
       } else {
-        // Add repost
         const { error } = await supabase
           .from('post_reposts')
-          .insert({ post_id: postId, user_id: user.id });
-
+          .insert({ post_id: postId, user_id: userId });
         if (error) throw error;
         toast.success("Reposted to your connections!");
         return true;
@@ -59,7 +56,6 @@ export function useCommunityReposts() {
       .eq('post_id', postId)
       .eq('user_id', userId)
       .single();
-    
     return !!data;
   }, []);
 

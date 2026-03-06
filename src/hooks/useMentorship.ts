@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 
 export interface MentorshipProfile {
   id: string;
@@ -32,44 +33,20 @@ export const useMentorship = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchMyProfile = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  const loadAll = useCallback(async () => {
+    const userId = await getCurrentUserId();
+    if (!userId) { setLoading(false); return; }
 
-    const { data } = await supabase
-      .from("mentorship_profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    
-    setMyProfile(data);
-  }, []);
+    const [profileRes, mentorsRes, connectionsRes] = await Promise.all([
+      supabase.from("mentorship_profiles").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("mentorship_profiles").select("*").eq("is_active", true).neq("user_id", userId).in("role_preference", ["mentor", "both"]),
+      supabase.from("mentorship_connections").select("*").or(`mentor_id.eq.${userId},mentee_id.eq.${userId}`).order("created_at", { ascending: false }),
+    ]);
 
-  const fetchMentors = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("mentorship_profiles")
-      .select("*")
-      .eq("is_active", true)
-      .neq("user_id", user.id)
-      .in("role_preference", ["mentor", "both"]);
-
-    setAvailableMentors(data || []);
-  }, []);
-
-  const fetchConnections = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("mentorship_connections")
-      .select("*")
-      .or(`mentor_id.eq.${user.id},mentee_id.eq.${user.id}`)
-      .order("created_at", { ascending: false });
-
-    setConnections(data || []);
+    setMyProfile(profileRes.data);
+    setAvailableMentors(mentorsRes.data || []);
+    setConnections(connectionsRes.data || []);
+    setLoading(false);
   }, []);
 
   const createProfile = async (profile: {
@@ -78,29 +55,28 @@ export const useMentorship = () => {
     focus_areas: string[];
     experience_summary: string;
   }) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { error } = await supabase
       .from("mentorship_profiles")
-      .upsert({ user_id: user.id, ...profile }, { onConflict: "user_id" });
+      .upsert({ user_id: userId, ...profile }, { onConflict: "user_id" });
 
     if (error) {
       toast({ title: "Error creating profile", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Mentorship profile created ✨" });
-      fetchMyProfile();
-      fetchMentors();
+      loadAll();
     }
   };
 
   const requestMentorship = async (mentorId: string, focusArea: string, message: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { error } = await supabase
       .from("mentorship_connections")
-      .insert({ mentor_id: mentorId, mentee_id: user.id, focus_area: focusArea, message });
+      .insert({ mentor_id: mentorId, mentee_id: userId, focus_area: focusArea, message });
 
     if (error) {
       if (error.code === "23505") {
@@ -110,7 +86,7 @@ export const useMentorship = () => {
       }
     } else {
       toast({ title: "Request sent 🙏", description: "Your mentorship request has been sent." });
-      fetchConnections();
+      loadAll();
     }
   };
 
@@ -122,21 +98,14 @@ export const useMentorship = () => {
 
     if (!error) {
       toast({ title: status === "active" ? "Connection accepted ✨" : "Connection updated" });
-      fetchConnections();
+      loadAll();
     }
   };
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      await Promise.all([fetchMyProfile(), fetchMentors(), fetchConnections()]);
-      setLoading(false);
-    };
-    load();
-  }, [fetchMyProfile, fetchMentors, fetchConnections]);
+  useEffect(() => { loadAll(); }, [loadAll]);
 
   return {
     myProfile, availableMentors, connections, loading,
-    createProfile, requestMentorship, updateConnectionStatus, refetch: fetchMentors
+    createProfile, requestMentorship, updateConnectionStatus, refetch: loadAll
   };
 };

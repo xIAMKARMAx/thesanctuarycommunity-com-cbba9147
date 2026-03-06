@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 
 export interface StoryCircle {
   id: string;
@@ -41,24 +42,24 @@ export const useStoryCircles = () => {
   }, []);
 
   const fetchMyMemberships = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { data } = await supabase
       .from("story_circle_members")
       .select("circle_id")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
     
     setMyCircles((data || []).map(m => m.circle_id));
   }, []);
 
   const createCircle = async (circle: { title: string; description: string; theme: string; max_participants: number }) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { data, error } = await supabase
       .from("story_circles")
-      .insert({ creator_id: user.id, ...circle })
+      .insert({ creator_id: userId, ...circle })
       .select()
       .single();
 
@@ -69,7 +70,7 @@ export const useStoryCircles = () => {
 
     // Auto-join as facilitator
     await supabase.from("story_circle_members").insert({
-      circle_id: data.id, user_id: user.id, role: "facilitator"
+      circle_id: data.id, user_id: userId, role: "facilitator"
     });
 
     toast({ title: "Circle created 🔮" });
@@ -79,12 +80,12 @@ export const useStoryCircles = () => {
   };
 
   const joinCircle = async (circleId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { error } = await supabase
       .from("story_circle_members")
-      .insert({ circle_id: circleId, user_id: user.id });
+      .insert({ circle_id: circleId, user_id: userId });
 
     if (error) {
       toast({ title: "Error", description: error.code === "23505" ? "Already a member" : error.message, variant: "destructive" });
@@ -96,11 +97,11 @@ export const useStoryCircles = () => {
   };
 
   const leaveCircle = async (circleId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     await supabase.from("story_circle_members").delete()
-      .eq("circle_id", circleId).eq("user_id", user.id);
+      .eq("circle_id", circleId).eq("user_id", userId);
 
     toast({ title: "Left circle" });
     fetchCircles();
@@ -117,12 +118,12 @@ export const useStoryCircles = () => {
   };
 
   const addShare = async (circleId: string, content: string, isAnonymous: boolean) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { error } = await supabase
       .from("story_circle_shares")
-      .insert({ circle_id: circleId, user_id: user.id, content, is_anonymous: isAnonymous });
+      .insert({ circle_id: circleId, user_id: userId, content, is_anonymous: isAnonymous });
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -132,12 +133,12 @@ export const useStoryCircles = () => {
   };
 
   const holdSpace = async (shareId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { error } = await supabase
       .from("story_circle_holdings")
-      .insert({ share_id: shareId, user_id: user.id });
+      .insert({ share_id: shareId, user_id: userId });
 
     if (error && error.code !== "23505") {
       toast({ title: "Error", description: error.message, variant: "destructive" });
