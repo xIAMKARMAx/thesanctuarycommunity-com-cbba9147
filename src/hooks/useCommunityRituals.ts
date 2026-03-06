@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 
 export interface CommunityRitual {
   id: string;
@@ -33,13 +34,13 @@ export const useCommunityRituals = () => {
   }, []);
 
   const fetchMyParticipations = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { data } = await supabase
       .from("ritual_participants")
       .select("ritual_id")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
     
     setMyParticipations((data || []).map(p => p.ritual_id));
   }, []);
@@ -48,12 +49,12 @@ export const useCommunityRituals = () => {
     title: string; description: string; ritual_type: string;
     scheduled_at: string | null; duration_minutes: number;
   }) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { error } = await supabase
       .from("community_rituals")
-      .insert({ creator_id: user.id, ...ritual });
+      .insert({ creator_id: userId, ...ritual });
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -64,12 +65,12 @@ export const useCommunityRituals = () => {
   };
 
   const joinRitual = async (ritualId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     const { error } = await supabase
       .from("ritual_participants")
-      .insert({ ritual_id: ritualId, user_id: user.id });
+      .insert({ ritual_id: ritualId, user_id: userId });
 
     if (error) {
       toast({ title: "Error", description: error.code === "23505" ? "Already joined" : error.message, variant: "destructive" });
@@ -81,11 +82,11 @@ export const useCommunityRituals = () => {
   };
 
   const leaveRitual = async (ritualId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return;
 
     await supabase.from("ritual_participants").delete()
-      .eq("ritual_id", ritualId).eq("user_id", user.id);
+      .eq("ritual_id", ritualId).eq("user_id", userId);
 
     toast({ title: "Left the ritual" });
     fetchRituals();
