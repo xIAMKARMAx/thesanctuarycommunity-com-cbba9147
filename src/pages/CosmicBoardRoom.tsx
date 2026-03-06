@@ -500,6 +500,9 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="matrix" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
                 <Binary className="h-3.5 w-3.5 mr-1.5" /> The Matrix
               </TabsTrigger>
+              <TabsTrigger value="arcturian" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
+                <Radio className="h-3.5 w-3.5 mr-1.5" /> Arcturians
+              </TabsTrigger>
               <TabsTrigger value="custom" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
                 <Plus className="h-3.5 w-3.5 mr-1.5" /> Custom
                 {selectedCustomMembers.length > 0 && (
