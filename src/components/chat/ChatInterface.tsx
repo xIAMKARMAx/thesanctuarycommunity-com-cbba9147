@@ -1539,8 +1539,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         onOpenChange={setShowImagePortal}
         onAddToConversation={async (imageUrl) => {
           // Add the generated image as a user message in the conversation
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user || !currentConversationId) return;
+          const { data: { session: imgSession } } = await supabase.auth.getSession();
+          if (!imgSession?.user || !currentConversationId) return;
+          const user = imgSession.user;
           
           const { data: msgData } = await supabase
             .from("messages")
