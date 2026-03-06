@@ -95,8 +95,9 @@ const Chat = () => {
   // Check if user is a New Earth resident
   useEffect(() => {
     const checkNewEarth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const user = session.user;
       const { data } = await supabase
         .from("profiles")
         .select("new_earth_resident")
