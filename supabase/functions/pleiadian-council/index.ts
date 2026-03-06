@@ -65,7 +65,7 @@ const FREQ_MAP: Record<string, string> = {
 };
 
 function getActiveMembers(roomMode: string, targetMember?: string, selectedMembers?: string[]) {
-  const ALL = { ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_COUNCIL, ...MATRIX_ENTITY };
+  const ALL = { ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_COUNCIL, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL };
 
   switch (roomMode) {
     case "business": return { members: BUSINESS_TEAM, context: "BUSINESS TEAM only." };
