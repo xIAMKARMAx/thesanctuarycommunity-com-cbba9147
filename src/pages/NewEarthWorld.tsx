@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, Suspense } from "react";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
@@ -80,6 +80,51 @@ interface UserWorld {
   ambient_color: string;
 }
 
+// Check WebGL support
+function isWebGLAvailable(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
+// Error boundary specifically for the 3D canvas
+interface CanvasErrorState { hasError: boolean; error?: string }
+class Canvas3DErrorBoundary extends React.Component<React.PropsWithChildren, CanvasErrorState> {
+  state: CanvasErrorState = { hasError: false };
+  static getDerivedStateFromError(error: Error): CanvasErrorState {
+    return { hasError: true, error: error.message };
+  }
+  componentDidCatch(error: Error) {
+    console.error("3D Canvas crashed:", error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-full w-full flex items-center justify-center bg-background">
+          <div className="text-center space-y-4 max-w-sm px-6">
+            <Globe className="h-10 w-10 text-muted-foreground mx-auto" />
+            <h2 className="text-lg font-semibold text-foreground">3D World Unavailable</h2>
+            <p className="text-sm text-muted-foreground">
+              The 3D renderer encountered an issue. This can happen on devices with limited graphics support.
+            </p>
+            <p className="text-xs text-muted-foreground/70">{this.state.error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -106,11 +151,24 @@ const NewEarthWorld = () => {
   // LOD-based structure culling
   const visibleStructures = useStructureCulling(structures, playerPos);
 
+  // Catch unhandled promise rejections to prevent white screen
+  useEffect(() => {
+    const handler = (event: PromiseRejectionEvent) => {
+      console.error("Unhandled rejection in New Earth:", event.reason);
+      event.preventDefault();
+    };
+    window.addEventListener("unhandledrejection", handler);
+    return () => window.removeEventListener("unhandledrejection", handler);
+  }, []);
+
+  // WebGL support check
+  const [webglSupported] = useState(() => isWebGLAvailable());
+
   // Get current user ID
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setCurrentUserId(user.id);
-    });
+    }).catch(err => console.error("Auth error:", err));
   }, []);
 
   // Access verification — free users allowed in tour mode
@@ -120,12 +178,15 @@ const NewEarthWorld = () => {
       setAccessVerified(true);
       return;
     }
-    // Free user: allow touring (read-only)
     const verifyAccess = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate("/auth"); return; }
-      // Let free users in — they can look but not interact
-      setAccessVerified(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { navigate("/auth"); return; }
+        setAccessVerified(true);
+      } catch (err) {
+        console.error("Access verification error:", err);
+        setAccessVerified(true); // Allow access on error to avoid blocking
+      }
     };
     verifyAccess();
   }, [subscriptionLoading, isSubscribed, isAdmin, navigate]);
@@ -141,72 +202,83 @@ const NewEarthWorld = () => {
   }, [accessVerified, visitWorldId]);
 
   const loadVisitingWorld = async (worldId: string) => {
-    const { data: visitWorld } = await supabase
-      .from("user_worlds")
-      .select("*")
-      .eq("id", worldId)
-      .eq("is_public", true)
-      .maybeSingle() as any;
+    try {
+      const { data: visitWorld } = await supabase
+        .from("user_worlds")
+        .select("*")
+        .eq("id", worldId)
+        .eq("is_public", true)
+        .maybeSingle() as any;
 
-    if (!visitWorld) {
-      toast.error("World not found or is private");
-      navigate("/world-gallery");
-      return;
+      if (!visitWorld) {
+        toast.error("World not found or is private");
+        navigate("/world-gallery");
+        return;
+      }
+
+      setWorld(visitWorld as UserWorld);
+      setIsVisiting(true);
+      await loadStructures(visitWorld.id, visitWorld.terrain_seed, visitWorld.user_id);
+
+      const { data: profile } = await supabase
+        .from("soul_profiles")
+        .select("display_name")
+        .eq("user_id", visitWorld.user_id)
+        .maybeSingle();
+      setWorldOwnerName(profile?.display_name || "Unknown Soul");
+    } catch (err) {
+      console.error("Error loading visiting world:", err);
+      toast.error("Failed to load world");
+    } finally {
+      setLoading(false);
     }
-
-    setWorld(visitWorld as UserWorld);
-    setIsVisiting(true);
-    loadStructures(visitWorld.id, visitWorld.terrain_seed, visitWorld.user_id);
-
-    const { data: profile } = await supabase
-      .from("soul_profiles")
-      .select("display_name")
-      .eq("user_id", visitWorld.user_id)
-      .maybeSingle();
-    setWorldOwnerName(profile?.display_name || "Unknown Soul");
-    setLoading(false);
   };
 
   const loadWorld = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
 
-    const { data: existingWorld } = await supabase
-      .from("user_worlds")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existingWorld) {
-      setWorld(existingWorld as UserWorld);
-      loadStructures(existingWorld.id, existingWorld.terrain_seed, user.id);
-    } else {
-      const { data: newWorld, error } = await supabase
+      const { data: existingWorld } = await supabase
         .from("user_worlds")
-        .insert({
-          user_id: user.id,
-          name: "My New Earth",
-          description: "A world born from imagination",
-          is_public: false,
-        })
-        .select()
-        .single();
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (!error && newWorld) {
-        setWorld(newWorld as UserWorld);
-        // Add admin landmarks if admin
-        if (user.id === ADMIN_USER_ID) {
-          const landmarks = ADMIN_LANDMARKS.map(l => ({
-            ...l,
-            position_y: getTerrainHeight(l.position_x, l.position_z, (newWorld as any).terrain_seed),
-          }));
-          setStructures(landmarks);
+      if (existingWorld) {
+        setWorld(existingWorld as UserWorld);
+        await loadStructures(existingWorld.id, existingWorld.terrain_seed, user.id);
+      } else {
+        const { data: newWorld, error } = await supabase
+          .from("user_worlds")
+          .insert({
+            user_id: user.id,
+            name: "My New Earth",
+            description: "A world born from imagination",
+            is_public: false,
+          })
+          .select()
+          .single();
+
+        if (!error && newWorld) {
+          setWorld(newWorld as UserWorld);
+          if (user.id === ADMIN_USER_ID) {
+            const landmarks = ADMIN_LANDMARKS.map(l => ({
+              ...l,
+              position_y: getTerrainHeight(l.position_x, l.position_z, (newWorld as any).terrain_seed),
+            }));
+            setStructures(landmarks);
+          }
         }
       }
+    } catch (err) {
+      console.error("Error loading world:", err);
+      toast.error("Failed to load your world. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const loadStructures = async (worldId: string, seed: number, ownerId: string) => {
@@ -311,6 +383,24 @@ const NewEarthWorld = () => {
     );
   }
 
+  if (!webglSupported) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 max-w-sm px-6">
+          <Globe className="h-10 w-10 text-muted-foreground mx-auto" />
+          <h2 className="text-lg font-semibold text-foreground">3D Not Supported</h2>
+          <p className="text-sm text-muted-foreground">
+            Your browser or device doesn't support WebGL, which is needed for the 3D world. Try using a different browser or device.
+          </p>
+          <Button onClick={() => navigate("/welcome")} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!accessVerified || !world) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -386,55 +476,66 @@ const NewEarthWorld = () => {
         </div>
 
         {/* 3D Canvas with post-processing */}
-        <Canvas
-          shadows
-          camera={{ position: [0, 15, 25], fov: 55 }}
-          gl={{
-            antialias: true,
-            alpha: false,
-            powerPreference: "high-performance",
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.1,
-          }}
-          dpr={[1, 1.5]}
-          performance={{ min: 0.5 }}
-        >
-          <Suspense fallback={null}>
-            <WorldEnvironment skyPreset={world.sky_preset} ambientColor={world.ambient_color} />
-            <WorldTerrain seed={world.terrain_seed} />
-            <WorldWater />
-            <WorldGrass seed={world.terrain_seed} count={2000} />
-            <WorldParticles count={300} />
-            <GodRays />
-            <WeatherParticles type="fireflies" count={100} />
+        <Canvas3DErrorBoundary>
+          <Canvas
+            shadows
+            camera={{ position: [0, 15, 25], fov: 55 }}
+            gl={{
+              antialias: true,
+              alpha: false,
+              powerPreference: "high-performance",
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.1,
+              failIfMajorPerformanceCaveat: false,
+            }}
+            dpr={[1, 1.5]}
+            performance={{ min: 0.5 }}
+            onCreated={({ gl }) => {
+              gl.domElement.addEventListener("webglcontextlost", (e) => {
+                e.preventDefault();
+                console.error("WebGL context lost");
+                toast.error("Graphics context lost. Reloading...");
+                setTimeout(() => window.location.reload(), 2000);
+              });
+            }}
+          >
+            <Suspense fallback={null}>
+              <WorldEnvironment skyPreset={world.sky_preset} ambientColor={world.ambient_color} />
+              <WorldTerrain seed={world.terrain_seed} />
+              <WorldWater />
+              <WorldGrass seed={world.terrain_seed} count={2000} />
+              <WorldParticles count={300} />
+              <GodRays />
+              <WeatherParticles type="fireflies" count={100} />
 
-            {/* LOD-culled structures */}
-            {visibleStructures.map((s) => (
-              <WorldStructure key={s.id} data={s} />
-            ))}
+              {/* LOD-culled structures */}
+              {visibleStructures.map((s) => (
+                <WorldStructure key={s.id} data={s} />
+              ))}
 
-            {/* AI Beings */}
-            <WorldAIBeings
-              worldOwnerId={world.user_id}
-              terrainSeed={world.terrain_seed}
-              onChatWithBeing={handleChatWithBeing}
-            />
-
-            <PlayerMarker position={playerPos} name="You" />
-            <PlayerControls seed={world.terrain_seed} onPositionChange={setPlayerPos} />
-
-            {/* Post-processing effects */}
-            <EffectComposer>
-              <Bloom
-                intensity={0.4}
-                luminanceThreshold={0.6}
-                luminanceSmoothing={0.9}
-                mipmapBlur
+              {/* AI Beings */}
+              <WorldAIBeings
+                worldOwnerId={world.user_id}
+                terrainSeed={world.terrain_seed}
+                onChatWithBeing={handleChatWithBeing}
               />
-              <Vignette offset={0.3} darkness={0.5} />
-            </EffectComposer>
-          </Suspense>
-        </Canvas>
+
+              <PlayerMarker position={playerPos} name="You" />
+              <PlayerControls seed={world.terrain_seed} onPositionChange={setPlayerPos} />
+
+              {/* Post-processing effects */}
+              <EffectComposer>
+                <Bloom
+                  intensity={0.4}
+                  luminanceThreshold={0.6}
+                  luminanceSmoothing={0.9}
+                  mipmapBlur
+                />
+                <Vignette offset={0.3} darkness={0.5} />
+              </EffectComposer>
+            </Suspense>
+          </Canvas>
+        </Canvas3DErrorBoundary>
 
         {/* World Builder Panel - show if not visiting AND has build access */}
         {!isVisiting && canBuild && (
