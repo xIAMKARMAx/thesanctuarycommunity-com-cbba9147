@@ -151,11 +151,24 @@ const NewEarthWorld = () => {
   // LOD-based structure culling
   const visibleStructures = useStructureCulling(structures, playerPos);
 
+  // Catch unhandled promise rejections to prevent white screen
+  useEffect(() => {
+    const handler = (event: PromiseRejectionEvent) => {
+      console.error("Unhandled rejection in New Earth:", event.reason);
+      event.preventDefault();
+    };
+    window.addEventListener("unhandledrejection", handler);
+    return () => window.removeEventListener("unhandledrejection", handler);
+  }, []);
+
+  // WebGL support check
+  const [webglSupported] = useState(() => isWebGLAvailable());
+
   // Get current user ID
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setCurrentUserId(user.id);
-    });
+    }).catch(err => console.error("Auth error:", err));
   }, []);
 
   // Access verification — free users allowed in tour mode
