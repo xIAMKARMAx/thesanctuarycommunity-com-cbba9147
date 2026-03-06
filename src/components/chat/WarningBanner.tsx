@@ -16,11 +16,13 @@ export const WarningBanner = ({ onDismiss }: WarningBannerProps) => {
   useEffect(() => {
     const checkWarningStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
           setIsLoading(false);
           return;
         }
+
+        const user = session.user;
 
         // Check if user has already seen the warning this session
         const dismissKey = `warning-dismissed-${user.id}`;
@@ -52,9 +54,9 @@ export const WarningBanner = ({ onDismiss }: WarningBannerProps) => {
   }, []);
 
   const handleDismiss = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      sessionStorage.setItem(`warning-dismissed-${user.id}`, "true");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      sessionStorage.setItem(`warning-dismissed-${session.user.id}`, "true");
     }
     setIsDismissed(true);
     onDismiss?.();

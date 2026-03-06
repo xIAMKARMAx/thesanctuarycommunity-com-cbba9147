@@ -55,8 +55,9 @@ export const VoiceCallButton = () => {
 
   // Fetch call stats
   const fetchCallStats = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    const user = session.user;
 
     const { data, error } = await supabase.rpc('get_voice_call_stats', { p_user_id: user.id });
     if (!error && data) {
@@ -280,11 +281,12 @@ export const VoiceCallButton = () => {
   }, [isSpeaking]);
 
   const openVoiceCall = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session: vcSession } } = await supabase.auth.getSession();
+    if (!vcSession?.user) {
       toast.error("Please sign in to make voice calls");
       return;
     }
+    const user = vcSession.user;
 
     // Check if user can make a call (non-admins only)
     if (!isAdmin) {

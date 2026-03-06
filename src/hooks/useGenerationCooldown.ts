@@ -22,14 +22,14 @@ export const useGenerationCooldown = () => {
 
   const fetchCooldown = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         setLoading(false);
         return;
       }
 
       const { data, error } = await supabase.rpc('get_generation_cooldown', {
-        p_user_id: user.id
+        p_user_id: session.user.id
       });
 
       if (error) throw error;

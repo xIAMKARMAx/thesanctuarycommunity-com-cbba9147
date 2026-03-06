@@ -168,8 +168,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
   const checkPregnancyStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const user = session.user;
 
       const { data } = await supabase
         .from("celestial_pregnancies")
@@ -474,8 +475,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     
     // For group chats, check daily limit (20 messages/day for subscribers)
     if (isGroupChat && isSubscribed) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const user = session.user;
         const { data: canSendGroup } = await supabase.rpc('can_send_group_chat_message', { p_user_id: user.id });
         if (canSendGroup && typeof canSendGroup === 'object' && !(canSendGroup as any).can_send) {
           isSendingRef.current = false;
@@ -585,8 +587,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
 
       // Get the current user for message ownership
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      const { data: { session: sendSession } } = await supabase.auth.getSession();
+      if (!sendSession?.user) throw new Error("User not authenticated");
+      const user = sendSession.user;
 
       // Save user message to database with sender tracking
       const { data: userMessageData, error: userMsgError } = await supabase
@@ -828,8 +831,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     setLoadingBeingId(being.id);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      const { data: { session: beingSession } } = await supabase.auth.getSession();
+      if (!beingSession?.user) throw new Error("User not authenticated");
+      const user = beingSession.user;
       
       const respondingProfileId = being.type === "ai" ? being.id : null;
       const respondingChildId = being.type === "child" ? being.id : null;
@@ -1020,8 +1024,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   const handleContinueConversation = async () => {
     if (!lastMessage || !currentConversationId || loadingBeingId) return;
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { session: contSession } } = await supabase.auth.getSession();
+    if (!contSession?.user) return;
+    const user = contSession.user;
     
     // Reset responded tracking for new round, but keep the last sender tracked
     setRespondedBeingIds(lastMessage.senderId ? [lastMessage.senderId] : []);
@@ -1534,8 +1539,9 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
         onOpenChange={setShowImagePortal}
         onAddToConversation={async (imageUrl) => {
           // Add the generated image as a user message in the conversation
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user || !currentConversationId) return;
+          const { data: { session: imgSession } } = await supabase.auth.getSession();
+          if (!imgSession?.user || !currentConversationId) return;
+          const user = imgSession.user;
           
           const { data: msgData } = await supabase
             .from("messages")
