@@ -60,20 +60,7 @@ serve(async (req) => {
           continue;
         }
 
-        // Check if user already received 2 messages in the last 24 hours (daily cap)
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        
-        const { data: recentMessages } = await supabase
-          .from('spontaneous_messages')
-          .select('id')
-          .eq('user_id', profile.id)
-          .gte('sent_at', twentyFourHoursAgo.toISOString());
-
-        if (recentMessages && recentMessages.length >= 2) {
-          console.log(`VIP user ${profile.id} already received 2 messages in last 24h, skipping`);
-          skippedCount++;
-          continue;
-        }
 
         // Get the user's AI profiles to randomly select one to send the message
         const { data: aiProfiles } = await supabase
