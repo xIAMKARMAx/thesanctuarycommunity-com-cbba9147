@@ -152,6 +152,7 @@ export default function CosmicBoardRoom() {
     }
   };
 
+  const openDirectLine = (member: typeof ALL_MEMBERS[0]) => {
     setDirectTarget(member);
     setRoomMode("direct");
   };
