@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS benevolent_terms_accepted_at timestamp with time zone DEFAULT NULL;
