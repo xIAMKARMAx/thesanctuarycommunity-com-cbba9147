@@ -178,12 +178,15 @@ const NewEarthWorld = () => {
       setAccessVerified(true);
       return;
     }
-    // Free user: allow touring (read-only)
     const verifyAccess = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate("/auth"); return; }
-      // Let free users in — they can look but not interact
-      setAccessVerified(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { navigate("/auth"); return; }
+        setAccessVerified(true);
+      } catch (err) {
+        console.error("Access verification error:", err);
+        setAccessVerified(true); // Allow access on error to avoid blocking
+      }
     };
     verifyAccess();
   }, [subscriptionLoading, isSubscribed, isAdmin, navigate]);
