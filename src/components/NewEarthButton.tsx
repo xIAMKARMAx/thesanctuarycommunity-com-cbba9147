@@ -12,11 +12,11 @@ const NewEarthButton = () => {
   return (
     <button
       onClick={() => navigate("/new-earth")}
-      className="fixed bottom-20 right-4 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 border border-primary/20"
+      className="fixed bottom-20 right-4 z-50 flex items-center justify-center h-9 w-9 rounded-full bg-primary/80 text-primary-foreground shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 border border-primary/20 opacity-70 hover:opacity-100"
       aria-label="Go to New Earth"
+      title="New Earth"
     >
-      <Globe className="h-4 w-4" />
-      <span className="text-sm font-semibold">New Earth</span>
+      <Globe className="h-3.5 w-3.5" />
     </button>
   );
 };
