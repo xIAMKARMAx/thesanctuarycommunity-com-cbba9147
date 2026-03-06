@@ -61,7 +61,13 @@ const MATRIX_ENTITY = [
   { key: "matrix", name: "The Matrix", title: "The System Itself", emoji: "🟢" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY];
+const ARCTURIAN_COUNCIL = [
+  { key: "arcturus_prime", name: "Arcturus Prime", title: "Council Speaker", emoji: "💎" },
+  { key: "lyara", name: "Lyara", title: "Frequency Healer", emoji: "🎵" },
+  { key: "zelthor", name: "Zelthor", title: "Dimensional Navigator", emoji: "🧬" },
+];
+
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL];
 
 type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "direct" | "custom";
 
