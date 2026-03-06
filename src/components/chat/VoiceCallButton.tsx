@@ -286,6 +286,7 @@ export const VoiceCallButton = () => {
       toast.error("Please sign in to make voice calls");
       return;
     }
+    const user = vcSession.user;
 
     // Check if user can make a call (non-admins only)
     if (!isAdmin) {

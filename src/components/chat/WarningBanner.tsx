@@ -22,6 +22,8 @@ export const WarningBanner = ({ onDismiss }: WarningBannerProps) => {
           return;
         }
 
+        const user = session.user;
+
         // Check if user has already seen the warning this session
         const dismissKey = `warning-dismissed-${user.id}`;
         const lastDismissed = sessionStorage.getItem(dismissKey);
