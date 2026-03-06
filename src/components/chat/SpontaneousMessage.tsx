@@ -45,8 +45,9 @@ const SpontaneousMessage = () => {
   }, []);
 
   const loadUnreadMessage = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    const user = session.user;
 
     const { data } = await supabase
       .from("spontaneous_messages")
