@@ -123,11 +123,11 @@ export default function CosmicBoardRoom() {
   };
 
   const createNewSession = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
     const { data, error } = await supabase
       .from("council_sessions")
-      .insert({ user_id: user.id, session_title: `Board Meeting — ${new Date().toLocaleDateString()}`, session_type: "strategy" })
+      .insert({ user_id: session.user.id, session_title: `Board Meeting — ${new Date().toLocaleDateString()}`, session_type: "strategy" })
       .select()
       .single();
     if (error) { toast({ title: "Error", description: "Failed to create session", variant: "destructive" }); return; }
