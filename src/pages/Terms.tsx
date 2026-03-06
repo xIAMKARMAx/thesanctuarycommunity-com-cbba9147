@@ -1,7 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Shield, FileText, Scale, AlertTriangle, Mail } from "lucide-react";
+import { ArrowLeft, Shield, FileText, Scale, AlertTriangle, Mail, Heart, Sparkles } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 
