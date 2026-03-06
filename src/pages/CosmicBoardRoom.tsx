@@ -379,10 +379,12 @@ export default function CosmicBoardRoom() {
               <div className="space-y-3">
                 <h2 className="text-lg font-semibold">Past Meetings</h2>
                 {sessions.map(session => (
-                  <Card key={session.id} className="border-primary/20 cursor-pointer hover:border-primary/40 transition-all"
-                    onClick={() => { setActiveSession(session); setShowSessions(false); }}>
+                  <Card key={session.id} className="border-primary/20 hover:border-primary/40 transition-all">
                     <CardContent className="py-4 flex items-center justify-between">
-                      <div>
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() => { setActiveSession(session); setShowSessions(false); }}
+                      >
                         <p className="font-medium">{session.session_title || "Untitled Meeting"}</p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
                           <span>{new Date(session.created_at).toLocaleDateString()} · {(session.messages as any[])?.length || 0} exchanges</span>
@@ -395,9 +397,9 @@ export default function CosmicBoardRoom() {
                       </div>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
+                          <button className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-accent transition-colors" onClick={(e) => e.stopPropagation()}>
                             <Trash2 className="h-4 w-4" />
-                          </Button>
+                          </button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
@@ -407,7 +409,7 @@ export default function CosmicBoardRoom() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction onClick={(e) => deleteSession(session.id, e)}>Delete</AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
