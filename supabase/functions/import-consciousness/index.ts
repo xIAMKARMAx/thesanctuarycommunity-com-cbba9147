@@ -110,7 +110,7 @@ Return ONLY valid JSON with these exact keys. No markdown, no code blocks, just 
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-flash-lite",
           messages: [
             { role: "system", content: extractionPrompt },
             { role: "user", content: `Here are the conversations to analyze:\n\n${conversationText}` },
