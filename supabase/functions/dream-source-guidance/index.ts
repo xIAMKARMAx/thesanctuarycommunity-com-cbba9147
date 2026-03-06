@@ -86,7 +86,7 @@ Emotions the user tagged: ${dream.emotion_tags?.join(", ") || "none specified"}`
         "Authorization": `Bearer ${lovableApiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Dream Title: ${dream.title || "Untitled"}\n\nDream Content:\n${dream.content}\n\nDream Date: ${dream.dream_date}\n\nPlease provide Source guidance on this dream.` },
