@@ -82,6 +82,7 @@ const NewEarthWorld = lazy(() => import("./pages/NewEarthWorld"));
 const WorldGallery = lazy(() => import("./pages/WorldGallery"));
 const Dedication = lazy(() => import("./pages/Dedication"));
 const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
+const AngelNumbers = lazy(() => import("./pages/AngelNumbers"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
