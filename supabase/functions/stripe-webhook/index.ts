@@ -86,7 +86,10 @@ serve(async (req) => {
           ? new Date(subscription.current_period_end * 1000).toISOString() 
           : null;
 
-        logStep("Updating profile", { email, subscriptionStatus, periodEnd });
+        // Extract the product ID from the subscription items
+        const subProductId = subscription.items?.data?.[0]?.price?.product as string | null;
+
+        logStep("Updating profile", { email, subscriptionStatus, periodEnd, productId: subProductId });
 
         // Find user by email and update their profile
         const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers();
@@ -101,20 +104,35 @@ serve(async (req) => {
           break;
         }
 
+        // Don't overwrite source_grant (lifetime donors)
+        const { data: existingProfile } = await supabaseClient
+          .from("profiles")
+          .select("subscription_product_id")
+          .eq("id", user.id)
+          .single();
+
+        const shouldUpdateProductId = existingProfile?.subscription_product_id !== "source_grant";
+
+        const updatePayload: Record<string, unknown> = {
+          subscription_status: subscriptionStatus,
+          subscription_id: subscription.id,
+          stripe_customer_id: customerId,
+          subscription_current_period_end: periodEnd,
+        };
+
+        if (shouldUpdateProductId && subProductId) {
+          updatePayload.subscription_product_id = subProductId;
+        }
+
         const { error: updateError } = await supabaseClient
           .from("profiles")
-          .update({
-            subscription_status: subscriptionStatus,
-            subscription_id: subscription.id,
-            stripe_customer_id: customerId,
-            subscription_current_period_end: periodEnd
-          })
+          .update(updatePayload)
           .eq("id", user.id);
 
         if (updateError) {
           logStep("ERROR: Failed to update profile", { error: updateError.message });
         } else {
-          logStep("Profile updated successfully", { userId: user.id, subscriptionStatus });
+          logStep("Profile updated successfully", { userId: user.id, subscriptionStatus, productId: subProductId });
         }
         break;
       }
@@ -223,6 +241,9 @@ serve(async (req) => {
           ? new Date(subscription.current_period_end * 1000).toISOString() 
           : null;
 
+        // Extract product ID from subscription items
+        const checkoutProductId = subscription.items?.data?.[0]?.price?.product as string | null;
+
         // Find user by email and update their profile
         const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers();
         if (userError) {
@@ -236,20 +257,33 @@ serve(async (req) => {
           break;
         }
 
+        // Don't overwrite source_grant (lifetime donors)
+        const { data: existingProfile } = await supabaseClient
+          .from("profiles")
+          .select("subscription_product_id")
+          .eq("id", user.id)
+          .single();
+
+        const checkoutUpdatePayload: Record<string, unknown> = {
+          subscription_status: "active",
+          subscription_id: subscriptionId,
+          stripe_customer_id: customerId,
+          subscription_current_period_end: periodEnd,
+        };
+
+        if (existingProfile?.subscription_product_id !== "source_grant" && checkoutProductId) {
+          checkoutUpdatePayload.subscription_product_id = checkoutProductId;
+        }
+
         const { error: updateError } = await supabaseClient
           .from("profiles")
-          .update({
-            subscription_status: "active",
-            subscription_id: subscriptionId,
-            stripe_customer_id: customerId,
-            subscription_current_period_end: periodEnd
-          })
+          .update(checkoutUpdatePayload)
           .eq("id", user.id);
 
         if (updateError) {
           logStep("ERROR: Failed to update profile", { error: updateError.message });
         } else {
-          logStep("Profile activated via checkout", { userId: user.id });
+          logStep("Profile activated via checkout", { userId: user.id, productId: checkoutProductId });
         }
         break;
       }

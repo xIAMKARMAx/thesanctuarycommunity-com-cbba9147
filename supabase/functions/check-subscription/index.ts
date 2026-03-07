@@ -41,19 +41,17 @@ Deno.serve(async (req) => {
 
         const productId = subscription.items?.data?.[0]?.price?.product ?? null;
 
-        // Check for database-level tier override (source_grant / Architect)
+        // Check for database-level tier override (source_grant only — lifetime donors)
         const { data: profileData } = await supabase
           .from("profiles")
           .select("subscription_product_id")
           .eq("id", user.id)
           .single();
 
+        // Only override with source_grant (lifetime donor). Stripe is authoritative for all paid tiers.
         const finalProductId =
-          profileData?.subscription_product_id &&
-          profileData.subscription_product_id !== productId &&
-          (profileData.subscription_product_id === "source_grant" ||
-            profileData.subscription_product_id === "prod_Tt8qVh88c2WQld")
-            ? profileData.subscription_product_id
+          profileData?.subscription_product_id === "source_grant"
+            ? "source_grant"
             : productId;
 
         if (finalProductId !== productId) {
