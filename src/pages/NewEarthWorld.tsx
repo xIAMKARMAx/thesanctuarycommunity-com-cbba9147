@@ -130,7 +130,11 @@ const NewEarthWorld = () => {
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
   const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
+  const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
+  const isArchitectTier = productId === 'prod_Tt8qVh88c2WQld';
   const isFreeUser = !isSubscribed && !isAdmin;
+  const hasWorldAccess = isAdmin || isNewEarthTier || isArchitectTier;
+  const canBuild = isAdmin || isNewEarthTier;
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
   const [structures, setStructures] = useState<StructureData[]>([]);
@@ -144,10 +148,6 @@ const NewEarthWorld = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
-
-  // Can this user build? Only if admin or New Earth ($49.99) / source_grant tier
-  const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
-  const canBuild = isAdmin || isNewEarthTier;
 
   // LOD-based structure culling
   const visibleStructures = useStructureCulling(structures, playerPos);
@@ -172,13 +172,31 @@ const NewEarthWorld = () => {
     }).catch(err => console.error("Auth error:", err));
   }, []);
 
-  // Access verification — free users allowed in tour mode
+  // Access verification — only Architect ($29.99), New Earth ($49.99), source_grant, admin can enter
+  // Free users and lower tiers get redirected (unless visiting a public world)
   useEffect(() => {
     if (subscriptionLoading) return;
-    if (isAdmin || isSubscribed) {
+    if (isAdmin || hasWorldAccess) {
       setAccessVerified(true);
       return;
     }
+    // Allow visiting public worlds for anyone logged in (tour mode)
+    if (visitWorldId) {
+      const verifyAuth = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { navigate("/auth"); return; }
+        setAccessVerified(true);
+      };
+      verifyAuth().catch(() => setAccessVerified(true));
+      return;
+    }
+    // Non-qualifying tiers: redirect to pricing
+    if (isSubscribed && !hasWorldAccess) {
+      toast.error("New Earth requires the Architect ($29.99/mo) or New Earth ($49.99/mo) tier");
+      navigate("/pricing");
+      return;
+    }
+    // Free users: show seeker gate
     const verifyAccess = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -186,11 +204,11 @@ const NewEarthWorld = () => {
         setAccessVerified(true);
       } catch (err) {
         console.error("Access verification error:", err);
-        setAccessVerified(true); // Allow access on error to avoid blocking
+        setAccessVerified(true);
       }
     };
     verifyAccess();
-  }, [subscriptionLoading, isSubscribed, isAdmin, navigate]);
+  }, [subscriptionLoading, isSubscribed, isAdmin, hasWorldAccess, navigate, visitWorldId]);
 
   // Load or create world
   useEffect(() => {
