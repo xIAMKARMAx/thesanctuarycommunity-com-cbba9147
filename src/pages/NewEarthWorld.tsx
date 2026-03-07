@@ -129,7 +129,7 @@ const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
-  const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
+  const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
   const isFreeUser = !isSubscribed && !isAdmin;
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
@@ -145,8 +145,9 @@ const NewEarthWorld = () => {
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
 
-  // Can this user build? Only if admin or has the 3D add-on
-  const canBuild = isAdmin || has3DAddon;
+  // Can this user build? Only if admin or New Earth ($49.99) / source_grant tier
+  const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
+  const canBuild = isAdmin || isNewEarthTier;
 
   // LOD-based structure culling
   const visibleStructures = useStructureCulling(structures, playerPos);
@@ -566,8 +567,8 @@ const NewEarthWorld = () => {
           </div>
         )}
 
-        {/* Build Teaser for subscribers who can't build (no 3D add-on) */}
-        {!isVisiting && !isFreeUser && !canBuild && !loading3D && (
+        {/* Build Teaser for subscribers who can't build (need New Earth tier) */}
+        {!isVisiting && !isFreeUser && !canBuild && (
           <div className="absolute bottom-0 left-0 right-0 z-20">
             {showBuildTeaser && (
               <div className="mx-4 mb-2">
@@ -580,15 +581,15 @@ const NewEarthWorld = () => {
                       </div>
                       <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                         Build temples, castles, crystal gardens, portals & more using AI. 
-                        Describe anything and watch it appear in your world.
+                        Upgrade to the New Earth tier ($49.99/mo) to unlock world building.
                       </p>
                       <Button
-                        onClick={start3DCheckout}
+                        onClick={() => navigate("/pricing")}
                         className="w-full gap-2"
                         size="sm"
                       >
                         <Lock className="h-3.5 w-3.5" />
-                        Unlock Immersive 3D Add-on
+                        Upgrade to New Earth
                       </Button>
                     </div>
                   </CardContent>
@@ -602,7 +603,7 @@ const NewEarthWorld = () => {
                 className="w-full flex items-center justify-center gap-2 py-2.5 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Lock className="h-3.5 w-3.5" />
-                <span className="text-xs font-medium">World Building — Unlock to Create</span>
+                <span className="text-xs font-medium">World Building — Upgrade to New Earth to Create</span>
                 <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
               </button>
               <p className="text-[10px] text-muted-foreground text-center pb-2">

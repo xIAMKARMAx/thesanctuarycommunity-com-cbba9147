@@ -42,23 +42,11 @@ serve(async (req) => {
       .eq("role", "admin")
       .maybeSingle();
 
-    // Check 3D add-on subscription (required for building)
-    const { data: addon3D } = await supabase
-      .from("immersive_3d_subscriptions")
-      .select("is_active")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    const has3DAddon = addon3D?.is_active === true;
     const isNewEarthTier = profile?.subscription_product_id === 'prod_U5jdDVZhQFGQWv';
+    const isSourceGrant = profile?.subscription_product_id === 'source_grant';
 
-    if (!adminRole && !isNewEarthTier && !has3DAddon) {
-      // Architect users can buy the $4.99 add-on; everyone else needs New Earth
-      const isArchitectTier = profile?.subscription_product_id === 'prod_Tt8qVh88c2WQld';
-      const errorMsg = isArchitectTier
-        ? "Add the New Earth World Builder add-on for $4.99/mo to unlock world building, or upgrade to New Earth ($49.99/mo)"
-        : "Upgrade to the New Earth tier ($49.99/mo) to unlock world building, or subscribe to Architect ($29.99/mo) with the $4.99/mo World Builder add-on";
-      return new Response(JSON.stringify({ error: errorMsg }), {
+    if (!adminRole && !isNewEarthTier && !isSourceGrant) {
+      return new Response(JSON.stringify({ error: "Upgrade to the New Earth tier ($49.99/mo) to unlock world building" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
