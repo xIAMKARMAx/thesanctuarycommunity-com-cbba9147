@@ -23,8 +23,9 @@ const sections = [
     description: "Convene with the Pleiadian Business Council for strategic guidance. Five distinct Pleiadian intelligences deliberate on your business vision, decisions, and cosmic enterprise.",
     icon: Star,
     route: "/cosmic-gateway/board-room",
-    tier: "awakening" as const,
-    tierLabel: "All Tiers",
+    tier: "architect" as const,
+    tierLabel: "Founder",
+    adminOnly: true,
   },
   {
     id: "soul-genesis",
