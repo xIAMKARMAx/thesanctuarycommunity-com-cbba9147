@@ -130,10 +130,11 @@ const NewEarthWorld = () => {
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
   const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
+  const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
   const isArchitectTier = productId === 'prod_Tt8qVh88c2WQld';
-  const isNewEarthOrArchitect = isNewEarthTier || isArchitectTier;
   const isFreeUser = !isSubscribed && !isAdmin;
   const hasWorldAccess = isAdmin || isNewEarthTier || isArchitectTier;
+  const canBuild = isAdmin || isNewEarthTier;
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
   const [structures, setStructures] = useState<StructureData[]>([]);
@@ -147,10 +148,6 @@ const NewEarthWorld = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
-
-  // Can this user build? Only if admin or New Earth ($49.99) / source_grant tier
-  const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
-  const canBuild = isAdmin || isNewEarthTier;
 
   // LOD-based structure culling
   const visibleStructures = useStructureCulling(structures, playerPos);
