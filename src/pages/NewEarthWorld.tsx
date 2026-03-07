@@ -129,7 +129,7 @@ const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
-  const { isSubscribed, isAdmin, loading: subscriptionLoading } = useSubscription();
+  const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
   const isFreeUser = !isSubscribed && !isAdmin;
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
@@ -145,8 +145,7 @@ const NewEarthWorld = () => {
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
 
-  // Can this user build? Only if admin or New Earth ($49.99) tier
-  const { productId } = useSubscription();
+  // Can this user build? Only if admin or New Earth ($49.99) / source_grant tier
   const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
   const canBuild = isAdmin || isNewEarthTier;
 
