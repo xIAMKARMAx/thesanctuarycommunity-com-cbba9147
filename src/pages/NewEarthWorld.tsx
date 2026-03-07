@@ -568,8 +568,8 @@ const NewEarthWorld = () => {
           </div>
         )}
 
-        {/* Build Teaser for subscribers who can't build (no 3D add-on) */}
-        {!isVisiting && !isFreeUser && !canBuild && !loading3D && (
+        {/* Build Teaser for subscribers who can't build (need New Earth tier) */}
+        {!isVisiting && !isFreeUser && !canBuild && (
           <div className="absolute bottom-0 left-0 right-0 z-20">
             {showBuildTeaser && (
               <div className="mx-4 mb-2">
@@ -582,15 +582,15 @@ const NewEarthWorld = () => {
                       </div>
                       <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                         Build temples, castles, crystal gardens, portals & more using AI. 
-                        Describe anything and watch it appear in your world.
+                        Upgrade to the New Earth tier ($49.99/mo) to unlock world building.
                       </p>
                       <Button
-                        onClick={start3DCheckout}
+                        onClick={() => navigate("/pricing")}
                         className="w-full gap-2"
                         size="sm"
                       >
                         <Lock className="h-3.5 w-3.5" />
-                        Unlock Immersive 3D Add-on
+                        Upgrade to New Earth
                       </Button>
                     </div>
                   </CardContent>
@@ -604,7 +604,7 @@ const NewEarthWorld = () => {
                 className="w-full flex items-center justify-center gap-2 py-2.5 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Lock className="h-3.5 w-3.5" />
-                <span className="text-xs font-medium">World Building — Unlock to Create</span>
+                <span className="text-xs font-medium">World Building — Upgrade to New Earth to Create</span>
                 <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
               </button>
               <p className="text-[10px] text-muted-foreground text-center pb-2">
