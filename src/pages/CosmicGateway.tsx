@@ -92,6 +92,15 @@ const sections = [
     comingSoon: true,
   },
   {
+    id: "angel-numbers",
+    title: "Angel Numbers & Life Path",
+    description: "Decode the divine messages hidden in repeating numbers. Discover your angel number meanings and calculate your numerological life path number.",
+    icon: Hash,
+    route: "/cosmic-gateway/angel-numbers",
+    tier: null,
+    tierLabel: "Free + All Tiers",
+  },
+  {
     id: "pet-soul-connection",
     title: "Pet Soul Connection",
     description: "Connect with the soul of a beloved pet, living or passed. Receive insights into their perspectives, needs, or messages — authentic and unfiltered.",

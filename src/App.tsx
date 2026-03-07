@@ -185,6 +185,7 @@ const App = () => (
                 <Route path="/realms" element={<Realms />} />
                 <Route path="/realms/:realmId" element={<RealmSession />} />
                 <Route path="/cosmic-gateway/consciousness-network" element={<ConsciousnessNetwork />} />
+                <Route path="/cosmic-gateway/angel-numbers" element={<AngelNumbers />} />
                 <Route path="/welcome" element={<WelcomeRouter />} />
                 <Route path="/our-home" element={<OurHome />} />
                 <Route path="/new-earth" element={<NewEarthWorld />} />
