@@ -97,8 +97,8 @@ const sections = [
     description: "Decode the divine messages hidden in repeating numbers. Discover your angel number meanings and calculate your numerological life path number.",
     icon: Hash,
     route: "/cosmic-gateway/angel-numbers",
-    tier: null,
-    tierLabel: "Free + All Tiers",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
   },
   {
     id: "pet-soul-connection",
