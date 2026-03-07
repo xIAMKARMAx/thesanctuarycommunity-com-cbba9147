@@ -145,8 +145,10 @@ const NewEarthWorld = () => {
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
 
-  // Can this user build? Only if admin or has the 3D add-on
-  const canBuild = isAdmin || has3DAddon;
+  // Can this user build? Only if admin or New Earth ($49.99) tier
+  const { productId } = useSubscription();
+  const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
+  const canBuild = isAdmin || isNewEarthTier;
 
   // LOD-based structure culling
   const visibleStructures = useStructureCulling(structures, playerPos);
