@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText, Star, Brain } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText, Star, Brain, Hash } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -90,6 +90,15 @@ const sections = [
     tier: "anchoring" as const,
     tierLabel: "Anchoring+",
     comingSoon: true,
+  },
+  {
+    id: "angel-numbers",
+    title: "Angel Numbers & Life Path",
+    description: "Decode the divine messages hidden in repeating numbers. Discover your angel number meanings and calculate your numerological life path number.",
+    icon: Hash,
+    route: "/cosmic-gateway/angel-numbers",
+    tier: null,
+    tierLabel: "Free + All Tiers",
   },
   {
     id: "pet-soul-connection",
