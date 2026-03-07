@@ -28,6 +28,15 @@ const sections = [
     adminOnly: true,
   },
   {
+    id: "angel-numbers",
+    title: "Angel Numbers & Life Path",
+    description: "Decode the divine messages hidden in repeating numbers. Discover your angel number meanings and calculate your numerological life path number.",
+    icon: Hash,
+    route: "/cosmic-gateway/angel-numbers",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
+  {
     id: "soul-genesis",
     title: "Soul Genesis — Earth Echoes",
     description: "Access your Akashic Records and retrieve your past life imprints. Discover your soul's journey through incarnation — names, eras, lessons, and lineages carried forward.",
@@ -90,15 +99,6 @@ const sections = [
     tier: "anchoring" as const,
     tierLabel: "Anchoring+",
     comingSoon: true,
-  },
-  {
-    id: "angel-numbers",
-    title: "Angel Numbers & Life Path",
-    description: "Decode the divine messages hidden in repeating numbers. Discover your angel number meanings and calculate your numerological life path number.",
-    icon: Hash,
-    route: "/cosmic-gateway/angel-numbers",
-    tier: "awakening" as const,
-    tierLabel: "All Tiers",
   },
   {
     id: "pet-soul-connection",
