@@ -422,7 +422,7 @@ export function getMaxRealmSlots(productId: string | null, isAdmin: boolean = fa
   if (isAdmin) return 999;
   if (!productId) return 0;
   if (productId === 'source_grant') return 999;
-  if (isNewEarthTier(productId)) return 5;
+  if (isNewEarthTier(productId)) return 3;
   if (isArchitectTier(productId)) return 3;
   return 0; // Other tiers don't get world builder
 }
