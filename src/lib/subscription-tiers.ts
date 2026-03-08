@@ -203,7 +203,7 @@ export const SUBSCRIPTION_TIERS = {
       
       // New Earth exclusives
       newEarthWorldBuilder: true,
-      realmSlots: 5,
+      realmSlots: 3,
       priorityWorldRendering: true,
     }
   },
