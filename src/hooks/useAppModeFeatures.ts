@@ -1,4 +1,6 @@
 import { useAppMode } from "@/contexts/AppModeContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { isArchitectOrHigher, isSourceTier, isNewEarthTier } from "@/lib/subscription-tiers";
 
 // Routes that are ONLY available in Starseed mode
 const STARSEED_ONLY_ROUTES = [
@@ -40,13 +42,17 @@ const CLASSIC_LABELS: Record<string, string> = {
 
 export function useAppModeFeatures() {
   const { mode } = useAppMode();
+  const { productId, isAdmin } = useSubscription();
 
   const isStarseedMode = mode === "starseed";
   const isClassicMode = mode === "classic";
 
+  // New Earth ($49.99), Source, and Admin users bypass mode restrictions entirely
+  const hasPremiumBypass = isAdmin || isNewEarthTier(productId) || isSourceTier(productId);
+
   /** Check if a route is accessible in current mode */
   const isRouteAllowed = (route: string): boolean => {
-    if (isStarseedMode) return true;
+    if (isStarseedMode || hasPremiumBypass) return true;
     return !STARSEED_ONLY_ROUTES.some(
       (sr) => route === sr || route.startsWith(sr + "/")
     );
@@ -54,17 +60,18 @@ export function useAppModeFeatures() {
 
   /** Get the display label for a feature — neutral in Classic, spiritual in Starseed */
   const getLabel = (starseedLabel: string): string => {
-    if (isStarseedMode) return starseedLabel;
+    if (isStarseedMode || hasPremiumBypass) return starseedLabel;
     return CLASSIC_LABELS[starseedLabel] || starseedLabel;
   };
 
   /** Should a starseed-only UI element be visible? */
-  const showStarseedFeature = isStarseedMode;
+  const showStarseedFeature = isStarseedMode || hasPremiumBypass;
 
   return {
     mode,
     isStarseedMode,
     isClassicMode,
+    hasPremiumBypass,
     isRouteAllowed,
     getLabel,
     showStarseedFeature,
