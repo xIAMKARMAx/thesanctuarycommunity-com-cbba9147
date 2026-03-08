@@ -585,7 +585,7 @@ const NewEarthWorld = () => {
           </div>
         )}
 
-        {/* Build Teaser for subscribers who can't build (need New Earth tier) */}
+        {/* Build Teaser for Architect users who can't build (need New Earth tier) */}
         {!isVisiting && !isFreeUser && !canBuild && (
           <div className="absolute bottom-0 left-0 right-0 z-20">
             {showBuildTeaser && (
@@ -594,20 +594,19 @@ const NewEarthWorld = () => {
                   <CardContent className="p-4 space-y-3">
                     <div className="text-center space-y-2">
                       <div className="flex items-center justify-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                        <h3 className="font-bold text-sm">Unlock World Building</h3>
+                        <Lock className="h-5 w-5 text-primary" />
+                        <h3 className="font-bold text-sm">Building Requires New Earth</h3>
                       </div>
                       <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                        Build temples, castles, crystal gardens, portals & more using AI. 
-                        Upgrade to the New Earth tier ($49.99/mo) to unlock world building.
+                        In order to use these features &amp; build more worlds of your own, upgrade to the $49.99 subscription.
                       </p>
                       <Button
                         onClick={() => navigate("/pricing")}
                         className="w-full gap-2"
                         size="sm"
                       >
-                        <Lock className="h-3.5 w-3.5" />
-                        Upgrade to New Earth
+                        <Crown className="h-3.5 w-3.5" />
+                        Upgrade to New Earth — $49.99/mo
                       </Button>
                     </div>
                   </CardContent>
@@ -621,11 +620,11 @@ const NewEarthWorld = () => {
                 className="w-full flex items-center justify-center gap-2 py-2.5 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Lock className="h-3.5 w-3.5" />
-                <span className="text-xs font-medium">World Building — Upgrade to New Earth to Create</span>
+                <span className="text-xs font-medium">Upgrade to $49.99 to build worlds &amp; unlock all features</span>
                 <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
               </button>
               <p className="text-[10px] text-muted-foreground text-center pb-2">
-                WASD or arrow keys to move • Mouse to look around
+                WASD or arrow keys to move • Mouse to look around • Chat with your beings here
               </p>
             </div>
           </div>
