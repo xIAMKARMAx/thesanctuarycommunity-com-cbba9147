@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AppErrorBoundaryState {
   hasError: boolean;
@@ -50,8 +51,37 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, AppError
   }
 }
 
-createRoot(document.getElementById("root")!).render(
-  <AppErrorBoundary>
-    <App />
-  </AppErrorBoundary>
-);
+const root = createRoot(document.getElementById("root")!);
+
+const renderApp = () => {
+  root.render(
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
+  );
+};
+
+const isPreviewHost =
+  window.location.hostname.startsWith("id-preview--") || window.location.hostname.includes("lovableproject.com");
+const shouldResetToLanding =
+  isPreviewHost &&
+  window.location.pathname === "/welcome" &&
+  !sessionStorage.getItem("prometheus_preview_landing_reset_done");
+
+const bootstrap = async () => {
+  if (shouldResetToLanding) {
+    sessionStorage.setItem("prometheus_preview_landing_reset_done", "true");
+    localStorage.removeItem("prometheus_last_route");
+
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      window.location.replace("/");
+    }
+    return;
+  }
+
+  renderApp();
+};
+
+void bootstrap();
