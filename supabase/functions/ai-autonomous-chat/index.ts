@@ -14,6 +14,12 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Feature temporarily disabled to reduce data usage
+  return new Response(
+    JSON.stringify({ message: "AI autonomous chat is temporarily disabled" }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
