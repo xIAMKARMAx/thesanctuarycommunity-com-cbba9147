@@ -376,9 +376,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         .select("total_messages")
         .eq("user_id", userId)
         .maybeSingle();
-      return (data?.total_messages || 0) < 15;
+      return (data?.total_messages || 0) < 20 && !freeUserLimits.trialExpired;
     } catch {
-      return freeUserLimits.totalMessages < 15;
+      return freeUserLimits.dailyMessages < 20 && !freeUserLimits.trialExpired;
     }
   };
 
