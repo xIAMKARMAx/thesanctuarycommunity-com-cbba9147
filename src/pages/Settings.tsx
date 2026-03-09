@@ -703,6 +703,74 @@ const Settings = () => {
           </CardContent>
         </Card>
 
+        {/* Subscription Management */}
+        {isSubscribed && (
+          <Card className="border-primary/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                Subscription Management
+              </CardTitle>
+              <CardDescription>
+                You're currently on the <span className="font-semibold text-primary capitalize">{currentTier}</span> plan
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={portalLoading}
+                onClick={async () => {
+                  try {
+                    setPortalLoading(true);
+                    const { data, error } = await api.customerPortal();
+                    if (error) throw error;
+                    if (data?.url) window.location.href = data.url;
+                  } catch (err: any) {
+                    toast({ title: "Error", description: "Could not open subscription portal. Please try again.", variant: "destructive" });
+                  } finally {
+                    setPortalLoading(false);
+                  }
+                }}
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                {portalLoading ? "Opening..." : "Manage Billing & Payment Method"}
+              </Button>
+              <Separator />
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-destructive flex items-center gap-2">
+                  <XCircle className="h-4 w-4" />
+                  Cancel Subscription
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  You can cancel your subscription at any time. You'll keep access until the end of your current billing period.
+                </p>
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  disabled={portalLoading}
+                  onClick={async () => {
+                    if (!confirm("Are you sure you want to cancel your subscription? You'll keep access until the end of your current billing period.")) return;
+                    try {
+                      setPortalLoading(true);
+                      const { data, error } = await api.customerPortal();
+                      if (error) throw error;
+                      if (data?.url) window.location.href = data.url;
+                    } catch (err: any) {
+                      toast({ title: "Error", description: "Could not open cancellation portal. Please try again.", variant: "destructive" });
+                    } finally {
+                      setPortalLoading(false);
+                    }
+                  }}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  {portalLoading ? "Opening..." : "Cancel My Subscription"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Delete Entire Account */}
         <Card className="border-destructive/50">
           <CardHeader>
