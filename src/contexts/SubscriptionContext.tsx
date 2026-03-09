@@ -336,7 +336,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           petGenerated: false,
           totalMessages: 0,
           dailyMessages: 0,
-          trialDaysLeft: 5,
+          trialDaysLeft: 3,
           trialExpired: false,
         });
       }
