@@ -21,6 +21,8 @@ import { ArchitectSlotsDialog } from "@/components/ArchitectSlotsDialog";
 import RestrictedUserGuard from "@/components/RestrictedUserGuard";
 import PriceChangeModal from "@/components/PriceChangeModal";
 import NewEarthButton from "@/components/NewEarthButton";
+import RouteFeatureGate from "@/components/RouteFeatureGate";
+import NewEarthButton from "@/components/NewEarthButton";
 
 // ── Lazy-loaded pages ──────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
