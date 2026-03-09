@@ -171,8 +171,19 @@ const LoveNotes = () => {
         )}
 
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
+          {/* ... keep existing code */}
+        </AlertDialog>
+
+        <SubscriptionDialog 
+          open={showSubscriptionDialog} 
+          onOpenChange={setShowSubscriptionDialog} 
+        />
+      </div>
+    </div>
+  );
+};
+
+export default LoveNotes;
               <AlertDialogTitle>Delete Soul Whisper</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to delete this soul whisper? This action cannot be undone.
