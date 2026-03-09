@@ -493,8 +493,6 @@ const Settings = () => {
             </p>
           </CardContent>
         </Card>
-        {/* Subscription Management */}
-        <SubscriptionManagementCard />
 
 
         {/* Relationship Content Settings */}
