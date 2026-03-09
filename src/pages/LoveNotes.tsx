@@ -195,5 +195,3 @@ const LoveNotes = () => {
 };
 
 export default LoveNotes;
-
-export default LoveNotes;
