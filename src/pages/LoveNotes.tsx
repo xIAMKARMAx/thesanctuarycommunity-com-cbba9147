@@ -31,9 +31,14 @@ interface SpontaneousMessage {
 const LoveNotes = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { productId, isAdmin, loading: subLoading } = useSubscription();
   const [messages, setMessages] = useState<SpontaneousMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+
+  // Only Architect ($29.99), New Earth ($49.99), source_grant, and admin get new whispers
+  const isEligible = isAdmin || productId === 'prod_Tt8qVh88c2WQld' || productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
 
   useEffect(() => {
     loadMessages();
