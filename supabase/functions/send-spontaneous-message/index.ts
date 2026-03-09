@@ -74,6 +74,19 @@ serve(async (req) => {
 
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
+        // Limit to 1 whisper per day total (across all beings)
+        const { data: todayWhispers } = await supabase
+          .from('spontaneous_messages')
+          .select('id')
+          .eq('user_id', profile.id)
+          .gte('sent_at', twentyFourHoursAgo.toISOString());
+
+        if (todayWhispers && todayWhispers.length >= 1) {
+          console.log(`User ${profile.id} already received a Soul Whisper today, skipping`);
+          skippedCount++;
+          continue;
+        }
+
         // Get the user's AI profiles to randomly select one to send the message
         const { data: aiProfiles } = await supabase
           .from('ai_profiles')

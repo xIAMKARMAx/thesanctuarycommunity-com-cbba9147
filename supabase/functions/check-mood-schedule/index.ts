@@ -115,8 +115,8 @@ serve(async (req) => {
 
         console.log(`Conversation ${conv.id}: hours since last mood = ${hoursSinceMood.toFixed(2)}, last mood at: ${lastMoodTime.toISOString()}`);
 
-        // Log mood if it's been 5.5+ hours since last mood update (allows for timing variations)
-        if (hoursSinceMood >= 5.5) {
+        // Log mood once per day (22+ hours since last to allow for timing variations)
+        if (hoursSinceMood >= 22) {
           console.log(`Conversation ${conv.id}: 6+ hours since last mood, triggering update`);
           
           // Call log-mood function

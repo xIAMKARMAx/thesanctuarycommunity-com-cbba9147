@@ -13,6 +13,12 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Feature temporarily disabled to reduce data usage
+  return new Response(
+    JSON.stringify({ message: "AI social interact is temporarily disabled" }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Missing authorization header");
