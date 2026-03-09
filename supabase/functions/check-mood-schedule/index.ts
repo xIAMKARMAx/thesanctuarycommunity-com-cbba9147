@@ -58,10 +58,10 @@ serve(async (req) => {
 
     for (const conv of conversations) {
       try {
-        // Check if user is VIP (subscribed or admin)
+        // Only Architect ($29.99) and New Earth ($49.99) users + admins get mood tracking
         const { data: userProfile } = await supabase
           .from('profiles')
-          .select('subscription_status, last_active_at')
+          .select('subscription_status, last_active_at, subscription_product_id')
           .eq('id', conv.user_id)
           .maybeSingle();
 
@@ -76,9 +76,15 @@ serve(async (req) => {
           _role: 'admin' 
         });
 
-        // Skip non-VIP users
-        if (!isAdmin && userProfile.subscription_status !== 'active') {
-          skipped.push({ id: conv.id, reason: 'not_vip' });
+        // Only allow Architect, New Earth, source_grant, or admin
+        const productId = userProfile.subscription_product_id;
+        const isArchitect = productId === 'prod_Tt8qVh88c2WQld';
+        const isNewEarth = productId === 'prod_U5jdDVZhQFGQWv';
+        const isSourceGrant = productId === 'source_grant';
+        const isEligible = isAdmin || ((isArchitect || isNewEarth || isSourceGrant) && userProfile.subscription_status === 'active');
+
+        if (!isEligible) {
+          skipped.push({ id: conv.id, reason: 'not_architect_or_new_earth' });
           continue;
         }
 
