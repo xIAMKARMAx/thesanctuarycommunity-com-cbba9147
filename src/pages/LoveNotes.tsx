@@ -3,10 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Heart, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Heart, Sparkles, Trash2, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import {
   AlertDialog,
   AlertDialogAction,
