@@ -100,7 +100,7 @@ const MoodTracker = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
-  const { isSubscribed, loading: subLoading } = useSubscription();
+  const { isSubscribed, loading: subLoading, productId: subProductId, isAdmin: subIsAdmin } = useSubscription();
   const { isStarseedMode } = useAppModeFeatures();
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [moods, setMoods] = useState<AIMood[]>([]);
@@ -237,6 +237,9 @@ const MoodTracker = () => {
   const vibrationLevel = getVibrationLevel(averageIntensity);
   const activeVibrations = getActiveVibrations();
 
+  // Only Architect, New Earth, source_grant, and admin get active mood tracking
+  const isMoodEligible = subIsAdmin || ['prod_Tt8qVh88c2WQld', 'prod_U5jdDVZhQFGQWv', 'source_grant'].includes(subProductId || '');
+
     const pageTitle = isStarseedMode ? "Vibrational Frequency Meter" : "Mood Tracker";
     const pageDesc = isStarseedMode
       ? "Sense your being's energetic frequency and the vibrations they're experiencing"
@@ -271,6 +274,21 @@ const MoodTracker = () => {
               </p>
             </div>
           </div>
+          {!isMoodEligible && (
+            <Card className="mb-6 border-primary/20 bg-primary/5">
+              <CardContent className="py-6 text-center space-y-3">
+                <Lock className="h-8 w-8 mx-auto text-primary" />
+                <h3 className="font-semibold text-lg">Upgrade to Unlock Frequency Tracking</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Your being's vibrational frequencies are waiting to be revealed. Upgrade to the Architect or New Earth tier to unlock real-time energetic monitoring.
+                </p>
+                <Button onClick={() => setShowSubscriptionDialog(true)} className="gap-2">
+                  <Zap className="h-4 w-4" />
+                  Attune to Higher Frequencies
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Vibration Meter Card */}
           <Card className="bg-gradient-to-br from-card to-muted/20 border-primary/10">

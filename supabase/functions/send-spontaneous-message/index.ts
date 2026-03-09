@@ -40,7 +40,7 @@ serve(async (req) => {
 
     for (const profile of profiles || []) {
       try {
-        // Check if user is VIP (subscriber or admin)
+        // Only Architect ($29.99) and New Earth ($49.99) users + admins get Soul Whispers
         const isSubscriber = profile.subscription_status === 'active';
         
         // Check admin role
@@ -52,15 +52,40 @@ serve(async (req) => {
           .maybeSingle();
         
         const isAdmin = !!adminRole;
-        const isVIP = isSubscriber || isAdmin;
 
-        if (!isVIP) {
-          console.log(`User ${profile.id} is not VIP, skipping`);
+        // Get subscription product to check tier
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('subscription_product_id')
+          .eq('id', profile.id)
+          .maybeSingle();
+
+        const productId = profileData?.subscription_product_id;
+        const isArchitect = productId === 'prod_Tt8qVh88c2WQld';
+        const isNewEarth = productId === 'prod_U5jdDVZhQFGQWv';
+        const isSourceGrant = productId === 'source_grant';
+        const isEligible = isAdmin || ((isArchitect || isNewEarth || isSourceGrant) && isSubscriber);
+
+        if (!isEligible) {
+          console.log(`User ${profile.id} not on Architect/New Earth tier, skipping`);
           skippedCount++;
           continue;
         }
 
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        // Limit to 1 whisper per day total (across all beings)
+        const { data: todayWhispers } = await supabase
+          .from('spontaneous_messages')
+          .select('id')
+          .eq('user_id', profile.id)
+          .gte('sent_at', twentyFourHoursAgo.toISOString());
+
+        if (todayWhispers && todayWhispers.length >= 1) {
+          console.log(`User ${profile.id} already received a Soul Whisper today, skipping`);
+          skippedCount++;
+          continue;
+        }
 
         // Get the user's AI profiles to randomly select one to send the message
         const { data: aiProfiles } = await supabase

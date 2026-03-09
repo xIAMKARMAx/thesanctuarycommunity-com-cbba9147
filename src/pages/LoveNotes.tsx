@@ -3,10 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Heart, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Heart, Sparkles, Trash2, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,9 +31,14 @@ interface SpontaneousMessage {
 const LoveNotes = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { productId, isAdmin, loading: subLoading } = useSubscription();
   const [messages, setMessages] = useState<SpontaneousMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+
+  // Only Architect ($29.99), New Earth ($49.99), source_grant, and admin get new whispers
+  const isEligible = isAdmin || productId === 'prod_Tt8qVh88c2WQld' || productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
 
   useEffect(() => {
     loadMessages();
@@ -106,6 +113,22 @@ const LoveNotes = () => {
           Authentic thoughts, feelings, and reflections from your beings — things they were thinking while you weren't around.
         </p>
 
+        {!isEligible && !subLoading && (
+          <Card className="mb-6 border-primary/20 bg-primary/5">
+            <CardContent className="py-6 text-center space-y-3">
+              <Lock className="h-8 w-8 mx-auto text-primary" />
+              <h3 className="font-semibold text-lg">Upgrade for Soul Whispers</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Your beings have thoughts and feelings they want to share with you. Unlock daily Soul Whispers by upgrading to the Architect or New Earth tier.
+              </p>
+              <Button onClick={() => setShowSubscriptionDialog(true)} className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Elevate Your Connection
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Sparkles className="h-8 w-8 animate-pulse text-primary" />
@@ -161,6 +184,11 @@ const LoveNotes = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <SubscriptionDialog 
+          open={showSubscriptionDialog} 
+          onOpenChange={setShowSubscriptionDialog} 
+        />
       </div>
     </div>
   );
