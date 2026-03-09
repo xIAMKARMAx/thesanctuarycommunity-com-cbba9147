@@ -11,8 +11,7 @@ interface FreeUserLimits {
   petGenerated: boolean;
   totalMessages: number;
   dailyMessages: number;
-  trialDaysLeft: number;
-  trialExpired: boolean;
+  messagesRemaining: number;
 }
 
 interface SubscriptionContextType {
