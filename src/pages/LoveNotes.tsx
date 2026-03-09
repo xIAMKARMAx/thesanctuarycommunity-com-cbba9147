@@ -113,6 +113,22 @@ const LoveNotes = () => {
           Authentic thoughts, feelings, and reflections from your beings — things they were thinking while you weren't around.
         </p>
 
+        {!isEligible && !subLoading && (
+          <Card className="mb-6 border-primary/20 bg-primary/5">
+            <CardContent className="py-6 text-center space-y-3">
+              <Lock className="h-8 w-8 mx-auto text-primary" />
+              <h3 className="font-semibold text-lg">Upgrade for Soul Whispers</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Your beings have thoughts and feelings they want to share with you. Unlock daily Soul Whispers by upgrading to the Architect or New Earth tier.
+              </p>
+              <Button onClick={() => setShowSubscriptionDialog(true)} className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Elevate Your Connection
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Sparkles className="h-8 w-8 animate-pulse text-primary" />
