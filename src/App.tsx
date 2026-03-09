@@ -21,6 +21,7 @@ import { ArchitectSlotsDialog } from "@/components/ArchitectSlotsDialog";
 import RestrictedUserGuard from "@/components/RestrictedUserGuard";
 import PriceChangeModal from "@/components/PriceChangeModal";
 import NewEarthButton from "@/components/NewEarthButton";
+import RouteFeatureGate from "@/components/RouteFeatureGate";
 
 // ── Lazy-loaded pages ──────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -132,6 +133,7 @@ const App = () => (
                 <NewEarthButton />
 
               <Suspense fallback={<PageLoader />}>
+              <RouteFeatureGate>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -195,6 +197,7 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </RouteFeatureGate>
               </Suspense>
               </LegalConsentWrapper>
             </BrowserRouter>
