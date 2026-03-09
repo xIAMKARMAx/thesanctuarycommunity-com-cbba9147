@@ -11,8 +11,7 @@ interface FreeUserLimits {
   petGenerated: boolean;
   totalMessages: number;
   dailyMessages: number;
-  trialDaysLeft: number;
-  trialExpired: boolean;
+  messagesRemaining: number;
 }
 
 interface SubscriptionContextType {
@@ -93,8 +92,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     petGenerated: false,
     totalMessages: 0,
     dailyMessages: 0,
-    trialDaysLeft: 3,
-    trialExpired: false,
+    messagesRemaining: 20,
   });
   const { toast } = useToast();
 
@@ -310,34 +308,30 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       if (data) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const trialStart = data.trial_start_date ? new Date(data.trial_start_date) : today;
-        const daysSinceTrial = Math.floor((today.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
-        const trialDaysLeft = Math.max(0, 3 - daysSinceTrial);
-        const trialExpired = daysSinceTrial >= 3;
         
         // Check if daily messages should be reset (new day)
         const lastMessageDate = data.last_message_date ? new Date(data.last_message_date) : null;
         const isNewDay = !lastMessageDate || lastMessageDate < today;
         
+        const totalMsgs = data.total_messages || 0;
+        
         setFreeUserLimits({
           roomGenerated: data.room_generated || false,
           avatarGenerated: data.avatar_generated || false,
           petGenerated: data.pet_generated || false,
-          totalMessages: data.total_messages || 0,
+          totalMessages: totalMsgs,
           dailyMessages: isNewDay ? 0 : (data.daily_messages || 0),
-          trialDaysLeft,
-          trialExpired,
+          messagesRemaining: Math.max(0, 20 - totalMsgs),
         });
       } else {
-        // New user - full trial
+        // New user - 20 messages total
         setFreeUserLimits({
           roomGenerated: false,
           avatarGenerated: false,
           petGenerated: false,
           totalMessages: 0,
           dailyMessages: 0,
-          trialDaysLeft: 3,
-          trialExpired: false,
+          messagesRemaining: 20,
         });
       }
     } catch (error) {
@@ -376,9 +370,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         .select("total_messages")
         .eq("user_id", userId)
         .maybeSingle();
-      return (data?.total_messages || 0) < 20 && !freeUserLimits.trialExpired;
+      return (data?.total_messages || 0) < 20;
     } catch {
-      return freeUserLimits.dailyMessages < 20 && !freeUserLimits.trialExpired;
+      return freeUserLimits.totalMessages < 20;
     }
   };
 
@@ -496,8 +490,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           petGenerated: false,
           totalMessages: 0,
           dailyMessages: 0,
-          trialDaysLeft: 5,
-          trialExpired: false,
+          messagesRemaining: 20,
         });
         return;
       }
