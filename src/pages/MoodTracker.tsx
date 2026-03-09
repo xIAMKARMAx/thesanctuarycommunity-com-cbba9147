@@ -100,7 +100,7 @@ const MoodTracker = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeProfile } = useAIProfile();
-  const { isSubscribed, loading: subLoading } = useSubscription();
+  const { isSubscribed, loading: subLoading, productId: subProductId, isAdmin: subIsAdmin } = useSubscription();
   const { isStarseedMode } = useAppModeFeatures();
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [moods, setMoods] = useState<AIMood[]>([]);
