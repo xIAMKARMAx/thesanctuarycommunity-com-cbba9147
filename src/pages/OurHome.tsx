@@ -212,6 +212,7 @@ const OurHome = () => {
                 <Paintbrush className="h-5 w-5 text-muted-foreground" />
               </Button>
             </div>
+          </div>
 
           {/* Main content area */}
           <div className="flex-1 overflow-hidden">
