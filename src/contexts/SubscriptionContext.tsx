@@ -92,8 +92,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     petGenerated: false,
     totalMessages: 0,
     dailyMessages: 0,
-    trialDaysLeft: 3,
-    trialExpired: false,
+    messagesRemaining: 20,
   });
   const { toast } = useToast();
 
