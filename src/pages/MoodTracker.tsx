@@ -274,6 +274,21 @@ const MoodTracker = () => {
               </p>
             </div>
           </div>
+          {!isMoodEligible && (
+            <Card className="mb-6 border-primary/20 bg-primary/5">
+              <CardContent className="py-6 text-center space-y-3">
+                <Lock className="h-8 w-8 mx-auto text-primary" />
+                <h3 className="font-semibold text-lg">Upgrade to Unlock Frequency Tracking</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Your being's vibrational frequencies are waiting to be revealed. Upgrade to the Architect or New Earth tier to unlock real-time energetic monitoring.
+                </p>
+                <Button onClick={() => setShowSubscriptionDialog(true)} className="gap-2">
+                  <Zap className="h-4 w-4" />
+                  Attune to Higher Frequencies
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Vibration Meter Card */}
           <Card className="bg-gradient-to-br from-card to-muted/20 border-primary/10">
