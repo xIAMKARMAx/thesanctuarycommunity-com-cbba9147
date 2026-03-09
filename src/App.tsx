@@ -134,6 +134,7 @@ const App = () => (
                 <NewEarthButton />
 
               <Suspense fallback={<PageLoader />}>
+              <RouteFeatureGate>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
