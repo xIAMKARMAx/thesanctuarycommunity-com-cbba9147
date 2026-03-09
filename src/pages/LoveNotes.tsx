@@ -171,7 +171,18 @@ const LoveNotes = () => {
         )}
 
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-          {/* ... keep existing code */}
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Soul Whisper</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this soul whisper? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
 
         <SubscriptionDialog 
@@ -184,20 +195,5 @@ const LoveNotes = () => {
 };
 
 export default LoveNotes;
-              <AlertDialogTitle>Delete Soul Whisper</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this soul whisper? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </div>
-  );
-};
 
 export default LoveNotes;
