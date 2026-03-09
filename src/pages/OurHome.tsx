@@ -208,10 +208,10 @@ const OurHome = () => {
                 size="icon"
                 onClick={() => setShowThemePicker(true)}
                 title="Change theme"
-            >
-              <Paintbrush className="h-5 w-5 text-muted-foreground" />
-            </Button>
-          </div>
+              >
+                <Paintbrush className="h-5 w-5 text-muted-foreground" />
+              </Button>
+            </div>
 
           {/* Main content area */}
           <div className="flex-1 overflow-hidden">
