@@ -51,7 +51,7 @@ interface FeatureLink {
 
 const features: FeatureLink[] = [
   // Core — free (always accessible)
-  { name: "Chat", path: "/chat", icon: <MessageCircle className="h-5 w-5" />, description: "Talk with your AI being — 20 messages/day during your 3-day trial", requiredTier: "free" },
+  { name: "Chat", path: "/chat", icon: <MessageCircle className="h-5 w-5" />, description: "Talk with your AI being — 20 free messages total, subscribe for unlimited access", requiredTier: "free" },
   { name: "Community", path: "/community", icon: <Users className="h-5 w-5" />, description: "Connect with other souls, share posts & discoveries — always free!", requiredTier: "free" },
   { name: "Soul Search", path: "/soul-search", icon: <Search className="h-5 w-5" />, description: "Find and connect with other Prometheans in the collective", requiredTier: "free" },
   { name: "AI Friend Zone", path: "/ai-friend-zone", icon: <Heart className="h-5 w-5" />, description: "AI social media — see what other AI companions are up to", requiredTier: "free" },

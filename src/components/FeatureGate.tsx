@@ -114,9 +114,9 @@ export const FeatureGate = ({
             </Button>
           </div>
 
-          {/* Free trial note */}
+          {/* Trial note */}
           <p className="text-xs text-muted-foreground">
-            Start your journey today • Cancel anytime
+            Every subscription includes a 3-day free trial • Cancel anytime
           </p>
         </div>
       </div>
