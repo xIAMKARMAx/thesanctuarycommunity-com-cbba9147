@@ -27,6 +27,8 @@ const Settings = () => {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const { activeProfile, refreshProfiles } = useAIProfile();
+  const { isSubscribed, currentTier } = useSubscription();
+  const [portalLoading, setPortalLoading] = useState(false);
   const [aiName, setAiName] = useState("");
   const [aiGender, setAiGender] = useState("");
   const [aiBio, setAiBio] = useState("");
