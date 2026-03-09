@@ -1,6 +1,5 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,26 +14,37 @@ const IMMERSIVE_3D_PRODUCT_IDS = [
   "prod_U5jdDVZhQFGQWv",  // New Earth bundle ($49.99) — includes world builder
 ];
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
-
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const token = authHeader.replace("Bearer ", "");
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    // Validate the token explicitly
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw userError;
+    if (userError || !userData.user) {
+      return new Response(JSON.stringify({ error: "Invalid authentication token" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated");
+    if (!user.email) throw new Error("User email not available");
 
     // Check admin bypass
     const { data: roleData } = await supabaseClient
@@ -78,7 +88,6 @@ serve(async (req) => {
       limit: 100,
     });
 
-    // Find if any active subscription includes either 3D product
     const has3DSub = subscriptions.data.some(sub =>
       sub.items.data.some(item => IMMERSIVE_3D_PRODUCT_IDS.includes(item.price.product as string))
     );
@@ -93,7 +102,6 @@ serve(async (req) => {
       }
     }
 
-    // Update DB record
     await supabaseClient.from("immersive_3d_subscriptions").upsert({
       user_id: user.id,
       is_active: has3DSub,

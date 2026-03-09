@@ -90,3 +90,9 @@ project_id = "kmldvsatwjahcghjtvtu"
     verify_jwt = false
   [functions.world-builder]
     verify_jwt = false
+  [functions.check-3d-subscription]
+    verify_jwt = false
+  [functions.create-3d-checkout]
+    verify_jwt = false
+  [functions.check-card-reuse]
+    verify_jwt = false
