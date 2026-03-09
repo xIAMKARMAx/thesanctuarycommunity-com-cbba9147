@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot, UserX, CreditCard, XCircle } from "lucide-react";
+import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot, UserX, CreditCard, XCircle, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -704,72 +704,208 @@ const Settings = () => {
         </Card>
 
         {/* Subscription Management */}
-        {isSubscribed && (
-          <Card className="border-primary/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-primary" />
-                Subscription Management
-              </CardTitle>
-              <CardDescription>
-                You're currently on the <span className="font-semibold text-primary capitalize">{currentTier}</span> plan
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                variant="outline"
-                className="w-full"
-                disabled={portalLoading}
-                onClick={async () => {
-                  try {
-                    setPortalLoading(true);
-                    const { data, error } = await api.customerPortal();
-                    if (error) throw error;
-                    if (data?.url) window.location.href = data.url;
-                  } catch (err: any) {
-                    toast({ title: "Error", description: "Could not open subscription portal. Please try again.", variant: "destructive" });
-                  } finally {
-                    setPortalLoading(false);
-                  }
-                }}
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                {portalLoading ? "Opening..." : "Manage Billing & Payment Method"}
-              </Button>
-              <Separator />
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-destructive flex items-center gap-2">
-                  <XCircle className="h-4 w-4" />
-                  Cancel Subscription
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  You can cancel your subscription at any time. You'll keep access until the end of your current billing period.
-                </p>
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  disabled={portalLoading}
-                  onClick={async () => {
-                    if (!confirm("Are you sure you want to cancel your subscription? You'll keep access until the end of your current billing period.")) return;
-                    try {
-                      setPortalLoading(true);
-                      const { data, error } = await api.customerPortal();
-                      if (error) throw error;
-                      if (data?.url) window.location.href = data.url;
-                    } catch (err: any) {
-                      toast({ title: "Error", description: "Could not open cancellation portal. Please try again.", variant: "destructive" });
-                    } finally {
-                      setPortalLoading(false);
-                    }
-                  }}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  {portalLoading ? "Opening..." : "Cancel My Subscription"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Subscription Management
+            </CardTitle>
+            <CardDescription>
+              {isSubscribed 
+                ? <>You're currently on the <span className="font-semibold text-primary capitalize">{currentTier === "newEarth" ? "New Earth" : currentTier}</span> plan</>
+                : "You're currently on the Free plan"
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {/* Upgrade Section */}
+            {(() => {
+              const tierOrder = ["free", "awakening", "anchoring", "architect", "newEarth"];
+              const currentIndex = tierOrder.indexOf(currentTier || "free");
+              const upgradeTiers = [
+                { key: "awakening", name: "Awakening", price: "$12.99/mo", index: 1 },
+                { key: "anchoring", name: "Anchoring", price: "$19.99/mo", index: 2 },
+                { key: "architect", name: "Architect", price: "$29.99/mo", index: 3 },
+                { key: "newEarth", name: "New Earth", price: "$49.99/mo", index: 4 },
+              ].filter(t => t.index > currentIndex);
+
+              const downgradeTiers = [
+                { key: "awakening", name: "Awakening", price: "$12.99/mo", index: 1 },
+                { key: "anchoring", name: "Anchoring", price: "$19.99/mo", index: 2 },
+                { key: "architect", name: "Architect", price: "$29.99/mo", index: 3 },
+              ].filter(t => t.index < currentIndex && t.index >= 1);
+
+              return (
+                <>
+                  {/* Upgrade Options */}
+                  {upgradeTiers.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium flex items-center gap-2 text-primary">
+                        <ArrowUpCircle className="h-4 w-4" />
+                        Upgrade Your Plan
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Upgrade to unlock more features. Changes take effect immediately with prorated billing.
+                      </p>
+                      <div className="grid gap-2">
+                        {upgradeTiers.map(tier => (
+                          <Button
+                            key={tier.key}
+                            variant="outline"
+                            className="w-full justify-between border-primary/30 hover:border-primary hover:bg-primary/5"
+                            disabled={portalLoading}
+                            onClick={async () => {
+                              try {
+                                setPortalLoading(true);
+                                const { data, error } = await api.createCheckout(tier.key as any);
+                                if (error) throw error;
+                                if (data?.upgraded) {
+                                  toast({ title: "Plan Updated!", description: `You've been upgraded to ${tier.name}!` });
+                                  window.location.reload();
+                                  return;
+                                }
+                                if (data?.url) window.location.href = data.url;
+                              } catch (err: any) {
+                                const msg = err?.message || "";
+                                toast({ 
+                                  title: "Error", 
+                                  description: msg.includes("already subscribed") ? "You're already on this plan." : "Could not process upgrade. Please try again.", 
+                                  variant: "destructive" 
+                                });
+                              } finally {
+                                setPortalLoading(false);
+                              }
+                            }}
+                          >
+                            <span className="flex items-center gap-2">
+                              <ArrowUpCircle className="h-4 w-4 text-primary" />
+                              Upgrade to {tier.name}
+                            </span>
+                            <span className="text-muted-foreground text-xs">{tier.price}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Downgrade Options */}
+                  {isSubscribed && downgradeTiers.length > 0 && (
+                    <>
+                      <Separator />
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                          <ArrowDownCircle className="h-4 w-4" />
+                          Downgrade Your Plan
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Switch to a lower plan. You'll be credited for unused time on your current plan.
+                        </p>
+                        <div className="grid gap-2">
+                          {downgradeTiers.map(tier => (
+                            <Button
+                              key={tier.key}
+                              variant="outline"
+                              className="w-full justify-between"
+                              disabled={portalLoading}
+                              onClick={async () => {
+                                if (!confirm(`Are you sure you want to downgrade to ${tier.name} (${tier.price})? You'll be credited for unused time on your current plan.`)) return;
+                                try {
+                                  setPortalLoading(true);
+                                  const { data, error } = await api.createCheckout(tier.key as any);
+                                  if (error) throw error;
+                                  if (data?.upgraded) {
+                                    toast({ title: "Plan Updated", description: `You've been switched to ${tier.name}.` });
+                                    window.location.reload();
+                                    return;
+                                  }
+                                  if (data?.url) window.location.href = data.url;
+                                } catch (err: any) {
+                                  toast({ title: "Error", description: "Could not process downgrade. Please try again.", variant: "destructive" });
+                                } finally {
+                                  setPortalLoading(false);
+                                }
+                              }}
+                            >
+                              <span className="flex items-center gap-2">
+                                <ArrowDownCircle className="h-4 w-4" />
+                                Downgrade to {tier.name}
+                              </span>
+                              <span className="text-muted-foreground text-xs">{tier.price}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Billing Management */}
+                  {isSubscribed && (
+                    <>
+                      <Separator />
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={portalLoading}
+                        onClick={async () => {
+                          try {
+                            setPortalLoading(true);
+                            const { data, error } = await api.customerPortal();
+                            if (error) throw error;
+                            if (data?.url) window.location.href = data.url;
+                          } catch (err: any) {
+                            toast({ title: "Error", description: "Could not open billing portal. Please try again.", variant: "destructive" });
+                          } finally {
+                            setPortalLoading(false);
+                          }
+                        }}
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        {portalLoading ? "Opening..." : "Manage Billing & Payment Method"}
+                      </Button>
+                    </>
+                  )}
+
+                  {/* Cancel Section — always visible for subscribers */}
+                  {isSubscribed && (
+                    <>
+                      <Separator />
+                      <div className="space-y-2 rounded-lg border border-destructive/30 p-4">
+                        <p className="text-sm font-semibold text-destructive flex items-center gap-2">
+                          <XCircle className="h-4 w-4" />
+                          Cancel Subscription
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Cancel your subscription at any time. You'll keep full access to your current plan until the end of your billing period. After that, your account will revert to the Free tier. No refunds are issued for unused time.
+                        </p>
+                        <Button
+                          variant="destructive"
+                          className="w-full"
+                          disabled={portalLoading}
+                          onClick={async () => {
+                            if (!confirm("Are you sure you want to cancel your subscription?\n\nYou'll keep access until the end of your current billing period. After that, your account will revert to the Free tier.\n\nThis action cannot be undone from within the app — you would need to resubscribe.")) return;
+                            try {
+                              setPortalLoading(true);
+                              const { data, error } = await api.customerPortal();
+                              if (error) throw error;
+                              if (data?.url) window.location.href = data.url;
+                            } catch (err: any) {
+                              toast({ title: "Error", description: "Could not open cancellation portal. Please try again.", variant: "destructive" });
+                            } finally {
+                              setPortalLoading(false);
+                            }
+                          }}
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          {portalLoading ? "Opening..." : "Cancel My Subscription"}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </>
+              );
+            })()}
+          </CardContent>
+        </Card>
 
         {/* Delete Entire Account */}
         <Card className="border-destructive/50">
