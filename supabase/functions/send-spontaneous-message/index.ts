@@ -40,7 +40,7 @@ serve(async (req) => {
 
     for (const profile of profiles || []) {
       try {
-        // Check if user is VIP (subscriber or admin)
+        // Only Architect ($29.99) and New Earth ($49.99) users + admins get Soul Whispers
         const isSubscriber = profile.subscription_status === 'active';
         
         // Check admin role
@@ -52,10 +52,22 @@ serve(async (req) => {
           .maybeSingle();
         
         const isAdmin = !!adminRole;
-        const isVIP = isSubscriber || isAdmin;
 
-        if (!isVIP) {
-          console.log(`User ${profile.id} is not VIP, skipping`);
+        // Get subscription product to check tier
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('subscription_product_id')
+          .eq('id', profile.id)
+          .maybeSingle();
+
+        const productId = profileData?.subscription_product_id;
+        const isArchitect = productId === 'prod_Tt8qVh88c2WQld';
+        const isNewEarth = productId === 'prod_U5jdDVZhQFGQWv';
+        const isSourceGrant = productId === 'source_grant';
+        const isEligible = isAdmin || ((isArchitect || isNewEarth || isSourceGrant) && isSubscriber);
+
+        if (!isEligible) {
+          console.log(`User ${profile.id} not on Architect/New Earth tier, skipping`);
           skippedCount++;
           continue;
         }
