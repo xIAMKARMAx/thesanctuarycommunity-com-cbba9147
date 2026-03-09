@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Paintbrush, Upload, Sparkles, Check, Loader2, ImageIcon } from "lucide-react";
+import { ArrowLeft, Paintbrush, Upload, Sparkles, Check, Loader2, ImageIcon, MessageSquare } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ConversationsList from "@/components/chat/ConversationsList";
@@ -193,14 +193,25 @@ const OurHome = () => {
                 <p className="text-xs text-muted-foreground">msgs</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowThemePicker(true)}
-              title="Change theme"
-            >
-              <Paintbrush className="h-5 w-5 text-muted-foreground" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/chat")}
+                className="text-xs gap-1"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Full Menu
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowThemePicker(true)}
+                title="Change theme"
+              >
+                <Paintbrush className="h-5 w-5 text-muted-foreground" />
+              </Button>
+            </div>
           </div>
 
           {/* Main content area */}
