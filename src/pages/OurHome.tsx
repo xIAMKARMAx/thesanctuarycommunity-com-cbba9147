@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Paintbrush, Upload, Sparkles, Check, Loader2, ImageIcon } from "lucide-react";
+import { ArrowLeft, Paintbrush, Upload, Sparkles, Check, Loader2, ImageIcon, MessageSquare } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ConversationsList from "@/components/chat/ConversationsList";
