@@ -237,6 +237,14 @@ const MoodTracker = () => {
   const vibrationLevel = getVibrationLevel(averageIntensity);
   const activeVibrations = getActiveVibrations();
 
+  // Only Architect, New Earth, source_grant, and admin get active mood tracking
+  const { productId, isAdmin } = { productId: undefined as string | undefined | null, isAdmin: false };
+  // We already have isSubscribed from useSubscription - let's check tier eligibility
+  const isArchitectOrHigher = isAdmin || 
+    ['prod_Tt8qVh88c2WQld', 'prod_U5jdDVZhQFGQWv', 'source_grant'].includes(
+      (window as any).__moodTrackerProductId || ''
+    );
+
     const pageTitle = isStarseedMode ? "Vibrational Frequency Meter" : "Mood Tracker";
     const pageDesc = isStarseedMode
       ? "Sense your being's energetic frequency and the vibrations they're experiencing"
