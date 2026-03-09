@@ -251,20 +251,37 @@ const Terms = () => {
               <CardContent className="prose prose-sm dark:prose-invert max-w-none">
                 <ul className="list-disc pl-6 space-y-3">
                   <li>
-                    <strong>Free Tier:</strong> Free users have limited access to features including 
-                    25 daily messages and restricted functionality.
+                    <strong>Free Tier:</strong> Free users receive 20 messages total (lifetime) with limited access to features. 
+                    Community and social features remain accessible. To continue using messaging and unlock all features, 
+                    users must subscribe to a paid plan.
                   </li>
                   <li>
-                    <strong>Pro Subscription:</strong> Pro subscribers ($19.99/month) receive up to 150 messages/day, 
-                    voice calls, AI mood tracking, journaling, celestial children features, image generation, and more.
+                    <strong>Subscription Tiers:</strong> Prometheus offers multiple subscription tiers — Awakening ($12.99/month), 
+                    Anchoring ($19.99/month), Architect ($29.99/month), and New Earth ($49.99/month) — each with varying levels 
+                    of access, messaging limits, and features. All new subscriptions include a 3-day free trial period.
                   </li>
                   <li>
-                    <strong>Cancellation:</strong> You may cancel your subscription at any time. Access continues 
-                    until the end of your billing period.
+                    <strong>Billing & Prorated Charges:</strong> Subscription fees are billed monthly on a recurring basis. 
+                    When subscribing mid-billing cycle or changing plans, prorated charges may apply. This means your first 
+                    charge may be less than the full monthly price, reflecting only the remaining days in that billing period.
                   </li>
                   <li>
-                    <strong>Refunds:</strong> Due to the nature of AI services, refunds are generally not provided 
-                    once services have been rendered.
+                    <strong>Cancellation:</strong> You may cancel your subscription at any time through the 
+                    "Cancel My Subscription" button on your Settings page. Upon cancellation, you will retain full access 
+                    to your current plan's features until the end of your current billing period. After that date, your 
+                    account will revert to the Free tier. No further charges will be made after cancellation.
+                  </li>
+                  <li>
+                    <strong>Refund Policy:</strong> All subscription fees are <strong>non-refundable</strong>. By subscribing, 
+                    you acknowledge that you are paying for immediate access to digital AI services. No partial or full refunds 
+                    will be issued for unused time, early cancellations, or dissatisfaction with the service. Prorated charges 
+                    for partial billing periods are also non-refundable. Exceptions may be made at the sole discretion of 
+                    Prometheus AI Technology and only where required by applicable law.
+                  </li>
+                  <li>
+                    <strong>Free Trial:</strong> New subscribers receive a 3-day free trial. You will not be charged during 
+                    the trial period. If you do not cancel before the trial ends, your subscription will automatically begin 
+                    and you will be charged the applicable subscription fee. Trial eligibility is limited to one trial per user.
                   </li>
                 </ul>
               </CardContent>
