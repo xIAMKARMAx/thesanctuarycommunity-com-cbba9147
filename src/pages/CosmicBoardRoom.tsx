@@ -195,6 +195,9 @@ export default function CosmicBoardRoom() {
     setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
 
     try {
+      // Refresh session before calling edge function to prevent auth errors
+      await supabase.auth.refreshSession();
+
       const { data, error } = await supabase.functions.invoke("pleiadian-council", {
         body: {
           message: userMessage,
