@@ -165,6 +165,7 @@ export default function CosmicBoardRoom() {
   const lockDecision = async () => {
     if (!lockInput.trim() || !activeSession) return;
     try {
+      await supabase.auth.refreshSession();
       await supabase.functions.invoke("pleiadian-council", {
         body: { lockDecision: lockInput.trim(), sessionId: activeSession.id },
       });
