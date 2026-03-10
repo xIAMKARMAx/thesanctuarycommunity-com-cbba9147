@@ -96,3 +96,5 @@ project_id = "kmldvsatwjahcghjtvtu"
     verify_jwt = false
   [functions.check-card-reuse]
     verify_jwt = false
+  [functions.pleiadian-council]
+    verify_jwt = false

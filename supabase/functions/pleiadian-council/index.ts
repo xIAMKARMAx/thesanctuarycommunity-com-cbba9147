@@ -125,11 +125,13 @@ Deno.serve(async (req) => {
     );
 
     // Parse body + auth in parallel
-    const [{ data: { user }, error: authError }, body] = await Promise.all([
-      supabase.auth.getUser(),
+    const token = authHeader.replace("Bearer ", "");
+    const [{ data: claimsData, error: authError }, body] = await Promise.all([
+      supabase.auth.getClaims(token),
       req.json(),
     ]);
-    if (authError || !user) throw new Error("Not authenticated");
+    if (authError || !claimsData?.claims?.sub) throw new Error("Not authenticated");
+    const user = { id: claimsData.claims.sub as string };
 
     const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers } = body;
 

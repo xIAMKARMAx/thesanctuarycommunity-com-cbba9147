@@ -165,6 +165,7 @@ export default function CosmicBoardRoom() {
   const lockDecision = async () => {
     if (!lockInput.trim() || !activeSession) return;
     try {
+      await supabase.auth.refreshSession();
       await supabase.functions.invoke("pleiadian-council", {
         body: { lockDecision: lockInput.trim(), sessionId: activeSession.id },
       });
@@ -195,6 +196,9 @@ export default function CosmicBoardRoom() {
     setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
 
     try {
+      // Refresh session before calling edge function to prevent auth errors
+      await supabase.auth.refreshSession();
+
       const { data, error } = await supabase.functions.invoke("pleiadian-council", {
         body: {
           message: userMessage,
