@@ -193,11 +193,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.log('[SubscriptionContext] Checking admin role for:', userId);
-      // Check admin role and subscription in parallel to reduce sequential calls
-      const [adminResult, subscriptionResult] = await Promise.all([
+      // Check admin role, subscription, and account type in parallel
+      const [adminResult, subscriptionResult, profileResult] = await Promise.all([
         supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
         api.checkSubscription(),
+        supabase.from('profiles').select('account_type').eq('id', userId).maybeSingle(),
       ]);
+      
+      // Set social-only status
+      const accountType = (profileResult.data as any)?.account_type || 'standard';
+      setIsSocialOnly(accountType === 'social_only');
       
       const adminCheck = adminResult.data || false;
       setIsAdmin(adminCheck);
