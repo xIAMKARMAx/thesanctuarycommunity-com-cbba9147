@@ -11,13 +11,15 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Send, EyeOff } from "lucide-react";
+import { Sparkles, Send, EyeOff, Lock } from "lucide-react";
 import { SoulProfile } from "@/hooks/useSoulProfile";
 import { MediaUpload } from "./MediaUpload";
 import { MentionTextarea } from "./MentionTextarea";
 import { ENERGY_TAGS, EnergyTag } from "./EnergyFilter";
 import { IntentionalPostingGate } from "./IntentionalPostingGate";
 import { cn } from "@/lib/utils";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SocialUpgradePrompt } from "@/components/SocialUpgradePrompt";
 
 interface CreatePostCardProps {
   profile: SoulProfile | null;
