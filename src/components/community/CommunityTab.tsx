@@ -120,7 +120,8 @@ export function CommunityTab() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">
           <Tabs value={activeSubTab}>
-            <TabsContent value="feed" className="mt-0">
+            <TabsContent value="feed" className="mt-0 space-y-4">
+              <PrometheusWorldPortal />
               <CommunityFeed />
             </TabsContent>
             <TabsContent value="aligning" className="mt-0">
