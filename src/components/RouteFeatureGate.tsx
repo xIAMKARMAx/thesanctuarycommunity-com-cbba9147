@@ -1,7 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { FeatureGate } from "@/components/FeatureGate";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SocialUpgradePrompt } from "@/components/SocialUpgradePrompt";
 
 /**
  * Feature gate definitions: maps routes to their required tier and display info.
