@@ -4,7 +4,10 @@ import { Users, Globe, Sparkles } from "lucide-react";
 
 export function WorldActivityFeed() {
   const { defaultWorldId } = useDefaultWorld();
-  const { visitors, visitorCount } = useWorldPresence(defaultWorldId, !!defaultWorldId);
+  const { visitors, visitorCount } = useWorldPresence(defaultWorldId, {
+    enabled: !!defaultWorldId,
+    trackSelf: false,
+  });
 
   if (visitorCount === 0) {
     return (
