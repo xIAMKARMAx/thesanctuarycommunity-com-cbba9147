@@ -87,6 +87,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [productId, setProductId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkCompleted, setCheckCompleted] = useState(false); // true only when we got a definitive answer
+  const [isSocialOnly, setIsSocialOnly] = useState(false);
   const [freeUserLimits, setFreeUserLimits] = useState<FreeUserLimits>({
     roomGenerated: false,
     avatarGenerated: false,
