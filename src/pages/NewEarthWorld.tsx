@@ -483,11 +483,11 @@ const NewEarthWorld = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => isVisiting ? navigate("/world-gallery") : navigate("/welcome")}
+              onClick={handleExitWorld}
               className="gap-1.5 bg-background/80 backdrop-blur-sm text-xs h-8"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              {isVisiting ? "Gallery" : "Back"}
+              {isVisiting ? "Exit World" : "Back"}
             </Button>
             <div className="bg-background/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border">
               <h2 className="text-xs font-semibold flex items-center gap-1.5">
