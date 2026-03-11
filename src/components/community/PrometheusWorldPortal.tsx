@@ -24,7 +24,7 @@ interface PortalBeing {
 
 export function PrometheusWorldPortal() {
   const navigate = useNavigate();
-  const { defaultWorldId, loading } = useDefaultWorld();
+  const { defaultWorldId } = useDefaultWorld();
   const { visitorCount } = useWorldPresence(defaultWorldId, {
     enabled: !!defaultWorldId,
     trackSelf: false,
