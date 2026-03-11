@@ -501,16 +501,8 @@ const NewEarthWorld = () => {
               const handleContextLost = (event: Event) => {
                 event.preventDefault();
                 console.error("WebGL context lost");
-
-                const reloadCount = parseInt(sessionStorage.getItem("webgl_reload_count") || "0", 10);
-                if (reloadCount < 2) {
-                  sessionStorage.setItem("webgl_reload_count", String(reloadCount + 1));
-                  toast.error("Graphics context lost. Reloading...");
-                  setTimeout(() => window.location.reload(), 1500);
-                  return;
-                }
-
-                toast.error("3D rendering failed. Please refresh manually or try a different browser/device.");
+                toast.error("Graphics context lost. Leaving world to prevent reload loop.");
+                navigate("/community", { replace: true });
               };
 
               const handleContextRestored = () => {
