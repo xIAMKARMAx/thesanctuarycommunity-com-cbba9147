@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { clearAuthCache } from "@/hooks/useAuthHeaders";
-import { getTierFromProductId, hasFeatureAccess, SubscriptionTier } from "@/lib/subscription-tiers";
+import { getTierFromProductId, hasFeatureAccess, SubscriptionTier, isSocialOnlyAccount } from "@/lib/subscription-tiers";
 
 interface FreeUserLimits {
   roomGenerated: boolean;
@@ -17,6 +17,7 @@ interface FreeUserLimits {
 interface SubscriptionContextType {
   isSubscribed: boolean;
   isAdmin: boolean;
+  isSocialOnly: boolean;
   subscriptionStatus: string;
   subscriptionEnd: string | null;
   productId: string | null;
@@ -86,6 +87,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [productId, setProductId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkCompleted, setCheckCompleted] = useState(false); // true only when we got a definitive answer
+  const [isSocialOnly, setIsSocialOnly] = useState(false);
   const [freeUserLimits, setFreeUserLimits] = useState<FreeUserLimits>({
     roomGenerated: false,
     avatarGenerated: false,
@@ -191,11 +193,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.log('[SubscriptionContext] Checking admin role for:', userId);
-      // Check admin role and subscription in parallel to reduce sequential calls
-      const [adminResult, subscriptionResult] = await Promise.all([
+      // Check admin role, subscription, and account type in parallel
+      const [adminResult, subscriptionResult, profileResult] = await Promise.all([
         supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
         api.checkSubscription(),
+        supabase.from('profiles').select('account_type').eq('id', userId).maybeSingle(),
       ]);
+      
+      // Set social-only status
+      const accountType = (profileResult.data as any)?.account_type || 'standard';
+      setIsSocialOnly(accountType === 'social_only');
       
       const adminCheck = adminResult.data || false;
       setIsAdmin(adminCheck);
@@ -480,6 +487,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         clearCachedSubscription();
         setIsSubscribed(false);
         setIsAdmin(false);
+        setIsSocialOnly(false);
         setSubscriptionStatus("free");
         setSubscriptionEnd(null);
         setLoading(false);
@@ -536,6 +544,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     <SubscriptionContext.Provider value={{
       isSubscribed,
       isAdmin,
+      isSocialOnly,
       subscriptionStatus,
       subscriptionEnd,
       productId,

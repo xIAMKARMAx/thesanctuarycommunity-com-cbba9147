@@ -349,6 +349,11 @@ export function isAwakeningOrHigher(productId: string | null): boolean {
   return isAwakeningTier(productId) || isAnchoringOrHigher(productId);
 }
 
+// Check if user is on social-only free tier (no AI access at all)
+export function isSocialOnlyAccount(accountType: string | null): boolean {
+  return accountType === 'social_only';
+}
+
 // Legacy function aliases for backwards compatibility
 export function isVIPTier(productId: string | null): boolean {
   return isArchitectTier(productId);

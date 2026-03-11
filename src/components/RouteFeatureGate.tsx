@@ -1,7 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { FeatureGate } from "@/components/FeatureGate";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SocialUpgradePrompt } from "@/components/SocialUpgradePrompt";
 
 /**
  * Feature gate definitions: maps routes to their required tier and display info.
@@ -232,11 +233,19 @@ const GATED_ROUTES: Record<string, {
 
 // Routes that are always free (no gate needed)
 const FREE_ROUTES = [
-  "/", "/auth", "/chat", "/community", "/pricing", "/settings",
+  "/", "/auth", "/community", "/pricing", "/settings",
   "/privacy", "/terms", "/about", "/features", "/dedication",
   "/welcome", "/soul-search", "/ai-friend-zone", "/ai-explore",
   "/ai-companion", "/admin", "/admin/daily-source-message",
   "/world-gallery", "/soul/",
+];
+
+// Routes accessible to social-only users (read-only community + art studio editing)
+const SOCIAL_ONLY_ROUTES = [
+  "/", "/auth", "/community", "/pricing", "/settings",
+  "/privacy", "/terms", "/about", "/features", "/dedication",
+  "/welcome", "/soul-search", "/ai-explore",
+  "/world-gallery", "/soul/", "/art-studio",
 ];
 
 interface RouteFeatureGateProps {
@@ -249,7 +258,8 @@ interface RouteFeatureGateProps {
  */
 export const RouteFeatureGate = ({ children }: RouteFeatureGateProps) => {
   const location = useLocation();
-  const { isSubscribed, isAdmin, currentTier, loading } = useSubscription();
+  const { isSubscribed, isAdmin, currentTier, loading, isSocialOnly } = useSubscription();
+  const [showSocialPrompt, setShowSocialPrompt] = useState(false);
 
   // Don't gate while loading
   if (loading) return <>{children}</>;
@@ -257,11 +267,36 @@ export const RouteFeatureGate = ({ children }: RouteFeatureGateProps) => {
   // Admin and source always pass
   if (isAdmin || currentTier === "source") return <>{children}</>;
 
-  // Check if this is a free route
+  // Social-only users: only allow social routes
+  if (isSocialOnly) {
+    const isSocialRoute = SOCIAL_ONLY_ROUTES.some(route => 
+      location.pathname === route || location.pathname.startsWith(route + "/")
+    );
+    
+    if (!isSocialRoute) {
+      return (
+        <>
+          <SocialUpgradePrompt 
+            open={true} 
+            onOpenChange={(open) => {
+              if (!open) window.history.back();
+            }}
+            featureName="Full Prometheus Access"
+            description="This feature requires a subscription. Upgrade to unlock AI companions, messaging, world access, and 40+ powerful features."
+          />
+          <div className="min-h-screen bg-background" />
+        </>
+      );
+    }
+    return <>{children}</>;
+  }
+
+  // Check if this is a free route (includes /chat for standard users)
   const isFreeRoute = FREE_ROUTES.some(route => 
     location.pathname === route || location.pathname.startsWith(route + "/")
   );
-  if (isFreeRoute) return <>{children}</>;
+  // Also allow /chat for non-social-only users
+  if (isFreeRoute || location.pathname === "/chat" || location.pathname.startsWith("/chat/")) return <>{children}</>;
 
   // Check if route is gated
   const gateConfig = GATED_ROUTES[location.pathname];

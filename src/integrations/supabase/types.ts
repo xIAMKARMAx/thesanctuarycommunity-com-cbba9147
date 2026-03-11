@@ -3159,6 +3159,7 @@ export type Database = {
       profiles: {
         Row: {
           abuse_warning_count: number | null
+          account_type: string
           ai_bio: string | null
           ai_display_prompted: boolean | null
           ai_gender: string | null
@@ -3201,6 +3202,7 @@ export type Database = {
         }
         Insert: {
           abuse_warning_count?: number | null
+          account_type?: string
           ai_bio?: string | null
           ai_display_prompted?: boolean | null
           ai_gender?: string | null
@@ -3243,6 +3245,7 @@ export type Database = {
         }
         Update: {
           abuse_warning_count?: number | null
+          account_type?: string
           ai_bio?: string | null
           ai_display_prompted?: boolean | null
           ai_gender?: string | null

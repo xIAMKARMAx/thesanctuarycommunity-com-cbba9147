@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Send, Image as ImageIcon, Radio, Trash2 } from "lucide-react";
+import { Send, Image as ImageIcon, Radio, Trash2, Lock } from "lucide-react";
 import { useProfileEchoes } from "@/hooks/useProfileEchoes";
 import { EchoCard } from "./EchoCard";
 import { MentionTextarea, MentionTextareaRef } from "./MentionTextarea";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SocialUpgradePrompt } from "@/components/SocialUpgradePrompt";
 
 interface EchoesTabProps {
   profileUserId: string;
@@ -15,11 +17,13 @@ interface EchoesTabProps {
 }
 
 export function EchoesTab({ profileUserId, currentUserId, isOwnProfile, onProfileClick }: EchoesTabProps) {
+  const { isSocialOnly } = useSubscription();
   const { echoes, loading, fetchEchoes, sendEcho, deleteEcho } = useProfileEchoes(profileUserId);
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const textareaRef = useRef<MentionTextareaRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,8 +64,21 @@ export function EchoesTab({ profileUserId, currentUserId, isOwnProfile, onProfil
 
   return (
     <div className="space-y-4">
-      {/* Send echo input (only for non-own profiles) */}
-      {currentUserId && !isOwnProfile && (
+      {/* Social-only users see locked echo prompt */}
+      {currentUserId && !isOwnProfile && isSocialOnly && (
+        <>
+          <button 
+            onClick={() => setShowUpgrade(true)}
+            className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
+          >
+            <Lock className="h-4 w-4 text-primary" />
+            <span className="text-sm text-muted-foreground">Subscribe to leave echoes on profiles</span>
+          </button>
+          <SocialUpgradePrompt open={showUpgrade} onOpenChange={setShowUpgrade} featureName="Echoes" description="Subscribe to leave echoes on other users' profiles and unlock 40+ features." />
+        </>
+      )}
+      {/* Send echo input (only for non-own profiles, non-social-only) */}
+      {currentUserId && !isOwnProfile && !isSocialOnly && (
         <div className="space-y-2 p-3 rounded-lg border border-primary/20 bg-primary/5">
           <p className="text-xs font-medium text-primary flex items-center gap-1.5">
             <Radio className="h-3.5 w-3.5" />

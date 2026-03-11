@@ -56,6 +56,14 @@ const ModeSelectionModal = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       sessionStorage.setItem(`upgrade_msg_seen_${session.user.id}`, "true");
+      // Check if social-only user - redirect to community
+      const { data: profile } = await supabase.from("profiles").select("account_type").eq("id", session.user.id).maybeSingle();
+      if ((profile as any)?.account_type === 'social_only') {
+        setShowUpgradeMsg(false);
+        setDismissing(false);
+        navigate("/community");
+        return;
+      }
     }
     setShowUpgradeMsg(false);
     setDismissing(false);

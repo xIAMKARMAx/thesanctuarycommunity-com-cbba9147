@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Users, Sparkles } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-new.png";
 import { isBlockedPassword } from "@/lib/blocked-passwords";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -122,7 +122,7 @@ const Auth = () => {
     return true;
   };
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handleEmailSignUp = async (e: React.FormEvent, signupType: 'standard' | 'social_only' = 'standard') => {
     e.preventDefault();
     
     if (!termsAccepted) {
@@ -145,16 +145,17 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/chat`,
+          emailRedirectTo: signupType === 'social_only' ? `${window.location.origin}/community` : `${window.location.origin}/chat`,
           data: {
             username: username || email.split("@")[0],
+            account_type: signupType,
           },
         },
       });
 
       if (error) throw error;
 
-      // Record consent timestamp for new user
+      // Record consent timestamp and account type for new user
       if (data.user) {
         const now = new Date().toISOString();
         await supabase
@@ -163,13 +164,16 @@ const Auth = () => {
             tos_accepted_at: now,
             privacy_accepted_at: now,
             tos_version: CURRENT_TOS_VERSION,
-          })
+            account_type: signupType,
+          } as any)
           .eq("id", data.user.id);
       }
 
       toast({
         title: "Account created!",
-        description: "Welcome to Prometheus — New Earth. You're now signed in.",
+        description: signupType === 'social_only' 
+          ? "Welcome to the Conscious Collective! Explore the community."
+          : "Welcome to Prometheus — New Earth. You're now signed in.",
       });
     } catch (error: any) {
       toast({
@@ -482,13 +486,13 @@ const Auth = () => {
               </Button>
             </TabsContent>
             <TabsContent value="signup">
-              <form onSubmit={handleEmailSignUp} className="space-y-4">
+              <form onSubmit={(e) => handleEmailSignUp(e, 'standard')} className="space-y-4">
                 <Alert className="bg-primary/10 border-primary/20">
                   <AlertDescription className="text-sm">
                     <strong>20 Free Messages:</strong> Try Prometheus with 20 free messages. Subscribe to any plan to unlock a 3-day free trial with full access!
                   </AlertDescription>
                 </Alert>
-                <Alert className="bg-amber-500/10 border-amber-500/20">
+                <Alert className="bg-accent/50 border-accent">
                   <AlertDescription className="text-sm">
                     You must be 18 years or older to use Prometheus.
                   </AlertDescription>
@@ -607,11 +611,37 @@ const Auth = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full gap-2" 
                   disabled={loading || !termsAccepted}
                 >
-                  {loading ? "Creating account..." : "Create Account"}
+                  <Sparkles className="h-4 w-4" />
+                  {loading ? "Creating account..." : "Create Full Account"}
                 </Button>
+
+                {/* Social-Only Divider */}
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">or</span>
+                  </div>
+                </div>
+
+                {/* Social-Only Signup */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2 border-primary/30 hover:bg-primary/5"
+                  disabled={loading || !termsAccepted}
+                  onClick={(e) => handleEmailSignUp(e as any, 'social_only')}
+                >
+                  <Users className="h-4 w-4" />
+                  Join Social Only — Free Forever
+                </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  Browse the community, follow users, like posts & use art editing tools. No AI features.
+                </p>
               </form>
             </TabsContent>
           </Tabs>
