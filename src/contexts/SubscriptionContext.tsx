@@ -17,6 +17,7 @@ interface FreeUserLimits {
 interface SubscriptionContextType {
   isSubscribed: boolean;
   isAdmin: boolean;
+  isSocialOnly: boolean;
   subscriptionStatus: string;
   subscriptionEnd: string | null;
   productId: string | null;
