@@ -249,22 +249,31 @@ const NewEarthWorld = () => {
 
   const loadVisitingWorld = async (worldId: string) => {
     try {
-      const { data: visitWorld } = await supabase
+      // First check if it's the default world (accessible to all)
+      const { data: defaultCheck } = await supabase
         .from("user_worlds")
         .select("*")
         .eq("id", worldId)
-        .eq("is_public", true)
         .maybeSingle() as any;
 
-      if (!visitWorld) {
+      if (!defaultCheck) {
+        toast.error("World not found");
+        navigate("/world-gallery");
+        return;
+      }
+
+      // Allow access if it's the default world OR if it's public
+      if (!defaultCheck.is_default && !defaultCheck.is_public) {
         toast.error("World not found or is private");
         navigate("/world-gallery");
         return;
       }
 
-      setWorld(visitWorld as UserWorld);
+      if (defaultCheck.is_default) setIsDefaultWorld(true);
+
+      setWorld(defaultCheck as UserWorld);
       setIsVisiting(true);
-      await loadStructures(visitWorld.id, visitWorld.terrain_seed, visitWorld.user_id);
+      await loadStructures(defaultCheck.id, defaultCheck.terrain_seed, defaultCheck.user_id);
 
       const { data: profile } = await supabase
         .from("soul_profiles")
