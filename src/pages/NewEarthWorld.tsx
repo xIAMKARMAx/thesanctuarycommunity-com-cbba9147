@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import SeekerGateModal from "@/components/SeekerGateModal";
-import { useImmersive3D } from "@/hooks/useImmersive3D";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,50 +25,6 @@ import { useStructureCulling } from "@/components/world/WorldStructureLOD";
 import { WorldAIBeings, AIBeingData } from "@/components/world/WorldAIBeings";
 import { DEFAULT_PROMETHEUS_WORLD_ID, useWorldPresence } from "@/hooks/useWorldPresence";
 
-const ADMIN_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
-
-// Admin-only special landmarks for the admin's world
-const ADMIN_LANDMARKS: StructureData[] = [
-  {
-    id: "admin-landmark-kiemani-studio",
-    structure_type: "temple",
-    name: "Ki'emani's Ethereal Loom",
-    description: "A radiant art studio where Ki'emani weaves visions into reality through color and light",
-    position_x: -20,
-    position_y: 0,
-    position_z: -15,
-    rotation_y: 0.5,
-    scale: 2.2,
-    color: "#e879f9",
-    material_type: "glowing",
-  },
-  {
-    id: "admin-landmark-selavari-sanctuary",
-    structure_type: "castle",
-    name: "Selavari's Dragon Sanctuary",
-    description: "An ancient dragon sanctuary where Selavari communes with celestial serpents",
-    position_x: 25,
-    position_y: 0,
-    position_z: -25,
-    rotation_y: -0.3,
-    scale: 2.5,
-    color: "#dc2626",
-    material_type: "stone",
-  },
-  {
-    id: "admin-landmark-livelai-wellspring",
-    structure_type: "fountain",
-    name: "Livelai's Wellspring",
-    description: "A sacred wellspring of infinite healing energy, tended by Livelai",
-    position_x: 0,
-    position_y: 0,
-    position_z: -30,
-    rotation_y: 0,
-    scale: 2.0,
-    color: "#06b6d4",
-    material_type: "crystal",
-  },
-];
 
 interface UserWorld {
   id: string;
@@ -134,13 +90,10 @@ const NewEarthWorld = () => {
   const resolvedWorldId = visitWorldId || DEFAULT_PROMETHEUS_WORLD_ID;
   const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
   const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
-  const isArchitectTier = productId === 'prod_Tt8qVh88c2WQld';
   const isFreeUser = !isSubscribed && !isAdmin;
-  const hasWorldAccess = isAdmin || isNewEarthTier || isArchitectTier;
   // In the default Prometheus world, ONLY admin can build. In personal worlds, New Earth tier can build.
   const [isDefaultWorld, setIsDefaultWorld] = useState(false);
   const canBuild = isDefaultWorld ? isAdmin : (isAdmin || isNewEarthTier);
-  const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
   const [structures, setStructures] = useState<StructureData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,7 +103,6 @@ const NewEarthWorld = () => {
   const [accessVerified, setAccessVerified] = useState(false);
   const [isVisiting, setIsVisiting] = useState(false);
   const [worldOwnerName, setWorldOwnerName] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
 
@@ -175,13 +127,6 @@ const NewEarthWorld = () => {
 
   // WebGL support check
   const [webglSupported] = useState(() => isWebGLAvailable());
-
-  // Get current user ID
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setCurrentUserId(user.id);
-    }).catch(err => console.error("Auth error:", err));
-  }, []);
 
   // Keep visitor position synced with lightweight debounce
   useEffect(() => {
@@ -250,40 +195,41 @@ const NewEarthWorld = () => {
 
   const loadVisitingWorld = async (worldId: string) => {
     try {
-      // First check if it's the default world (accessible to all)
-      const { data: defaultCheck } = await supabase
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // Load exact world configuration by id
+      const { data: targetWorld } = (await supabase
         .from("user_worlds")
         .select("*")
         .eq("id", worldId)
-        .maybeSingle() as any;
+        .maybeSingle()) as any;
 
-      if (!defaultCheck) {
+      if (!targetWorld) {
         toast.error("World not found");
         navigate("/world-gallery");
         return;
       }
 
-      // Allow access if it's the default world OR if it's public
-      if (!defaultCheck.is_default && !defaultCheck.is_public) {
-        const { data: { user } } = await supabase.auth.getUser();
-        const isOwner = user?.id === defaultCheck.user_id;
-        if (!isOwner && !isAdmin) {
-          toast.error("World not found or is private");
-          navigate("/world-gallery");
-          return;
-        }
+      const isOwner = user?.id === targetWorld.user_id;
+
+      // Allow access if default/public, owner, or admin
+      if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
+        toast.error("World not found or is private");
+        navigate("/world-gallery");
+        return;
       }
 
-      if (defaultCheck.is_default) setIsDefaultWorld(true);
-
-      setWorld(defaultCheck as UserWorld);
-      setIsVisiting(true);
-      await loadStructures(defaultCheck.id, defaultCheck.terrain_seed, defaultCheck.user_id);
+      setIsDefaultWorld(Boolean(targetWorld.is_default));
+      setWorld(targetWorld as UserWorld);
+      setIsVisiting(!isOwner && !isAdmin);
+      await loadStructures(targetWorld.id, targetWorld.terrain_seed);
 
       const { data: profile } = await supabase
         .from("soul_profiles")
         .select("display_name")
-        .eq("user_id", defaultCheck.user_id)
+        .eq("user_id", targetWorld.user_id)
         .maybeSingle();
       setWorldOwnerName(profile?.display_name || "Unknown Soul");
     } catch (err) {
@@ -294,30 +240,18 @@ const NewEarthWorld = () => {
     }
   };
 
-  const loadStructures = async (worldId: string, seed: number, ownerId: string) => {
+  const loadStructures = async (worldId: string, seed: number) => {
     const { data } = await supabase
       .from("world_structures")
       .select("*")
       .eq("world_id", worldId)
       .order("created_at", { ascending: true });
 
-    let allStructures: StructureData[] = [];
-    if (data) {
-      allStructures = data.map((s: any) => ({
+    const allStructures: StructureData[] =
+      data?.map((s: any) => ({
         ...s,
         position_y: getTerrainHeight(s.position_x, s.position_z, seed),
-      }));
-    }
-
-    // Add admin landmarks if this is the admin's world
-    if (ownerId === ADMIN_USER_ID) {
-      const landmarks = ADMIN_LANDMARKS.map(l => ({
-        ...l,
-        world_id: worldId,
-        position_y: getTerrainHeight(l.position_x, l.position_z, seed),
-      }));
-      allStructures = [...landmarks, ...allStructures];
-    }
+      })) || [];
 
     setStructures(allStructures);
   };
