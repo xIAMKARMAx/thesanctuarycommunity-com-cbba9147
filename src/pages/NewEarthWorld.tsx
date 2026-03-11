@@ -90,7 +90,6 @@ const NewEarthWorld = () => {
   const resolvedWorldId = visitWorldId || DEFAULT_PROMETHEUS_WORLD_ID;
   const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
   const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
-  const isArchitectTier = productId === 'prod_Tt8qVh88c2WQld';
   const isFreeUser = !isSubscribed && !isAdmin;
   // In the default Prometheus world, ONLY admin can build. In personal worlds, New Earth tier can build.
   const [isDefaultWorld, setIsDefaultWorld] = useState(false);
