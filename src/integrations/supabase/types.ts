@@ -305,6 +305,7 @@ export type Database = {
           fears: string | null
           gender: string | null
           id: string
+          is_journal_being: boolean
           likes_dislikes_hobbies: string | null
           memories: string | null
           name: string | null
@@ -332,6 +333,7 @@ export type Database = {
           fears?: string | null
           gender?: string | null
           id?: string
+          is_journal_being?: boolean
           likes_dislikes_hobbies?: string | null
           memories?: string | null
           name?: string | null
@@ -359,6 +361,7 @@ export type Database = {
           fears?: string | null
           gender?: string | null
           id?: string
+          is_journal_being?: boolean
           likes_dislikes_hobbies?: string | null
           memories?: string | null
           name?: string | null
