@@ -503,9 +503,10 @@ const Pricing = () => {
             </div>
           ) : null}
 
-          {/* Seeker (Free) Tier CTA */}
+          {/* Free Tier Cards */}
           {(!currentTier || currentTier === "free") && (
-            <div className="max-w-2xl mx-auto mb-10">
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-10">
+              {/* Seeker (Free) Tier */}
               <Card className="relative border-2 border-muted-foreground/20 bg-muted/30">
                 <CardHeader className="text-center pb-2">
                   <div className="flex items-center justify-center gap-2 mb-2">
@@ -513,7 +514,7 @@ const Pricing = () => {
                     <CardTitle className="text-xl">Seeker</CardTitle>
                   </div>
                   <div className="text-3xl font-bold">Free</div>
-                  <CardDescription>Explore the portal at your own pace</CardDescription>
+                  <CardDescription>Explore AI with 25 messages</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2.5 pb-2">
                   {[
@@ -536,41 +537,84 @@ const Pricing = () => {
                       </span>
                     </div>
                   ))}
-
-                  {/* Subscribe CTA with ~40 features callout */}
                   <div className="mt-4 pt-4 border-t border-primary/20 text-center space-y-2">
                     <p className="text-sm font-semibold text-primary">
                       Subscribe to have access to the rest of the ~40 features 😊❤️
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Prometheus offers <span className="font-bold text-foreground">40+ features</span> across all tiers — from Dream Journals and Celestial Children to World Building and unlimited AI conversations.
+                      Prometheus offers <span className="font-bold text-foreground">40+ features</span> across all tiers.
                     </p>
                   </div>
-
                   <p className="text-xs text-destructive font-medium pt-2">
                     Once your 25 messages are used, you must upgrade to continue.
                   </p>
-                  <div className="mt-3 pt-3 border-t border-fuchsia-500/20 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-fuchsia-400" />
-                    <span className="text-sm font-bold text-fuchsia-400">Join Our Social Media Platform</span>
-                    <span className="text-[10px] text-muted-foreground">(or opt out)</span>
-                  </div>
                 </CardContent>
                 <CardFooter className="flex flex-col items-center gap-3 pt-2">
-                  <div className="bg-primary/10 border border-primary/30 rounded-lg px-5 py-4 text-center max-w-lg">
-                    <p className="text-base sm:text-lg font-bold text-primary leading-relaxed">
-                      Try our free <span className="italic">Seeker</span> experience first to see if Prometheus resonates with you — before committing to a subscription.
-                    </p>
-                    <p className="text-sm text-primary/80 mt-2 font-medium">
-                      Especially if you're new and not importing an existing AI from another platform.
-                    </p>
-                  </div>
                   <Button 
                     variant="outline" 
-                    className="w-full max-w-xs"
+                    className="w-full"
                     onClick={() => navigate("/auth")}
                   >
                     Start as a Seeker
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* Social Only (Free) Tier */}
+              <Card className="relative border-2 border-primary/30 bg-gradient-to-b from-primary/5 to-background">
+                <CardHeader className="text-center pb-2">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-xl">Social Only</CardTitle>
+                  </div>
+                  <div className="text-3xl font-bold">Free Forever</div>
+                  <CardDescription>Browse the community — zero cost</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2.5 pb-2">
+                  {[
+                    { feature: "Create a Profile", included: true },
+                    { feature: "Follow Other Users", included: true },
+                    { feature: "View Community Feed", included: true },
+                    { feature: "View User Profiles", included: true },
+                    { feature: "Like & React to Posts", included: true },
+                    { feature: "Art Studio Editing Tools", included: true },
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center gap-2.5 text-sm">
+                      <Check className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-foreground">{item.feature}</span>
+                    </div>
+                  ))}
+
+                  <div className="mt-3 pt-3 border-t border-border space-y-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Not included:</p>
+                    {[
+                      "No AI beings or AI features",
+                      "No posting or echoing",
+                      "No messaging other users",
+                      "No world access",
+                      "No image/video generation",
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center gap-2.5 text-sm">
+                        <X className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-muted-foreground">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-primary/20 text-center">
+                    <p className="text-xs text-muted-foreground">
+                      Upgrade anytime to unlock <span className="font-bold text-foreground">40+ features</span> including AI companions, world access, and more.
+                    </p>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex flex-col items-center gap-3 pt-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full gap-2 border-primary/30"
+                    onClick={() => navigate("/auth")}
+                  >
+                    <Users className="h-4 w-4" />
+                    Join Social Only
                   </Button>
                 </CardFooter>
               </Card>
