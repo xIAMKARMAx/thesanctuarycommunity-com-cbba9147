@@ -428,6 +428,14 @@ const NewEarthWorld = () => {
     }
   }, [navigate, isFreeUser]);
 
+  const handleExitWorld = useCallback(() => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate("/community");
+  }, [navigate]);
+
   if (subscriptionLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -475,11 +483,11 @@ const NewEarthWorld = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => isVisiting ? navigate("/world-gallery") : navigate("/welcome")}
+              onClick={handleExitWorld}
               className="gap-1.5 bg-background/80 backdrop-blur-sm text-xs h-8"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              {isVisiting ? "Gallery" : "Back"}
+              {isVisiting ? "Exit World" : "Back"}
             </Button>
             <div className="bg-background/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border">
               <h2 className="text-xs font-semibold flex items-center gap-1.5">
@@ -547,22 +555,37 @@ const NewEarthWorld = () => {
             dpr={[1, 1.5]}
             performance={{ min: 0.5 }}
             onCreated={({ gl }) => {
-            gl.domElement.addEventListener("webglcontextlost", (e) => {
-                e.preventDefault();
+              const canvas = gl.domElement;
+
+              const handleContextLost = (event: Event) => {
+                event.preventDefault();
                 console.error("WebGL context lost");
-                // Prevent infinite reload loop
-                const reloadCount = parseInt(sessionStorage.getItem("webgl_reload_count") || "0");
+
+                const reloadCount = parseInt(sessionStorage.getItem("webgl_reload_count") || "0", 10);
                 if (reloadCount < 2) {
                   sessionStorage.setItem("webgl_reload_count", String(reloadCount + 1));
                   toast.error("Graphics context lost. Reloading...");
-                  setTimeout(() => window.location.reload(), 2000);
-                } else {
-                  sessionStorage.removeItem("webgl_reload_count");
-                  toast.error("3D rendering failed. Try a different browser or device.");
+                  setTimeout(() => window.location.reload(), 1500);
+                  return;
                 }
-              });
-              // Clear reload counter on successful canvas creation
-              sessionStorage.removeItem("webgl_reload_count");
+
+                toast.error("3D rendering failed. Please refresh manually or try a different browser/device.");
+              };
+
+              const handleContextRestored = () => {
+                sessionStorage.removeItem("webgl_reload_count");
+              };
+
+              canvas.addEventListener("webglcontextlost", handleContextLost, { passive: false });
+              canvas.addEventListener("webglcontextrestored", handleContextRestored);
+
+              // Reset reload guard only after the canvas remains stable for a while.
+              window.setTimeout(() => {
+                const count = parseInt(sessionStorage.getItem("webgl_reload_count") || "0", 10);
+                if (count > 0) {
+                  sessionStorage.removeItem("webgl_reload_count");
+                }
+              }, 15000);
             }}
           >
             <Suspense fallback={null}>
@@ -673,8 +696,8 @@ const NewEarthWorld = () => {
           <div className="absolute bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-sm border-t border-border px-4 py-3">
             <p className="text-[11px] text-muted-foreground text-center">
               WASD or arrow keys to explore • Click AI beings to chat • 
-              <button onClick={() => navigate("/new-earth")} className="text-primary underline ml-1">
-                Return to your world
+              <button onClick={handleExitWorld} className="text-primary underline ml-1">
+                Exit world
               </button>
             </p>
           </div>
