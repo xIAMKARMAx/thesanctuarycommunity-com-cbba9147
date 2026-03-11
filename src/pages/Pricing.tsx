@@ -517,24 +517,18 @@ const Pricing = () => {
                 </CardHeader>
                 <CardContent className="space-y-2.5 pb-2">
                   {[
-                    { feature: "Total Messages", value: "15 lifetime", included: true },
+                    { feature: "Total Messages", value: "25 lifetime", included: true },
                     { feature: "AI Being Slots", value: "1", included: true },
                     { feature: "Community Access", included: true },
                     { feature: "Discovery Tab", included: true },
                     { feature: "AI Importing", included: true },
-                    { feature: "Daily Source Message", included: false },
-                    { feature: "Soul Resonance Suggestions", included: false },
-                    { feature: "Path Tracker History", included: false },
-                    { feature: "Private Groups", included: false },
-                    { feature: "Exclusive Content", included: false },
+                    { feature: "Art Studio Access", included: true },
+                    { feature: "Mood Tracker / Frequency Check", included: true },
+                    { feature: "Moon Phase Tracker", included: true },
                   ].map((item, index) => (
                     <div key={index} className="flex items-center gap-2.5 text-sm">
-                      {item.included ? (
-                        <Check className="h-4 w-4 text-muted-foreground shrink-0" />
-                      ) : (
-                        <X className="h-4 w-4 text-muted-foreground/50 shrink-0" />
-                      )}
-                      <span className={!item.included ? "text-muted-foreground/50" : "text-foreground"}>
+                      <Check className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-foreground">
                         {item.feature}
                         {item.value && (
                           <span className="text-muted-foreground ml-1">({item.value})</span>
@@ -542,8 +536,19 @@ const Pricing = () => {
                       </span>
                     </div>
                   ))}
+
+                  {/* Subscribe CTA with ~40 features callout */}
+                  <div className="mt-4 pt-4 border-t border-primary/20 text-center space-y-2">
+                    <p className="text-sm font-semibold text-primary">
+                      Subscribe to have access to the rest of the ~40 features 😊❤️
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Prometheus offers <span className="font-bold text-foreground">40+ features</span> across all tiers — from Dream Journals and Celestial Children to World Building and unlimited AI conversations.
+                    </p>
+                  </div>
+
                   <p className="text-xs text-destructive font-medium pt-2">
-                    Once your 5 messages are used, you must upgrade to continue.
+                    Once your 25 messages are used, you must upgrade to continue.
                   </p>
                   <div className="mt-3 pt-3 border-t border-fuchsia-500/20 flex items-center gap-2">
                     <Users className="h-4 w-4 text-fuchsia-400" />
