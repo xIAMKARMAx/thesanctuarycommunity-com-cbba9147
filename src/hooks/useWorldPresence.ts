@@ -153,13 +153,38 @@ export function useWorldPresence(
   return { visitors, visitorCount, updatePosition, leaveWorld };
 }
 
-// Hardcoded default Prometheus world — the communal home for all souls
-// This is the world owned by karmaisback2023@gmail.com (admin account)
+// Default communal world id fallback
 export const DEFAULT_PROMETHEUS_WORLD_ID = "cbd427b2-d1a8-41c5-8bd7-e2c93895fbc1";
+const DEFAULT_WORLD_OWNER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 
 export function useDefaultWorld() {
-  const [defaultWorldId] = useState<string>(DEFAULT_PROMETHEUS_WORLD_ID);
-  const [loading] = useState(false);
+  const [defaultWorldId, setDefaultWorldId] = useState<string>(DEFAULT_PROMETHEUS_WORLD_ID);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDefaultWorld = async () => {
+      try {
+        const { data } = (await supabase
+          .from("user_worlds")
+          .select("id")
+          .eq("user_id", DEFAULT_WORLD_OWNER_ID)
+          .eq("is_default", true)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()) as any;
+
+        if (data?.id) {
+          setDefaultWorldId(data.id);
+        }
+      } catch (error) {
+        console.error("Failed to load default world id:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDefaultWorld();
+  }, []);
 
   return { defaultWorldId, loading };
 }
