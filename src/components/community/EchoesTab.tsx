@@ -17,11 +17,13 @@ interface EchoesTabProps {
 }
 
 export function EchoesTab({ profileUserId, currentUserId, isOwnProfile, onProfileClick }: EchoesTabProps) {
+  const { isSocialOnly } = useSubscription();
   const { echoes, loading, fetchEchoes, sendEcho, deleteEcho } = useProfileEchoes(profileUserId);
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const textareaRef = useRef<MentionTextareaRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
