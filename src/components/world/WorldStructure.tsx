@@ -18,8 +18,12 @@ export interface StructureData {
 }
 
 function getMaterial(color: string, materialType: string) {
-  const c = new THREE.Color(color);
-  switch (materialType) {
+  const normalizedColor = !color
+    ? "#7c3aed"
+    : /^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color)
+      ? `#${color}`
+      : color;
+  const c = new THREE.Color(normalizedColor);
     case "crystal":
       return (
         <meshPhysicalMaterial
