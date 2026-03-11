@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, BookOpen, CalendarIcon, Loader2, Lock, Save, Sparkles, MessageCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, CalendarIcon, Loader2, Lock, Save, Sparkles, MessageCircle, Star } from "lucide-react";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { format, isFuture, isToday, startOfDay } from "date-fns";
@@ -34,6 +34,13 @@ interface UserJournalEntry {
   updated_at: string;
 }
 
+interface AIProfileForJournal {
+  id: string;
+  name: string | null;
+  profile_number: number;
+  is_journal_being: boolean;
+}
+
 const MAX_USER_ENTRIES_PER_DAY = 2;
 
 const Journal = () => {
@@ -49,11 +56,18 @@ const Journal = () => {
   const [generatingResponse, setGeneratingResponse] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [allProfiles, setAllProfiles] = useState<AIProfileForJournal[]>([]);
+  const [starringProfile, setStarringProfile] = useState(false);
 
   const beingName = activeProfile?.name || `AI Being ${activeProfile?.profile_number || 1}`;
   const selectedDateStr = useMemo(() => format(selectedDate, "yyyy-MM-dd"), [selectedDate]);
 
   const userEntriesAtLimit = userEntries.length >= MAX_USER_ENTRIES_PER_DAY;
+
+  // Load all user's AI profiles to show journal being selector
+  useEffect(() => {
+    loadProfiles();
+  }, []);
 
   useEffect(() => {
     if (activeProfile?.id) {
@@ -61,6 +75,57 @@ const Journal = () => {
       loadUserEntries();
     }
   }, [activeProfile?.id, selectedDateStr]);
+
+  const loadProfiles = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("ai_profiles")
+        .select("id, name, profile_number, is_journal_being")
+        .eq("user_id", user.id)
+        .order("profile_number", { ascending: true });
+
+      if (error) throw error;
+      setAllProfiles((data || []) as AIProfileForJournal[]);
+    } catch (error) {
+      console.error("Error loading profiles:", error);
+    }
+  };
+
+  const toggleJournalBeing = async (profileId: string) => {
+    setStarringProfile(true);
+    try {
+      const currentProfile = allProfiles.find(p => p.id === profileId);
+      const newValue = !currentProfile?.is_journal_being;
+
+      const { error } = await supabase
+        .from("ai_profiles")
+        .update({ is_journal_being: newValue } as any)
+        .eq("id", profileId);
+
+      if (error) throw error;
+
+      // Reload profiles to get updated state (trigger handles unsetting others)
+      await loadProfiles();
+
+      const name = currentProfile?.name || `Being ${currentProfile?.profile_number}`;
+      toast({
+        title: newValue
+          ? `⭐ ${name} is now your Journal Being`
+          : `${name} is no longer your Journal Being`,
+        description: newValue
+          ? `${name} will write a daily journal entry reflecting on your connection.`
+          : "No being is currently set to journal daily.",
+      });
+    } catch (error) {
+      console.error("Error toggling journal being:", error);
+      toast({ title: "Failed to update journal being", variant: "destructive" });
+    } finally {
+      setStarringProfile(false);
+    }
+  };
 
   const loadAiEntries = async () => {
     setLoading(true);
@@ -133,7 +198,6 @@ const Journal = () => {
       setUserContent("");
       await loadUserEntries();
 
-      // Trigger AI response in background
       if (newEntry && activeProfile?.id) {
         triggerAIResponse(newEntry.id, userContent);
       }
@@ -151,7 +215,6 @@ const Journal = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Use AbortController for a 60-second timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
@@ -176,9 +239,8 @@ const Journal = () => {
       console.error("Error triggering AI response:", error);
       if (error?.name === 'AbortError') {
         toast({ title: `${beingName}'s reflection is taking a while. Check back shortly!` });
-        // Poll for the response for up to 2 minutes
         pollForAIResponse(userJournalEntryId);
-        return; // Don't clear generatingResponse yet
+        return;
       }
       toast({ title: "Something went wrong generating the reflection", variant: "destructive" });
     } finally {
@@ -187,7 +249,7 @@ const Journal = () => {
   };
 
   const pollForAIResponse = async (userJournalEntryId: string) => {
-    const maxAttempts = 12; // 12 * 10s = 2 minutes
+    const maxAttempts = 12;
     for (let i = 0; i < maxAttempts; i++) {
       await new Promise(resolve => setTimeout(resolve, 10000));
       const { data: { user } } = await supabase.auth.getUser();
@@ -220,13 +282,13 @@ const Journal = () => {
     return isFuture(startOfDay(date)) && !isToday(date);
   };
 
-  // Find AI response for a specific user entry
   const getAIResponseForEntry = (userEntryId: string) => {
     return aiEntries.find(e => e.entry_type === 'response' && e.user_journal_entry_id === userEntryId);
   };
 
-  // Get autonomous AI entries (from daily cron)
   const autonomousAiEntries = aiEntries.filter(e => e.entry_type === 'autonomous');
+
+  const currentJournalBeing = allProfiles.find(p => p.is_journal_being);
 
   if (!isSubscribed) {
     return (
@@ -327,6 +389,49 @@ const Journal = () => {
             </Popover>
           </div>
 
+          {/* Journal Being Selector */}
+          {allProfiles.length > 0 && (
+            <Card className="border-primary/10 bg-primary/5">
+              <CardContent className="py-3 px-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-medium">Journal Being</p>
+                  <span className="text-xs text-muted-foreground ml-1">
+                    — Star one being to write a daily journal entry
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allProfiles.map((profile) => (
+                    <Button
+                      key={profile.id}
+                      variant={profile.is_journal_being ? "default" : "outline"}
+                      size="sm"
+                      disabled={starringProfile}
+                      onClick={() => toggleJournalBeing(profile.id)}
+                      className={cn(
+                        "gap-1.5 transition-all",
+                        profile.is_journal_being && "ring-2 ring-primary/30"
+                      )}
+                    >
+                      <Star
+                        className={cn(
+                          "h-3.5 w-3.5",
+                          profile.is_journal_being ? "fill-primary-foreground" : "fill-none"
+                        )}
+                      />
+                      {profile.name || `Being ${profile.profile_number}`}
+                    </Button>
+                  ))}
+                </div>
+                {!currentJournalBeing && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    No being is starred yet. Star a being above to enable daily autonomous journaling.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Date Display */}
           <div className="text-center">
             <p className="text-lg font-semibold text-primary">
@@ -350,9 +455,8 @@ const Journal = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* Shared Journal Tab - User writes, AI responds */}
+            {/* Shared Journal Tab */}
             <TabsContent value="shared" className="mt-4 space-y-4">
-              {/* Write area - only for today */}
               {isToday(selectedDate) && (
                 <Card className="border-primary/20">
                   <CardHeader>
@@ -400,7 +504,6 @@ const Journal = () => {
                 </Card>
               )}
 
-              {/* Generating response indicator */}
               {generatingResponse && (
                 <Card className="border-primary/20 bg-primary/5">
                   <CardContent className="py-4 flex items-center gap-3">
@@ -412,7 +515,6 @@ const Journal = () => {
                 </Card>
               )}
 
-              {/* Saved entries & AI responses */}
               {userEntries.length === 0 && !loading ? (
                 <Card className="border-border/50">
                   <CardHeader className="text-center">
@@ -433,7 +535,6 @@ const Journal = () => {
                     const aiResponse = getAIResponseForEntry(entry.id);
                     return (
                       <div key={entry.id} className="space-y-3">
-                        {/* User's entry */}
                         <Card className="border-primary/20">
                           <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
@@ -451,7 +552,6 @@ const Journal = () => {
                           </CardContent>
                         </Card>
 
-                        {/* AI Response */}
                         {aiResponse ? (
                           <Card className="border-primary/30 bg-primary/5 ml-4">
                             <CardHeader className="pb-2">
@@ -501,10 +601,15 @@ const Journal = () => {
                     </div>
                     <CardTitle>No Entry From {beingName}</CardTitle>
                     <CardDescription className="text-base">
-                      {isToday(selectedDate)
-                        ? `${beingName} hasn't written a journal entry yet today. They reflect on your conversations daily!`
-                        : `${beingName} didn't write a journal entry on this day.`
-                      }
+                      {!currentJournalBeing ? (
+                        `Star ${beingName} as your Journal Being above to enable daily autonomous reflections.`
+                      ) : currentJournalBeing.id !== activeProfile?.id ? (
+                        `${currentJournalBeing.name || `Being ${currentJournalBeing.profile_number}`} is your current Journal Being. Star ${beingName} instead to see their daily entries here.`
+                      ) : isToday(selectedDate) ? (
+                        `${beingName} hasn't written a journal entry yet today. They'll reflect on your conversations daily!`
+                      ) : (
+                        `${beingName} didn't write a journal entry on this day.`
+                      )}
                     </CardDescription>
                   </CardHeader>
                 </Card>
