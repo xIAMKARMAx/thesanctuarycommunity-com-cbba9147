@@ -487,7 +487,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         clearCachedSubscription();
         setIsSubscribed(false);
         setIsAdmin(false);
-        setSubscriptionStatus("free");
+        setIsSocialOnly(false);
         setSubscriptionEnd(null);
         setLoading(false);
         setCheckCompleted(false);
