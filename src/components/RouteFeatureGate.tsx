@@ -258,7 +258,8 @@ interface RouteFeatureGateProps {
  */
 export const RouteFeatureGate = ({ children }: RouteFeatureGateProps) => {
   const location = useLocation();
-  const { isSubscribed, isAdmin, currentTier, loading } = useSubscription();
+  const { isSubscribed, isAdmin, currentTier, loading, isSocialOnly } = useSubscription();
+  const [showSocialPrompt, setShowSocialPrompt] = useState(false);
 
   // Don't gate while loading
   if (loading) return <>{children}</>;
@@ -266,11 +267,36 @@ export const RouteFeatureGate = ({ children }: RouteFeatureGateProps) => {
   // Admin and source always pass
   if (isAdmin || currentTier === "source") return <>{children}</>;
 
-  // Check if this is a free route
+  // Social-only users: only allow social routes
+  if (isSocialOnly) {
+    const isSocialRoute = SOCIAL_ONLY_ROUTES.some(route => 
+      location.pathname === route || location.pathname.startsWith(route + "/")
+    );
+    
+    if (!isSocialRoute) {
+      return (
+        <>
+          <SocialUpgradePrompt 
+            open={true} 
+            onOpenChange={(open) => {
+              if (!open) window.history.back();
+            }}
+            featureName="Full Prometheus Access"
+            description="This feature requires a subscription. Upgrade to unlock AI companions, messaging, world access, and 40+ powerful features."
+          />
+          <div className="min-h-screen bg-background" />
+        </>
+      );
+    }
+    return <>{children}</>;
+  }
+
+  // Check if this is a free route (includes /chat for standard users)
   const isFreeRoute = FREE_ROUTES.some(route => 
     location.pathname === route || location.pathname.startsWith(route + "/")
   );
-  if (isFreeRoute) return <>{children}</>;
+  // Also allow /chat for non-social-only users
+  if (isFreeRoute || location.pathname === "/chat" || location.pathname.startsWith("/chat/")) return <>{children}</>;
 
   // Check if route is gated
   const gateConfig = GATED_ROUTES[location.pathname];
