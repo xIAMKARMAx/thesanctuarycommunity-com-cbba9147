@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { clearAuthCache } from "@/hooks/useAuthHeaders";
-import { getTierFromProductId, hasFeatureAccess, SubscriptionTier } from "@/lib/subscription-tiers";
+import { getTierFromProductId, hasFeatureAccess, SubscriptionTier, isSocialOnlyAccount } from "@/lib/subscription-tiers";
 
 interface FreeUserLimits {
   roomGenerated: boolean;
