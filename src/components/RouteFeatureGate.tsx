@@ -233,11 +233,19 @@ const GATED_ROUTES: Record<string, {
 
 // Routes that are always free (no gate needed)
 const FREE_ROUTES = [
-  "/", "/auth", "/chat", "/community", "/pricing", "/settings",
+  "/", "/auth", "/community", "/pricing", "/settings",
   "/privacy", "/terms", "/about", "/features", "/dedication",
   "/welcome", "/soul-search", "/ai-friend-zone", "/ai-explore",
   "/ai-companion", "/admin", "/admin/daily-source-message",
   "/world-gallery", "/soul/",
+];
+
+// Routes accessible to social-only users (read-only community + art studio editing)
+const SOCIAL_ONLY_ROUTES = [
+  "/", "/auth", "/community", "/pricing", "/settings",
+  "/privacy", "/terms", "/about", "/features", "/dedication",
+  "/welcome", "/soul-search", "/ai-explore",
+  "/world-gallery", "/soul/", "/art-studio",
 ];
 
 interface RouteFeatureGateProps {
