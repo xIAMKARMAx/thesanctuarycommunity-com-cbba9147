@@ -131,7 +131,7 @@ const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
-  const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
+  const resolvedWorldId = visitWorldId || DEFAULT_PROMETHEUS_WORLD_ID;
   const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
   const isArchitectTier = productId === 'prod_Tt8qVh88c2WQld';
   const isFreeUser = !isSubscribed && !isAdmin;
