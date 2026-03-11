@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, Users, Sparkles, Lock } from "lucide-react";
+import { Users, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useDefaultWorld, useWorldPresence } from "@/hooks/useWorldPresence";
