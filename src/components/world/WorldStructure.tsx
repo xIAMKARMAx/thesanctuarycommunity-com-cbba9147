@@ -24,6 +24,8 @@ function getMaterial(color: string, materialType: string) {
       ? `#${color}`
       : color;
   const c = new THREE.Color(normalizedColor);
+
+  switch (materialType) {
     case "crystal":
       return (
         <meshPhysicalMaterial
