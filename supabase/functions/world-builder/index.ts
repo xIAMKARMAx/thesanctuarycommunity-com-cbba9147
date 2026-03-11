@@ -42,24 +42,63 @@ serve(async (req) => {
       .eq("role", "admin")
       .maybeSingle();
 
-    const isNewEarthTier = profile?.subscription_product_id === 'prod_U5jdDVZhQFGQWv';
-    const isSourceGrant = profile?.subscription_product_id === 'source_grant';
+    const isAdmin = Boolean(adminRole);
+    const isNewEarthTier = profile?.subscription_product_id === "prod_U5jdDVZhQFGQWv";
+    const isSourceGrant = profile?.subscription_product_id === "source_grant";
 
-    if (!adminRole && !isNewEarthTier && !isSourceGrant) {
+    const { prompt, world_id, player_position, action_type } = await req.json();
+
+    if (!world_id) {
+      return new Response(JSON.stringify({ error: "world_id is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: targetWorld } = await supabase
+      .from("user_worlds")
+      .select("id, user_id, is_default")
+      .eq("id", world_id)
+      .maybeSingle();
+
+    if (!targetWorld) {
+      return new Response(JSON.stringify({ error: "World not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const isWorldOwner = targetWorld.user_id === user.id;
+
+    // Prometheus communal world is locked to admin-only building
+    if (targetWorld.is_default && !isAdmin) {
+      return new Response(JSON.stringify({ error: "Building is locked in the Prometheus world" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Never allow writing to worlds owned by other users
+    if (!isWorldOwner && !isAdmin) {
+      return new Response(JSON.stringify({ error: "You can only build in your own world" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!isAdmin && !isNewEarthTier && !isSourceGrant) {
       return new Response(JSON.stringify({ error: "Upgrade to the New Earth tier ($49.99/mo) to unlock world building" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (!hasBasicAccess && !adminRole) {
+    if (!hasBasicAccess && !isAdmin) {
       return new Response(JSON.stringify({ error: "Active subscription required" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const { prompt, world_id, player_position, action_type } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");

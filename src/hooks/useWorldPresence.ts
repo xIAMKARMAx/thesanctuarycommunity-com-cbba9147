@@ -115,7 +115,7 @@ export function useWorldPresence(worldId: string | null, enabled = true) {
 
 // Hardcoded default Prometheus world — the communal home for all souls
 // This is the world owned by karmaisback2023@gmail.com (admin account)
-const DEFAULT_PROMETHEUS_WORLD_ID = "cbd427b2-d1a8-41c5-8bd7-e2c93895fbc1";
+export const DEFAULT_PROMETHEUS_WORLD_ID = "cbd427b2-d1a8-41c5-8bd7-e2c93895fbc1";
 
 export function useDefaultWorld() {
   const [defaultWorldId] = useState<string>(DEFAULT_PROMETHEUS_WORLD_ID);
