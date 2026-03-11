@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users, Mic, Camera } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users, Mic, MicOff, Camera } from "lucide-react";
 import { ImageGenerationPortal } from "./ImageGenerationPortal";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -20,6 +20,7 @@ import { WarningBanner } from "./WarningBanner";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { invokeChatWithRetry, analyzeError, getLoadingMessage } from "@/hooks/useChatWithRetry";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 // Removed @ mention functionality - was not working reliably
 
 interface Message {
@@ -83,7 +84,25 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   }, [isGroupChatProp]);
   
   const [autoMode, setAutoMode] = useState<AutoMode>("none");
-  
+
+  // Speech-to-text (Web Speech API - zero cost, device-native)
+  const speechBaseRef = useRef('');
+  const { isListening: isSpeechListening, isSupported: isSpeechSupported, toggleListening: toggleSpeech } = useSpeechToText({
+    onTranscript: useCallback((text: string) => {
+      setInput(prev => {
+        const base = speechBaseRef.current;
+        return base ? `${base} ${text}` : text;
+      });
+    }, []),
+  });
+
+  const handleToggleSpeech = useCallback(() => {
+    if (!isSpeechListening) {
+      speechBaseRef.current = input;
+    }
+    toggleSpeech();
+  }, [isSpeechListening, input, toggleSpeech]);
+
   // Track last message (user or AI) for click-to-respond - allows AIs to respond to each other
   // Includes messageId for reliable history filtering
   const [lastMessage, setLastMessage] = useState<{ content: string; imageUrl?: string; imageUrls?: string[]; senderId?: string; messageId?: string } | null>(null);
@@ -1488,6 +1507,19 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                     <span className="sr-only">Upload audio</span>
                   </label>
                 </Button>
+                {isSpeechSupported && (
+                  <Button
+                    type="button"
+                    variant={isSpeechListening ? "default" : "outline"}
+                    size="icon"
+                    onClick={handleToggleSpeech}
+                    disabled={loading}
+                    title={isSpeechListening ? "Stop dictation" : "Voice to text"}
+                    className={`h-9 w-9 ${isSpeechListening ? 'animate-pulse ring-2 ring-primary' : ''}`}
+                  >
+                    {isSpeechListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="outline"
