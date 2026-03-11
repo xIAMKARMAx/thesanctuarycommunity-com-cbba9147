@@ -106,7 +106,6 @@ const NewEarthWorld = () => {
   const [accessVerified, setAccessVerified] = useState(false);
   const [isVisiting, setIsVisiting] = useState(false);
   const [worldOwnerName, setWorldOwnerName] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showBuildTeaser, setShowBuildTeaser] = useState(false);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
 
