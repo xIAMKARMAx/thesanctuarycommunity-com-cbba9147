@@ -75,6 +75,7 @@ interface UserWorld {
   name: string;
   description: string | null;
   is_public: boolean;
+  is_default?: boolean;
   terrain_seed: number;
   sky_preset: string;
   ambient_color: string;

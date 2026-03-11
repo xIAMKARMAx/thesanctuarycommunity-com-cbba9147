@@ -125,7 +125,7 @@ const Community = () => {
         </div>
 
         {/* Main Content */}
-        <main className="container max-w-2    xl mx-auto px-4 py-6">
+        <main className="container max-w-2xl mx-auto px-4 py-6">
           <Tabs value={activeTab}>
             <TabsContent value="feed" className="mt-0 space-y-4">
               {/* Live world activity */}
