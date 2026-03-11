@@ -160,7 +160,7 @@ const NewEarthWorld = () => {
   // Catch unhandled promise rejections to prevent white screen
   useEffect(() => {
     const handler = (event: PromiseRejectionEvent) => {
-      console.error("Unhandled rejection in New Earth:", event.reason);
+      console.error("[NewEarth] Unhandled rejection:", event.reason);
       event.preventDefault();
     };
     window.addEventListener("unhandledrejection", handler);
