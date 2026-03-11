@@ -696,8 +696,8 @@ const NewEarthWorld = () => {
           <div className="absolute bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-sm border-t border-border px-4 py-3">
             <p className="text-[11px] text-muted-foreground text-center">
               WASD or arrow keys to explore • Click AI beings to chat • 
-              <button onClick={() => navigate("/new-earth")} className="text-primary underline ml-1">
-                Return to your world
+              <button onClick={handleExitWorld} className="text-primary underline ml-1">
+                Exit world
               </button>
             </p>
           </div>

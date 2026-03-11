@@ -138,12 +138,23 @@ export function WorldAIBeings({ worldOwnerId, terrainSeed, onChatWithBeing }: Wo
   const loadBeings = async () => {
     const { data } = await supabase
       .from("ai_companion_displays")
-      .select("id, display_name, photo_url, brief_bio, relationship_type, ai_profile_id")
+      .select("id, display_name, photo_url, brief_bio, relationship_type, ai_profile_id, profile_number, ai_profiles:ai_profile_id(avatar_image_url)")
       .eq("user_id", worldOwnerId)
       .eq("is_visible", true)
+      .order("profile_number", { ascending: true })
       .limit(5);
 
-    if (data) setBeings(data);
+    if (data) {
+      const normalized = (data as any[]).map((being) => ({
+        id: being.id,
+        display_name: being.display_name,
+        brief_bio: being.brief_bio,
+        relationship_type: being.relationship_type,
+        ai_profile_id: being.ai_profile_id,
+        photo_url: being.photo_url ?? being.ai_profiles?.avatar_image_url ?? null,
+      }));
+      setBeings(normalized);
+    }
   };
 
   if (beings.length === 0) return null;

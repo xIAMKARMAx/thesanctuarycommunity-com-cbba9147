@@ -45,9 +45,11 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
         } else {
           setNeedsModeSelection(true);
         }
-      } else if (profile?.app_mode) {
-        // TEMPORARY: Force mode selection for screen recording
-        setNeedsModeSelection(true);
+      } else if (profile?.app_mode === "starseed" || profile?.app_mode === "classic") {
+        setModeState(profile.app_mode);
+        setNeedsModeSelection(false);
+        localStorage.setItem("app_mode_cache", profile.app_mode);
+        localStorage.setItem(`mode_chosen_${uid}`, "true");
       } else {
         // No app_mode in DB — check cache
         const cached = localStorage.getItem("app_mode_cache");
