@@ -146,7 +146,7 @@ export function WorldWater({ size = 200 }: { size?: number }) {
 export function WorldGrass({ seed, count = 3000 }: { seed: number; count?: number }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
-  useMemo(() => {
+  useEffect(() => {
     if (!meshRef.current) return;
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
