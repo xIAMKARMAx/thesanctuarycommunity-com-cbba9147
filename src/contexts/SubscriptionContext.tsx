@@ -543,6 +543,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     <SubscriptionContext.Provider value={{
       isSubscribed,
       isAdmin,
+      isSocialOnly,
       subscriptionStatus,
       subscriptionEnd,
       productId,
