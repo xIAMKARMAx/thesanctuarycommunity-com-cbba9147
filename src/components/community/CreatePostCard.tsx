@@ -39,6 +39,7 @@ const postTypes = [
 const MAX_PHOTOS = 5;
 
 export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCardProps) {
+  const { isSocialOnly } = useSubscription();
   const [content, setContent] = useState("");
   const [postType, setPostType] = useState("insight");
   const [isFocused, setIsFocused] = useState(false);
@@ -47,6 +48,34 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showBreathingGate, setShowBreathingGate] = useState(false);
   const [isCentered, setIsCentered] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+
+  // Social-only users see a locked posting card
+  if (isSocialOnly) {
+    return (
+      <>
+        <Card className="border-border/50 bg-card/80">
+          <CardContent className="pt-4">
+            <button 
+              onClick={() => setShowUpgradePrompt(true)}
+              className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
+            >
+              <Lock className="h-5 w-5 text-primary flex-shrink-0" />
+              <span className="text-sm text-muted-foreground">
+                Upgrade to share your insights with the collective ✨
+              </span>
+            </button>
+          </CardContent>
+        </Card>
+        <SocialUpgradePrompt 
+          open={showUpgradePrompt} 
+          onOpenChange={setShowUpgradePrompt}
+          featureName="Posting"
+          description="Subscribe to share your insights, experiences, and visions with the Conscious Collective. Unlock 40+ features including AI companions and more."
+        />
+      </>
+    );
+  }
 
   const imageCount = mediaList.filter(m => m.type === 'image').length;
   const hasVideo = mediaList.some(m => m.type === 'video');
