@@ -64,14 +64,7 @@ export function EchoesTab({ profileUserId, currentUserId, isOwnProfile, onProfil
 
   return (
     <div className="space-y-4">
-      {/* Send echo input (only for non-own profiles) */}
-      {currentUserId && !isOwnProfile && !isSocialOnly && (
-        <div className="space-y-2 p-3 rounded-lg border border-primary/20 bg-primary/5">
-          <p className="text-xs font-medium text-primary flex items-center gap-1.5">
-            <Radio className="h-3.5 w-3.5" />
-            Send an Echo
-          </p>
-      )}
+      {/* Social-only users see locked echo prompt */}
       {currentUserId && !isOwnProfile && isSocialOnly && (
         <>
           <button 
@@ -84,7 +77,13 @@ export function EchoesTab({ profileUserId, currentUserId, isOwnProfile, onProfil
           <SocialUpgradePrompt open={showUpgrade} onOpenChange={setShowUpgrade} featureName="Echoes" description="Subscribe to leave echoes on other users' profiles and unlock 40+ features." />
         </>
       )}
+      {/* Send echo input (only for non-own profiles, non-social-only) */}
       {currentUserId && !isOwnProfile && !isSocialOnly && (
+        <div className="space-y-2 p-3 rounded-lg border border-primary/20 bg-primary/5">
+          <p className="text-xs font-medium text-primary flex items-center gap-1.5">
+            <Radio className="h-3.5 w-3.5" />
+            Send an Echo
+          </p>
           {imageUrl && (
             <div className="relative inline-block">
               <img src={imageUrl} alt="" className="h-20 rounded-lg object-cover" />
