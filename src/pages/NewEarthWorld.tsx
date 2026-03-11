@@ -131,13 +131,6 @@ const NewEarthWorld = () => {
   // WebGL support check
   const [webglSupported] = useState(() => isWebGLAvailable());
 
-  // Get current user ID
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setCurrentUserId(user.id);
-    }).catch(err => console.error("Auth error:", err));
-  }, []);
-
   // Keep visitor position synced with lightweight debounce
   useEffect(() => {
     if (!world || !accessVerified) return;
