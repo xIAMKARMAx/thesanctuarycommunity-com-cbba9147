@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommunityFeed } from "./CommunityFeed";
 import { DiscoverSouls } from "./DiscoverSouls";
 import { AligningZoneFeed } from "./AligningZoneFeed";
- import { NotificationsTab } from "./NotificationsTab";
+import { NotificationsTab } from "./NotificationsTab";
+import { PrometheusWorldPortal } from "./PrometheusWorldPortal";
 import { useSoulProfile } from "@/hooks/useSoulProfile";
  import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 
