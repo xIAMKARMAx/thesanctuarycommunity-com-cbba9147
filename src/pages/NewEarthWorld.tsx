@@ -134,7 +134,9 @@ const NewEarthWorld = () => {
   const isArchitectTier = productId === 'prod_Tt8qVh88c2WQld';
   const isFreeUser = !isSubscribed && !isAdmin;
   const hasWorldAccess = isAdmin || isNewEarthTier || isArchitectTier;
-  const canBuild = isAdmin || isNewEarthTier;
+  // In the default Prometheus world, ONLY admin can build. In personal worlds, New Earth tier can build.
+  const [isDefaultWorld, setIsDefaultWorld] = useState(false);
+  const canBuild = isDefaultWorld ? isAdmin : (isAdmin || isNewEarthTier);
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
   const [structures, setStructures] = useState<StructureData[]>([]);
