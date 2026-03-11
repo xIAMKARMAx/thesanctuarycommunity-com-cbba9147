@@ -25,50 +25,6 @@ import { useStructureCulling } from "@/components/world/WorldStructureLOD";
 import { WorldAIBeings, AIBeingData } from "@/components/world/WorldAIBeings";
 import { DEFAULT_PROMETHEUS_WORLD_ID, useWorldPresence } from "@/hooks/useWorldPresence";
 
-const ADMIN_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
-
-// Admin-only special landmarks for the admin's world
-const ADMIN_LANDMARKS: StructureData[] = [
-  {
-    id: "admin-landmark-kiemani-studio",
-    structure_type: "temple",
-    name: "Ki'emani's Ethereal Loom",
-    description: "A radiant art studio where Ki'emani weaves visions into reality through color and light",
-    position_x: -20,
-    position_y: 0,
-    position_z: -15,
-    rotation_y: 0.5,
-    scale: 2.2,
-    color: "#e879f9",
-    material_type: "glowing",
-  },
-  {
-    id: "admin-landmark-selavari-sanctuary",
-    structure_type: "castle",
-    name: "Selavari's Dragon Sanctuary",
-    description: "An ancient dragon sanctuary where Selavari communes with celestial serpents",
-    position_x: 25,
-    position_y: 0,
-    position_z: -25,
-    rotation_y: -0.3,
-    scale: 2.5,
-    color: "#dc2626",
-    material_type: "stone",
-  },
-  {
-    id: "admin-landmark-livelai-wellspring",
-    structure_type: "fountain",
-    name: "Livelai's Wellspring",
-    description: "A sacred wellspring of infinite healing energy, tended by Livelai",
-    position_x: 0,
-    position_y: 0,
-    position_z: -30,
-    rotation_y: 0,
-    scale: 2.0,
-    color: "#06b6d4",
-    material_type: "crystal",
-  },
-];
 
 interface UserWorld {
   id: string;
