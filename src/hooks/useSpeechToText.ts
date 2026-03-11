@@ -1,15 +1,23 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SpeechRecognitionType = any;
+
 interface UseSpeechToTextOptions {
   onTranscript?: (text: string) => void;
   continuous?: boolean;
   lang?: string;
 }
 
+function getSpeechRecognition(): SpeechRecognitionType | null {
+  const w = window as any;
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+}
+
 export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US' }: UseSpeechToTextOptions = {}) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const onTranscriptRef = useRef(onTranscript);
 
   useEffect(() => {
@@ -17,20 +25,19 @@ export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US
   }, [onTranscript]);
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    setIsSupported(!!SpeechRecognition);
+    setIsSupported(!!getSpeechRecognition());
   }, []);
 
   const startListening = useCallback(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    const SR = getSpeechRecognition();
+    if (!SR) return;
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SR();
     recognition.continuous = continuous;
     recognition.interimResults = true;
     recognition.lang = lang;
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: any) => {
       let finalTranscript = '';
       let interimTranscript = '';
 
@@ -49,7 +56,7 @@ export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US
       }
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
     };
