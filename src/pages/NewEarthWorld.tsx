@@ -183,6 +183,16 @@ const NewEarthWorld = () => {
     }).catch(err => console.error("Auth error:", err));
   }, []);
 
+  // Keep visitor position synced with lightweight debounce
+  useEffect(() => {
+    if (!world || !accessVerified) return;
+    const timer = window.setTimeout(() => {
+      void updatePosition(playerPos.x, playerPos.y, playerPos.z);
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [playerPos, world, accessVerified, updatePosition]);
+
   // Access verification for open-world visiting
   useEffect(() => {
     if (subscriptionLoading) return;
