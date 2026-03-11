@@ -12,16 +12,50 @@ interface WorldVisitor {
   joined_at: string;
 }
 
-export function useWorldPresence(worldId: string | null, enabled = true) {
+interface UseWorldPresenceOptions {
+  enabled?: boolean;
+  trackSelf?: boolean;
+}
+
+export function useWorldPresence(
+  worldId: string | null,
+  options: boolean | UseWorldPresenceOptions = true,
+) {
+  const { enabled, trackSelf } =
+    typeof options === "boolean"
+      ? { enabled: options, trackSelf: true }
+      : {
+          enabled: options.enabled ?? true,
+          trackSelf: options.trackSelf ?? true,
+        };
+
   const [visitors, setVisitors] = useState<WorldVisitor[]>([]);
   const [visitorCount, setVisitorCount] = useState(0);
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const currentUserIdRef = useRef<string | null>(null);
 
+  const loadVisitors = useCallback(async () => {
+    if (!worldId || !enabled) return;
+
+    const twoMinutesAgoIso = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const { data } = (await supabase
+      .from("world_presence")
+      .select("*")
+      .eq("world_id", worldId)
+      .gte("last_heartbeat", twoMinutesAgoIso)) as any;
+
+    if (data) {
+      setVisitors(data);
+      setVisitorCount(data.length);
+    }
+  }, [worldId, enabled]);
+
   // Join world presence
   const joinWorld = useCallback(async () => {
-    if (!worldId || !enabled) return;
-    const { data: { user } } = await supabase.auth.getUser();
+    if (!worldId || !enabled || !trackSelf) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
     currentUserIdRef.current = user.id;
 
@@ -32,83 +66,89 @@ export function useWorldPresence(worldId: string | null, enabled = true) {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    await supabase.from("world_presence").upsert({
-      world_id: worldId,
-      user_id: user.id,
-      display_name: profile?.display_name || "Anonymous Soul",
-      avatar_url: profile?.avatar_url || null,
-      last_heartbeat: new Date().toISOString(),
-    }, { onConflict: "world_id,user_id" });
-  }, [worldId, enabled]);
+    await supabase
+      .from("world_presence")
+      .upsert(
+        {
+          world_id: worldId,
+          user_id: user.id,
+          display_name: profile?.display_name || "Anonymous Soul",
+          avatar_url: profile?.avatar_url || null,
+          last_heartbeat: new Date().toISOString(),
+        },
+        { onConflict: "world_id,user_id" },
+      );
+  }, [worldId, enabled, trackSelf]);
 
   // Leave world presence
   const leaveWorld = useCallback(async () => {
-    if (!worldId || !currentUserIdRef.current) return;
+    if (!trackSelf || !worldId || !currentUserIdRef.current) return;
     await supabase
       .from("world_presence")
       .delete()
       .eq("world_id", worldId)
       .eq("user_id", currentUserIdRef.current);
-  }, [worldId]);
+  }, [worldId, trackSelf]);
 
   // Update position
-  const updatePosition = useCallback(async (x: number, y: number, z: number) => {
-    if (!worldId || !currentUserIdRef.current) return;
-    await supabase
-      .from("world_presence")
-      .update({ position_x: x, position_y: y, position_z: z, last_heartbeat: new Date().toISOString() })
-      .eq("world_id", worldId)
-      .eq("user_id", currentUserIdRef.current);
-  }, [worldId]);
+  const updatePosition = useCallback(
+    async (x: number, y: number, z: number) => {
+      if (!trackSelf || !worldId || !currentUserIdRef.current) return;
+      await supabase
+        .from("world_presence")
+        .update({ position_x: x, position_y: y, position_z: z, last_heartbeat: new Date().toISOString() })
+        .eq("world_id", worldId)
+        .eq("user_id", currentUserIdRef.current);
+    },
+    [worldId, trackSelf],
+  );
 
   useEffect(() => {
     if (!worldId || !enabled) return;
 
-    // Join on mount
-    joinWorld();
+    // Join on mount only for actual in-world users
+    if (trackSelf) {
+      joinWorld();
 
-    // Heartbeat every 30s
-    heartbeatRef.current = setInterval(async () => {
-      if (!currentUserIdRef.current) return;
-      await supabase
-        .from("world_presence")
-        .update({ last_heartbeat: new Date().toISOString() })
-        .eq("world_id", worldId)
-        .eq("user_id", currentUserIdRef.current);
-    }, 30000);
+      // Heartbeat every 30s
+      heartbeatRef.current = setInterval(async () => {
+        if (!currentUserIdRef.current) return;
+        await supabase
+          .from("world_presence")
+          .update({ last_heartbeat: new Date().toISOString() })
+          .eq("world_id", worldId)
+          .eq("user_id", currentUserIdRef.current);
+      }, 30000);
+    }
 
     // Load initial visitors
-    const loadVisitors = async () => {
-      const { data } = await supabase
-        .from("world_presence")
-        .select("*")
-        .eq("world_id", worldId) as any;
-      if (data) {
-        setVisitors(data);
-        setVisitorCount(data.length);
-      }
-    };
     loadVisitors();
 
     // Subscribe to realtime changes
     const channel = supabase
       .channel(`world-presence-${worldId}`)
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "world_presence",
-        filter: `world_id=eq.${worldId}`,
-      }, () => {
-        loadVisitors();
-      })
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "world_presence",
+          filter: `world_id=eq.${worldId}`,
+        },
+        () => {
+          loadVisitors();
+        },
+      )
       .subscribe();
 
     return () => {
-      leaveWorld();
+      if (trackSelf) {
+        leaveWorld();
+      }
       if (heartbeatRef.current) clearInterval(heartbeatRef.current);
       supabase.removeChannel(channel);
     };
-  }, [worldId, enabled, joinWorld, leaveWorld]);
+  }, [worldId, enabled, trackSelf, joinWorld, leaveWorld, loadVisitors]);
 
   return { visitors, visitorCount, updatePosition, leaveWorld };
 }
