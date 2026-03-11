@@ -547,11 +547,19 @@ const NewEarthWorld = () => {
             dpr={[1, 1.5]}
             performance={{ min: 0.5 }}
             onCreated={({ gl }) => {
-              gl.domElement.addEventListener("webglcontextlost", (e) => {
+            gl.domElement.addEventListener("webglcontextlost", (e) => {
                 e.preventDefault();
                 console.error("WebGL context lost");
-                toast.error("Graphics context lost. Reloading...");
-                setTimeout(() => window.location.reload(), 2000);
+                // Prevent infinite reload loop
+                const reloadCount = parseInt(sessionStorage.getItem("webgl_reload_count") || "0");
+                if (reloadCount < 2) {
+                  sessionStorage.setItem("webgl_reload_count", String(reloadCount + 1));
+                  toast.error("Graphics context lost. Reloading...");
+                  setTimeout(() => window.location.reload(), 2000);
+                } else {
+                  sessionStorage.removeItem("webgl_reload_count");
+                  toast.error("3D rendering failed. Try a different browser or device.");
+                }
               });
             }}
           >
