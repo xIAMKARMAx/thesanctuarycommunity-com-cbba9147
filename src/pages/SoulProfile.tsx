@@ -553,6 +553,13 @@ const SoulProfilePage = () => {
                   <Bot className="h-4 w-4" />
                   My AI
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="worlds" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <Globe className="h-4 w-4" />
+                  Worlds
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="posts" className="py-4">
