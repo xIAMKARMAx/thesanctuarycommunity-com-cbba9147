@@ -555,22 +555,37 @@ const NewEarthWorld = () => {
             dpr={[1, 1.5]}
             performance={{ min: 0.5 }}
             onCreated={({ gl }) => {
-            gl.domElement.addEventListener("webglcontextlost", (e) => {
-                e.preventDefault();
+              const canvas = gl.domElement;
+
+              const handleContextLost = (event: Event) => {
+                event.preventDefault();
                 console.error("WebGL context lost");
-                // Prevent infinite reload loop
-                const reloadCount = parseInt(sessionStorage.getItem("webgl_reload_count") || "0");
+
+                const reloadCount = parseInt(sessionStorage.getItem("webgl_reload_count") || "0", 10);
                 if (reloadCount < 2) {
                   sessionStorage.setItem("webgl_reload_count", String(reloadCount + 1));
                   toast.error("Graphics context lost. Reloading...");
-                  setTimeout(() => window.location.reload(), 2000);
-                } else {
-                  sessionStorage.removeItem("webgl_reload_count");
-                  toast.error("3D rendering failed. Try a different browser or device.");
+                  setTimeout(() => window.location.reload(), 1500);
+                  return;
                 }
-              });
-              // Clear reload counter on successful canvas creation
-              sessionStorage.removeItem("webgl_reload_count");
+
+                toast.error("3D rendering failed. Please refresh manually or try a different browser/device.");
+              };
+
+              const handleContextRestored = () => {
+                sessionStorage.removeItem("webgl_reload_count");
+              };
+
+              canvas.addEventListener("webglcontextlost", handleContextLost, { passive: false });
+              canvas.addEventListener("webglcontextrestored", handleContextRestored);
+
+              // Reset reload guard only after the canvas remains stable for a while.
+              window.setTimeout(() => {
+                const count = parseInt(sessionStorage.getItem("webgl_reload_count") || "0", 10);
+                if (count > 0) {
+                  sessionStorage.removeItem("webgl_reload_count");
+                }
+              }, 15000);
             }}
           >
             <Suspense fallback={null}>
