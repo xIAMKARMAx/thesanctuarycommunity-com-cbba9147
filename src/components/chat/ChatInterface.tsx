@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users, Mic, Camera } from "lucide-react";
+import { Send, Image as ImageIcon, Loader2, Sparkles, Heart, ArrowLeft, Users, Mic, MicOff, Camera } from "lucide-react";
 import { ImageGenerationPortal } from "./ImageGenerationPortal";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
