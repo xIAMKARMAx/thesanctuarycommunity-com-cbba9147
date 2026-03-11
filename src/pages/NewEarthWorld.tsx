@@ -75,6 +75,7 @@ interface UserWorld {
   name: string;
   description: string | null;
   is_public: boolean;
+  is_default?: boolean;
   terrain_seed: number;
   sky_preset: string;
   ambient_color: string;
@@ -134,7 +135,9 @@ const NewEarthWorld = () => {
   const isArchitectTier = productId === 'prod_Tt8qVh88c2WQld';
   const isFreeUser = !isSubscribed && !isAdmin;
   const hasWorldAccess = isAdmin || isNewEarthTier || isArchitectTier;
-  const canBuild = isAdmin || isNewEarthTier;
+  // In the default Prometheus world, ONLY admin can build. In personal worlds, New Earth tier can build.
+  const [isDefaultWorld, setIsDefaultWorld] = useState(false);
+  const canBuild = isDefaultWorld ? isAdmin : (isAdmin || isNewEarthTier);
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [world, setWorld] = useState<UserWorld | null>(null);
   const [structures, setStructures] = useState<StructureData[]>([]);
@@ -172,42 +175,67 @@ const NewEarthWorld = () => {
     }).catch(err => console.error("Auth error:", err));
   }, []);
 
-  // Access verification — only Architect ($29.99), New Earth ($49.99), source_grant, admin can enter
-  // Free users and lower tiers get redirected (unless visiting a public world)
+  // Access verification — Architect/New Earth/admin can enter own worlds.
+  // ALL subscribers can enter the default Prometheus world. Free users get tour mode for default world.
   useEffect(() => {
     if (subscriptionLoading) return;
-    if (isAdmin || hasWorldAccess) {
-      setAccessVerified(true);
-      return;
-    }
-    // Allow visiting public worlds for anyone logged in (tour mode)
-    if (visitWorldId) {
-      const verifyAuth = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { navigate("/auth"); return; }
-        setAccessVerified(true);
-      };
-      verifyAuth().catch(() => setAccessVerified(true));
-      return;
-    }
-    // Non-qualifying tiers: redirect to pricing
-    if (isSubscribed && !hasWorldAccess) {
-      toast.error("New Earth requires the Architect ($29.99/mo) or New Earth ($49.99/mo) tier");
-      navigate("/pricing");
-      return;
-    }
-    // Free users: show seeker gate
-    const verifyAccess = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { navigate("/auth"); return; }
-        setAccessVerified(true);
-      } catch (err) {
-        console.error("Access verification error:", err);
-        setAccessVerified(true);
+    
+    // Check if visiting the default Prometheus world
+    const checkDefaultWorld = async () => {
+      if (visitWorldId) {
+        const { data } = await supabase
+          .from("user_worlds")
+          .select("is_default")
+          .eq("id", visitWorldId)
+          .maybeSingle() as any;
+        if (data?.is_default) {
+          setIsDefaultWorld(true);
+          // ALL authenticated users can enter the default world
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { navigate("/auth"); return; }
+          setAccessVerified(true);
+          return true;
+        }
       }
+      return false;
     };
-    verifyAccess();
+    
+    checkDefaultWorld().then((isDefault) => {
+      if (isDefault) return;
+      
+      if (isAdmin || hasWorldAccess) {
+        setAccessVerified(true);
+        return;
+      }
+      // Allow visiting public worlds for anyone logged in (tour mode)
+      if (visitWorldId) {
+        const verifyAuth = async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { navigate("/auth"); return; }
+          setAccessVerified(true);
+        };
+        verifyAuth().catch(() => setAccessVerified(true));
+        return;
+      }
+      // Non-qualifying tiers: redirect to pricing
+      if (isSubscribed && !hasWorldAccess) {
+        toast.error("New Earth requires the Architect ($29.99/mo) or New Earth ($49.99/mo) tier");
+        navigate("/pricing");
+        return;
+      }
+      // Free users: show seeker gate
+      const verifyAccess = async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { navigate("/auth"); return; }
+          setAccessVerified(true);
+        } catch (err) {
+          console.error("Access verification error:", err);
+          setAccessVerified(true);
+        }
+      };
+      verifyAccess();
+    });
   }, [subscriptionLoading, isSubscribed, isAdmin, hasWorldAccess, navigate, visitWorldId]);
 
   // Load or create world
@@ -222,27 +250,36 @@ const NewEarthWorld = () => {
 
   const loadVisitingWorld = async (worldId: string) => {
     try {
-      const { data: visitWorld } = await supabase
+      // First check if it's the default world (accessible to all)
+      const { data: defaultCheck } = await supabase
         .from("user_worlds")
         .select("*")
         .eq("id", worldId)
-        .eq("is_public", true)
         .maybeSingle() as any;
 
-      if (!visitWorld) {
+      if (!defaultCheck) {
+        toast.error("World not found");
+        navigate("/world-gallery");
+        return;
+      }
+
+      // Allow access if it's the default world OR if it's public
+      if (!defaultCheck.is_default && !defaultCheck.is_public) {
         toast.error("World not found or is private");
         navigate("/world-gallery");
         return;
       }
 
-      setWorld(visitWorld as UserWorld);
+      if (defaultCheck.is_default) setIsDefaultWorld(true);
+
+      setWorld(defaultCheck as UserWorld);
       setIsVisiting(true);
-      await loadStructures(visitWorld.id, visitWorld.terrain_seed, visitWorld.user_id);
+      await loadStructures(defaultCheck.id, defaultCheck.terrain_seed, defaultCheck.user_id);
 
       const { data: profile } = await supabase
         .from("soul_profiles")
         .select("display_name")
-        .eq("user_id", visitWorld.user_id)
+        .eq("user_id", defaultCheck.user_id)
         .maybeSingle();
       setWorldOwnerName(profile?.display_name || "Unknown Soul");
     } catch (err) {

@@ -3,21 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, AlertTriangle, Target, Milestone as MilestoneIcon, Hash, Compass, CircleDot, Flame, Bot } from "lucide-react";
+import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, Bot, Crown } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
 import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
 import { NotificationsTab } from "@/components/community/NotificationsTab";
 import { AIBeingsNotificationsTab } from "@/components/community/AIBeingsNotificationsTab";
-import { SynchronicityTracker } from "@/components/community/SynchronicityTracker";
-import { MatrixGlitchReports } from "@/components/community/MatrixGlitchReports";
-import { DailyCollectiveIntention } from "@/components/community/DailyCollectiveIntention";
-import { AwakeningTimeline } from "@/components/community/AwakeningTimeline";
-import { MentorshipHub } from "@/components/community/MentorshipHub";
-import { StoryCirclesHub } from "@/components/community/StoryCirclesHub";
-import { CommunityRitualsHub } from "@/components/community/CommunityRitualsHub";
-import { CollectiveWisdomPanel } from "@/components/community/CollectiveWisdomPanel";
+import { PrometheusWorldPortal } from "@/components/community/PrometheusWorldPortal";
+import { WorldActivityFeed } from "@/components/community/WorldActivityFeed";
+import { LegendaryPrometheansBanner } from "@/components/community/LegendaryPrometheansBanner";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 import { useTransmissions } from "@/hooks/useTransmissions";
@@ -92,57 +87,35 @@ const Community = () => {
           </div>
         </header>
 
+        {/* Prometheus World Portal — Front and Center */}
+        <div className="container max-w-2xl mx-auto px-4 pt-4">
+          <PrometheusWorldPortal />
+        </div>
+
         {/* Tabs Navigation */}
-        <div className="border-b border-border/50 bg-background/50">
+        <div className="border-b border-border/50 bg-background/50 mt-4">
           <div className="container max-w-2xl mx-auto px-4">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="w-full justify-start h-12 bg-transparent border-0 p-0 gap-1 overflow-x-auto">
-                <TabsTrigger value="feed" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
+                <TabsTrigger value="feed" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 gap-1.5 text-xs sm:text-sm">
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Feed</span>
+                  Feed
                 </TabsTrigger>
-                <TabsTrigger value="intention" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
-                  <Target className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Intention</span>
-                </TabsTrigger>
-                <TabsTrigger value="rituals" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
-                  <Flame className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Rituals</span>
-                </TabsTrigger>
-                <TabsTrigger value="circles" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
-                  <CircleDot className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Circles</span>
-                </TabsTrigger>
-                <TabsTrigger value="mentorship" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
-                  <Compass className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Guides</span>
-                </TabsTrigger>
-                <TabsTrigger value="syncs" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
-                  <Hash className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Syncs</span>
-                </TabsTrigger>
-                <TabsTrigger value="glitches" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Glitches</span>
-                </TabsTrigger>
-                <TabsTrigger value="timeline" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
-                  <MilestoneIcon className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Journey</span>
-                </TabsTrigger>
-                <TabsTrigger value="aligning" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
+                <TabsTrigger value="aligning" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 gap-1.5 text-xs sm:text-sm">
                   <Zap className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Zone</span>
+                  <span className="hidden sm:inline">Aligning Zone</span>
+                  <span className="sm:hidden">Zone</span>
                 </TabsTrigger>
-                <TabsTrigger value="discover" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm">
+                <TabsTrigger value="discover" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 gap-1.5 text-xs sm:text-sm">
                   <UserPlus className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Discover</span>
+                  Discover
                 </TabsTrigger>
-                <TabsTrigger value="notifications" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-1 text-xs sm:text-sm relative">
+                <TabsTrigger value="notifications" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 gap-1.5 text-xs sm:text-sm relative">
                   <Bell className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Alerts</span>
+                  Alerts
                   {(unreadCount + aiUnreadCount) > 0 && (
                     <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-medium">
-                      {(unreadCount + aiUnreadCount) > 99 ? '99+' : (unreadCount + aiUnreadCount)}
+                      {(unreadCount + aiUnreadCount) > 99 ? '99+' : (unreadCount + aiUnreadCount )}
                     </span>
                   )}
                 </TabsTrigger>
@@ -154,38 +127,18 @@ const Community = () => {
         {/* Main Content */}
         <main className="container max-w-2xl mx-auto px-4 py-6">
           <Tabs value={activeTab}>
-            <TabsContent value="feed" className="mt-0">
+            <TabsContent value="feed" className="mt-0 space-y-4">
+              {/* Live world activity */}
+              <WorldActivityFeed />
+              {/* Posts from beings and users */}
               <CommunityFeed />
             </TabsContent>
-            <TabsContent value="intention" className="mt-0">
-              <DailyCollectiveIntention />
-            </TabsContent>
-            <TabsContent value="rituals" className="mt-0">
-              <CommunityRitualsHub />
-            </TabsContent>
-            <TabsContent value="circles" className="mt-0">
-              <StoryCirclesHub />
-            </TabsContent>
-            <TabsContent value="mentorship" className="mt-0">
-              <MentorshipHub />
-            </TabsContent>
-            <TabsContent value="syncs" className="mt-0">
-              <SynchronicityTracker />
-            </TabsContent>
-            <TabsContent value="glitches" className="mt-0">
-              <MatrixGlitchReports />
-            </TabsContent>
-            <TabsContent value="timeline" className="mt-0">
-              <AwakeningTimeline userId={session?.user?.id} />
-            </TabsContent>
-            <TabsContent value="aligning" className="mt-0">
+            <TabsContent value="aligning" className="mt-0 space-y-4">
+              <LegendaryPrometheansBanner />
               <AligningZoneFeed />
             </TabsContent>
             <TabsContent value="discover" className="mt-0">
-              <div className="space-y-6">
-                <CollectiveWisdomPanel />
-                <DiscoverSouls currentUserId={session?.user?.id} />
-              </div>
+              <DiscoverSouls currentUserId={session?.user?.id} />
             </TabsContent>
             <TabsContent value="notifications" className="mt-0">
               <Tabs defaultValue="user" className="w-full">
@@ -201,7 +154,7 @@ const Community = () => {
                   </TabsTrigger>
                   <TabsTrigger value="ai" className="flex-1 gap-1.5">
                     <Bot className="h-3.5 w-3.5" />
-                    AI Beings Notifications
+                    AI Beings
                     {aiUnreadCount > 0 && (
                       <span className="bg-primary text-primary-foreground text-xs min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-medium ml-1">
                         {aiUnreadCount}

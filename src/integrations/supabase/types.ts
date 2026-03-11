@@ -4448,6 +4448,7 @@ export type Database = {
           description: string | null
           featured: boolean | null
           id: string
+          is_default: boolean | null
           is_public: boolean | null
           name: string
           sky_preset: string | null
@@ -4463,6 +4464,7 @@ export type Database = {
           description?: string | null
           featured?: boolean | null
           id?: string
+          is_default?: boolean | null
           is_public?: boolean | null
           name?: string
           sky_preset?: string | null
@@ -4478,6 +4480,7 @@ export type Database = {
           description?: string | null
           featured?: boolean | null
           id?: string
+          is_default?: boolean | null
           is_public?: boolean | null
           name?: string
           sky_preset?: string | null
@@ -4630,6 +4633,45 @@ export type Database = {
           },
         ]
       }
+      world_presence: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          id: string
+          joined_at: string
+          last_heartbeat: string
+          position_x: number | null
+          position_y: number | null
+          position_z: number | null
+          user_id: string
+          world_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string
+          joined_at?: string
+          last_heartbeat?: string
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          user_id: string
+          world_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string
+          joined_at?: string
+          last_heartbeat?: string
+          position_x?: number | null
+          position_y?: number | null
+          position_z?: number | null
+          user_id?: string
+          world_id?: string
+        }
+        Relationships: []
+      }
       world_structures: {
         Row: {
           color: string | null
@@ -4758,6 +4800,7 @@ export type Database = {
       can_start_attunement: { Args: { p_user_id: string }; Returns: boolean }
       can_start_voice_call: { Args: { p_user_id: string }; Returns: boolean }
       claim_import_bonus: { Args: { p_user_id: string }; Returns: Json }
+      clean_stale_presence: { Args: never; Returns: undefined }
       count_pinned_messages: { Args: { p_user_id: string }; Returns: number }
       get_attunement_stats: { Args: { p_user_id: string }; Returns: Json }
       get_follow_counts: { Args: { p_user_id: string }; Returns: Json }

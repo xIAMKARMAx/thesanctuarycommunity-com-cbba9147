@@ -19,7 +19,8 @@ import {
   UserMinus,
   Crown,
   Lock,
-  Bot
+  Bot,
+  Globe
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
@@ -49,6 +50,7 @@ const SoulProfilePage = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [userVesselUrl, setUserVesselUrl] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [userWorlds, setUserWorlds] = useState<any[]>([]);
   
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { blessPost, deletePost } = useCommunityFeed();
@@ -75,7 +77,18 @@ const SoulProfilePage = () => {
     fetchFollowCounts();
     fetchUserVessel();
     checkConnection();
+    fetchUserWorlds();
   }, [userId, authLoading, currentUserId]);
+
+  const fetchUserWorlds = async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("user_worlds")
+      .select("id, name, description, is_public, visitor_count, is_default")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }) as any;
+    setUserWorlds(data || []);
+  };
 
   const checkConnection = async () => {
     if (!userId || !currentUserId || userId === currentUserId) {
@@ -540,6 +553,13 @@ const SoulProfilePage = () => {
                   <Bot className="h-4 w-4" />
                   My AI
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="worlds" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <Globe className="h-4 w-4" />
+                  Worlds
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="posts" className="py-4">
@@ -607,6 +627,53 @@ const SoulProfilePage = () => {
                   userId={userId!}
                   isOwnProfile={isOwnProfile}
                 />
+              </TabsContent>
+              <TabsContent value="worlds" className="py-4">
+                {userWorlds.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Globe className="h-12 w-12 text-primary/40 mx-auto mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      {isOwnProfile 
+                        ? "You haven't created any worlds yet"
+                        : "This soul hasn't created any worlds yet"
+                      }
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {userWorlds.map((w: any) => (
+                      <button
+                        key={w.id}
+                        onClick={() => w.is_public || w.is_default ? navigate(`/new-earth?visit=${w.id}`) : null}
+                        className="w-full text-left rounded-lg border border-border/50 bg-card/50 p-4 hover:bg-card/80 transition-colors"
+                        disabled={!w.is_public && !w.is_default && !isOwnProfile}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-sm">{w.name}</span>
+                            {w.is_default && (
+                              <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary">Default</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {w.is_public || w.is_default ? (
+                              <span className="text-primary">Public</span>
+                            ) : (
+                              <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> Private</span>
+                            )}
+                            {w.visitor_count > 0 && (
+                              <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {w.visitor_count}</span>
+                            )}
+                          </div>
+                        </div>
+                        {w.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{w.description}</p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>

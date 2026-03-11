@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommunityFeed } from "./CommunityFeed";
 import { DiscoverSouls } from "./DiscoverSouls";
 import { AligningZoneFeed } from "./AligningZoneFeed";
- import { NotificationsTab } from "./NotificationsTab";
+import { NotificationsTab } from "./NotificationsTab";
+import { PrometheusWorldPortal } from "./PrometheusWorldPortal";
 import { useSoulProfile } from "@/hooks/useSoulProfile";
  import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 
@@ -119,7 +120,8 @@ export function CommunityTab() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">
           <Tabs value={activeSubTab}>
-            <TabsContent value="feed" className="mt-0">
+            <TabsContent value="feed" className="mt-0 space-y-4">
+              <PrometheusWorldPortal />
               <CommunityFeed />
             </TabsContent>
             <TabsContent value="aligning" className="mt-0">
