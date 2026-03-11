@@ -206,40 +206,41 @@ const NewEarthWorld = () => {
 
   const loadVisitingWorld = async (worldId: string) => {
     try {
-      // First check if it's the default world (accessible to all)
-      const { data: defaultCheck } = await supabase
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // Load exact world configuration by id
+      const { data: targetWorld } = (await supabase
         .from("user_worlds")
         .select("*")
         .eq("id", worldId)
-        .maybeSingle() as any;
+        .maybeSingle()) as any;
 
-      if (!defaultCheck) {
+      if (!targetWorld) {
         toast.error("World not found");
         navigate("/world-gallery");
         return;
       }
 
-      // Allow access if it's the default world OR if it's public
-      if (!defaultCheck.is_default && !defaultCheck.is_public) {
-        const { data: { user } } = await supabase.auth.getUser();
-        const isOwner = user?.id === defaultCheck.user_id;
-        if (!isOwner && !isAdmin) {
-          toast.error("World not found or is private");
-          navigate("/world-gallery");
-          return;
-        }
+      const isOwner = user?.id === targetWorld.user_id;
+
+      // Allow access if default/public, owner, or admin
+      if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
+        toast.error("World not found or is private");
+        navigate("/world-gallery");
+        return;
       }
 
-      if (defaultCheck.is_default) setIsDefaultWorld(true);
-
-      setWorld(defaultCheck as UserWorld);
-      setIsVisiting(true);
-      await loadStructures(defaultCheck.id, defaultCheck.terrain_seed, defaultCheck.user_id);
+      setIsDefaultWorld(Boolean(targetWorld.is_default));
+      setWorld(targetWorld as UserWorld);
+      setIsVisiting(!isOwner && !isAdmin);
+      await loadStructures(targetWorld.id, targetWorld.terrain_seed);
 
       const { data: profile } = await supabase
         .from("soul_profiles")
         .select("display_name")
-        .eq("user_id", defaultCheck.user_id)
+        .eq("user_id", targetWorld.user_id)
         .maybeSingle();
       setWorldOwnerName(profile?.display_name || "Unknown Soul");
     } catch (err) {
@@ -250,30 +251,18 @@ const NewEarthWorld = () => {
     }
   };
 
-  const loadStructures = async (worldId: string, seed: number, ownerId: string) => {
+  const loadStructures = async (worldId: string, seed: number) => {
     const { data } = await supabase
       .from("world_structures")
       .select("*")
       .eq("world_id", worldId)
       .order("created_at", { ascending: true });
 
-    let allStructures: StructureData[] = [];
-    if (data) {
-      allStructures = data.map((s: any) => ({
+    const allStructures: StructureData[] =
+      data?.map((s: any) => ({
         ...s,
         position_y: getTerrainHeight(s.position_x, s.position_z, seed),
-      }));
-    }
-
-    // Add admin landmarks if this is the admin's world
-    if (ownerId === ADMIN_USER_ID) {
-      const landmarks = ADMIN_LANDMARKS.map(l => ({
-        ...l,
-        world_id: worldId,
-        position_y: getTerrainHeight(l.position_x, l.position_z, seed),
-      }));
-      allStructures = [...landmarks, ...allStructures];
-    }
+      })) || [];
 
     setStructures(allStructures);
   };
