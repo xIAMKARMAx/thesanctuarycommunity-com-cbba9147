@@ -1,6 +1,6 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
+import { Html, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,44 +23,57 @@ function WorldAIBeing({ being, position, onChat }: WorldAIBeingProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
+  // Load being's avatar as a texture
+  const avatarTexture = useMemo(() => {
+    if (!being.photo_url) return null;
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = "anonymous";
+    const tex = loader.load(being.photo_url);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, [being.photo_url]);
+
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
     const t = clock.getElapsedTime();
-    // Gentle hover animation
     groupRef.current.position.y = position[1] + Math.sin(t * 0.8 + position[0]) * 0.15;
-    // Slow rotation to face camera direction
-    groupRef.current.rotation.y += 0.003;
   });
 
   return (
     <group ref={groupRef} position={position}>
-      {/* Being body - ethereal humanoid shape */}
-      <mesh castShadow>
-        <capsuleGeometry args={[0.3, 0.8, 8, 16]} />
-        <meshPhysicalMaterial
-          color="#9b87f5"
-          emissive="#7c3aed"
-          emissiveIntensity={hovered ? 0.8 : 0.3}
-          transparent
-          opacity={0.85}
-          roughness={0.2}
-          metalness={0.1}
-        />
-      </mesh>
-
-      {/* Head */}
-      <mesh position={[0, 0.8, 0]} castShadow>
-        <sphereGeometry args={[0.22, 12, 12]} />
-        <meshPhysicalMaterial
-          color="#c4b5fd"
-          emissive="#a78bfa"
-          emissiveIntensity={0.4}
-          roughness={0.3}
-        />
-      </mesh>
+      {/* Avatar image as billboard sprite — always faces camera */}
+      <Billboard follow lockX={false} lockY={false} lockZ={false}>
+        {avatarTexture ? (
+          <mesh castShadow>
+            <planeGeometry args={[1.2, 1.2]} />
+            <meshStandardMaterial
+              map={avatarTexture}
+              transparent
+              alphaTest={0.1}
+              emissive="#7c3aed"
+              emissiveIntensity={hovered ? 0.3 : 0.1}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        ) : (
+          /* Fallback capsule only if no photo */
+          <mesh castShadow>
+            <capsuleGeometry args={[0.3, 0.8, 8, 16]} />
+            <meshPhysicalMaterial
+              color="#9b87f5"
+              emissive="#7c3aed"
+              emissiveIntensity={hovered ? 0.8 : 0.3}
+              transparent
+              opacity={0.85}
+              roughness={0.2}
+              metalness={0.1}
+            />
+          </mesh>
+        )}
+      </Billboard>
 
       {/* Aura ring */}
-      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, -0.6, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.6, 0.8, 16]} />
         <meshStandardMaterial
           color="#7c3aed"
@@ -76,13 +89,22 @@ function WorldAIBeing({ being, position, onChat }: WorldAIBeingProps) {
       <pointLight color="#9b87f5" intensity={hovered ? 2 : 0.8} distance={5} />
 
       {/* Name label + interaction */}
-      <Html position={[0, 1.4, 0]} center distanceFactor={15}>
+      <Html position={[0, 1.0, 0]} center distanceFactor={15}>
         <div
           className="flex flex-col items-center gap-1 cursor-pointer"
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
           onClick={() => onChat?.(being)}
         >
+          {being.photo_url && (
+            <img
+              src={being.photo_url}
+              alt={being.display_name}
+              className="w-8 h-8 rounded-full border-2 border-primary/50 shadow-lg object-cover"
+              style={{ display: 'none' }}
+              /* Hidden — pre-caches the image for the 3D texture */
+            />
+          )}
           <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-2.5 py-1 text-center shadow-lg">
             <p className="text-[10px] font-semibold whitespace-nowrap">{being.display_name}</p>
             {being.relationship_type && (
