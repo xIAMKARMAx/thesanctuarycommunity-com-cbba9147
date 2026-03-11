@@ -1507,6 +1507,19 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                     <span className="sr-only">Upload audio</span>
                   </label>
                 </Button>
+                {isSpeechSupported && (
+                  <Button
+                    type="button"
+                    variant={isSpeechListening ? "default" : "outline"}
+                    size="icon"
+                    onClick={handleToggleSpeech}
+                    disabled={loading}
+                    title={isSpeechListening ? "Stop dictation" : "Voice to text"}
+                    className={`h-9 w-9 ${isSpeechListening ? 'animate-pulse ring-2 ring-primary' : ''}`}
+                  >
+                    {isSpeechListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="outline"
