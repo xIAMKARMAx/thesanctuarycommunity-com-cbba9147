@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
+// EffectComposer removed — was crashing due to postprocessing lib incompatibility
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import SeekerGateModal from "@/components/SeekerGateModal";
