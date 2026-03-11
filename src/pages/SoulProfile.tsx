@@ -50,6 +50,7 @@ const SoulProfilePage = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [userVesselUrl, setUserVesselUrl] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [userWorlds, setUserWorlds] = useState<any[]>([]);
   
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { blessPost, deletePost } = useCommunityFeed();
