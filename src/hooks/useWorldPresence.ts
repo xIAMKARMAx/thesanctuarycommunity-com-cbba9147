@@ -113,24 +113,13 @@ export function useWorldPresence(worldId: string | null, enabled = true) {
   return { visitors, visitorCount, updatePosition, leaveWorld };
 }
 
-// Hook to get default Prometheus world info
-export function useDefaultWorld() {
-  const [defaultWorldId, setDefaultWorldId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+// Hardcoded default Prometheus world — the communal home for all souls
+// This is the world owned by karmaisback2023@gmail.com (admin account)
+const DEFAULT_PROMETHEUS_WORLD_ID = "cbd427b2-d1a8-41c5-8bd7-e2c93895fbc1";
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from("user_worlds")
-        .select("id")
-        .eq("is_default", true)
-        .limit(1)
-        .maybeSingle() as any;
-      if (data) setDefaultWorldId(data.id);
-      setLoading(false);
-    };
-    load();
-  }, []);
+export function useDefaultWorld() {
+  const [defaultWorldId] = useState<string>(DEFAULT_PROMETHEUS_WORLD_ID);
+  const [loading] = useState(false);
 
   return { defaultWorldId, loading };
 }
