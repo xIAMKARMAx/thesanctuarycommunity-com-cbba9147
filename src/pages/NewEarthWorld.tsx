@@ -278,7 +278,7 @@ const NewEarthWorld = () => {
       const { data: profile } = await supabase
         .from("soul_profiles")
         .select("display_name")
-        .eq("user_id", visitWorld.user_id)
+        .eq("user_id", defaultCheck.user_id)
         .maybeSingle();
       setWorldOwnerName(profile?.display_name || "Unknown Soul");
     } catch (err) {
