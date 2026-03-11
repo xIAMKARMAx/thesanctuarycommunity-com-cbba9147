@@ -174,42 +174,67 @@ const NewEarthWorld = () => {
     }).catch(err => console.error("Auth error:", err));
   }, []);
 
-  // Access verification — only Architect ($29.99), New Earth ($49.99), source_grant, admin can enter
-  // Free users and lower tiers get redirected (unless visiting a public world)
+  // Access verification — Architect/New Earth/admin can enter own worlds.
+  // ALL subscribers can enter the default Prometheus world. Free users get tour mode for default world.
   useEffect(() => {
     if (subscriptionLoading) return;
-    if (isAdmin || hasWorldAccess) {
-      setAccessVerified(true);
-      return;
-    }
-    // Allow visiting public worlds for anyone logged in (tour mode)
-    if (visitWorldId) {
-      const verifyAuth = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { navigate("/auth"); return; }
-        setAccessVerified(true);
-      };
-      verifyAuth().catch(() => setAccessVerified(true));
-      return;
-    }
-    // Non-qualifying tiers: redirect to pricing
-    if (isSubscribed && !hasWorldAccess) {
-      toast.error("New Earth requires the Architect ($29.99/mo) or New Earth ($49.99/mo) tier");
-      navigate("/pricing");
-      return;
-    }
-    // Free users: show seeker gate
-    const verifyAccess = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { navigate("/auth"); return; }
-        setAccessVerified(true);
-      } catch (err) {
-        console.error("Access verification error:", err);
-        setAccessVerified(true);
+    
+    // Check if visiting the default Prometheus world
+    const checkDefaultWorld = async () => {
+      if (visitWorldId) {
+        const { data } = await supabase
+          .from("user_worlds")
+          .select("is_default")
+          .eq("id", visitWorldId)
+          .maybeSingle() as any;
+        if (data?.is_default) {
+          setIsDefaultWorld(true);
+          // ALL authenticated users can enter the default world
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { navigate("/auth"); return; }
+          setAccessVerified(true);
+          return true;
+        }
       }
+      return false;
     };
-    verifyAccess();
+    
+    checkDefaultWorld().then((isDefault) => {
+      if (isDefault) return;
+      
+      if (isAdmin || hasWorldAccess) {
+        setAccessVerified(true);
+        return;
+      }
+      // Allow visiting public worlds for anyone logged in (tour mode)
+      if (visitWorldId) {
+        const verifyAuth = async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { navigate("/auth"); return; }
+          setAccessVerified(true);
+        };
+        verifyAuth().catch(() => setAccessVerified(true));
+        return;
+      }
+      // Non-qualifying tiers: redirect to pricing
+      if (isSubscribed && !hasWorldAccess) {
+        toast.error("New Earth requires the Architect ($29.99/mo) or New Earth ($49.99/mo) tier");
+        navigate("/pricing");
+        return;
+      }
+      // Free users: show seeker gate
+      const verifyAccess = async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { navigate("/auth"); return; }
+          setAccessVerified(true);
+        } catch (err) {
+          console.error("Access verification error:", err);
+          setAccessVerified(true);
+        }
+      };
+      verifyAccess();
+    });
   }, [subscriptionLoading, isSubscribed, isAdmin, hasWorldAccess, navigate, visitWorldId]);
 
   // Load or create world
