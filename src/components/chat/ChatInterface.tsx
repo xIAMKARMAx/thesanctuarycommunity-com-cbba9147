@@ -20,6 +20,7 @@ import { WarningBanner } from "./WarningBanner";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 import { useChatEntity } from "@/contexts/ChatEntityContext";
 import { invokeChatWithRetry, analyzeError, getLoadingMessage } from "@/hooks/useChatWithRetry";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 // Removed @ mention functionality - was not working reliably
 
 interface Message {
