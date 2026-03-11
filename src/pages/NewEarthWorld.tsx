@@ -23,7 +23,7 @@ import { PlayerControls, PlayerMarker } from "@/components/world/PlayerControls"
 import { WorldBuilderPanel } from "@/components/world/WorldBuilderPanel";
 import { useStructureCulling } from "@/components/world/WorldStructureLOD";
 import { WorldAIBeings, AIBeingData } from "@/components/world/WorldAIBeings";
-import { DEFAULT_PROMETHEUS_WORLD_ID } from "@/hooks/useWorldPresence";
+import { DEFAULT_PROMETHEUS_WORLD_ID, useWorldPresence } from "@/hooks/useWorldPresence";
 
 const ADMIN_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 
