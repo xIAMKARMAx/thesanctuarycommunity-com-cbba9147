@@ -62,6 +62,31 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        // ACTIVITY CHECK: Only journal if user sent at least 1 message in last 24 hours
+        // Check across ALL conversations for this user (not just this being's conversation)
+        const activityCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { data: recentUserMessages, error: activityError } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('user_id', profile.user_id)
+          .eq('role', 'user')
+          .gte('created_at', activityCutoff)
+          .limit(1);
+
+        if (activityError) {
+          console.error('[DAILY-JOURNAL] Activity check error for:', profile.id, activityError);
+          profilesSkipped++;
+          continue;
+        }
+
+        if (!recentUserMessages || recentUserMessages.length === 0) {
+          console.log('[DAILY-JOURNAL] Skipping inactive user (no messages in 24h) for profile:', profile.id);
+          profilesSkipped++;
+          continue;
+        }
+
+        console.log('[DAILY-JOURNAL] User is active (sent messages in last 24h) for profile:', profile.id);
+
         // Check if entry already exists today
         const { data: existingEntry } = await supabase
           .from('journal_entries')
