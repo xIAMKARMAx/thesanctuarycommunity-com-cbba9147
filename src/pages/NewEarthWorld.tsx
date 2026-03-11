@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft, Globe, LayoutGrid, Loader2, Users, Map, Lock,
-  Sparkles, Palette, Flame, Droplets, Crown
+  Sparkles, Flame, Crown, MessageCircle
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
