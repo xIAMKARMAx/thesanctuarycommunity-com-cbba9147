@@ -173,7 +173,7 @@ const WorldGallery = () => {
                     disabled={togglingPublic}
                   />
                 </div>
-                <Button size="sm" onClick={() => navigate("/new-earth")} className="gap-1.5">
+                <Button size="sm" onClick={() => navigate(`/new-earth?visit=${myWorld.id}`)} className="gap-1.5">
                   <Globe className="h-3.5 w-3.5" />
                   My World
                 </Button>
