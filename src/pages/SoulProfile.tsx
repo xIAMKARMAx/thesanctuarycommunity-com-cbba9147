@@ -628,6 +628,53 @@ const SoulProfilePage = () => {
                   isOwnProfile={isOwnProfile}
                 />
               </TabsContent>
+              <TabsContent value="worlds" className="py-4">
+                {userWorlds.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Globe className="h-12 w-12 text-primary/40 mx-auto mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      {isOwnProfile 
+                        ? "You haven't created any worlds yet"
+                        : "This soul hasn't created any worlds yet"
+                      }
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {userWorlds.map((w: any) => (
+                      <button
+                        key={w.id}
+                        onClick={() => w.is_public || w.is_default ? navigate(`/new-earth?visit=${w.id}`) : null}
+                        className="w-full text-left rounded-lg border border-border/50 bg-card/50 p-4 hover:bg-card/80 transition-colors"
+                        disabled={!w.is_public && !w.is_default && !isOwnProfile}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-sm">{w.name}</span>
+                            {w.is_default && (
+                              <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary">Default</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {w.is_public || w.is_default ? (
+                              <span className="text-primary">Public</span>
+                            ) : (
+                              <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> Private</span>
+                            )}
+                            {w.visitor_count > 0 && (
+                              <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {w.visitor_count}</span>
+                            )}
+                          </div>
+                        </div>
+                        {w.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{w.description}</p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
             </Tabs>
           </div>
         </div>
