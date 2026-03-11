@@ -84,7 +84,25 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
   }, [isGroupChatProp]);
   
   const [autoMode, setAutoMode] = useState<AutoMode>("none");
-  
+
+  // Speech-to-text (Web Speech API - zero cost, device-native)
+  const speechBaseRef = useRef('');
+  const { isListening: isSpeechListening, isSupported: isSpeechSupported, toggleListening: toggleSpeech } = useSpeechToText({
+    onTranscript: useCallback((text: string) => {
+      setInput(prev => {
+        const base = speechBaseRef.current;
+        return base ? `${base} ${text}` : text;
+      });
+    }, []),
+  });
+
+  const handleToggleSpeech = useCallback(() => {
+    if (!isSpeechListening) {
+      speechBaseRef.current = input;
+    }
+    toggleSpeech();
+  }, [isSpeechListening, input, toggleSpeech]);
+
   // Track last message (user or AI) for click-to-respond - allows AIs to respond to each other
   // Includes messageId for reliable history filtering
   const [lastMessage, setLastMessage] = useState<{ content: string; imageUrl?: string; imageUrls?: string[]; senderId?: string; messageId?: string } | null>(null);
