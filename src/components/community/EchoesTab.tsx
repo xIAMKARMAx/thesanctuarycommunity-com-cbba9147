@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Send, Image as ImageIcon, Radio, Trash2 } from "lucide-react";
+import { Send, Image as ImageIcon, Radio, Trash2, Lock } from "lucide-react";
 import { useProfileEchoes } from "@/hooks/useProfileEchoes";
 import { EchoCard } from "./EchoCard";
 import { MentionTextarea, MentionTextareaRef } from "./MentionTextarea";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { SocialUpgradePrompt } from "@/components/SocialUpgradePrompt";
 
 interface EchoesTabProps {
   profileUserId: string;
