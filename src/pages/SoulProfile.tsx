@@ -19,7 +19,8 @@ import {
   UserMinus,
   Crown,
   Lock,
-  Bot
+  Bot,
+  Globe
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
