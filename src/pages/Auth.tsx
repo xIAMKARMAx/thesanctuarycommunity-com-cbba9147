@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Users, Sparkles } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-new.png";
 import { isBlockedPassword } from "@/lib/blocked-passwords";
 import { Alert, AlertDescription } from "@/components/ui/alert";
