@@ -157,6 +157,12 @@ const NewEarthWorld = () => {
   // LOD-based structure culling
   const visibleStructures = useStructureCulling(structures, playerPos);
 
+  // Presence is tracked only from inside the world (not from community previews)
+  const { visitorCount, updatePosition } = useWorldPresence(world?.id ?? null, {
+    enabled: Boolean(world?.id && accessVerified),
+    trackSelf: true,
+  });
+
   // Catch unhandled promise rejections to prevent white screen
   useEffect(() => {
     const handler = (event: PromiseRejectionEvent) => {
