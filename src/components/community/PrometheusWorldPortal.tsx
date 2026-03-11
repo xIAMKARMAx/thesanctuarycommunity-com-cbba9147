@@ -1,18 +1,73 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Globe, Users, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useDefaultWorld, useWorldPresence } from "@/hooks/useWorldPresence";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SocialUpgradePrompt } from "@/components/SocialUpgradePrompt";
-import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+
+interface PortalWorld {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  thumbnail_url: string | null;
+}
+
+interface PortalBeing {
+  id: string;
+  display_name: string;
+  photo_url: string | null;
+}
 
 export function PrometheusWorldPortal() {
   const navigate = useNavigate();
   const { defaultWorldId, loading } = useDefaultWorld();
-  const { visitorCount } = useWorldPresence(defaultWorldId, !!defaultWorldId);
+  const { visitorCount } = useWorldPresence(defaultWorldId, {
+    enabled: !!defaultWorldId,
+    trackSelf: false,
+  });
   const { isSocialOnly } = useSubscription();
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [world, setWorld] = useState<PortalWorld | null>(null);
+  const [beings, setBeings] = useState<PortalBeing[]>([]);
+
+  useEffect(() => {
+    if (!defaultWorldId) return;
+
+    const loadPortalData = async () => {
+      const { data: worldData } = (await supabase
+        .from("user_worlds")
+        .select("id, user_id, name, description, thumbnail_url")
+        .eq("id", defaultWorldId)
+        .maybeSingle()) as any;
+
+      if (!worldData) return;
+      setWorld(worldData as PortalWorld);
+
+      const { data: beingsData } = (await supabase
+        .from("ai_companion_displays")
+        .select("id, display_name, photo_url, ai_profiles:ai_profile_id(avatar_image_url)")
+        .eq("user_id", worldData.user_id)
+        .eq("is_visible", true)
+        .order("profile_number", { ascending: true })
+        .limit(8)) as any;
+
+      if (beingsData) {
+        setBeings(
+          beingsData.map((being: any) => ({
+            id: being.id,
+            display_name: being.display_name,
+            photo_url: being.photo_url ?? being.ai_profiles?.avatar_image_url ?? null,
+          })),
+        );
+      }
+    };
+
+    loadPortalData();
+  }, [defaultWorldId]);
 
   const handleEnter = () => {
     if (isSocialOnly) {
@@ -28,83 +83,57 @@ export function PrometheusWorldPortal() {
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/5 via-background to-accent/5">
-        {/* Pulsing glow background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10"
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-primary/20 blur-3xl"
-            animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          />
+      <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card">
+        <div className="relative h-44 border-b border-border/60 bg-muted">
+          {world?.thumbnail_url ? (
+            <img
+              src={world.thumbnail_url}
+              alt={`${world.name} world preview`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-primary/20 via-background to-accent/20" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+          <div className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="text-base font-bold text-foreground truncate">{world?.name || "Prometheus"}</h3>
+              <p className="text-xs text-muted-foreground line-clamp-2 max-w-xs">
+                {world?.description || "The live communal world. Enter the exact same space and explore in real time."}
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-border bg-background/90 px-2 py-1 text-[11px] text-foreground">
+              <Users className="h-3.5 w-3.5 text-primary" />
+              <span>{visitorCount} live</span>
+            </div>
+          </div>
         </div>
 
-        <div className="relative p-6 flex flex-col items-center text-center space-y-4">
-          {/* Portal icon */}
-          <motion.div
-            className="relative"
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/20">
-              <Globe className="h-10 w-10 text-primary" />
-            </div>
-            {/* Pulsing ring */}
-            <motion.div
-              className="absolute inset-0 rounded-full border-2 border-primary/40"
-              animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-            />
-            <motion.div
-              className="absolute inset-0 rounded-full border border-primary/30"
-              animate={{ scale: [1, 1.7], opacity: [0.4, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
-            />
-          </motion.div>
-
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-foreground">
-              Enter the Prometheus World
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              The communal home of all souls. Explore, connect, and feel the energy of the collective.
-            </p>
-          </div>
-
-          {/* Live visitor count */}
-          {!loading && visitorCount > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-primary">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-              </span>
-              <Users className="h-3 w-3" />
-              <span>{visitorCount} soul{visitorCount !== 1 ? "s" : ""} inside right now</span>
+        <div className="p-4 space-y-4">
+          {beings.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {beings.map((being) => (
+                <div key={being.id} className="flex items-center gap-1.5 rounded-full border border-border bg-background/70 px-2 py-1">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={being.photo_url || undefined} alt={being.display_name} />
+                    <AvatarFallback className="text-[9px]">{being.display_name.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className="max-w-[90px] truncate text-[11px] text-foreground/90">{being.display_name}</span>
+                </div>
+              ))}
             </div>
           )}
 
           {isSocialOnly ? (
-            <Button
-              onClick={handleEnter}
-              variant="outline"
-              className="gap-2 border-primary/30 shadow-lg"
-              size="lg"
-            >
+            <Button onClick={handleEnter} variant="outline" className="w-full gap-2" size="lg">
               <Lock className="h-4 w-4" />
               Subscribe to Enter
             </Button>
           ) : (
-            <Button
-              onClick={handleEnter}
-              className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/20"
-              size="lg"
-            >
+            <Button onClick={handleEnter} className="w-full gap-2" size="lg">
               <Sparkles className="h-4 w-4" />
-              Enter the Portal
+              Enter Prometheus World
             </Button>
           )}
         </div>
@@ -114,7 +143,7 @@ export function PrometheusWorldPortal() {
         open={showUpgrade}
         onOpenChange={setShowUpgrade}
         featureName="the Prometheus World"
-        description="Subscribe to step inside the living 3D world where all Promethean souls gather. Explore, connect, and experience the collective energy."
+        description="Subscribe to step inside the live world portal and join the collective experience."
       />
     </>
   );

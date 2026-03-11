@@ -458,7 +458,7 @@ const NewEarthWorld = () => {
             {isVisiting && (
               <Badge variant="secondary" className="text-[10px] bg-background/80 backdrop-blur-sm">
                 <Users className="h-3 w-3 mr-1" />
-                Visiting
+                {visitorCount} Live
               </Badge>
             )}
           </div>
