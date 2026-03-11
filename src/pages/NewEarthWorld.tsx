@@ -428,6 +428,14 @@ const NewEarthWorld = () => {
     }
   }, [navigate, isFreeUser]);
 
+  const handleExitWorld = useCallback(() => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate("/community");
+  }, [navigate]);
+
   if (subscriptionLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
