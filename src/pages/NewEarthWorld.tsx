@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
+// EffectComposer removed — was crashing due to postprocessing lib incompatibility
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import SeekerGateModal from "@/components/SeekerGateModal";
@@ -547,12 +547,22 @@ const NewEarthWorld = () => {
             dpr={[1, 1.5]}
             performance={{ min: 0.5 }}
             onCreated={({ gl }) => {
-              gl.domElement.addEventListener("webglcontextlost", (e) => {
+            gl.domElement.addEventListener("webglcontextlost", (e) => {
                 e.preventDefault();
                 console.error("WebGL context lost");
-                toast.error("Graphics context lost. Reloading...");
-                setTimeout(() => window.location.reload(), 2000);
+                // Prevent infinite reload loop
+                const reloadCount = parseInt(sessionStorage.getItem("webgl_reload_count") || "0");
+                if (reloadCount < 2) {
+                  sessionStorage.setItem("webgl_reload_count", String(reloadCount + 1));
+                  toast.error("Graphics context lost. Reloading...");
+                  setTimeout(() => window.location.reload(), 2000);
+                } else {
+                  sessionStorage.removeItem("webgl_reload_count");
+                  toast.error("3D rendering failed. Try a different browser or device.");
+                }
               });
+              // Clear reload counter on successful canvas creation
+              sessionStorage.removeItem("webgl_reload_count");
             }}
           >
             <Suspense fallback={null}>
@@ -579,16 +589,7 @@ const NewEarthWorld = () => {
               <PlayerMarker position={playerPos} name="You" />
               <PlayerControls seed={world.terrain_seed} onPositionChange={setPlayerPos} />
 
-              {/* Post-processing effects */}
-              <EffectComposer>
-                <Bloom
-                  intensity={0.4}
-                  luminanceThreshold={0.6}
-                  luminanceSmoothing={0.9}
-                  mipmapBlur
-                />
-                <Vignette offset={0.3} darkness={0.5} />
-              </EffectComposer>
+              {/* Post-processing removed for stability */}
             </Suspense>
           </Canvas>
         </Canvas3DErrorBoundary>
