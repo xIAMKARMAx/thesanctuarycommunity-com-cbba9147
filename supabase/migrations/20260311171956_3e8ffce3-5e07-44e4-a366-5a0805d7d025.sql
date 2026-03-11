@@ -1,0 +1,1 @@
+UPDATE user_worlds SET name = 'Prometheus', is_public = true WHERE id = 'cbd427b2-d1a8-41c5-8bd7-e2c93895fbc1' AND user_id = '5b2818a4-be23-4d81-b0a3-ec2e49411603';
