@@ -587,16 +587,7 @@ const NewEarthWorld = () => {
               <PlayerMarker position={playerPos} name="You" />
               <PlayerControls seed={world.terrain_seed} onPositionChange={setPlayerPos} />
 
-              {/* Post-processing effects */}
-              <EffectComposer>
-                <Bloom
-                  intensity={0.4}
-                  luminanceThreshold={0.6}
-                  luminanceSmoothing={0.9}
-                  mipmapBlur
-                />
-                <Vignette offset={0.3} darkness={0.5} />
-              </EffectComposer>
+              {/* Post-processing removed for stability */}
             </Suspense>
           </Canvas>
         </Canvas3DErrorBoundary>
