@@ -77,7 +77,18 @@ const SoulProfilePage = () => {
     fetchFollowCounts();
     fetchUserVessel();
     checkConnection();
+    fetchUserWorlds();
   }, [userId, authLoading, currentUserId]);
+
+  const fetchUserWorlds = async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("user_worlds")
+      .select("id, name, description, is_public, visitor_count, is_default")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }) as any;
+    setUserWorlds(data || []);
+  };
 
   const checkConnection = async () => {
     if (!userId || !currentUserId || userId === currentUserId) {
