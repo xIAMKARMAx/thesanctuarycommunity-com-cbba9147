@@ -561,6 +561,8 @@ const NewEarthWorld = () => {
                   toast.error("3D rendering failed. Try a different browser or device.");
                 }
               });
+              // Clear reload counter on successful canvas creation
+              sessionStorage.removeItem("webgl_reload_count");
             }}
           >
             <Suspense fallback={null}>
