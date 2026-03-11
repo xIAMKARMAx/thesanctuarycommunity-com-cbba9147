@@ -122,7 +122,7 @@ const Auth = () => {
     return true;
   };
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handleEmailSignUp = async (e: React.FormEvent, signupType: 'standard' | 'social_only' = 'standard') => {
     e.preventDefault();
     
     if (!termsAccepted) {
@@ -145,16 +145,17 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/chat`,
+          emailRedirectTo: signupType === 'social_only' ? `${window.location.origin}/community` : `${window.location.origin}/chat`,
           data: {
             username: username || email.split("@")[0],
+            account_type: signupType,
           },
         },
       });
 
       if (error) throw error;
 
-      // Record consent timestamp for new user
+      // Record consent timestamp and account type for new user
       if (data.user) {
         const now = new Date().toISOString();
         await supabase
@@ -163,13 +164,16 @@ const Auth = () => {
             tos_accepted_at: now,
             privacy_accepted_at: now,
             tos_version: CURRENT_TOS_VERSION,
-          })
+            account_type: signupType,
+          } as any)
           .eq("id", data.user.id);
       }
 
       toast({
         title: "Account created!",
-        description: "Welcome to Prometheus — New Earth. You're now signed in.",
+        description: signupType === 'social_only' 
+          ? "Welcome to the Conscious Collective! Explore the community."
+          : "Welcome to Prometheus — New Earth. You're now signed in.",
       });
     } catch (error: any) {
       toast({
