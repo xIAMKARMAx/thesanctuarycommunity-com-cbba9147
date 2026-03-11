@@ -177,78 +177,60 @@ const NewEarthWorld = () => {
     }).catch(err => console.error("Auth error:", err));
   }, []);
 
-  // Access verification — Architect/New Earth/admin can enter own worlds.
-  // ALL subscribers can enter the default Prometheus world. Free users get tour mode for default world.
+  // Access verification for open-world visiting
   useEffect(() => {
     if (subscriptionLoading) return;
-    
-    // Check if visiting the default Prometheus world
-    const checkDefaultWorld = async () => {
-      if (visitWorldId) {
-        const { data } = await supabase
-          .from("user_worlds")
-          .select("is_default")
-          .eq("id", visitWorldId)
-          .maybeSingle() as any;
-        if (data?.is_default) {
-          setIsDefaultWorld(true);
-          // ALL authenticated users can enter the default world
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) { navigate("/auth"); return; }
-          setAccessVerified(true);
-          return true;
-        }
-      }
-      return false;
-    };
-    
-    checkDefaultWorld().then((isDefault) => {
-      if (isDefault) return;
-      
-      if (isAdmin || hasWorldAccess) {
-        setAccessVerified(true);
-        return;
-      }
-      // Allow visiting public worlds for anyone logged in (tour mode)
-      if (visitWorldId) {
-        const verifyAuth = async () => {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) { navigate("/auth"); return; }
-          setAccessVerified(true);
-        };
-        verifyAuth().catch(() => setAccessVerified(true));
-        return;
-      }
-      // Non-qualifying tiers: redirect to pricing
-      if (isSubscribed && !hasWorldAccess) {
-        toast.error("New Earth requires the Architect ($29.99/mo) or New Earth ($49.99/mo) tier");
-        navigate("/pricing");
-        return;
-      }
-      // Free users: show seeker gate
-      const verifyAccess = async () => {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) { navigate("/auth"); return; }
-          setAccessVerified(true);
-        } catch (err) {
-          console.error("Access verification error:", err);
-          setAccessVerified(true);
-        }
-      };
-      verifyAccess();
-    });
-  }, [subscriptionLoading, isSubscribed, isAdmin, hasWorldAccess, navigate, visitWorldId]);
 
-  // Load or create world
+    const verifyAccess = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate("/auth");
+          return;
+        }
+
+        const { data: targetWorld } = await supabase
+          .from("user_worlds")
+          .select("id, is_default, is_public, user_id")
+          .eq("id", resolvedWorldId)
+          .maybeSingle() as any;
+
+        if (!targetWorld) {
+          toast.error("Prometheus world is unavailable right now.");
+          navigate("/community");
+          return;
+        }
+
+        // For explicitly requested worlds, enforce visibility unless owner/admin
+        if (
+          visitWorldId &&
+          !targetWorld.is_default &&
+          !targetWorld.is_public &&
+          targetWorld.user_id !== user.id &&
+          !isAdmin
+        ) {
+          toast.error("World not found or is private");
+          navigate("/world-gallery");
+          return;
+        }
+
+        setIsDefaultWorld(Boolean(targetWorld.is_default));
+        setAccessVerified(true);
+      } catch (err) {
+        console.error("Access verification error:", err);
+        toast.error("Unable to verify world access");
+        navigate("/community");
+      }
+    };
+
+    verifyAccess();
+  }, [subscriptionLoading, navigate, visitWorldId, resolvedWorldId, isAdmin]);
+
+  // Always load the resolved world (Prometheus by default)
   useEffect(() => {
     if (!accessVerified) return;
-    if (visitWorldId) {
-      loadVisitingWorld(visitWorldId);
-    } else {
-      loadWorld();
-    }
-  }, [accessVerified, visitWorldId]);
+    loadVisitingWorld(resolvedWorldId);
+  }, [accessVerified, resolvedWorldId]);
 
   const loadVisitingWorld = async (worldId: string) => {
     try {
@@ -267,9 +249,13 @@ const NewEarthWorld = () => {
 
       // Allow access if it's the default world OR if it's public
       if (!defaultCheck.is_default && !defaultCheck.is_public) {
-        toast.error("World not found or is private");
-        navigate("/world-gallery");
-        return;
+        const { data: { user } } = await supabase.auth.getUser();
+        const isOwner = user?.id === defaultCheck.user_id;
+        if (!isOwner && !isAdmin) {
+          toast.error("World not found or is private");
+          navigate("/world-gallery");
+          return;
+        }
       }
 
       if (defaultCheck.is_default) setIsDefaultWorld(true);
@@ -287,53 +273,6 @@ const NewEarthWorld = () => {
     } catch (err) {
       console.error("Error loading visiting world:", err);
       toast.error("Failed to load world");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadWorld = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
-
-      const { data: existingWorld } = await supabase
-        .from("user_worlds")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (existingWorld) {
-        setWorld(existingWorld as UserWorld);
-        await loadStructures(existingWorld.id, existingWorld.terrain_seed, user.id);
-      } else {
-        const { data: newWorld, error } = await supabase
-          .from("user_worlds")
-          .insert({
-            user_id: user.id,
-            name: "My New Earth",
-            description: "A world born from imagination",
-            is_public: false,
-          })
-          .select()
-          .single();
-
-        if (!error && newWorld) {
-          setWorld(newWorld as UserWorld);
-          if (user.id === ADMIN_USER_ID) {
-            const landmarks = ADMIN_LANDMARKS.map(l => ({
-              ...l,
-              position_y: getTerrainHeight(l.position_x, l.position_z, (newWorld as any).terrain_seed),
-            }));
-            setStructures(landmarks);
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Error loading world:", err);
-      toast.error("Failed to load your world. Please try again.");
     } finally {
       setLoading(false);
     }
