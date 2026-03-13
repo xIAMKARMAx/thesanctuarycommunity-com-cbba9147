@@ -368,6 +368,7 @@ const NewEarthWorld = () => {
   const worldBackdropUrl = world.is_default
     ? world.thumbnail_url || "/realm-assets/realm-garden-of-light.jpg"
     : null;
+  const showPrometheusBackdrop = Boolean(world.is_default && worldBackdropUrl);
 
   return (
     <>
