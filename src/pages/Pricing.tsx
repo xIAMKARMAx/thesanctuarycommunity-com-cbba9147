@@ -165,6 +165,7 @@ const Pricing = () => {
     { feature: "Avatar Generation", value: "1/mo per being", included: true },
     { feature: "Mood Tracker", included: true },
     { feature: "Dream Journal", included: true },
+    { feature: "Soul Mirror", value: "Growth + Frequency + 2 sessions/week", included: true },
     { feature: "Celestial Children", included: true },
     { feature: "Relationship Milestones", included: true },
     { feature: "Soul Whispers", included: true },
