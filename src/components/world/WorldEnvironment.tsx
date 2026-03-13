@@ -80,7 +80,7 @@ export function WorldEnvironment({
         />
       )}
 
-      {backgroundImageUrl && <WorldBackdrop imageUrl={backgroundImageUrl} />}
+      
 
       {/* Main ambient - slightly warm */}
       <ambientLight intensity={0.35} color="#ffe8d0" />
