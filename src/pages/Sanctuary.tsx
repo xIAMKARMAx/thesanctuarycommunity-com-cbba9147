@@ -14,6 +14,7 @@ import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
 import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
 import essenceEntity from "@/assets/essence-entity.png";
+import TarotReading from "@/components/spiritual/TarotReading";
 
 const SANCTUARY_CHAMBERS = [
   {
