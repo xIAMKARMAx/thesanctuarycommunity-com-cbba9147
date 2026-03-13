@@ -470,7 +470,6 @@ const NewEarthWorld = () => {
             camera={{ position: [0, 15, 25], fov: 55 }}
             gl={{
               antialias: true,
-              alpha: showPrometheusBackdrop,
               powerPreference: "high-performance",
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: 1.1,
@@ -478,7 +477,6 @@ const NewEarthWorld = () => {
             }}
             dpr={[1, 1.5]}
             performance={{ min: 0.5 }}
-            style={showPrometheusBackdrop ? { background: "transparent" } : undefined}
             onCreated={({ gl }) => {
               const canvas = gl.domElement;
 
