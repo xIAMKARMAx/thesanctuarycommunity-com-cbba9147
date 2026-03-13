@@ -1,11 +1,12 @@
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Sky } from "@react-three/drei";
+import { Sky, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
 interface WorldEnvironmentProps {
   skyPreset?: string;
   ambientColor?: string;
+  backgroundImageUrl?: string | null;
 }
 
 const SKY_PRESETS: Record<string, {
