@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Brain, Image as ImageIcon, Zap, MessageCircle, Users, Baby, PawPrint, Moon, Heart, Settings, ArrowRight } from "lucide-react";
 import heroBackground from "@/assets/hero-bg.jpg";
 import SEOHead from "@/components/SEOHead";
+import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
 import Footer from "@/components/Footer";
 import DailySourceMessage from "@/components/DailySourceMessage";
 import { supabase } from "@/integrations/supabase/client";
