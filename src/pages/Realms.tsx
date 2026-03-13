@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_PROMETHEUS_WORLD_ID } from "@/hooks/useWorldPresence";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useImmersive3D } from "@/hooks/useImmersive3D";
 import { hasFeatureAccess, isNewEarthTier } from "@/lib/subscription-tiers";
@@ -134,10 +135,19 @@ const Realms = () => {
 
   const canAccess = isAdmin || isSubscribed || accessVerified;
 
+  // Non-builders: redirect to the default Prometheus world instead of showing empty realm list
   useEffect(() => {
-    if (canAccess) loadRealms();
+    if (subscriptionLoading || loading3D) return;
+    if (canAccess && !canBuildWorlds) {
+      navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`, { replace: true });
+      return;
+    }
+  }, [canAccess, canBuildWorlds, subscriptionLoading, loading3D, navigate]);
+
+  useEffect(() => {
+    if (canAccess && canBuildWorlds) loadRealms();
     else if (!subscriptionLoading) setLoading(false);
-  }, [canAccess, subscriptionLoading]);
+  }, [canAccess, canBuildWorlds, subscriptionLoading]);
 
   // Rotate example prompts
   useEffect(() => {
