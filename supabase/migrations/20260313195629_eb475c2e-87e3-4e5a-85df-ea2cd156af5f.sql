@@ -1,0 +1,1 @@
+ALTER TABLE public.world_structures ADD COLUMN IF NOT EXISTS image_url TEXT;

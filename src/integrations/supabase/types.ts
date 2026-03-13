@@ -4681,6 +4681,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          image_url: string | null
           material_type: string | null
           name: string
           position_x: number | null
@@ -4698,6 +4699,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
           material_type?: string | null
           name: string
           position_x?: number | null
@@ -4715,6 +4717,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
           material_type?: string | null
           name?: string
           position_x?: number | null
