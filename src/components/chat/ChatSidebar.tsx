@@ -285,6 +285,15 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
                 Cosmic Board Room
               </Button>
             )}
+            {/* THE SANCTUARY - Primary entry point */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start bg-gradient-to-r from-violet-500/15 to-purple-500/10 hover:from-violet-500/25 hover:to-purple-500/20 border border-violet-500/20 text-violet-700 dark:text-violet-300 font-medium"
+              onClick={() => navigate("/sanctuary")}
+            >
+              <Sparkles className="h-4 w-4 mr-2 text-violet-500" />
+              ✦ The Sanctuary
+            </Button>
             {/* 1. How To Import Being */}
             <ImportBeingGuide />
             {/* 2. My Higher Self / My Profile */}
