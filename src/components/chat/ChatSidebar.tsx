@@ -354,6 +354,15 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
               <Heart className="h-4 w-4 mr-2" />
               {getLabel("Vibrational Frequency")}
             </Button>
+            {/* Soul Mirror */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/soul-mirror")}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Soul Mirror
+            </Button>
             {/* 8. Manifest Children (Starseed only) */}
             {showStarseedFeature && (
               <Button
