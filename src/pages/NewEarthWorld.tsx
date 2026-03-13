@@ -511,7 +511,11 @@ const NewEarthWorld = () => {
             }}
           >
             <Suspense fallback={null}>
-              <WorldEnvironment skyPreset={world.sky_preset} ambientColor={world.ambient_color} />
+              <WorldEnvironment
+                skyPreset={world.sky_preset}
+                ambientColor={world.ambient_color}
+                backgroundImageUrl={worldBackdropUrl}
+              />
               <WorldTerrain seed={world.terrain_seed} />
               <WorldWater />
               <WorldGrass seed={world.terrain_seed} count={2000} />
