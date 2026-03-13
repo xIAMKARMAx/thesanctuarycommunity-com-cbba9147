@@ -515,15 +515,13 @@ const NewEarthWorld = () => {
             }}
           >
             <Suspense fallback={null}>
-              <WorldEnvironment
-                skyPreset={world.sky_preset}
-                ambientColor={world.ambient_color}
-              />
-              <WorldTerrain seed={world.terrain_seed} />
-              <WorldWater />
-              <WorldGrass seed={world.terrain_seed} count={2000} />
+              {/* Lighting only — no sky/terrain/water since Garden of Light is the background */}
+              <ambientLight intensity={0.5} color="#ffe8d0" />
+              <directionalLight position={[50, 40, 30]} intensity={1.0} color="#fff5e0" />
+              <hemisphereLight args={["#87ceeb", "#3a5a2a", 0.3]} />
+              <pointLight position={[0, 15, 0]} color={world.ambient_color} intensity={0.4} distance={60} />
+              
               <WorldParticles count={300} />
-              <GodRays />
               <WeatherParticles type="fireflies" count={100} />
 
               {/* LOD-culled structures */}
