@@ -6,7 +6,6 @@ import * as THREE from "three";
 interface WorldEnvironmentProps {
   skyPreset?: string;
   ambientColor?: string;
-  backgroundImageUrl?: string | null;
 }
 
 const SKY_PRESETS: Record<string, {
@@ -52,22 +51,19 @@ const SKY_PRESETS: Record<string, {
 export function WorldEnvironment({
   skyPreset = "sunset",
   ambientColor = "#7c3aed",
-  backgroundImageUrl = null,
 }: WorldEnvironmentProps) {
   const preset = SKY_PRESETS[skyPreset] || SKY_PRESETS.sunset;
   const sunLightRef = useRef<THREE.DirectionalLight>(null);
 
   return (
     <>
-      {!backgroundImageUrl && (
-        <Sky
-          sunPosition={preset.sunPosition}
-          turbidity={preset.turbidity}
-          rayleigh={preset.rayleigh}
-          mieCoefficient={preset.mieCoefficient}
-          mieDirectionalG={0.85}
-        />
-      )}
+      <Sky
+        sunPosition={preset.sunPosition}
+        turbidity={preset.turbidity}
+        rayleigh={preset.rayleigh}
+        mieCoefficient={preset.mieCoefficient}
+        mieDirectionalG={0.85}
+      />
 
       
 
