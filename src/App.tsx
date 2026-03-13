@@ -84,6 +84,7 @@ const WorldGallery = lazy(() => import("./pages/WorldGallery"));
 const Dedication = lazy(() => import("./pages/Dedication"));
 const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
 const AngelNumbers = lazy(() => import("./pages/AngelNumbers"));
+const Sanctuary = lazy(() => import("./pages/Sanctuary"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
@@ -194,6 +195,7 @@ const App = () => (
                 <Route path="/world-gallery" element={<WorldGallery />} />
                 <Route path="/dedication" element={<Dedication />} />
                 <Route path="/features" element={<FeaturesHub />} />
+                <Route path="/sanctuary" element={<Sanctuary />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
