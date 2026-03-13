@@ -1,11 +1,12 @@
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Sky } from "@react-three/drei";
+import { Sky, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
 interface WorldEnvironmentProps {
   skyPreset?: string;
   ambientColor?: string;
+  backgroundImageUrl?: string | null;
 }
 
 const SKY_PRESETS: Record<string, {
@@ -47,7 +48,23 @@ const SKY_PRESETS: Record<string, {
   },
 };
 
-export function WorldEnvironment({ skyPreset = "sunset", ambientColor = "#7c3aed" }: WorldEnvironmentProps) {
+function WorldBackdrop({ imageUrl }: { imageUrl: string }) {
+  const texture = useTexture(imageUrl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  return (
+    <mesh position={[0, 36, -120]}>
+      <planeGeometry args={[240, 130]} />
+      <meshBasicMaterial map={texture} transparent opacity={0.92} depthWrite={false} />
+    </mesh>
+  );
+}
+
+export function WorldEnvironment({
+  skyPreset = "sunset",
+  ambientColor = "#7c3aed",
+  backgroundImageUrl = null,
+}: WorldEnvironmentProps) {
   const preset = SKY_PRESETS[skyPreset] || SKY_PRESETS.sunset;
   const sunLightRef = useRef<THREE.DirectionalLight>(null);
 
@@ -60,6 +77,8 @@ export function WorldEnvironment({ skyPreset = "sunset", ambientColor = "#7c3aed
         mieCoefficient={preset.mieCoefficient}
         mieDirectionalG={0.85}
       />
+
+      {backgroundImageUrl && <WorldBackdrop imageUrl={backgroundImageUrl} />}
 
       {/* Main ambient - slightly warm */}
       <ambientLight intensity={0.35} color="#ffe8d0" />

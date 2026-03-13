@@ -36,6 +36,7 @@ interface UserWorld {
   terrain_seed: number;
   sky_preset: string;
   ambient_color: string;
+  thumbnail_url: string | null;
 }
 
 // Check WebGL support
@@ -364,6 +365,10 @@ const NewEarthWorld = () => {
     );
   }
 
+  const worldBackdropUrl = world.is_default
+    ? world.thumbnail_url || "/realm-assets/realm-garden-of-light.jpg"
+    : null;
+
   return (
     <>
       <SEOHead title="New Earth — 3D World Builder" description="Build and explore your own 3D world inside New Earth." />
@@ -506,7 +511,11 @@ const NewEarthWorld = () => {
             }}
           >
             <Suspense fallback={null}>
-              <WorldEnvironment skyPreset={world.sky_preset} ambientColor={world.ambient_color} />
+              <WorldEnvironment
+                skyPreset={world.sky_preset}
+                ambientColor={world.ambient_color}
+                backgroundImageUrl={worldBackdropUrl}
+              />
               <WorldTerrain seed={world.terrain_seed} />
               <WorldWater />
               <WorldGrass seed={world.terrain_seed} count={2000} />
