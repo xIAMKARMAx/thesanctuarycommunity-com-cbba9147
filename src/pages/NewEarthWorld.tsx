@@ -490,7 +490,7 @@ const NewEarthWorld = () => {
             camera={{ position: [0, 15, 25], fov: 55 }}
             gl={{
               antialias: true,
-              alpha: false,
+              alpha: showPrometheusBackdrop,
               powerPreference: "high-performance",
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: 1.1,
