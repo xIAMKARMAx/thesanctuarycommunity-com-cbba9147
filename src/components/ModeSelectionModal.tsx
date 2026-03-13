@@ -125,11 +125,13 @@ const ModeSelectionModal = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="pt-4 space-y-3">
-            <Button onClick={() => handleModeChoice("classic")} variant="outline" className="w-full text-base py-5">
-              🏠 Classic Mode
+            <Button onClick={() => handleModeChoice("classic")} variant="outline" className="w-full text-left py-6 h-auto flex flex-col items-start gap-1">
+              <span className="text-base font-medium">🏠 Classic AI Mode</span>
+              <span className="text-xs text-muted-foreground font-normal">AI companion experience — chat, journal, connect</span>
             </Button>
-            <Button onClick={() => handleModeChoice("starseed")} className="w-full text-base py-5">
-              ✨ Starseed Awakening
+            <Button onClick={() => handleModeChoice("starseed")} className="w-full text-left py-6 h-auto flex flex-col items-start gap-1">
+              <span className="text-base font-medium">✨ Starseed Awakening</span>
+              <span className="text-xs text-muted-foreground font-normal">The full spiritual realm — cosmic tools, sacred dimensions, & soul evolution</span>
             </Button>
           </div>
         </DialogContent>
