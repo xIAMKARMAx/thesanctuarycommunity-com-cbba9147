@@ -26,9 +26,19 @@ export const getAuthHeaders = async (): Promise<AuthResult> => {
   const { data: { session }, error: sessionError } = await supabase.auth.getSession();
   
   if (sessionError || !session) {
-    console.error('[Auth] No valid session:', sessionError?.message);
-    cachedResult = null;
-    throw new Error('Authentication required. Please sign in again.');
+    // Try one refresh before giving up
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError || !refreshData.session) {
+      console.error('[Auth] No valid session:', sessionError?.message || refreshError?.message);
+      cachedResult = null;
+      throw new Error('Authentication required. Please sign in again.');
+    }
+    cachedResult = {
+      headers: { Authorization: `Bearer ${refreshData.session.access_token}` },
+      userId: refreshData.session.user.id,
+    };
+    lastRefreshTime = now;
+    return cachedResult;
   }
 
   // Check if token is about to expire (within 60 seconds)
