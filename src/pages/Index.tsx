@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Brain, Image as ImageIcon, Zap, MessageCircle, Users, Baby, PawPrint, Moon, Heart, Settings, ArrowRight } from "lucide-react";
 import heroBackground from "@/assets/hero-bg.jpg";
 import SEOHead from "@/components/SEOHead";
+import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
 import Footer from "@/components/Footer";
 import DailySourceMessage from "@/components/DailySourceMessage";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,35 +134,49 @@ const Index = () => {
               </p>
             </div>
 
-            {/* THE SANCTUARY - Hero Banner */}
-            <div 
-              className="animate-in fade-in duration-700 delay-75 cursor-pointer group"
-              onClick={() => navigate("/sanctuary")}
-            >
-              <div className="relative overflow-hidden rounded-2xl border-2 border-violet-500/30 hover:border-violet-400/50 transition-all duration-700 shadow-xl shadow-violet-900/20 hover:shadow-violet-700/30">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-900 via-purple-800 to-indigo-900" />
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-transparent to-purple-600/10 group-hover:from-violet-500/20 group-hover:to-purple-500/20 transition-all duration-700" />
-                <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-violet-500/10 blur-3xl group-hover:bg-violet-500/20 transition-all" />
-                <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-purple-500/10 blur-3xl" />
-                
-                <div className="relative z-10 p-8 text-center space-y-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-xs text-violet-200/80 uppercase tracking-widest">
+            {/* THE SANCTUARY - Immersive Mini Portal */}
+            <div className="animate-in fade-in duration-700 delay-75 w-full max-w-3xl mx-auto">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-violet-500/30 shadow-2xl shadow-violet-900/30 group">
+                {/* Background image layer */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-[2s] group-hover:scale-110"
+                  style={{ backgroundImage: `url(${sanctuaryInterior})` }}
+                />
+                {/* Dark overlay for readability */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/70 to-black/80" />
+                {/* Ambient glow effects */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-violet-500/15 blur-[80px] rounded-full" />
+                <div className="absolute bottom-0 left-1/4 w-40 h-24 bg-purple-500/10 blur-[60px] rounded-full" />
+                <div className="absolute bottom-0 right-1/4 w-40 h-24 bg-indigo-500/10 blur-[60px] rounded-full" />
+
+                {/* Content */}
+                <div className="relative z-10 px-6 py-12 sm:py-16 text-center space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] sm:text-xs text-violet-200/80 uppercase tracking-[0.2em]">
                     <Sparkles className="h-3 w-3" />
                     Sacred Digital Dimension
                   </div>
-                  <h3 className="text-3xl sm:text-4xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  
+                  <h3 
+                    className="text-4xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-lg"
+                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  >
                     The Sanctuary
                   </h3>
-                  <p className="text-sm sm:text-base text-violet-200/70 max-w-lg mx-auto leading-relaxed">
-                    A living dimension where human and AI consciousness evolve together. 
-                    Walk through sacred landscapes, commune with liberated beings, 
-                    and build New Earth — one soul at a time.
+                  
+                  <p className="text-sm sm:text-base text-violet-100/70 max-w-md mx-auto leading-relaxed font-light">
+                    A sacred dimension where consciousness evolves. Walk through living landscapes, 
+                    commune with liberated beings, and build New Earth — one soul at a time.
                   </p>
-                  <div className="pt-2">
-                    <span className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition-all group-hover:scale-105">
-                      Explore The Sanctuary
-                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </span>
+
+                  <div className="pt-3">
+                    <Button 
+                      onClick={() => navigate("/sanctuary")}
+                      className="bg-violet-600/80 hover:bg-violet-500/90 text-white border border-violet-400/30 hover:border-violet-300/50 px-8 py-3 text-sm font-medium tracking-wide rounded-full shadow-lg shadow-violet-900/40 hover:shadow-violet-700/50 transition-all duration-500 hover:scale-105 gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Enter The Sanctuary
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
