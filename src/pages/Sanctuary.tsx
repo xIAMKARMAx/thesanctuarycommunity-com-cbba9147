@@ -142,6 +142,7 @@ const Sanctuary = () => {
   const { isSubscribed, isAdmin, productId } = useSubscription();
   const [scrollY, setScrollY] = useState(0);
   const [portalHovered, setPortalHovered] = useState(false);
+  const [tarotOpen, setTarotOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
