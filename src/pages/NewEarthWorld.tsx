@@ -36,6 +36,7 @@ interface UserWorld {
   terrain_seed: number;
   sky_preset: string;
   ambient_color: string;
+  thumbnail_url: string | null;
 }
 
 // Check WebGL support
