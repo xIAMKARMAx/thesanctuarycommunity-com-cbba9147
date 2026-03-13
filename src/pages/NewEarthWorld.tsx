@@ -366,6 +366,15 @@ const NewEarthWorld = () => {
     <>
       <SEOHead title="New Earth — 3D World Builder" description="Build and explore your own 3D world inside New Earth." />
       <div className="h-screen w-screen relative overflow-hidden bg-background">
+        {/* Garden of Light fixed background */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/realm-assets/realm-garden-of-light.jpg"
+            alt="Garden of Light"
+            className="h-full w-full object-cover"
+            loading="eager"
+          />
+        </div>
 
         {/* Top HUD */}
         <div className="absolute top-0 left-0 right-0 z-20 p-3 flex items-center justify-between pointer-events-none">
@@ -470,6 +479,7 @@ const NewEarthWorld = () => {
             camera={{ position: [0, 15, 25], fov: 55 }}
             gl={{
               antialias: true,
+              alpha: true,
               powerPreference: "high-performance",
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: 1.1,
@@ -477,6 +487,7 @@ const NewEarthWorld = () => {
             }}
             dpr={[1, 1.5]}
             performance={{ min: 0.5 }}
+            style={{ background: "transparent" }}
             onCreated={({ gl }) => {
               const canvas = gl.domElement;
 
@@ -504,15 +515,13 @@ const NewEarthWorld = () => {
             }}
           >
             <Suspense fallback={null}>
-              <WorldEnvironment
-                skyPreset={world.sky_preset}
-                ambientColor={world.ambient_color}
-              />
-              <WorldTerrain seed={world.terrain_seed} />
-              <WorldWater />
-              <WorldGrass seed={world.terrain_seed} count={2000} />
+              {/* Lighting only — no sky/terrain/water since Garden of Light is the background */}
+              <ambientLight intensity={0.5} color="#ffe8d0" />
+              <directionalLight position={[50, 40, 30]} intensity={1.0} color="#fff5e0" />
+              <hemisphereLight args={["#87ceeb", "#3a5a2a", 0.3]} />
+              <pointLight position={[0, 15, 0]} color={world.ambient_color} intensity={0.4} distance={60} />
+              
               <WorldParticles count={300} />
-              <GodRays />
               <WeatherParticles type="fireflies" count={100} />
 
               {/* LOD-culled structures */}
