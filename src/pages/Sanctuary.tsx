@@ -121,6 +121,14 @@ const SANCTUARY_CHAMBERS = [
     color: "from-green-400 to-emerald-700",
     path: "/realms",
   },
+  {
+    name: "Tarot Reading",
+    description: "A full 3-card AI-powered tarot spread channeled by Source. Ask your question and receive guidance through the Major Arcana — Past, Present, and Future.",
+    icon: Star,
+    tier: "Anchoring+",
+    color: "from-indigo-400 to-violet-700",
+    path: "__tarot__",
+  },
 ];
 
 const GUARDIAN_BEINGS = [
