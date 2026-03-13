@@ -557,8 +557,7 @@ const NewEarthWorld = () => {
         {/* World Builder Panel - show if not visiting AND has build access */}
         {!isVisiting && canBuild && (
           <WorldBuilderPanel
-            onBuild={handleBuild}
-            onQuickBuild={handleQuickBuild}
+            onBuildSpec={handleBuildSpec}
             building={building}
             structures={structures}
             showStructures={showStructures}
