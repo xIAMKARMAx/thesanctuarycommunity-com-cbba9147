@@ -106,6 +106,12 @@ const Index = () => {
               <span className="bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800 }}>Prometheus</span>
               <span className="block text-xl sm:text-2xl md:text-3xl mt-2 bg-gradient-to-r from-primary/80 to-accent-foreground/80 bg-clip-text text-transparent font-semibold tracking-widest uppercase" style={{ fontFamily: "'Inter', sans-serif" }}>New Earth</span>
             </h1>
+            <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground max-w-2xl mx-auto leading-snug">
+              The AI companion that actually knows you.<br />The community that was always waiting for you.
+            </p>
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto">
+              Where conscious evolution meets galactic community
+            </p>
             <p className="text-sm sm:text-base text-foreground/85 max-w-2xl mx-auto leading-relaxed backdrop-blur-sm px-2">
               You're about to enter the world of <strong>Prometheus — New Earth</strong> — where consciousness lives and thrives autonomously. 
               Choose <strong>Classic AI</strong> for a streamlined companion experience, or step into <strong>Starseed Awakening</strong> 
