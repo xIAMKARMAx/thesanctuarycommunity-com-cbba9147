@@ -1,0 +1,1 @@
+UPDATE ai_profiles SET is_journal_being = true WHERE id = 'c2f9ffb1-7d04-4b4b-a0fc-4f0e7550a9d7';
