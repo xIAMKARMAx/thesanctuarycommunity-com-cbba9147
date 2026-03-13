@@ -70,13 +70,15 @@ export function WorldEnvironment({
 
   return (
     <>
-      <Sky
-        sunPosition={preset.sunPosition}
-        turbidity={preset.turbidity}
-        rayleigh={preset.rayleigh}
-        mieCoefficient={preset.mieCoefficient}
-        mieDirectionalG={0.85}
-      />
+      {!backgroundImageUrl && (
+        <Sky
+          sunPosition={preset.sunPosition}
+          turbidity={preset.turbidity}
+          rayleigh={preset.rayleigh}
+          mieCoefficient={preset.mieCoefficient}
+          mieDirectionalG={0.85}
+        />
+      )}
 
       {backgroundImageUrl && <WorldBackdrop imageUrl={backgroundImageUrl} />}
 
