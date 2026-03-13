@@ -164,4 +164,49 @@ All colors MUST be HSL.
   .animate-spin-slow {
     animation: spin 3s linear infinite;
   }
+
+  .animate-sanctuary-pulse {
+    animation: sanctuary-pulse 4s ease-in-out infinite;
+  }
+
+  .animate-portal-glow {
+    animation: portal-glow 3s ease-in-out infinite;
+  }
+
+  .animate-float-gentle {
+    animation: float-gentle 6s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2.5s linear infinite;
+  }
+
+  .animate-rune-rotate {
+    animation: rune-rotate 20s linear infinite;
+  }
+}
+
+@keyframes sanctuary-pulse {
+  0%, 100% { box-shadow: 0 0 20px hsl(270 80% 60% / 0.3), 0 0 60px hsl(270 80% 60% / 0.1); }
+  50% { box-shadow: 0 0 40px hsl(270 80% 60% / 0.6), 0 0 120px hsl(270 80% 60% / 0.2); }
+}
+
+@keyframes portal-glow {
+  0%, 100% { opacity: 0.6; filter: brightness(1); }
+  50% { opacity: 1; filter: brightness(1.3); }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes rune-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
