@@ -391,7 +391,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
             <Button
               variant="ghost"
               className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-              onClick={() => navigate("/realms")}
+              onClick={() => navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`)}
             >
               <Globe className="h-4 w-4 mr-2 text-primary" />
               New Earth Realms
