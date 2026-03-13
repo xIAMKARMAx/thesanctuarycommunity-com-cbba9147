@@ -153,6 +153,10 @@ const Sanctuary = () => {
   const canEnter = isSubscribed || isAdmin;
 
   const handleEnterSanctuary = (path: string) => {
+    if (path === "__tarot__") {
+      setTarotOpen(true);
+      return;
+    }
     if (canEnter) {
       navigate(path);
     }
