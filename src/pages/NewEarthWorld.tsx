@@ -488,13 +488,6 @@ const NewEarthWorld = () => {
             dpr={[1, 1.5]}
             performance={{ min: 0.5 }}
             style={{ background: "transparent" }}
-              powerPreference: "high-performance",
-              toneMapping: THREE.ACESFilmicToneMapping,
-              toneMappingExposure: 1.1,
-              failIfMajorPerformanceCaveat: false,
-            }}
-            dpr={[1, 1.5]}
-            performance={{ min: 0.5 }}
             onCreated={({ gl }) => {
               const canvas = gl.domElement;
 
