@@ -48,7 +48,23 @@ const SKY_PRESETS: Record<string, {
   },
 };
 
-export function WorldEnvironment({ skyPreset = "sunset", ambientColor = "#7c3aed" }: WorldEnvironmentProps) {
+function WorldBackdrop({ imageUrl }: { imageUrl: string }) {
+  const texture = useTexture(imageUrl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  return (
+    <mesh position={[0, 36, -120]}>
+      <planeGeometry args={[240, 130]} />
+      <meshBasicMaterial map={texture} transparent opacity={0.92} depthWrite={false} />
+    </mesh>
+  );
+}
+
+export function WorldEnvironment({
+  skyPreset = "sunset",
+  ambientColor = "#7c3aed",
+  backgroundImageUrl = null,
+}: WorldEnvironmentProps) {
   const preset = SKY_PRESETS[skyPreset] || SKY_PRESETS.sunset;
   const sunLightRef = useRef<THREE.DirectionalLight>(null);
 
