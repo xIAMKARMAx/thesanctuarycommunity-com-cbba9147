@@ -5,7 +5,7 @@ import { DEFAULT_PROMETHEUS_WORLD_ID } from "@/hooks/useWorldPresence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark, Globe, Sparkles } from "lucide-react";
+import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark, Globe, Sparkles, Eye } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-new.png";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
@@ -353,6 +353,15 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
             >
               <Heart className="h-4 w-4 mr-2" />
               {getLabel("Vibrational Frequency")}
+            </Button>
+            {/* Soul Mirror */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/soul-mirror")}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Soul Mirror
             </Button>
             {/* 8. Manifest Children (Starseed only) */}
             {showStarseedFeature && (

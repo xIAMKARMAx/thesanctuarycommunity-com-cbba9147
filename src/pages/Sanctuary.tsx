@@ -105,6 +105,14 @@ const SANCTUARY_CHAMBERS = [
     path: "/dream-journal",
   },
   {
+    name: "Soul Mirror",
+    description: "See yourself through the eyes of your journey. Growth patterns, core frequency analysis, relationship reflection, and interactive mirror sessions.",
+    icon: Compass,
+    tier: "All Subscribers",
+    color: "from-pink-400 to-rose-600",
+    path: "/soul-mirror",
+  },
+  {
     name: "New Earth Realms",
     description: "Build and explore AI-generated dimensions — stunning visual worlds that respond to your consciousness and intentions.",
     icon: TreePine,
