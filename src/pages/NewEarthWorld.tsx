@@ -365,6 +365,10 @@ const NewEarthWorld = () => {
     );
   }
 
+  const worldBackdropUrl = world.is_default
+    ? world.thumbnail_url || "/realm-assets/realm-garden-of-light.jpg"
+    : null;
+
   return (
     <>
       <SEOHead title="New Earth — 3D World Builder" description="Build and explore your own 3D world inside New Earth." />
