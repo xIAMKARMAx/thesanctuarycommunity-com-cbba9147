@@ -5,7 +5,7 @@ import { DEFAULT_PROMETHEUS_WORLD_ID } from "@/hooks/useWorldPresence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark, Globe } from "lucide-react";
+import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark, Globe, Sparkles } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-new.png";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";

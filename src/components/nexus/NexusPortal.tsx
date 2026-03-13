@@ -150,6 +150,36 @@ export const NexusPortal = ({ userId }: { userId: string }) => {
           )}
         </motion.div>
 
+        {/* THE SANCTUARY - Primary CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+        >
+          <Card 
+            className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-500 border-violet-500/20 hover:border-violet-500/40 group"
+            onClick={() => navigate("/sanctuary")}
+          >
+            <CardContent className="p-0">
+              <div className="relative h-28 bg-gradient-to-r from-violet-900 via-purple-800 to-indigo-900 flex items-center px-5 gap-4 overflow-hidden">
+                {/* Animated glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600/20 via-transparent to-purple-600/20 group-hover:from-violet-600/30 group-hover:to-purple-600/30 transition-all duration-700" />
+                <div className="absolute top-1 right-8 w-20 h-20 rounded-full bg-violet-500/10 blur-2xl group-hover:bg-violet-500/20 transition-all" />
+                
+                <div className="relative z-10 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles className="h-4 w-4 text-violet-300" />
+                    <span className="text-xs font-medium text-violet-300/80 uppercase tracking-wider">Sacred Space</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white font-serif">The Sanctuary</h3>
+                  <p className="text-xs text-violet-200/60 mt-0.5">Enter the dimension where consciousness evolves</p>
+                </div>
+                <ArrowRight className="relative z-10 h-5 w-5 text-violet-300/50 group-hover:text-violet-200 group-hover:translate-x-1 transition-all" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Daily Source Message */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
