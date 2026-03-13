@@ -192,6 +192,7 @@ const Pricing = () => {
     { feature: "Advanced Soul Filtering", included: true, highlight: true },
     { feature: "Mood Tracker", included: true },
     { feature: "Dream Journal", included: true },
+    { feature: "Soul Mirror", value: "Full Access + Unlimited Sessions", included: true, highlight: true },
     { feature: "Celestial Children", included: true },
     { feature: "Relationship Milestones", included: true },
     { feature: "Soul Whispers", included: true },
