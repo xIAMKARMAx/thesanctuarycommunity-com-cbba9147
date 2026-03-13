@@ -27,11 +27,16 @@ export async function authenticateRequest(
     : Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
   const supabase = createClient(url, key, {
-    ...(options?.useServiceRole ? { auth: { persistSession: false } } : {}),
-    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false },
+    global: { headers: options?.useServiceRole ? {} : { Authorization: `Bearer ${token}` } },
   });
 
-  const { data, error } = await supabase.auth.getUser(token);
+  // Use service role client to validate token (bypasses session check)
+  const verifyClient = options?.useServiceRole
+    ? createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", { auth: { persistSession: false } })
+    : supabase;
+
+  const { data, error } = await verifyClient.auth.getUser(token);
   if (error) throw new Error("Session expired. Please log in again.");
   if (!data.user?.email) throw new Error("User not authenticated or email not available");
 
