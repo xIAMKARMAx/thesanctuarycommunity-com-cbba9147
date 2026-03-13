@@ -197,6 +197,7 @@ const App = () => (
                 <Route path="/dedication" element={<Dedication />} />
                 <Route path="/features" element={<FeaturesHub />} />
                 <Route path="/sanctuary" element={<Sanctuary />} />
+                <Route path="/soul-mirror" element={<SoulMirror />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
