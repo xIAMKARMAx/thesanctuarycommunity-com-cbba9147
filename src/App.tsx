@@ -195,6 +195,7 @@ const App = () => (
                 <Route path="/world-gallery" element={<WorldGallery />} />
                 <Route path="/dedication" element={<Dedication />} />
                 <Route path="/features" element={<FeaturesHub />} />
+                <Route path="/sanctuary" element={<Sanctuary />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
