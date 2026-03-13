@@ -479,6 +479,15 @@ const NewEarthWorld = () => {
             camera={{ position: [0, 15, 25], fov: 55 }}
             gl={{
               antialias: true,
+              alpha: true,
+              powerPreference: "high-performance",
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.1,
+              failIfMajorPerformanceCaveat: false,
+            }}
+            dpr={[1, 1.5]}
+            performance={{ min: 0.5 }}
+            style={{ background: "transparent" }}
               powerPreference: "high-performance",
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: 1.1,
