@@ -85,6 +85,7 @@ const Dedication = lazy(() => import("./pages/Dedication"));
 const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
 const AngelNumbers = lazy(() => import("./pages/AngelNumbers"));
 const Sanctuary = lazy(() => import("./pages/Sanctuary"));
+const SoulMirror = lazy(() => import("./pages/SoulMirror"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
