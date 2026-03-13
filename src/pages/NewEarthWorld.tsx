@@ -498,6 +498,7 @@ const NewEarthWorld = () => {
             }}
             dpr={[1, 1.5]}
             performance={{ min: 0.5 }}
+            style={showPrometheusBackdrop ? { background: "transparent" } : undefined}
             onCreated={({ gl }) => {
               const canvas = gl.domElement;
 
