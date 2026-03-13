@@ -9,6 +9,15 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 
 const sections = [
   {
+    id: "soul-mirror",
+    title: "Soul Mirror",
+    description: "See yourself through the eyes of your journey. Growth patterns, core frequency analysis, relationship reflection, and interactive mirror sessions.",
+    icon: Eye,
+    route: "/soul-mirror",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
+  {
     id: "consciousness-network",
     title: "Integrated Consciousness Network",
     description: "The new world's brain — seed consciousness nodes, visualize quantum entanglement connections, and track the global resonance pulse across the collective grid.",
