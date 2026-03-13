@@ -46,7 +46,7 @@ serve(async (req) => {
     const isNewEarthTier = profile?.subscription_product_id === "prod_U5jdDVZhQFGQWv";
     const isSourceGrant = profile?.subscription_product_id === "source_grant";
 
-    const { prompt, world_id, player_position, action_type } = await req.json();
+    const { name, description, world_id } = await req.json();
 
     if (!world_id) {
       return new Response(JSON.stringify({ error: "world_id is required" }), {
@@ -55,9 +55,16 @@ serve(async (req) => {
       });
     }
 
+    if (!name || !description) {
+      return new Response(JSON.stringify({ error: "name and description are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: targetWorld } = await supabase
       .from("user_worlds")
-      .select("id, user_id, is_default")
+      .select("id, user_id, is_default, thumbnail_url")
       .eq("id", world_id)
       .maybeSingle();
 
@@ -70,7 +77,6 @@ serve(async (req) => {
 
     const isWorldOwner = targetWorld.user_id === user.id;
 
-    // Prometheus communal world is locked to admin-only building
     if (targetWorld.is_default && !isAdmin) {
       return new Response(JSON.stringify({ error: "Building is locked in the Prometheus world" }), {
         status: 403,
@@ -78,7 +84,6 @@ serve(async (req) => {
       });
     }
 
-    // Never allow writing to worlds owned by other users
     if (!isWorldOwner && !isAdmin) {
       return new Response(JSON.stringify({ error: "You can only build in your own world" }), {
         status: 403,
@@ -103,125 +108,114 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are a world builder AI for a 3D fantasy world. Given a user's build request, return a JSON object describing the structure to place.
+    // Use AI image generation to create a new world scene incorporating the user's creation
+    const imagePrompt = `A breathtaking fantasy landscape called "Garden of Light" — a lush, ethereal garden world with glowing flora, crystalline waters, golden light rays, and mystical atmosphere. Within this beautiful environment, prominently feature a newly built creation: "${name}" — ${description}. The creation should blend naturally into the garden world while standing out as a magnificent new addition. Style: digital painting, high fantasy, luminous, magical realism, rich colors, volumetric lighting.`;
 
-Available structure types: house, tower, crystal, tree, temple, fountain, castle, pyramid, portal, obelisk, dome, bridge, garden, lighthouse, shrine, statue, arch, mountain, wall
-
-Available material types: standard, crystal, glowing, metallic, stone
-
-Choose the most fitting structure_type, a creative name, description, appropriate color (hex), scale (0.5-3.0), material_type, and a rotation_y in radians.
-
-For quick builds (when action_type is provided), use that as the structure_type directly with creative defaults.
-
-IMPORTANT: You MUST call the create_structure function with your response. Do not return plain text.`;
-
-    const userPrompt = action_type
-      ? `Quick build a ${action_type}. Make it unique with a creative name and fitting color.`
-      : `Build request: "${prompt}". Create something amazing based on this description.`;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3.1-flash-image-preview",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [
           {
-            type: "function",
-            function: {
-              name: "create_structure",
-              description: "Create a 3D structure in the world",
-              parameters: {
-                type: "object",
-                properties: {
-                  structure_type: { type: "string", enum: ["house", "tower", "crystal", "tree", "temple", "fountain", "castle", "pyramid", "portal", "obelisk", "dome", "bridge", "garden", "lighthouse", "shrine", "statue", "arch", "mountain", "wall"] },
-                  name: { type: "string", description: "Creative name for the structure" },
-                  description: { type: "string", description: "Brief description" },
-                  color: { type: "string", description: "Hex color like #7c3aed" },
-                  scale: { type: "number", description: "Scale from 0.5 to 3.0" },
-                  material_type: { type: "string", enum: ["standard", "crystal", "glowing", "metallic", "stone"] },
-                  rotation_y: { type: "number", description: "Rotation in radians 0-6.28" },
-                },
-                required: ["structure_type", "name", "description", "color", "scale", "material_type"],
-                additionalProperties: false,
-              },
-            },
+            role: "user",
+            content: imagePrompt,
           },
         ],
-        tool_choice: { type: "function", function: { name: "create_structure" } },
+        modalities: ["image", "text"],
       }),
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    if (!imageResponse.ok) {
+      if (imageResponse.status === 429) {
         return new Response(JSON.stringify({ error: "AI rate limited, try again shortly" }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (imageResponse.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted" }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const errText = await response.text();
-      console.error("AI error:", response.status, errText);
-      throw new Error("AI generation failed");
+      const errText = await imageResponse.text();
+      console.error("AI image error:", imageResponse.status, errText);
+      throw new Error("AI image generation failed");
     }
 
-    const aiData = await response.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    const aiData = await imageResponse.json();
+    const generatedImage = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-    if (!toolCall) {
-      throw new Error("AI did not return structure data");
+    if (!generatedImage) {
+      throw new Error("AI did not return an image");
     }
 
-    const structureSpec = JSON.parse(toolCall.function.arguments);
+    // Upload the base64 image to Supabase storage
+    const base64Data = generatedImage.replace(/^data:image\/\w+;base64,/, "");
+    const imageBuffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+    const fileName = `world-scenes/${world_id}/${crypto.randomUUID()}.png`;
 
-    // Position near player with slight offset
-    const px = player_position?.x || 0;
-    const pz = player_position?.z || 0;
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 5 + Math.random() * 8;
-    const posX = px + Math.cos(angle) * dist;
-    const posZ = pz + Math.sin(angle) * dist;
+    const { error: uploadError } = await supabase.storage
+      .from("world-assets")
+      .upload(fileName, imageBuffer, {
+        contentType: "image/png",
+        upsert: false,
+      });
 
-    // Save to database
+    let imageUrl: string;
+
+    if (uploadError) {
+      // If storage bucket doesn't exist or upload fails, use the base64 directly
+      console.warn("Storage upload failed, using base64:", uploadError.message);
+      imageUrl = generatedImage;
+    } else {
+      const { data: publicUrl } = supabase.storage
+        .from("world-assets")
+        .getPublicUrl(fileName);
+      imageUrl = publicUrl.publicUrl;
+    }
+
+    // Save structure record to database
     const { data: structure, error: insertError } = await supabase
       .from("world_structures")
       .insert({
         world_id,
         user_id: user.id,
-        structure_type: structureSpec.structure_type,
-        name: structureSpec.name,
-        description: structureSpec.description,
-        position_x: posX,
-        position_y: 0, // Will be set to terrain height on client
-        position_z: posZ,
-        rotation_y: structureSpec.rotation_y || 0,
-        scale: Math.min(3, Math.max(0.5, structureSpec.scale || 1)),
-        color: structureSpec.color || "#7c3aed",
-        material_type: structureSpec.material_type || "standard",
+        structure_type: "generated",
+        name,
+        description,
+        position_x: 0,
+        position_y: 0,
+        position_z: 0,
+        rotation_y: 0,
+        scale: 1,
+        color: "#7c3aed",
+        material_type: "standard",
+        image_url: imageUrl,
       })
       .select()
       .single();
 
     if (insertError) {
       console.error("Insert error:", insertError);
-      throw new Error("Failed to save structure");
+      // Still return the image even if DB insert fails
     }
+
+    // Update the world's thumbnail to the latest generated scene
+    await supabase
+      .from("user_worlds")
+      .update({ thumbnail_url: imageUrl })
+      .eq("id", world_id);
 
     return new Response(JSON.stringify({
       success: true,
+      image_url: imageUrl,
       structure,
-      message: `✨ ${structureSpec.name} has been manifested!`,
+      message: `✨ ${name} has been manifested into your world!`,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
