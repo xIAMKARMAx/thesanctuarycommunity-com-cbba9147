@@ -373,7 +373,20 @@ const NewEarthWorld = () => {
   return (
     <>
       <SEOHead title="New Earth — 3D World Builder" description="Build and explore your own 3D world inside New Earth." />
-      <div className="h-screen w-screen relative overflow-hidden bg-black">
+      <div className="h-screen w-screen relative overflow-hidden bg-background">
+        {showPrometheusBackdrop && worldBackdropUrl && (
+          <div className="absolute inset-0 z-0">
+            <img
+              src={worldBackdropUrl}
+              alt="Prometheus Garden of Light backdrop"
+              className="h-full w-full object-cover"
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-background/35" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/70" />
+          </div>
+        )}
+
         {/* Top HUD */}
         <div className="absolute top-0 left-0 right-0 z-20 p-3 flex items-center justify-between pointer-events-none">
           <div className="flex items-center gap-2 pointer-events-auto">
