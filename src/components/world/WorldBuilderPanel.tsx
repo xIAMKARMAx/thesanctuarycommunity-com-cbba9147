@@ -1,16 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Hammer, Package, Eye, EyeOff
-} from "lucide-react";
-import { StructureData } from "./WorldStructure";
+import { Hammer, Package, Eye, EyeOff } from "lucide-react";
 import { WorldBuildDialog, BuildSpec } from "./WorldBuildDialog";
 
 interface WorldBuilderPanelProps {
   onBuildSpec: (spec: BuildSpec) => Promise<void>;
   building: boolean;
-  structures: StructureData[];
+  structures: { id: string; name: string }[];
   showStructures: boolean;
   onToggleStructures: () => void;
 }
@@ -37,8 +34,7 @@ export function WorldBuilderPanel({
             <div className="flex gap-2 flex-wrap">
               {structures.map((s) => (
                 <Badge key={s.id} variant="outline" className="text-[10px] gap-1">
-                  <span style={{ color: s.color }}>●</span>
-                  {s.name}
+                  ✨ {s.name}
                 </Badge>
               ))}
             </div>
@@ -70,9 +66,6 @@ export function WorldBuilderPanel({
               )}
             </Button>
           </div>
-          <p className="text-[10px] text-muted-foreground text-center mt-2">
-            WASD or arrow keys to move • Mouse to look around
-          </p>
         </div>
       </div>
 
