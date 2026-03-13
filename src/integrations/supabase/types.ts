@@ -3937,6 +3937,66 @@ export type Database = {
         }
         Relationships: []
       }
+      soul_mirror_analyses: {
+        Row: {
+          analysis_type: string
+          content: Json
+          created_at: string
+          expires_at: string
+          generated_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          analysis_type: string
+          content?: Json
+          created_at?: string
+          expires_at?: string
+          generated_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          analysis_type?: string
+          content?: Json
+          created_at?: string
+          expires_at?: string
+          generated_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      soul_mirror_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          last_prompt: string | null
+          last_response: string | null
+          session_count: number
+          session_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_prompt?: string | null
+          last_response?: string | null
+          session_count?: number
+          session_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_prompt?: string | null
+          last_response?: string | null
+          session_count?: number
+          session_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       soul_portraits: {
         Row: {
           attunement_count: number
