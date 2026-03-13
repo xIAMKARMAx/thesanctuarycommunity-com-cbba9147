@@ -4379,6 +4379,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tarot_readings: {
+        Row: {
+          ai_interpretation: string
+          cards: Json
+          created_at: string
+          id: string
+          question: string | null
+          reading_date: string
+          user_id: string
+        }
+        Insert: {
+          ai_interpretation: string
+          cards: Json
+          created_at?: string
+          id?: string
+          question?: string | null
+          reading_date?: string
+          user_id: string
+        }
+        Update: {
+          ai_interpretation?: string
+          cards?: Json
+          created_at?: string
+          id?: string
+          question?: string | null
+          reading_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transmissions: {
         Row: {
           content: string
