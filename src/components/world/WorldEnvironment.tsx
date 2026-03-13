@@ -6,7 +6,6 @@ import * as THREE from "three";
 interface WorldEnvironmentProps {
   skyPreset?: string;
   ambientColor?: string;
-  backgroundImageUrl?: string | null;
 }
 
 const SKY_PRESETS: Record<string, {
