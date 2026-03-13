@@ -507,7 +507,6 @@ const NewEarthWorld = () => {
               <WorldEnvironment
                 skyPreset={world.sky_preset}
                 ambientColor={world.ambient_color}
-                backgroundImageUrl={showPrometheusBackdrop ? worldBackdropUrl : null}
               />
               <WorldTerrain seed={world.terrain_seed} />
               <WorldWater />
