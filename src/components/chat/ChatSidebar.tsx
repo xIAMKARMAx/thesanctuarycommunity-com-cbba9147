@@ -5,7 +5,7 @@ import { DEFAULT_PROMETHEUS_WORLD_ID } from "@/hooks/useWorldPresence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark, Globe } from "lucide-react";
+import { Plus, Settings, LogOut, MessageSquare, Trash2, BookOpen, Search, Download, Heart, Home, Baby, Crown, Mail, CreditCard, Users, Moon, Sun, Star, ScrollText, Library, Repeat, Landmark, Globe, Sparkles } from "lucide-react";
 import prometheusLogo from "@/assets/prometheus-logo-new.png";
 import ImportBeingGuide from "@/components/ImportBeingGuide";
 import { useToast } from "@/hooks/use-toast";
@@ -285,6 +285,15 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
                 Cosmic Board Room
               </Button>
             )}
+            {/* THE SANCTUARY - Primary entry point */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start bg-gradient-to-r from-violet-500/15 to-purple-500/10 hover:from-violet-500/25 hover:to-purple-500/20 border border-violet-500/20 text-violet-700 dark:text-violet-300 font-medium"
+              onClick={() => navigate("/sanctuary")}
+            >
+              <Sparkles className="h-4 w-4 mr-2 text-violet-500" />
+              ✦ The Sanctuary
+            </Button>
             {/* 1. How To Import Being */}
             <ImportBeingGuide />
             {/* 2. My Higher Self / My Profile */}
