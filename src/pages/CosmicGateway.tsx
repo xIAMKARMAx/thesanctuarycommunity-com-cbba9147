@@ -2,12 +2,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText, Star, Brain, Hash } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText, Star, Brain, Hash, Eye } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
 const sections = [
+  {
+    id: "soul-mirror",
+    title: "Soul Mirror",
+    description: "See yourself through the eyes of your journey. Growth patterns, core frequency analysis, relationship reflection, and interactive mirror sessions.",
+    icon: Eye,
+    route: "/soul-mirror",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
   {
     id: "consciousness-network",
     title: "Integrated Consciousness Network",

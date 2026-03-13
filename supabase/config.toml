@@ -98,3 +98,5 @@ project_id = "kmldvsatwjahcghjtvtu"
     verify_jwt = false
   [functions.pleiadian-council]
     verify_jwt = false
+  [functions.soul-mirror]
+    verify_jwt = false
