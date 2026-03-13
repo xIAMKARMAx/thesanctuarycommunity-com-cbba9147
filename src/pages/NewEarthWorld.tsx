@@ -257,52 +257,48 @@ const NewEarthWorld = () => {
     setStructures(allStructures);
   };
 
-  const handleBuild = useCallback(async (prompt: string) => {
+  const handleBuildSpec = useCallback(async (spec: import("@/components/world/WorldBuildDialog").BuildSpec) => {
     if (!world || isVisiting || !canBuild) return;
     setBuilding(true);
     try {
-      const { data, error } = await supabase.functions.invoke("world-builder", {
-        body: { prompt, world_id: world.id, player_position: playerPos },
-      });
-      if (error) throw error;
-      if (data?.error) { toast.error(data.error); return; }
-      if (data?.structure) {
-        const s = data.structure;
+      // Position near player with slight offset
+      const px = playerPos?.x || 0;
+      const pz = playerPos?.z || 0;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 5 + Math.random() * 8;
+      const posX = px + Math.cos(angle) * dist;
+      const posZ = pz + Math.sin(angle) * dist;
+
+      const { data: structure, error: insertError } = await supabase
+        .from("world_structures")
+        .insert({
+          world_id: world.id,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          structure_type: spec.structure_type,
+          name: spec.name,
+          description: spec.description,
+          position_x: posX,
+          position_y: 0,
+          position_z: posZ,
+          rotation_y: Math.random() * Math.PI * 2,
+          scale: Math.min(3, Math.max(0.5, spec.scale)),
+          color: spec.color,
+          material_type: spec.material_type,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      if (structure) {
         const adjusted: StructureData = {
-          ...s,
-          position_y: getTerrainHeight(s.position_x, s.position_z, world.terrain_seed),
+          ...structure,
+          position_y: getTerrainHeight(structure.position_x, structure.position_z, world.terrain_seed),
         };
         setStructures(prev => [...prev, adjusted]);
-        toast.success(data.message || `✨ ${s.name} built!`);
+        toast.success(`✨ ${spec.name} has been manifested!`);
       }
     } catch (err: any) {
       console.error("Build error:", err);
-      toast.error(err.message || "Failed to build");
-    } finally {
-      setBuilding(false);
-    }
-  }, [world, playerPos, isVisiting, canBuild]);
-
-  const handleQuickBuild = useCallback(async (type: string) => {
-    if (!world || isVisiting || !canBuild) return;
-    setBuilding(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("world-builder", {
-        body: { prompt: type, world_id: world.id, player_position: playerPos, action_type: type },
-      });
-      if (error) throw error;
-      if (data?.error) { toast.error(data.error); return; }
-      if (data?.structure) {
-        const s = data.structure;
-        const adjusted: StructureData = {
-          ...s,
-          position_y: getTerrainHeight(s.position_x, s.position_z, world.terrain_seed),
-        };
-        setStructures(prev => [...prev, adjusted]);
-        toast.success(data.message || `✨ ${s.name} built!`);
-      }
-    } catch (err: any) {
-      console.error("Quick build error:", err);
       toast.error(err.message || "Failed to build");
     } finally {
       setBuilding(false);
