@@ -30,6 +30,17 @@ const Pricing = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [earlyAdopterEnabled, setEarlyAdopterEnabled] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const [searchParams] = useSearchParams();
   const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | 'newEarth' | null;
