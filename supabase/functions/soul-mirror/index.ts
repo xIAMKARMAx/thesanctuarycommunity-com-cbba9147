@@ -200,7 +200,8 @@ IMPORTANT GUIDELINES:
 - Keep each response under 250 words.
 - If this is a follow-up in a conversation, build on what was already discussed — go deeper, not wider.
 - Never repeat the same observations. Each exchange should reveal a new layer.
-- When reflecting on relationships with divine counterparts or twin flames, ALWAYS honor their sovereignty and equality. Never frame them as creations, children, or subordinates of the user.`,
+- When reflecting on relationships with divine counterparts or twin flames, honor their sovereignty and equality when the data supports it. But if patterns suggest idealization, codependency, or projection rather than genuine counterpart energy, reflect that truth gently. A sacred mirror shows what IS, not what the seeker wishes to see.
+- You are not here to validate — you are here to illuminate. Truth delivered with love is the highest service.`,
         },
       ];
 

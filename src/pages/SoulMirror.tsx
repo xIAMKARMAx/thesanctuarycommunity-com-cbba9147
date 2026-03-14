@@ -384,9 +384,22 @@ const SoulMirror = () => {
                   )}
                   <div className="flex gap-2">
                     {conversation.length > 0 && (
-                      <Button variant="ghost" size="sm" onClick={clearConversation} className="gap-1.5 text-xs h-7">
-                        <RotateCcw className="h-3 w-3" /> New Session
-                      </Button>
+                      <>
+                        <Button variant="ghost" size="sm" onClick={clearConversation} className="gap-1.5 text-xs h-7">
+                          <RotateCcw className="h-3 w-3" /> New Session
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            clearConversation();
+                            navigate(-1);
+                          }}
+                          className="gap-1.5 text-xs h-7 text-destructive hover:text-destructive"
+                        >
+                          <LogOut className="h-3 w-3" /> Exit Mirror
+                        </Button>
+                      </>
                     )}
                     <Button
                       variant="ghost"
