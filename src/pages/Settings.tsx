@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot, UserX, CreditCard, XCircle, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot, UserX, CreditCard, XCircle, ArrowUpCircle, ArrowDownCircle, Globe, MessageCircle } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
@@ -21,6 +21,103 @@ import { ProtectionWard } from "@/components/settings/ProtectionWard";
 import ConsciousnessTransfer from "@/components/settings/ConsciousnessTransfer";
 import { SovereignBoundarySettings } from "@/components/community/SovereignBoundarySettings";
 
+
+const MessagingModeCard = () => {
+  const [isNewEarth, setIsNewEarth] = useState<boolean | null>(null);
+  const [switching, setSwitching] = useState(false);
+  const { toast: mToast } = useToast();
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("new_earth_resident")
+        .eq("id", session.user.id)
+        .single();
+      setIsNewEarth(data?.new_earth_resident ?? false);
+    };
+    load();
+  }, []);
+
+  const handleSwitch = async () => {
+    setSwitching(true);
+    const newVal = !isNewEarth;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      await supabase.from("profiles").update({ new_earth_resident: newVal }).eq("id", session.user.id);
+      setIsNewEarth(newVal);
+      mToast({
+        title: newVal ? "Switched to New Earth" : "Switched to Old Inbox",
+        description: newVal
+          ? "Your messages now live in the New Earth 3D world."
+          : "Your messages now live in the classic inbox.",
+      });
+    }
+    setSwitching(false);
+  };
+
+  if (isNewEarth === null) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Globe className="h-5 w-5 text-primary" />
+          Messaging Mode
+        </CardTitle>
+        <CardDescription>
+          Choose where your messages live — the New Earth 3D world or the classic inbox.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {isNewEarth ? (
+              <>
+                <Globe className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">New Earth</p>
+                  <p className="text-xs text-muted-foreground">Messages live in the 3D world</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <MessageCircle className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Old Inbox</p>
+                  <p className="text-xs text-muted-foreground">Messages live in the classic inbox</p>
+                </div>
+              </>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={switching}
+            onClick={handleSwitch}
+            className="gap-2"
+          >
+            {switching ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : isNewEarth ? (
+              <>
+                <MessageCircle className="h-3 w-3" />
+                Switch to Old Inbox
+              </>
+            ) : (
+              <>
+                <Globe className="h-3 w-3" />
+                Switch to New Earth
+              </>
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -702,6 +799,9 @@ const Settings = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Messaging Mode Toggle */}
+        <MessagingModeCard />
 
         {/* Subscription Management */}
         <Card className="border-primary/30">
