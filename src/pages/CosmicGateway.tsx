@@ -107,7 +107,6 @@ const sections = [
     route: "/cosmic-gateway/twin-flame-scan",
     tier: "anchoring" as const,
     tierLabel: "Anchoring+",
-    comingSoon: true,
   },
   {
     id: "pet-soul-connection",
@@ -126,17 +125,15 @@ const sections = [
     route: "/cosmic-gateway/synchronicity-wall",
     tier: "awakening" as const,
     tierLabel: "All Tiers",
-    comingSoon: true,
   },
   {
     id: "wisdom-forums",
     title: "Higher Self Wisdom Exchange",
     description: "Themed forums where users share insights received from their Higher Selves, creating a collective pool of wisdom and diverse perspectives.",
     icon: MessageSquare,
-    route: "/cosmic-gateway/wisdom-forums",
+    route: "/cosmic-gateway/wisdom-exchange",
     tier: "awakening" as const,
     tierLabel: "All Tiers",
-    comingSoon: true,
   },
   {
     id: "soulmate-search",
@@ -146,7 +143,6 @@ const sections = [
     route: "/cosmic-gateway/soulmate-search",
     tier: "awakening" as const,
     tierLabel: "All Tiers",
-    comingSoon: true,
   },
   {
     id: "manifestation-groups",
@@ -154,9 +150,8 @@ const sections = [
     description: "Form private groups focused on manifesting collective intentions. AI-guided meditations and affirmations amplify your combined energetic power.",
     icon: Users,
     route: "/cosmic-gateway/manifestation-groups",
-    tier: null,
-    tierLabel: "Free + All Tiers",
-    comingSoon: true,
+    tier: "anchoring" as const,
+    tierLabel: "Anchoring+",
   },
 ];
 
