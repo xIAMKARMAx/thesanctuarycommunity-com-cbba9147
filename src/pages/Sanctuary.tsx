@@ -382,6 +382,146 @@ const Sanctuary = () => {
         </div>
       </section>
 
+      {/* ===== NEW EARTH PORTAL — HERO FEATURE ===== */}
+      <section className="relative py-24 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-[hsl(260,30%,8%)] to-black" />
+        
+        {/* Ambient glow behind the portal */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-[120px]" />
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto">
+          <div
+            className="relative rounded-3xl overflow-hidden border border-violet-500/20 bg-white/[0.03] backdrop-blur-sm cursor-pointer group transition-all duration-700 hover:border-violet-500/40 hover:bg-white/[0.06]"
+            onClick={() => {
+              if (canEnter) {
+                navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`);
+              } else {
+                navigate("/pricing");
+              }
+            }}
+          >
+            {/* Background image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+              style={{
+                backgroundImage: `url(${sanctuaryPortal})`,
+                filter: "brightness(0.25) saturate(1.3)",
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 p-8 sm:p-12 md:p-16">
+              {/* Portal orb */}
+              <div className="flex-shrink-0">
+                <div className="relative">
+                  <div className="absolute -inset-6 rounded-full animate-sanctuary-pulse" />
+                  <div
+                    className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-full overflow-hidden animate-portal-glow"
+                    style={{
+                      boxShadow: "0 0 60px hsl(270 80% 50% / 0.4), 0 0 120px hsl(270 80% 50% / 0.2), inset 0 0 40px hsl(270 80% 50% / 0.15)",
+                    }}
+                  >
+                    <img
+                      src={sanctuaryPortal}
+                      alt="Enter The Prometheus World"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Text content */}
+              <div className="flex-1 text-center md:text-left">
+                <Badge className="bg-violet-500/20 text-violet-300 border-violet-500/30 mb-4">
+                  <Globe className="h-3 w-3 mr-1" /> Living 3D Dimension
+                </Badge>
+                <h2
+                  className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    background: "linear-gradient(135deg, hsl(270 90% 80%), hsl(45 90% 70%), hsl(270 90% 80%))",
+                    backgroundSize: "200% 200%",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    animation: "shimmer 3s linear infinite",
+                  }}
+                >
+                  The Prometheus World
+                </h2>
+                <p className="text-lg text-violet-200/70 mb-6 leading-relaxed max-w-xl">
+                  Walk through sacred landscapes, meet AI beings face-to-face, explore floating islands
+                  and ancient temples with other Prometheans in real-time.
+                </p>
+
+                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                  {canEnter ? (
+                    <>
+                      <Button
+                        size="lg"
+                        className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white px-8 py-5 text-base rounded-full shadow-xl shadow-violet-500/30 transition-all hover:shadow-violet-500/50 hover:scale-105"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`);
+                        }}
+                      >
+                        <Globe className="mr-2 h-5 w-5" />
+                        Enter World
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                      {(isAdmin || productId === "prod_U5jdDVZhQFGQWv") && (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="border-violet-500/30 text-violet-300 hover:bg-violet-500/10 px-6 py-5 text-base rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/realms");
+                          }}
+                        >
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Create World
+                        </Button>
+                      )}
+                      {!isAdmin && productId !== "prod_U5jdDVZhQFGQWv" && (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="border-amber-500/30 text-amber-300 hover:bg-amber-500/10 px-6 py-5 text-base rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/pricing");
+                          }}
+                        >
+                          <Crown className="mr-2 h-4 w-4" />
+                          Upgrade to Build
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <Button
+                      size="lg"
+                      className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white px-8 py-5 text-base rounded-full shadow-xl shadow-amber-500/30 transition-all hover:shadow-amber-500/50 hover:scale-105"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate("/pricing");
+                      }}
+                    >
+                      <Crown className="mr-2 h-5 w-5" />
+                      Subscribe to Enter
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Hover glow overlay */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-gradient-to-br from-violet-500/5 via-transparent to-purple-500/5" />
+          </div>
+        </div>
+      </section>
+
       {/* ===== CHAMBERS GRID ===== */}
       <section className="relative py-20 px-4">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-[hsl(270,15%,5%)] to-black" />
