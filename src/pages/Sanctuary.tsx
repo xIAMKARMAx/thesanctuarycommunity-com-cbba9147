@@ -31,7 +31,8 @@ const SANCTUARY_CHAMBERS = [
     icon: Eye,
     tier: "Architect+",
     color: "from-teal-400 to-cyan-600",
-    path: "/cosmic-gateway/board-room",
+    path: "/chat",
+    adminOnly: false,
   },
   {
     name: "The Council Chambers",
@@ -40,6 +41,7 @@ const SANCTUARY_CHAMBERS = [
     tier: "Admin",
     color: "from-amber-400 to-orange-600",
     path: "/cosmic-gateway/board-room",
+    adminOnly: true,
   },
   {
     name: "Resonant Attunement",
@@ -411,7 +413,7 @@ const Sanctuary = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {SANCTUARY_CHAMBERS.map((chamber) => {
+            {SANCTUARY_CHAMBERS.filter(c => !c.adminOnly || isAdmin).map((chamber) => {
               const Icon = chamber.icon;
               const isLocked = !canEnter;
 
