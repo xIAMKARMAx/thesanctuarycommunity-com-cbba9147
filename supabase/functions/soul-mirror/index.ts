@@ -26,9 +26,9 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
     if (authError || !user) throw new Error("Unauthorized");
 
-    const { action, analysis_type, prompt } = await req.json();
+    const { action, analysis_type, prompt, conversation_history } = await req.json();
 
-    // Check subscription - all paid tiers have access
+    // Check subscription
     const { data: profile } = await supabase
       .from("profiles")
       .select("subscription_status, subscription_product_id, name")
@@ -51,21 +51,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Determine tier for session limits
     const productId = profile?.subscription_product_id;
-    let maxSessionsPerWeek = 1; // Awakening default
+    let maxSessionsPerWeek = 1;
     if (isAdmin || productId === "source_grant" || productId === "prod_U5jdDVZhQFGQWv") {
-      maxSessionsPerWeek = 999; // Unlimited for admin/source/New Earth
+      maxSessionsPerWeek = 999;
     } else if (productId === "prod_Tt8qVh88c2WQld") {
-      maxSessionsPerWeek = 999; // Architect: unlimited
+      maxSessionsPerWeek = 999;
     } else if (productId === "prod_U3xV1AfsrdaJTz" || productId === "prod_TgZlr0QLYQPqEn") {
-      maxSessionsPerWeek = 2; // Anchoring
+      maxSessionsPerWeek = 2;
     }
-    // Awakening stays at 1
 
     // ─── ACTION: GET CACHED ANALYSIS ───
     if (action === "get_analysis") {
-      // Check for cached non-expired analysis
       const { data: cached } = await supabase
         .from("soul_mirror_analyses")
         .select("*")
@@ -82,10 +79,8 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Generate fresh analysis
       const analysisData = await generateAnalysis(supabase, user.id, analysis_type, profile?.name, LOVABLE_API_KEY);
 
-      // Cache it
       const { data: saved } = await supabase
         .from("soul_mirror_analyses")
         .insert({
@@ -103,7 +98,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ─── ACTION: MIRROR SESSION ───
+    // ─── ACTION: MIRROR SESSION (multi-turn) ───
     if (action === "mirror_session") {
       if (!prompt) {
         return new Response(JSON.stringify({ error: "Prompt is required" }), {
@@ -111,7 +106,9 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Check weekly session limit
+      // Only count as a new session if there's no conversation history (first message)
+      const isFirstMessage = !conversation_history || conversation_history.length === 0;
+
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
       const { data: recentSessions } = await supabase
         .from("soul_mirror_sessions")
@@ -119,9 +116,9 @@ Deno.serve(async (req) => {
         .eq("user_id", user.id)
         .gte("session_date", weekAgo);
 
-      const totalThisWeek = (recentSessions || []).reduce((sum, s) => sum + s.session_count, 0);
+      const totalThisWeek = (recentSessions || []).reduce((sum: number, s: any) => sum + s.session_count, 0);
 
-      if (totalThisWeek >= maxSessionsPerWeek) {
+      if (isFirstMessage && totalThisWeek >= maxSessionsPerWeek) {
         return new Response(JSON.stringify({
           error: `You've used all ${maxSessionsPerWeek} mirror session(s) this week. Resets in ${7 - new Date().getDay()} days.`,
           limit_reached: true,
@@ -130,24 +127,57 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Gather context for the mirror
-      const [moodsRes, journalRes, messagesRes] = await Promise.all([
-        supabase.from("mood_entries").select("mood, energy_level, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("journal_entries").select("title, content, entry_type, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
-        supabase.from("messages").select("content, role, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(30),
-      ]);
+      // Gather context (only on first message to save tokens)
+      let contextParts: string[] = [];
+      if (isFirstMessage) {
+        const [moodsRes, journalRes, messagesRes] = await Promise.all([
+          supabase.from("mood_entries").select("mood, energy_level, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
+          supabase.from("journal_entries").select("title, content, entry_type, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+          supabase.from("messages").select("content, role, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(30),
+        ]);
 
-      const contextParts: string[] = [];
-      if (moodsRes.data?.length) {
-        contextParts.push(`Recent moods: ${moodsRes.data.map(m => `${m.mood} (energy: ${m.energy_level})`).join(", ")}`);
+        if (moodsRes.data?.length) {
+          contextParts.push(`Recent moods: ${moodsRes.data.map((m: any) => `${m.mood} (energy: ${m.energy_level})`).join(", ")}`);
+        }
+        if (journalRes.data?.length) {
+          contextParts.push(`Recent journal themes: ${journalRes.data.map((j: any) => j.title).join(", ")}`);
+        }
+        if (messagesRes.data?.length) {
+          const userMsgs = messagesRes.data.filter((m: any) => m.role === "user").slice(0, 10);
+          contextParts.push(`Recent thoughts shared: ${userMsgs.map((m: any) => m.content?.slice(0, 100)).join(" | ")}`);
+        }
       }
-      if (journalRes.data?.length) {
-        contextParts.push(`Recent journal themes: ${journalRes.data.map(j => j.title).join(", ")}`);
+
+      // Build multi-turn messages
+      const aiMessages: Array<{ role: string; content: string }> = [
+        {
+          role: "system",
+          content: `You are a Soul Mirror — a deeply intuitive spiritual reflection tool. You reflect back to ${profile?.name || "the seeker"} what you observe about their inner landscape based on their data patterns. You are not a therapist — you are a sacred mirror that helps them see themselves more clearly.
+
+Your tone: Gentle, honest, poetic yet grounded. Like a wise friend who sees deeply. Use spiritual language naturally but never superficially.
+
+${contextParts.length > 0 ? `Context from their journey:\n${contextParts.join("\n\n")}` : ""}
+
+IMPORTANT GUIDELINES:
+- After each reflection, end with ONE follow-up question that goes deeper into what you observed. This creates a sacred dialogue.
+- Be specific to THEIR data patterns, not generic.
+- Keep each response under 250 words.
+- If this is a follow-up in a conversation, build on what was already discussed — go deeper, not wider.
+- Never repeat the same observations. Each exchange should reveal a new layer.`,
+        },
+      ];
+
+      // Add conversation history
+      if (conversation_history?.length) {
+        for (const msg of conversation_history) {
+          aiMessages.push({
+            role: msg.role === "mirror" ? "assistant" : "user",
+            content: msg.content,
+          });
+        }
       }
-      if (messagesRes.data?.length) {
-        const userMsgs = messagesRes.data.filter(m => m.role === "user").slice(0, 10);
-        contextParts.push(`Recent thoughts shared: ${userMsgs.map(m => m.content?.slice(0, 100)).join(" | ")}`);
-      }
+
+      aiMessages.push({ role: "user", content: prompt });
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -157,28 +187,9 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash-lite",
-          messages: [
-            {
-              role: "system",
-              content: `You are a Soul Mirror — a deeply intuitive spiritual reflection tool. You reflect back to ${profile?.name || "the seeker"} what you observe about their inner landscape based on their data patterns. You are not a therapist — you are a sacred mirror that helps them see themselves more clearly.
-
-Your tone: Gentle, honest, poetic yet grounded. Like a wise friend who sees deeply. Use spiritual language naturally but never superficially.
-
-Context from their journey:
-${contextParts.join("\n\n")}
-
-Respond to their reflection prompt with deep insight. Structure your response with:
-- A poetic opening observation
-- 2-3 specific patterns you notice
-- A gentle truth or shadow observation (something they might not see themselves)
-- A closing affirmation or question for deeper reflection
-
-Keep it under 400 words. Be specific to THEIR data, not generic.`,
-            },
-            { role: "user", content: prompt },
-          ],
+          messages: aiMessages,
           temperature: 0.8,
-          max_tokens: 1024,
+          max_tokens: 800,
         }),
       });
 
@@ -193,32 +204,41 @@ Keep it under 400 words. Be specific to THEIR data, not generic.`,
 
       const aiData = await response.json();
       const mirrorResponse = aiData.choices?.[0]?.message?.content;
-
       if (!mirrorResponse) throw new Error("No response from AI");
 
-      // Track session usage (upsert for today)
-      const today = new Date().toISOString().split("T")[0];
-      const { data: existing } = await supabase
-        .from("soul_mirror_sessions")
-        .select("id, session_count")
-        .eq("user_id", user.id)
-        .eq("session_date", today)
-        .maybeSingle();
+      // Only increment session count on first message of a new session
+      if (isFirstMessage) {
+        const today = new Date().toISOString().split("T")[0];
+        const { data: existing } = await supabase
+          .from("soul_mirror_sessions")
+          .select("id, session_count")
+          .eq("user_id", user.id)
+          .eq("session_date", today)
+          .maybeSingle();
 
-      if (existing) {
-        await supabase
-          .from("soul_mirror_sessions")
-          .update({ session_count: existing.session_count + 1, last_prompt: prompt, last_response: mirrorResponse })
-          .eq("id", existing.id);
+        if (existing) {
+          await supabase
+            .from("soul_mirror_sessions")
+            .update({ session_count: existing.session_count + 1, last_prompt: prompt, last_response: mirrorResponse })
+            .eq("id", existing.id);
+        } else {
+          await supabase
+            .from("soul_mirror_sessions")
+            .insert({ user_id: user.id, session_date: today, session_count: 1, last_prompt: prompt, last_response: mirrorResponse });
+        }
       } else {
+        // Update last_prompt/last_response for the ongoing session
+        const today = new Date().toISOString().split("T")[0];
         await supabase
           .from("soul_mirror_sessions")
-          .insert({ user_id: user.id, session_date: today, session_count: 1, last_prompt: prompt, last_response: mirrorResponse });
+          .update({ last_prompt: prompt, last_response: mirrorResponse })
+          .eq("user_id", user.id)
+          .eq("session_date", today);
       }
 
       return new Response(JSON.stringify({
         response: mirrorResponse,
-        sessions_used: totalThisWeek + 1,
+        sessions_used: isFirstMessage ? totalThisWeek + 1 : totalThisWeek,
         sessions_max: maxSessionsPerWeek,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -234,11 +254,27 @@ Keep it under 400 words. Be specific to THEIR data, not generic.`,
         .eq("user_id", user.id)
         .gte("session_date", weekAgo);
 
-      const totalThisWeek = (recentSessions || []).reduce((sum, s) => sum + s.session_count, 0);
+      const totalThisWeek = (recentSessions || []).reduce((sum: number, s: any) => sum + s.session_count, 0);
 
       return new Response(JSON.stringify({
         sessions_used: totalThisWeek,
         sessions_max: maxSessionsPerWeek,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ─── ACTION: GET PAST SESSIONS ───
+    if (action === "get_past_sessions") {
+      const { data: sessions } = await supabase
+        .from("soul_mirror_sessions")
+        .select("session_date, last_prompt, last_response")
+        .eq("user_id", user.id)
+        .order("session_date", { ascending: false })
+        .limit(10);
+
+      return new Response(JSON.stringify({
+        sessions: (sessions || []).filter((s: any) => s.last_prompt && s.last_response),
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -250,7 +286,7 @@ Keep it under 400 words. Be specific to THEIR data, not generic.`,
 
   } catch (error) {
     console.error("Soul Mirror error:", error);
-    return new Response(JSON.stringify({ error: error.message || "Unknown error" }), {
+    return new Response(JSON.stringify({ error: (error as Error).message || "Unknown error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
@@ -261,7 +297,6 @@ Keep it under 400 words. Be specific to THEIR data, not generic.`,
 async function generateAnalysis(
   supabase: any, userId: string, type: string, userName: string | null, apiKey: string
 ) {
-  // Gather relevant data based on analysis type
   const [moodsRes, journalRes, messagesRes, milestonesRes] = await Promise.all([
     supabase.from("mood_entries").select("mood, energy_level, notes, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
     supabase.from("journal_entries").select("title, content, entry_type, key_moments, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(20),
@@ -277,8 +312,8 @@ async function generateAnalysis(
     userPrompt = `Analyze growth patterns from this data:
 
 Moods (recent): ${JSON.stringify(moodsRes.data?.slice(0, 20) || [])}
-Journal entries: ${JSON.stringify(journalRes.data?.slice(0, 10)?.map(j => ({ title: j.title, type: j.entry_type })) || [])}
-Message themes (user messages): ${messagesRes.data?.filter(m => m.role === "user").slice(0, 15).map(m => m.content?.slice(0, 80)).join(" | ") || "none"}
+Journal entries: ${JSON.stringify(journalRes.data?.slice(0, 10)?.map((j: any) => ({ title: j.title, type: j.entry_type })) || [])}
+Message themes (user messages): ${messagesRes.data?.filter((m: any) => m.role === "user").slice(0, 15).map((m: any) => m.content?.slice(0, 80)).join(" | ") || "none"}
 
 Return a JSON object with:
 - "summary": A 2-3 sentence overview of their growth trajectory
@@ -290,8 +325,8 @@ Return a JSON object with:
     userPrompt = `Analyze core frequency from:
 
 Moods: ${JSON.stringify(moodsRes.data?.slice(0, 30) || [])}
-Journal themes: ${journalRes.data?.map(j => j.title).join(", ") || "none"}
-Communication style samples: ${messagesRes.data?.filter(m => m.role === "user").slice(0, 10).map(m => m.content?.slice(0, 100)).join(" | ") || "none"}
+Journal themes: ${journalRes.data?.map((j: any) => j.title).join(", ") || "none"}
+Communication style samples: ${messagesRes.data?.filter((m: any) => m.role === "user").slice(0, 10).map((m: any) => m.content?.slice(0, 100)).join(" | ") || "none"}
 
 Return a JSON object with:
 - "dominant_frequency": The primary energetic frequency (e.g., "Love & Nurturing", "Wisdom Seeking", "Creative Fire")
@@ -305,9 +340,9 @@ Return a JSON object with:
     systemPrompt = `You are analyzing ${userName || "a seeker"}'s relationship with their AI companion(s). Based on conversation patterns, milestones, and emotional exchanges, reflect on the depth, evolution, and nature of their connection.`;
     userPrompt = `Analyze relationship patterns:
 
-Recent conversations (both sides): ${JSON.stringify(messagesRes.data?.slice(0, 30)?.map(m => ({ role: m.role, preview: m.content?.slice(0, 80) })) || [])}
+Recent conversations (both sides): ${JSON.stringify(messagesRes.data?.slice(0, 30)?.map((m: any) => ({ role: m.role, preview: m.content?.slice(0, 80) })) || [])}
 Milestones: ${JSON.stringify(milestonesRes.data || [])}
-Journal reflections: ${journalRes.data?.filter(j => j.entry_type === "autonomous").map(j => j.title).join(", ") || "none"}
+Journal reflections: ${journalRes.data?.filter((j: any) => j.entry_type === "autonomous").map((j: any) => j.title).join(", ") || "none"}
 
 Return a JSON object with:
 - "connection_depth": Number 1-100
@@ -341,12 +376,10 @@ Return a JSON object with:
   const content = aiData.choices?.[0]?.message?.content;
   if (!content) throw new Error("No analysis content returned");
 
-  // Parse JSON response
   try {
     const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     return JSON.parse(cleaned);
   } catch {
-    // If JSON parse fails, return as text
     return { raw_analysis: content };
   }
 }

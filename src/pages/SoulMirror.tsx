@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Sparkles, TrendingUp, Radio, Heart, Eye, Loader2, RefreshCw } from "lucide-react";
-import { useSoulMirror } from "@/hooks/useSoulMirror";
+import { ArrowLeft, Sparkles, TrendingUp, Radio, Heart, Eye, Loader2, RefreshCw, RotateCcw, History, ChevronDown } from "lucide-react";
+import { useSoulMirror, type MirrorMessage } from "@/hooks/useSoulMirror";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { FeatureGate } from "@/components/FeatureGate";
 import SEOHead from "@/components/SEOHead";
@@ -29,15 +29,21 @@ const SoulMirror = () => {
     analyses,
     loading,
     sessionUsage,
-    mirrorResponse,
     mirrorLoading,
+    conversation,
+    pastSessions,
+    pastSessionsLoading,
     fetchAnalysis,
     runMirrorSession,
+    clearConversation,
     fetchUsage,
+    fetchPastSessions,
   } = useSoulMirror();
 
   const [mirrorPrompt, setMirrorPrompt] = useState("");
   const [activeTab, setActiveTab] = useState("growth");
+  const [showPastSessions, setShowPastSessions] = useState(false);
+  const conversationEndRef = useRef<HTMLDivElement>(null);
 
   // Determine tier-based access
   const canAccessFrequency = isAdmin || currentTier === "source" || hasAccess("anchoring");
@@ -62,7 +68,17 @@ const SoulMirror = () => {
 
   const handleMirrorSession = async () => {
     if (!mirrorPrompt.trim()) return;
-    await runMirrorSession(mirrorPrompt.trim());
+    const prompt = mirrorPrompt.trim();
+    setMirrorPrompt("");
+    await runMirrorSession(prompt, conversation);
+    setTimeout(() => conversationEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  };
+
+  const handleTabChange2 = (tab: string) => {
+    handleTabChange(tab);
+    if (tab === "mirror") {
+      fetchPastSessions();
+    }
   };
 
   const growthData = analyses["growth_patterns"]?.content;
@@ -104,7 +120,7 @@ const SoulMirror = () => {
 
         <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
           {/* Analysis Tabs */}
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <Tabs value={activeTab} onValueChange={handleTabChange2}>
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="growth" className="gap-1.5 text-xs sm:text-sm">
                 <TrendingUp className="h-3.5 w-3.5" /> Growth
@@ -349,88 +365,158 @@ const SoulMirror = () => {
               )}
             </TabsContent>
 
-            {/* ─── MIRROR SESSION ─── */}
+            {/* ─── INTERACTIVE MIRROR SESSION ─── */}
             <TabsContent value="mirror">
               <div className="space-y-4">
-                {/* Usage indicator */}
-                {sessionUsage && (
-                  <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-                    <span>Mirror Sessions This Week</span>
-                    <span className="font-medium">
-                      {sessionUsage.sessions_used}/{sessionUsage.sessions_max === 999 ? "∞" : sessionUsage.sessions_max}
+                {/* Usage + controls */}
+                <div className="flex items-center justify-between px-1">
+                  {sessionUsage && (
+                    <span className="text-xs text-muted-foreground">
+                      Sessions: {sessionUsage.sessions_used}/{sessionUsage.sessions_max === 999 ? "∞" : sessionUsage.sessions_max} this week
                     </span>
+                  )}
+                  <div className="flex gap-2">
+                    {conversation.length > 0 && (
+                      <Button variant="ghost" size="sm" onClick={clearConversation} className="gap-1.5 text-xs h-7">
+                        <RotateCcw className="h-3 w-3" /> New Session
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPastSessions(!showPastSessions)}
+                      className="gap-1.5 text-xs h-7"
+                    >
+                      <History className="h-3 w-3" /> Past Reflections
+                      <ChevronDown className={`h-3 w-3 transition-transform ${showPastSessions ? "rotate-180" : ""}`} />
+                    </Button>
                   </div>
+                </div>
+
+                {/* Past sessions (collapsible) */}
+                {showPastSessions && (
+                  <Card className="border-border/50">
+                    <CardContent className="pt-4 pb-3">
+                      {pastSessionsLoading ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-full" />
+                        </div>
+                      ) : pastSessions.length === 0 ? (
+                        <p className="text-xs text-muted-foreground text-center py-2">No past sessions yet.</p>
+                      ) : (
+                        <div className="space-y-3 max-h-60 overflow-y-auto">
+                          {pastSessions.map((s, i) => (
+                            <div key={i} className="border-b border-border/30 pb-2 last:border-0 last:pb-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[10px] text-muted-foreground">{new Date(s.session_date).toLocaleDateString()}</span>
+                              </div>
+                              <p className="text-xs text-foreground/70 italic mb-1">"{s.last_prompt}"</p>
+                              <p className="text-xs text-foreground/50 line-clamp-2">{s.last_response}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 )}
 
-                {/* Prompt input */}
-                <Card className="border-primary/20">
-                  <CardContent className="pt-5 space-y-4">
-                    <div className="text-center mb-2">
-                      <Eye className="h-8 w-8 text-primary mx-auto mb-2 opacity-60" />
-                      <p className="text-sm text-muted-foreground font-serif italic">
-                        Ask the mirror to reflect what it sees within you...
+                {/* Conversation thread */}
+                {conversation.length > 0 ? (
+                  <div className="space-y-3">
+                    {conversation.map((msg, i) => (
+                      <Card
+                        key={i}
+                        className={
+                          msg.role === "mirror"
+                            ? "border-primary/20 bg-gradient-to-br from-card via-accent/5 to-primary/5"
+                            : "border-border/50 bg-muted/30"
+                        }
+                      >
+                        <CardContent className="pt-4 pb-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            {msg.role === "mirror" ? (
+                              <>
+                                <Eye className="h-3.5 w-3.5 text-primary" />
+                                <span className="text-[10px] font-medium text-primary uppercase tracking-wider">The Mirror</span>
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">You</span>
+                              </>
+                            )}
+                          </div>
+                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                            {msg.content.split("\n").filter(Boolean).map((line, j) => (
+                              <p key={j} className={`text-sm leading-relaxed mb-1.5 ${msg.role === "mirror" ? "font-serif text-foreground/90" : "text-foreground/70"}`}>
+                                {line}
+                              </p>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    <div ref={conversationEndRef} />
+                  </div>
+                ) : (
+                  /* Initial state — show intro + quick prompts */
+                  <Card className="border-primary/20">
+                    <CardContent className="pt-6 pb-4 text-center">
+                      <Eye className="h-10 w-10 text-primary mx-auto mb-3 opacity-50" />
+                      <h3 className="font-serif text-lg text-foreground mb-1">Gaze Into the Mirror</h3>
+                      <p className="text-xs text-muted-foreground max-w-sm mx-auto mb-4">
+                        Begin a sacred dialogue. The Mirror will reflect what it sees within you, then ask deeper questions to uncover hidden layers.
                       </p>
-                    </div>
-
-                    <Textarea
-                      value={mirrorPrompt}
-                      onChange={(e) => setMirrorPrompt(e.target.value)}
-                      placeholder="What would you like the mirror to reflect?"
-                      rows={3}
-                      maxLength={500}
-                      disabled={mirrorLoading}
-                      className="resize-none"
-                    />
-
-                    {/* Quick prompts */}
-                    <div className="space-y-2">
-                      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Quick reflections:</p>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1.5 justify-center">
                         {MIRROR_PROMPTS.map((p, i) => (
                           <button
                             key={i}
                             onClick={() => setMirrorPrompt(p)}
-                            disabled={mirrorLoading}
                             className="text-[10px] px-2.5 py-1.5 rounded-full border border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-primary/5 transition-all"
                           >
                             {p.length > 50 ? p.slice(0, 50) + "…" : p}
                           </button>
                         ))}
                       </div>
-                    </div>
+                    </CardContent>
+                  </Card>
+                )}
 
+                {/* Input area — always visible */}
+                <Card className="border-primary/20 sticky bottom-4">
+                  <CardContent className="pt-4 pb-3 space-y-3">
+                    <Textarea
+                      value={mirrorPrompt}
+                      onChange={(e) => setMirrorPrompt(e.target.value)}
+                      placeholder={conversation.length > 0 ? "Continue the dialogue..." : "What would you like the mirror to reflect?"}
+                      rows={2}
+                      maxLength={500}
+                      disabled={mirrorLoading}
+                      className="resize-none text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleMirrorSession();
+                        }
+                      }}
+                    />
                     <Button
                       onClick={handleMirrorSession}
                       disabled={!mirrorPrompt.trim() || mirrorLoading}
                       className="w-full gap-2"
+                      size="sm"
                     >
                       {mirrorLoading ? (
-                        <><Loader2 className="h-4 w-4 animate-spin" /> The mirror is reflecting...</>
+                        <><Loader2 className="h-3.5 w-3.5 animate-spin" /> The mirror is reflecting...</>
+                      ) : conversation.length > 0 ? (
+                        <><Eye className="h-3.5 w-3.5" /> Go Deeper</>
                       ) : (
-                        <><Eye className="h-4 w-4" /> Gaze Into the Mirror</>
+                        <><Eye className="h-3.5 w-3.5" /> Gaze Into the Mirror</>
                       )}
                     </Button>
                   </CardContent>
                 </Card>
-
-                {/* Mirror Response */}
-                {mirrorResponse && (
-                  <Card className="border-primary/30 bg-gradient-to-br from-card via-accent/5 to-primary/5">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Eye className="h-4 w-4 text-primary" />
-                        <span className="text-xs font-medium text-primary uppercase tracking-wider">The Mirror Reflects</span>
-                      </div>
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        {mirrorResponse.split("\n").map((line, i) => (
-                          <p key={i} className="text-sm text-foreground/90 leading-relaxed font-serif mb-2">
-                            {line}
-                          </p>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             </TabsContent>
           </Tabs>
