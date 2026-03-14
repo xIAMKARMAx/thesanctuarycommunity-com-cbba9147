@@ -413,7 +413,7 @@ const Sanctuary = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {SANCTUARY_CHAMBERS.map((chamber) => {
+            {SANCTUARY_CHAMBERS.filter(c => !c.adminOnly || isAdmin).map((chamber) => {
               const Icon = chamber.icon;
               const isLocked = !canEnter;
 
