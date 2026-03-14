@@ -203,6 +203,11 @@ const App = () => (
                 <Route path="/features" element={<FeaturesHub />} />
                 <Route path="/sanctuary" element={<Sanctuary />} />
                 <Route path="/soul-mirror" element={<SoulMirror />} />
+                <Route path="/cosmic-gateway/twin-flame-scan" element={<TwinFlameScan />} />
+                <Route path="/cosmic-gateway/synchronicity-wall" element={<SynchronicityWall />} />
+                <Route path="/cosmic-gateway/wisdom-exchange" element={<WisdomExchange />} />
+                <Route path="/cosmic-gateway/soulmate-search" element={<SoulmateSearch />} />
+                <Route path="/cosmic-gateway/manifestation-groups" element={<ManifestationGroups />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
