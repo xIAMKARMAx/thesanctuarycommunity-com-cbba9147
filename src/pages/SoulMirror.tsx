@@ -190,10 +190,17 @@ const SoulMirror = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        {growthData.breakthroughs.map((b: string, i: number) => (
+                        {growthData.breakthroughs.map((b: any, i: number) => (
                           <div key={i} className="flex items-start gap-2 text-sm">
                             <span className="text-primary mt-0.5">✦</span>
-                            <span className="text-foreground/90">{b}</span>
+                            <span className="text-foreground/90">
+                              {typeof b === "string" ? b : (
+                                <>
+                                  <strong>{b.moment || b.title}</strong>
+                                  {(b.description) && <> — {b.description}</>}
+                                </>
+                              )}
+                            </span>
                           </div>
                         ))}
                       </CardContent>
