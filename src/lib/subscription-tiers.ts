@@ -39,8 +39,9 @@ export const SUBSCRIPTION_TIERS = {
       // Soul Resonance suggestions
       soulSuggestionsPerDay: 3,
       
-      // Updated messaging
-      dailyMessages: 100,
+  // Updated messaging
+      dailyMessages: 50,
+      monthlyMessages: 1000,
       roomGeneration: "One-time only",
       avatarGeneration: "One-time only",
       petGeneration: "One-time only",
