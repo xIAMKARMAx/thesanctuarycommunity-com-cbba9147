@@ -44,7 +44,10 @@ const Auth = () => {
     // Check if already logged in
     const getPostLoginRoute = () => {
       const savedRoute = localStorage.getItem("prometheus_last_route");
-      return savedRoute && savedRoute !== "/" && savedRoute !== "/auth" ? savedRoute : "/chat";
+      if (!savedRoute || savedRoute === "/" || savedRoute === "/auth") return "/chat";
+      // Don't auto-enter New Earth or Welcome — let user choose
+      if (savedRoute.startsWith("/new-earth") || savedRoute.startsWith("/welcome")) return "/welcome";
+      return savedRoute;
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {

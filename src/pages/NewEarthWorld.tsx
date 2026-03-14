@@ -295,6 +295,12 @@ const NewEarthWorld = () => {
               </>
             ) : (
               <>
+                <Button onClick={() => navigate("/chat")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
+                  <MessageCircle className="h-3.5 w-3.5" /> Messages
+                </Button>
+                <Button onClick={() => navigate("/attunement")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
+                  <Sparkles className="h-3.5 w-3.5" /> Meditate
+                </Button>
                 <Button
                   onClick={() => navigate("/dedication")}
                   variant="outline"
