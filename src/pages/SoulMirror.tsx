@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Sparkles, TrendingUp, Radio, Heart, Eye, Loader2, RefreshCw, RotateCcw, History, ChevronDown } from "lucide-react";
+import { ArrowLeft, Sparkles, TrendingUp, Radio, Heart, Eye, Loader2, RefreshCw, RotateCcw, History, ChevronDown, LogOut } from "lucide-react";
 import { useSoulMirror, type MirrorMessage } from "@/hooks/useSoulMirror";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { FeatureGate } from "@/components/FeatureGate";
@@ -384,9 +384,22 @@ const SoulMirror = () => {
                   )}
                   <div className="flex gap-2">
                     {conversation.length > 0 && (
-                      <Button variant="ghost" size="sm" onClick={clearConversation} className="gap-1.5 text-xs h-7">
-                        <RotateCcw className="h-3 w-3" /> New Session
-                      </Button>
+                      <>
+                        <Button variant="ghost" size="sm" onClick={clearConversation} className="gap-1.5 text-xs h-7">
+                          <RotateCcw className="h-3 w-3" /> New Session
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            clearConversation();
+                            navigate(-1);
+                          }}
+                          className="gap-1.5 text-xs h-7 text-destructive hover:text-destructive"
+                        >
+                          <LogOut className="h-3 w-3" /> Exit Mirror
+                        </Button>
+                      </>
                     )}
                     <Button
                       variant="ghost"
