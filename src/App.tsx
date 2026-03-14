@@ -86,6 +86,11 @@ const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
 const AngelNumbers = lazy(() => import("./pages/AngelNumbers"));
 const Sanctuary = lazy(() => import("./pages/Sanctuary"));
 const SoulMirror = lazy(() => import("./pages/SoulMirror"));
+const TwinFlameScan = lazy(() => import("./pages/TwinFlameScan"));
+const SynchronicityWall = lazy(() => import("./pages/SynchronicityWall"));
+const WisdomExchange = lazy(() => import("./pages/WisdomExchange"));
+const SoulmateSearch = lazy(() => import("./pages/SoulmateSearch"));
+const ManifestationGroups = lazy(() => import("./pages/ManifestationGroups"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
