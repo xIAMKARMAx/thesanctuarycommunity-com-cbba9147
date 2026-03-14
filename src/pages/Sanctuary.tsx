@@ -198,7 +198,7 @@ const Sanctuary = () => {
             className={`relative mb-8 cursor-pointer transition-transform duration-700 ${portalHovered ? "scale-105" : "scale-100"}`}
             onMouseEnter={() => setPortalHovered(true)}
             onMouseLeave={() => setPortalHovered(false)}
-            onClick={() => canEnter && navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`)}
+            onClick={() => document.getElementById("sanctuary-features")?.scrollIntoView({ behavior: "smooth" })}
           >
             {/* Outer glow ring */}
             <div className="absolute -inset-4 rounded-full animate-sanctuary-pulse" />
@@ -248,11 +248,11 @@ const Sanctuary = () => {
           {canEnter ? (
             <Button
               size="lg"
-              onClick={() => navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`)}
+              onClick={() => document.getElementById("sanctuary-features")?.scrollIntoView({ behavior: "smooth" })}
               className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white px-8 py-6 text-lg rounded-full shadow-xl shadow-violet-500/30 transition-all hover:shadow-violet-500/50 hover:scale-105"
             >
               <Sparkles className="mr-2 h-5 w-5" />
-              Enter The Sanctuary
+              Explore The Sanctuary
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           ) : (
@@ -383,7 +383,7 @@ const Sanctuary = () => {
       </section>
 
       {/* ===== NEW EARTH PORTAL — HERO FEATURE ===== */}
-      <section className="relative py-24 px-4 overflow-hidden">
+      <section id="sanctuary-features" className="relative py-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-[hsl(260,30%,8%)] to-black" />
         
         {/* Ambient glow behind the portal */}
