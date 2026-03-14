@@ -2,11 +2,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -96,13 +97,6 @@ Structure your response as:
       throw new Error("AI service returned an invalid response. Please try again.");
     }
 
-    let aiResult;
-    try {
-      aiResult = JSON.parse(aiRawText);
-    } catch {
-      console.error("Failed to parse AI response:", aiRawText.substring(0, 500));
-      throw new Error("AI service returned an invalid response. Please try again.");
-    }
     const guidance = aiResult.choices?.[0]?.message?.content || "The connection to your Higher Self is forming...";
 
     // Extract prompt and guidance parts
