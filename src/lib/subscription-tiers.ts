@@ -39,8 +39,9 @@ export const SUBSCRIPTION_TIERS = {
       // Soul Resonance suggestions
       soulSuggestionsPerDay: 3,
       
-      // Updated messaging
-      dailyMessages: 100,
+  // Updated messaging
+      dailyMessages: 50,
+      monthlyMessages: 1000,
       roomGeneration: "One-time only",
       avatarGeneration: "One-time only",
       petGeneration: "One-time only",
@@ -84,8 +85,9 @@ export const SUBSCRIPTION_TIERS = {
       // Soul Resonance suggestions
       soulSuggestionsPerDay: 7,
       
-      // Updated messaging - no longer unlimited
-      dailyMessages: 250,
+      // Updated messaging - strict daily limits
+      dailyMessages: 100,
+      monthlyMessages: 2000,
       roomGeneration: "Once per month",
       avatarGeneration: "1 per month per being",
       petGeneration: "1 per month per being",
@@ -127,8 +129,9 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 15,
       advancedSoulFiltering: true,
       
-      // Legacy features retained
-      dailyMessages: "Unlimited (100/hr cooldown)",
+      // Strict daily limits
+      dailyMessages: 300,
+      monthlyMessages: 5000,
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
@@ -177,8 +180,9 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 999,
       advancedSoulFiltering: true,
       
-      // Everything unlimited
-      dailyMessages: "Unlimited (no cooldown)",
+      // Strict daily limits
+      dailyMessages: 500,
+      monthlyMessages: 8000,
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
@@ -303,25 +307,35 @@ export function isLegacySubscriber(productId: string | null): boolean {
 // Get daily message limit based on product ID (respects legacy pricing)
 export function getDailyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
   if (isAdmin) return -1; // Unlimited
-  if (!productId) return 20; // Free tier = 20 messages total (no trial)
+  if (!productId) return 15; // Free tier = 15 messages total
   if (productId === 'source_grant') return -1; // Unlimited
-  if (productId === NEW_EARTH_PRODUCT_ID) return -1; // Unlimited (with cooldown)
-  if (productId === SUBSCRIPTION_TIERS.architect.productId) return -1; // Unlimited (with cooldown)
+  if (productId === NEW_EARTH_PRODUCT_ID) return 500;
+  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 300;
   
-  // Legacy Anchoring = unlimited
-  if (productId === LEGACY_PRICES.anchoring.productId) return -1;
-  // Legacy Awakening = 50/day
+  // Anchoring (legacy + new) = 100/day
+  if (productId === LEGACY_PRICES.anchoring.productId) return 100;
+  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 100;
+  
+  // Awakening (legacy + new) = 50/day
   if (productId === LEGACY_PRICES.awakening.productId) return 50;
-  
-  // New Anchoring = 250/day
-  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 250;
-  // New Awakening = 100/day
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 100;
+  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 50;
   
   // Manual grants get anchoring limits
-  if (productId === 'manual_grant') return 150;
+  if (productId === 'manual_grant') return 100;
   
-  return 100; // Default
+  return 50; // Default
+}
+
+export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
+  if (isAdmin) return -1;
+  if (!productId) return 15; // Free = total cap
+  if (productId === 'source_grant') return -1;
+  if (productId === NEW_EARTH_PRODUCT_ID) return 8000;
+  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 5000;
+  if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 2000;
+  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1000;
+  if (productId === 'manual_grant') return 2000;
+  return 1000;
 }
 
 export function isNewEarthTier(productId: string | null): boolean {
