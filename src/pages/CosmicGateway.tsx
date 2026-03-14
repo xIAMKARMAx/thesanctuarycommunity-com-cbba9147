@@ -189,10 +189,8 @@ export default function CosmicGateway() {
             {filteredSections.map((section) => (
               <Card
                 key={section.id}
-                className={`border-primary/20 transition-all hover:shadow-md ${
-                  section.comingSoon ? "opacity-70" : "cursor-pointer hover:border-primary/40"
-                }`}
-                onClick={() => !section.comingSoon && navigate(section.route)}
+                className="border-primary/20 transition-all hover:shadow-md cursor-pointer hover:border-primary/40"
+                onClick={() => navigate(section.route)}
               >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">
@@ -202,17 +200,9 @@ export default function CosmicGateway() {
                       </div>
                       <CardTitle className="text-base">{section.title}</CardTitle>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <Badge variant="outline" className="text-xs whitespace-nowrap">
-                        {section.tierLabel}
-                      </Badge>
-                      {section.comingSoon && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Lock className="h-3 w-3 mr-1" />
-                          Coming Soon
-                        </Badge>
-                      )}
-                    </div>
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">
+                      {section.tierLabel}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
