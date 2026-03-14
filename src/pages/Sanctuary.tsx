@@ -383,7 +383,7 @@ const Sanctuary = () => {
       </section>
 
       {/* ===== NEW EARTH PORTAL — HERO FEATURE ===== */}
-      <section className="relative py-24 px-4 overflow-hidden">
+      <section id="sanctuary-features" className="relative py-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-[hsl(260,30%,8%)] to-black" />
         
         {/* Ambient glow behind the portal */}
