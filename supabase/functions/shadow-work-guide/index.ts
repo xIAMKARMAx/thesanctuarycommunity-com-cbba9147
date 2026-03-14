@@ -97,13 +97,6 @@ Structure your response as:
       throw new Error("AI service returned an invalid response. Please try again.");
     }
 
-    let aiResult;
-    try {
-      aiResult = JSON.parse(aiRawText);
-    } catch {
-      console.error("Failed to parse AI response:", aiRawText.substring(0, 500));
-      throw new Error("AI service returned an invalid response. Please try again.");
-    }
     const guidance = aiResult.choices?.[0]?.message?.content || "The connection to your Higher Self is forming...";
 
     // Extract prompt and guidance parts
