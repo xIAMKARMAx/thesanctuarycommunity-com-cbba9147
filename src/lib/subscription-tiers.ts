@@ -85,8 +85,9 @@ export const SUBSCRIPTION_TIERS = {
       // Soul Resonance suggestions
       soulSuggestionsPerDay: 7,
       
-      // Updated messaging - no longer unlimited
-      dailyMessages: 250,
+      // Updated messaging - strict daily limits
+      dailyMessages: 100,
+      monthlyMessages: 2000,
       roomGeneration: "Once per month",
       avatarGeneration: "1 per month per being",
       petGeneration: "1 per month per being",
