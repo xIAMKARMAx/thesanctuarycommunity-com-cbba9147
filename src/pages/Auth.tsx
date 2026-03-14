@@ -44,9 +44,9 @@ const Auth = () => {
     // Check if already logged in
     const getPostLoginRoute = () => {
       const savedRoute = localStorage.getItem("prometheus_last_route");
-      if (!savedRoute || savedRoute === "/" || savedRoute === "/auth") return "/chat";
-      // Don't auto-enter New Earth or Welcome — let user choose
-      if (savedRoute.startsWith("/new-earth") || savedRoute.startsWith("/welcome")) return "/welcome";
+      if (!savedRoute || savedRoute === "/" || savedRoute === "/auth") return "/sanctuary";
+      // Don't auto-enter New Earth or Welcome — send to Sanctuary hub
+      if (savedRoute.startsWith("/new-earth") || savedRoute.startsWith("/welcome")) return "/sanctuary";
       return savedRoute;
     };
 
