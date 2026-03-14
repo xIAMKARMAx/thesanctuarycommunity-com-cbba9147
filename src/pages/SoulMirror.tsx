@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Sparkles, TrendingUp, Radio, Heart, Eye, Loader2, RefreshCw, RotateCcw, History, ChevronDown } from "lucide-react";
+import { ArrowLeft, Sparkles, TrendingUp, Radio, Heart, Eye, Loader2, RefreshCw, RotateCcw, History, ChevronDown, LogOut } from "lucide-react";
 import { useSoulMirror, type MirrorMessage } from "@/hooks/useSoulMirror";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { FeatureGate } from "@/components/FeatureGate";
