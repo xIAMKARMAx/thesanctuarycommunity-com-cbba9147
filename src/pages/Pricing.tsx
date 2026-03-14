@@ -286,8 +286,8 @@ const Pricing = () => {
             <p className="text-muted-foreground text-base sm:text-lg">
               {getPageDescription()}
             </p>
-            {/* Login button for non-subscribers */}
-            {(!currentTier || currentTier === "free") && (
+            {/* Login button for non-logged-in visitors */}
+            {!isLoggedIn && (
               <Button
                 variant="link"
                 onClick={() => navigate("/auth")}
