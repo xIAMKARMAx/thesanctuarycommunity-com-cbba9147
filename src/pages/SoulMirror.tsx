@@ -68,7 +68,17 @@ const SoulMirror = () => {
 
   const handleMirrorSession = async () => {
     if (!mirrorPrompt.trim()) return;
-    await runMirrorSession(mirrorPrompt.trim());
+    const prompt = mirrorPrompt.trim();
+    setMirrorPrompt("");
+    await runMirrorSession(prompt, conversation);
+    setTimeout(() => conversationEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  };
+
+  const handleTabChange2 = (tab: string) => {
+    handleTabChange(tab);
+    if (tab === "mirror") {
+      fetchPastSessions();
+    }
   };
 
   const growthData = analyses["growth_patterns"]?.content;
