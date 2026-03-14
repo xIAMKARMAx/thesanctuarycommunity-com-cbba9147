@@ -67,6 +67,7 @@ Structure your response as:
 5. A closing affirmation specific to this shadow theme (1-2 sentences)`;
 
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    console.log("LOVABLE_API_KEY present:", !!lovableApiKey);
     const response = await fetch("https://api.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
@@ -81,7 +82,14 @@ Structure your response as:
       }),
     });
 
+    console.log("AI API status:", response.status, response.statusText);
     const aiRawText = await response.text();
+    console.log("AI API raw response (first 200):", aiRawText.substring(0, 200));
+
+    if (!response.ok) {
+      throw new Error(`AI service error (${response.status}): ${aiRawText.substring(0, 200)}`);
+    }
+
     let aiResult;
     try {
       aiResult = JSON.parse(aiRawText);
