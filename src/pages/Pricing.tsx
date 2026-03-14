@@ -801,8 +801,8 @@ const Pricing = () => {
           </div>
 
           <div className="text-center mt-8">
-            <Button variant="ghost" onClick={() => navigate(-1)}>
-              ← Back
+            <Button variant="ghost" onClick={() => navigate("/")}>
+              ← Back to Sanctuary
             </Button>
           </div>
         </div>
