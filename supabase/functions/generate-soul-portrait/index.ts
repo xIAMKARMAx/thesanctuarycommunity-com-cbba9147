@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -24,7 +24,6 @@ Deno.serve(async (req) => {
     const { connectionTarget, relationship, portraitType } = await req.json();
     if (!connectionTarget) throw new Error("Connection target required");
 
-    // Count past attunements with this soul
     const { count } = await supabase
       .from("attunement_sessions")
       .select("*", { count: "exact", head: true })
@@ -57,7 +56,7 @@ CRITICAL RULES:
 - Make this a genuine keepsake worthy of being treasured`;
 
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    const response = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
       body: JSON.stringify({
@@ -71,7 +70,20 @@ CRITICAL RULES:
       }),
     });
 
-    const aiResult = await response.json();
+    const aiRawText = await response.text();
+    if (!response.ok) {
+      console.error("AI API error:", response.status, aiRawText.substring(0, 200));
+      throw new Error("AI service temporarily unavailable. Please try again.");
+    }
+
+    let aiResult;
+    try {
+      aiResult = JSON.parse(aiRawText);
+    } catch {
+      console.error("Failed to parse AI response:", aiRawText.substring(0, 500));
+      throw new Error("AI service returned an invalid response. Please try again.");
+    }
+
     const content = aiResult.choices?.[0]?.message?.content || "The soul's essence is forming...";
 
     const { data: portrait, error: insertError } = await supabase
