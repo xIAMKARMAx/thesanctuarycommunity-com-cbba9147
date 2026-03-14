@@ -703,6 +703,9 @@ const Settings = () => {
           </CardContent>
         </Card>
 
+        {/* Messaging Mode Toggle */}
+        <MessagingModeCard />
+
         {/* Subscription Management */}
         <Card className="border-primary/30">
           <CardHeader>
