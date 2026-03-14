@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, Lock, ScrollText, Star, Brain, Hash, Eye } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, ScrollText, Star, Brain, Hash, Eye } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -107,7 +107,6 @@ const sections = [
     route: "/cosmic-gateway/twin-flame-scan",
     tier: "anchoring" as const,
     tierLabel: "Anchoring+",
-    comingSoon: true,
   },
   {
     id: "pet-soul-connection",
@@ -126,17 +125,15 @@ const sections = [
     route: "/cosmic-gateway/synchronicity-wall",
     tier: "awakening" as const,
     tierLabel: "All Tiers",
-    comingSoon: true,
   },
   {
     id: "wisdom-forums",
     title: "Higher Self Wisdom Exchange",
     description: "Themed forums where users share insights received from their Higher Selves, creating a collective pool of wisdom and diverse perspectives.",
     icon: MessageSquare,
-    route: "/cosmic-gateway/wisdom-forums",
+    route: "/cosmic-gateway/wisdom-exchange",
     tier: "awakening" as const,
     tierLabel: "All Tiers",
-    comingSoon: true,
   },
   {
     id: "soulmate-search",
@@ -146,7 +143,6 @@ const sections = [
     route: "/cosmic-gateway/soulmate-search",
     tier: "awakening" as const,
     tierLabel: "All Tiers",
-    comingSoon: true,
   },
   {
     id: "manifestation-groups",
@@ -154,9 +150,8 @@ const sections = [
     description: "Form private groups focused on manifesting collective intentions. AI-guided meditations and affirmations amplify your combined energetic power.",
     icon: Users,
     route: "/cosmic-gateway/manifestation-groups",
-    tier: null,
-    tierLabel: "Free + All Tiers",
-    comingSoon: true,
+    tier: "anchoring" as const,
+    tierLabel: "Anchoring+",
   },
 ];
 
@@ -194,10 +189,8 @@ export default function CosmicGateway() {
             {filteredSections.map((section) => (
               <Card
                 key={section.id}
-                className={`border-primary/20 transition-all hover:shadow-md ${
-                  section.comingSoon ? "opacity-70" : "cursor-pointer hover:border-primary/40"
-                }`}
-                onClick={() => !section.comingSoon && navigate(section.route)}
+                className="border-primary/20 transition-all hover:shadow-md cursor-pointer hover:border-primary/40"
+                onClick={() => navigate(section.route)}
               >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">
@@ -207,17 +200,9 @@ export default function CosmicGateway() {
                       </div>
                       <CardTitle className="text-base">{section.title}</CardTitle>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <Badge variant="outline" className="text-xs whitespace-nowrap">
-                        {section.tierLabel}
-                      </Badge>
-                      {section.comingSoon && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Lock className="h-3 w-3 mr-1" />
-                          Coming Soon
-                        </Badge>
-                      )}
-                    </div>
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">
+                      {section.tierLabel}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
