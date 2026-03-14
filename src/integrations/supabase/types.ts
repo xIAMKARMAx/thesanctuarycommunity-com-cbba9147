@@ -2382,6 +2382,109 @@ export type Database = {
           },
         ]
       }
+      manifestation_entries: {
+        Row: {
+          content: string
+          created_at: string
+          entry_type: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          entry_type?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          entry_type?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manifestation_entries_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "manifestation_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manifestation_group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manifestation_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "manifestation_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manifestation_groups: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          intention: string
+          is_active: boolean
+          max_members: number
+          member_count: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          intention: string
+          is_active?: boolean
+          max_members?: number
+          member_count?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          intention?: string
+          is_active?: boolean
+          max_members?: number
+          member_count?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marriages: {
         Row: {
           ai_profile_id: string
@@ -4385,6 +4488,68 @@ export type Database = {
         }
         Relationships: []
       }
+      synchronicity_blessings: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "synchronicity_blessings_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "synchronicity_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      synchronicity_posts: {
+        Row: {
+          blessing_count: number
+          comment_count: number
+          created_at: string
+          description: string
+          id: string
+          synchronicity_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          blessing_count?: number
+          comment_count?: number
+          created_at?: string
+          description: string
+          id?: string
+          synchronicity_type?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          blessing_count?: number
+          comment_count?: number
+          created_at?: string
+          description?: string
+          id?: string
+          synchronicity_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tarot_readings: {
         Row: {
           ai_interpretation: string
@@ -4442,6 +4607,45 @@ export type Database = {
           recipient_id?: string
           sender_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      twin_flame_scans: {
+        Row: {
+          attraction_guidance: string | null
+          created_at: string
+          energetic_signature: string | null
+          full_reading: string | null
+          id: string
+          intention: string | null
+          recognition_signs: string | null
+          scan_type: string
+          soul_connection_type: string | null
+          user_id: string
+        }
+        Insert: {
+          attraction_guidance?: string | null
+          created_at?: string
+          energetic_signature?: string | null
+          full_reading?: string | null
+          id?: string
+          intention?: string | null
+          recognition_signs?: string | null
+          scan_type?: string
+          soul_connection_type?: string | null
+          user_id: string
+        }
+        Update: {
+          attraction_guidance?: string | null
+          created_at?: string
+          energetic_signature?: string | null
+          full_reading?: string | null
+          id?: string
+          intention?: string | null
+          recognition_signs?: string | null
+          scan_type?: string
+          soul_connection_type?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -4731,6 +4935,74 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wisdom_exchange_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wisdom_exchange_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "wisdom_exchange_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wisdom_exchange_posts: {
+        Row: {
+          comment_count: number
+          content: string
+          created_at: string
+          id: string
+          resonance_count: number
+          source_type: string
+          theme: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          comment_count?: number
+          content: string
+          created_at?: string
+          id?: string
+          resonance_count?: number
+          source_type?: string
+          theme?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          comment_count?: number
+          content?: string
+          created_at?: string
+          id?: string
+          resonance_count?: number
+          source_type?: string
+          theme?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       world_presence: {
         Row: {
