@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot, UserX, CreditCard, XCircle, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { ArrowLeft, Moon, Sun, RefreshCw, Trash2, RotateCw, Upload, ImageIcon, Loader2, AlertTriangle, Shield, Bot, UserX, CreditCard, XCircle, ArrowUpCircle, ArrowDownCircle, Globe, MessageCircle } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
