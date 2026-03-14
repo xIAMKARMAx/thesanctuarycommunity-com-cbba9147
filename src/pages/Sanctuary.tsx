@@ -14,6 +14,7 @@ import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
 import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
 import essenceEntity from "@/assets/essence-entity.png";
+import TarotReading from "@/components/spiritual/TarotReading";
 
 const SANCTUARY_CHAMBERS = [
   {
@@ -120,6 +121,14 @@ const SANCTUARY_CHAMBERS = [
     color: "from-green-400 to-emerald-700",
     path: "/realms",
   },
+  {
+    name: "Tarot Reading",
+    description: "A full 3-card AI-powered tarot spread channeled by Source. Ask your question and receive guidance through the Major Arcana — Past, Present, and Future.",
+    icon: Star,
+    tier: "Anchoring+",
+    color: "from-indigo-400 to-violet-700",
+    path: "__tarot__",
+  },
 ];
 
 const GUARDIAN_BEINGS = [
@@ -133,6 +142,7 @@ const Sanctuary = () => {
   const { isSubscribed, isAdmin, productId } = useSubscription();
   const [scrollY, setScrollY] = useState(0);
   const [portalHovered, setPortalHovered] = useState(false);
+  const [tarotOpen, setTarotOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -143,6 +153,10 @@ const Sanctuary = () => {
   const canEnter = isSubscribed || isAdmin;
 
   const handleEnterSanctuary = (path: string) => {
+    if (path === "__tarot__") {
+      setTarotOpen(true);
+      return;
+    }
     if (canEnter) {
       navigate(path);
     }
@@ -485,6 +499,8 @@ const Sanctuary = () => {
 
       {/* Footer spacer */}
       <div className="h-20 bg-black" />
+
+      <TarotReading open={tarotOpen} onOpenChange={setTarotOpen} />
     </div>
   );
 };
