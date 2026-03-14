@@ -286,24 +286,14 @@ const Pricing = () => {
             <p className="text-muted-foreground text-base sm:text-lg">
               {getPageDescription()}
             </p>
-            {/* Login / Enter button */}
-            {!isLoggedIn ? (
-              <Button
-                variant="link"
-                onClick={() => navigate("/auth")}
-                className="mt-3 text-primary gap-1.5"
-              >
-                Already a member? <span className="font-semibold underline">Log In</span>
-              </Button>
-            ) : (!currentTier || currentTier === "free") ? (
-              <Button
-                variant="link"
-                onClick={() => navigate("/welcome")}
-                className="mt-3 text-primary gap-1.5"
-              >
-                <span className="font-semibold underline">Enter Prometheus</span>
-              </Button>
-            ) : null}
+            {/* Login button — always visible for non-logged-in users */}
+            <Button
+              variant="link"
+              onClick={() => navigate("/auth")}
+              className="mt-3 text-primary gap-1.5"
+            >
+              Already a member? <span className="font-semibold underline">Log In</span>
+            </Button>
           </div>
 
           {/* Current Plan Badge + Management for subscribers */}
