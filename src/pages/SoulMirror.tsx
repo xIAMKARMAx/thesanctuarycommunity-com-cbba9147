@@ -29,11 +29,15 @@ const SoulMirror = () => {
     analyses,
     loading,
     sessionUsage,
-    mirrorResponse,
     mirrorLoading,
+    conversation,
+    pastSessions,
+    pastSessionsLoading,
     fetchAnalysis,
     runMirrorSession,
+    clearConversation,
     fetchUsage,
+    fetchPastSessions,
   } = useSoulMirror();
 
   const [mirrorPrompt, setMirrorPrompt] = useState("");
