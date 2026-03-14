@@ -198,7 +198,7 @@ const Sanctuary = () => {
             className={`relative mb-8 cursor-pointer transition-transform duration-700 ${portalHovered ? "scale-105" : "scale-100"}`}
             onMouseEnter={() => setPortalHovered(true)}
             onMouseLeave={() => setPortalHovered(false)}
-            onClick={() => canEnter && navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`)}
+            onClick={() => document.getElementById("sanctuary-features")?.scrollIntoView({ behavior: "smooth" })}
           >
             {/* Outer glow ring */}
             <div className="absolute -inset-4 rounded-full animate-sanctuary-pulse" />
