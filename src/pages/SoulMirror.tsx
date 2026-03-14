@@ -42,6 +42,8 @@ const SoulMirror = () => {
 
   const [mirrorPrompt, setMirrorPrompt] = useState("");
   const [activeTab, setActiveTab] = useState("growth");
+  const [showPastSessions, setShowPastSessions] = useState(false);
+  const conversationEndRef = useRef<HTMLDivElement>(null);
 
   // Determine tier-based access
   const canAccessFrequency = isAdmin || currentTier === "source" || hasAccess("anchoring");
