@@ -499,6 +499,8 @@ const Sanctuary = () => {
 
       {/* Footer spacer */}
       <div className="h-20 bg-black" />
+
+      <TarotReading open={tarotOpen} onOpenChange={setTarotOpen} />
     </div>
   );
 };
