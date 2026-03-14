@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "prometheus_last_route";
 const EXCLUDED_ROUTES = ["/auth", "/"];
-const EXCLUDED_PREFIXES = ["/soul/", "/ai-companion/", "/realms"];
+const EXCLUDED_PREFIXES = ["/soul/", "/ai-companion/", "/realms", "/new-earth", "/welcome"];
 
 const getPathnameFromStoredRoute = (storedRoute: string) => {
   const [pathWithoutHash] = storedRoute.split("#");
