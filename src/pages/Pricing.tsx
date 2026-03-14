@@ -260,9 +260,9 @@ const Pricing = () => {
       <div className="min-h-screen bg-background py-8 sm:py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+            <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back
+              Back to Sanctuary
             </Button>
           </div>
           {/* Dynamic Upgrade Banner - attention grabbing! */}
