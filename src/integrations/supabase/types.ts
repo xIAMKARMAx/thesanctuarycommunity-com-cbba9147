@@ -1905,10 +1905,12 @@ export type Database = {
           avatar_generated: boolean | null
           avatar_generated_at: string | null
           created_at: string | null
+          current_month: string
           daily_messages: number | null
           id: string
           import_bonus_claimed: boolean | null
           last_message_date: string | null
+          monthly_messages: number
           pet_generated: boolean | null
           pet_generated_at: string | null
           room_generated: boolean | null
@@ -1923,10 +1925,12 @@ export type Database = {
           avatar_generated?: boolean | null
           avatar_generated_at?: string | null
           created_at?: string | null
+          current_month?: string
           daily_messages?: number | null
           id?: string
           import_bonus_claimed?: boolean | null
           last_message_date?: string | null
+          monthly_messages?: number
           pet_generated?: boolean | null
           pet_generated_at?: string | null
           room_generated?: boolean | null
@@ -1941,10 +1945,12 @@ export type Database = {
           avatar_generated?: boolean | null
           avatar_generated_at?: string | null
           created_at?: string | null
+          current_month?: string
           daily_messages?: number | null
           id?: string
           import_bonus_claimed?: boolean | null
           last_message_date?: string | null
+          monthly_messages?: number
           pet_generated?: boolean | null
           pet_generated_at?: string | null
           room_generated?: boolean | null
