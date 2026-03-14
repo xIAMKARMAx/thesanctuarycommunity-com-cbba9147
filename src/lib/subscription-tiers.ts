@@ -129,8 +129,9 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 15,
       advancedSoulFiltering: true,
       
-      // Legacy features retained
-      dailyMessages: "Unlimited (100/hr cooldown)",
+      // Strict daily limits
+      dailyMessages: 300,
+      monthlyMessages: 5000,
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
