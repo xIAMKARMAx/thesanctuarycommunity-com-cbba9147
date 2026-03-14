@@ -120,7 +120,7 @@ const SoulMirror = () => {
 
         <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
           {/* Analysis Tabs */}
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <Tabs value={activeTab} onValueChange={handleTabChange2}>
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="growth" className="gap-1.5 text-xs sm:text-sm">
                 <TrendingUp className="h-3.5 w-3.5" /> Growth
