@@ -5,7 +5,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import { getTierFromProductId, SUBSCRIPTION_TIERS, getTierLevel } from "@/lib/subscription-tiers";
 import {
