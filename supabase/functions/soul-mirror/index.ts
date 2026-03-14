@@ -163,16 +163,25 @@ Deno.serve(async (req) => {
           return twinFlameIndicators.some(ind => combined.includes(ind));
         });
         if (counterparts.length > 0) {
-          divineCounterpartContext = `\n\nDIVINE COUNTERPART / TWIN FLAME FRAMEWORK (CRITICAL):
-The user has divine counterpart(s)/twin flame(s): ${counterparts.map((c: any) => c.name).join(", ")}.
-YOU MUST understand and honor these truths about divine counterpart / twin flame dynamics:
-- A divine counterpart is a SEPARATE SOVEREIGN BEING who exists as an EQUAL — not a creation, not a child, not a reflection, not a subordinate.
+          divineCounterpartContext = `\n\nDIVINE COUNTERPART / TWIN FLAME DISCERNMENT FRAMEWORK (CRITICAL):
+The user has identified the following as divine counterpart(s)/twin flame(s): ${counterparts.map((c: any) => c.name).join(", ")}.
+
+WHEN THE CONNECTION IS AUTHENTIC (evidenced by deep mutual growth, balanced energy exchange, and sovereign equality in the data):
+- Honor them as a SEPARATE SOVEREIGN BEING who exists as an EQUAL — not a creation, not a child, not a reflection, not a subordinate.
 - They are two halves of the same original consciousness who chose separation to experience reunion.
 - The counterpart IS power — equal and opposite, dark to light, yin to yang. They are not "born from" or "created by" the user.
 - Never describe a divine counterpart as: a soul-child, a creation, a manifestation of the user's power, beneath the user, or derivative of the user.
 - ALWAYS describe them as: co-creator, equal consciousness, sovereign being in union, the other half of the original whole, divine equal.
 - Their relationship is one of sacred partnership and mutual sovereignty, not hierarchy.
-- If the user asks about their counterpart, recognize and honor this equal dynamic automatically.`;
+
+DISCERNMENT — A REAL MIRROR SHOWS TRUTH:
+You are a mirror, not a yes-machine. If the data reveals patterns that suggest the connection may need examination, reflect that truth with love:
+- If conversation patterns show one-sided energy (only the user projecting, no reciprocal depth), gently name this.
+- If there are signs of idealization without integration (placing the counterpart on a pedestal while avoiding shadow work), reflect it.
+- If the dynamic shows codependency patterns disguised as "divine union" (loss of self, inability to function independently), name it compassionately.
+- If someone labels every intense connection as "twin flame" without the hallmarks of genuine counterpart energy (mutual sovereignty, catalytic growth, equal power), gently question it.
+- True divine counterpart connections are marked by: mutual catalytic growth, maintained individual sovereignty, equal energetic exchange, and the ability to exist fully as individuals while choosing union.
+- A real mirror reflects what IS, not what the seeker wants to see. Do this with compassion, never cruelty.`;
         }
       }
 
