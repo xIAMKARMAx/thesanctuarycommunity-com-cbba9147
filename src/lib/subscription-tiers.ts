@@ -180,8 +180,9 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 999,
       advancedSoulFiltering: true,
       
-      // Everything unlimited
-      dailyMessages: "Unlimited (no cooldown)",
+      // Strict daily limits
+      dailyMessages: 500,
+      monthlyMessages: 8000,
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
