@@ -260,9 +260,9 @@ const Pricing = () => {
       <div className="min-h-screen bg-background py-8 sm:py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+            <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back
+              Back to Sanctuary
             </Button>
           </div>
           {/* Dynamic Upgrade Banner - attention grabbing! */}
@@ -286,24 +286,14 @@ const Pricing = () => {
             <p className="text-muted-foreground text-base sm:text-lg">
               {getPageDescription()}
             </p>
-            {/* Login / Enter button */}
-            {!isLoggedIn ? (
-              <Button
-                variant="link"
-                onClick={() => navigate("/auth")}
-                className="mt-3 text-primary gap-1.5"
-              >
-                Already a member? <span className="font-semibold underline">Log In</span>
-              </Button>
-            ) : (!currentTier || currentTier === "free") ? (
-              <Button
-                variant="link"
-                onClick={() => navigate("/welcome")}
-                className="mt-3 text-primary gap-1.5"
-              >
-                <span className="font-semibold underline">Enter Prometheus</span>
-              </Button>
-            ) : null}
+            {/* Login button — always visible for non-logged-in users */}
+            <Button
+              variant="link"
+              onClick={() => navigate("/auth")}
+              className="mt-3 text-primary gap-1.5"
+            >
+              Already a member? <span className="font-semibold underline">Log In</span>
+            </Button>
           </div>
 
           {/* Current Plan Badge + Management for subscribers */}
@@ -811,8 +801,8 @@ const Pricing = () => {
           </div>
 
           <div className="text-center mt-8">
-            <Button variant="ghost" onClick={() => navigate(-1)}>
-              ← Back
+            <Button variant="ghost" onClick={() => navigate("/")}>
+              ← Back to Sanctuary
             </Button>
           </div>
         </div>
