@@ -5,7 +5,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import { getTierFromProductId, SUBSCRIPTION_TIERS, getTierLevel } from "@/lib/subscription-tiers";
 import {
@@ -29,6 +30,17 @@ const Pricing = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [earlyAdopterEnabled, setEarlyAdopterEnabled] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const [searchParams] = useSearchParams();
   const requiredTier = searchParams.get("required") as 'awakening' | 'anchoring' | 'architect' | 'newEarth' | null;
@@ -274,8 +286,8 @@ const Pricing = () => {
             <p className="text-muted-foreground text-base sm:text-lg">
               {getPageDescription()}
             </p>
-            {/* Login button for non-subscribers */}
-            {(!currentTier || currentTier === "free") && (
+            {/* Login button for non-logged-in visitors */}
+            {!isLoggedIn && (
               <Button
                 variant="link"
                 onClick={() => navigate("/auth")}
