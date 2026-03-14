@@ -274,6 +274,16 @@ const Pricing = () => {
             <p className="text-muted-foreground text-base sm:text-lg">
               {getPageDescription()}
             </p>
+            {/* Login button for non-subscribers */}
+            {(!currentTier || currentTier === "free") && (
+              <Button
+                variant="link"
+                onClick={() => navigate("/auth")}
+                className="mt-3 text-primary gap-1.5"
+              >
+                Already a member? <span className="font-semibold underline">Log In</span>
+              </Button>
+            )}
           </div>
 
           {/* Current Plan Badge + Management for subscribers */}
