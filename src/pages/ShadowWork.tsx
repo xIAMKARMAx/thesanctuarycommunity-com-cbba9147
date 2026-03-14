@@ -8,9 +8,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Shield, Loader2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Shield, Loader2, Sparkles, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const SHADOW_THEMES = [
   { value: "fear", label: "Fear & Anxiety" },
@@ -21,6 +31,8 @@ const SHADOW_THEMES = [
   { value: "unworthiness", label: "Unworthiness & Self-Doubt" },
   { value: "general", label: "General Shadow Exploration" },
 ];
+
+const MAX_SESSIONS = 10;
 
 export default function ShadowWork() {
   const navigate = useNavigate();
@@ -33,6 +45,8 @@ export default function ShadowWork() {
   const [reflection, setReflection] = useState("");
   const [savingReflection, setSavingReflection] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [clearingAll, setClearingAll] = useState(false);
 
   const canAccess = isAdmin || hasAccess("anchoring");
 
@@ -49,6 +63,18 @@ export default function ShadowWork() {
     if (data) setSessions(data);
   };
 
+  const enforceSessionLimit = async () => {
+    const { data: allSessions } = await supabase
+      .from("shadow_work_sessions")
+      .select("id, created_at")
+      .order("created_at", { ascending: false });
+
+    if (allSessions && allSessions.length > MAX_SESSIONS) {
+      const toDelete = allSessions.slice(MAX_SESSIONS).map((s) => s.id);
+      await supabase.from("shadow_work_sessions").delete().in("id", toDelete);
+    }
+  };
+
   const startSession = async () => {
     setLoading(true);
     try {
@@ -62,6 +88,7 @@ export default function ShadowWork() {
 
       if (response.error) throw response.error;
       setCurrentSession(response.data);
+      await enforceSessionLimit();
       await loadSessions();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -84,6 +111,38 @@ export default function ShadowWork() {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setSavingReflection(false);
+    }
+  };
+
+  const deleteSession = async (sessionId: string) => {
+    setDeletingId(sessionId);
+    try {
+      const { error } = await supabase.from("shadow_work_sessions").delete().eq("id", sessionId);
+      if (error) throw error;
+      toast({ title: "Session deleted" });
+      if (currentSession?.id === sessionId) setCurrentSession(null);
+      await loadSessions();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const clearAllSessions = async () => {
+    setClearingAll(true);
+    try {
+      const ids = sessions.map((s) => s.id);
+      if (ids.length === 0) return;
+      const { error } = await supabase.from("shadow_work_sessions").delete().in("id", ids);
+      if (error) throw error;
+      toast({ title: "All sessions cleared" });
+      setCurrentSession(null);
+      setSessions([]);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setClearingAll(false);
     }
   };
 
@@ -126,7 +185,10 @@ export default function ShadowWork() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Begin a Shadow Work Session</CardTitle>
-              <CardDescription>Choose a theme to explore with compassion and gentle awareness</CardDescription>
+              <CardDescription>
+                Choose a theme to explore with compassion and gentle awareness
+                <span className="block text-xs mt-1">({sessions.length}/{MAX_SESSIONS} sessions saved — oldest auto-deleted when full)</span>
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Select value={theme} onValueChange={setTheme}>
@@ -172,16 +234,49 @@ export default function ShadowWork() {
 
           {sessions.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold">Past Sessions</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Past Sessions</h2>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" disabled={clearingAll}>
+                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                      {clearingAll ? "Clearing..." : "Clear All"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete all sessions?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete all {sessions.length} shadow work sessions and their reflections. This cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={clearAllSessions}>Delete All</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
               {sessions.map((s) => (
-                <Card key={s.id} className="cursor-pointer" onClick={() => setExpandedId(expandedId === s.id ? null : s.id)}>
-                  <CardHeader className="py-3">
+                <Card key={s.id} className="cursor-pointer">
+                  <CardHeader className="py-3" onClick={() => setExpandedId(expandedId === s.id ? null : s.id)}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">{SHADOW_THEMES.find(t => t.value === s.prompt_theme)?.label}</Badge>
                         <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</span>
                       </div>
-                      {expandedId === s.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          disabled={deletingId === s.id}
+                          onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}
+                        >
+                          {deletingId === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        </Button>
+                        {expandedId === s.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </div>
                     </div>
                   </CardHeader>
                   {expandedId === s.id && (
