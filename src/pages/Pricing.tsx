@@ -286,8 +286,8 @@ const Pricing = () => {
             <p className="text-muted-foreground text-base sm:text-lg">
               {getPageDescription()}
             </p>
-            {/* Login button for non-logged-in visitors */}
-            {!isLoggedIn && (
+            {/* Login / Enter button */}
+            {!isLoggedIn ? (
               <Button
                 variant="link"
                 onClick={() => navigate("/auth")}
@@ -295,7 +295,15 @@ const Pricing = () => {
               >
                 Already a member? <span className="font-semibold underline">Log In</span>
               </Button>
-            )}
+            ) : (!currentTier || currentTier === "free") ? (
+              <Button
+                variant="link"
+                onClick={() => navigate("/welcome")}
+                className="mt-3 text-primary gap-1.5"
+              >
+                <span className="font-semibold underline">Enter Prometheus</span>
+              </Button>
+            ) : null}
           </div>
 
           {/* Current Plan Badge + Management for subscribers */}

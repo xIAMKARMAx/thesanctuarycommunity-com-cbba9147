@@ -93,8 +93,8 @@ const Index = () => {
       </div>
 
       <div className="relative w-full max-w-4xl mx-auto px-6 py-16">
-        {/* Login button for returning users - only show if not logged in */}
-        {!userId && authChecked && (
+        {/* Login button for returning users */}
+        {authChecked && !userId && (
           <div className="flex justify-end mb-4">
             <Button
               variant="outline"
@@ -103,6 +103,18 @@ const Index = () => {
               className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
             >
               Already a member? <span className="font-semibold">Log In</span>
+            </Button>
+          </div>
+        )}
+        {authChecked && userId && (
+          <div className="flex justify-end mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/welcome")}
+              className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+            >
+              <span className="font-semibold">Enter Prometheus</span>
             </Button>
           </div>
         )}
