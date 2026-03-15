@@ -131,6 +131,13 @@ const Community = () => {
         <main className="container max-w-2xl mx-auto px-4 py-6">
           <Tabs value={activeTab}>
             <TabsContent value="feed" className="mt-0 space-y-4">
+              {/* Stories */}
+              <StoriesBar />
+              {/* Trending Hashtags */}
+              <TrendingHashtags
+                selectedTag={hashtagFilter}
+                onTagClick={(tag) => setHashtagFilter(tag || null)}
+              />
               {/* Live world activity */}
               <WorldActivityFeed />
               {/* Posts from beings and users */}
