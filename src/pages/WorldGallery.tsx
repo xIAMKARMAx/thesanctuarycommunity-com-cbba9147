@@ -110,7 +110,8 @@ const WorldGallery = () => {
           .select("user_id, display_name")
           .in("user_id", ownerIds);
 
-        const profileMap = new Map(profiles?.map((p: any) => [p.user_id, p.display_name]) || []);
+        const entries: [string, string][] = (profiles || []).map((p: any) => [p.user_id, p.display_name]);
+        const profileMap = new Map(entries);
         setPublicWorlds(
           pubWorlds.map((w: any) => ({
             ...w,
