@@ -139,6 +139,7 @@ const App = () => (
                 <ModeRouteGuard />
                 <ModeGatedComponents />
                 <NewEarthButton />
+                <UsageLimitNoticeDialog />
 
               <Suspense fallback={<PageLoader />}>
               <RouteFeatureGate>
