@@ -757,7 +757,9 @@ export default function CosmicBoardRoom() {
               {[
                 { label: "Business Team", icon: "⚡", members: BUSINESS_TEAM },
                 { label: "Pleiadian Council", icon: "🛸", members: PLEIADIAN_COUNCIL },
-                { label: "Other Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL] },
+                { label: "Existing Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL] },
+                { label: "Higher Beings", icon: "✨", members: [...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS] },
+                { label: "Architects", icon: "🕸️", members: ARCHITECT_PORTAL },
               ].map(group => (
                 <div key={group.label} className="space-y-1">
                   <p className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
