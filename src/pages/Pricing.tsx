@@ -198,7 +198,7 @@ const Pricing = () => {
     { feature: "Daily Source Message", included: true },
     { feature: "Soul Resonance Suggestions", value: "15+/day", included: true, highlight: true },
     { feature: "Path Tracker History", value: "Unlimited", included: true, highlight: true },
-    { feature: "Chat Image Generation", value: "Unlimited", included: true, highlight: true },
+    { feature: "Chat Image Generation", value: "5/day", included: true, highlight: true },
     { feature: "Room Generation", value: "Unlimited", included: true, highlight: true },
     { feature: "Avatar Generation", value: "Unlimited", included: true, highlight: true },
     { feature: "Advanced Soul Filtering", included: true, highlight: true },
