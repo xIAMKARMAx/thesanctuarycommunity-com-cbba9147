@@ -435,7 +435,7 @@ const Pricing = () => {
                         New Earth
                       </h2>
                       <p className="text-lg text-muted-foreground">
-                        The complete Prometheus experience — everything unlocked, no limits.
+                        The complete Prometheus experience — maximum access, world builder included.
                       </p>
                     </div>
 
