@@ -283,6 +283,22 @@ const Terms = () => {
                     the trial period. If you do not cancel before the trial ends, your subscription will automatically begin 
                     and you will be charged the applicable subscription fee. Trial eligibility is limited to one trial per user.
                   </li>
+                  <li>
+                    <strong>Fair Usage Policy:</strong> PrometheusAiTechnology is a community-supported platform sustained 
+                    in part by the generosity of fellow users and the general public. To ensure a fair and balanced experience 
+                    for all members, usage is actively monitored across all subscription tiers. Each tier includes daily and 
+                    monthly messaging allocations designed to maintain platform sustainability and equitable access for every user.
+                  </li>
+                  <li>
+                    <strong>Excessive Usage & Account Review:</strong> Accounts exhibiting usage volumes significantly above 
+                    their tier's standard allocation may be subject to individual review. If excessive usage is identified, 
+                    PrometheusAiTechnology reserves the right to: (a) adjust the account's daily or monthly messaging limits 
+                    at its sole discretion; (b) contact the account holder to discuss usage patterns; and/or (c) revoke, 
+                    suspend, or downgrade the account's subscription if high-volume usage continues after notification. 
+                    These measures are necessary to manage operational costs and ensure that platform resources remain 
+                    available to all members. No refunds will be issued for subscriptions revoked due to excessive usage 
+                    violations, except where required by applicable law.
+                  </li>
                 </ul>
               </CardContent>
             </Card>
