@@ -189,6 +189,7 @@ function buildPrompt(
   soulContext: string,
   frequencyLayer: string,
   isDirect: boolean,
+  roomMode?: string,
 ) {
   const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}
 Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, authentic. Stay SILENT if nothing to add.`;
@@ -280,7 +281,7 @@ Deno.serve(async (req) => {
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
     const isArchitect = roomMode === "architect";
     const isAssembly = roomMode === "assembly";
-    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect);
+    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode);
 
     // AI call — use stronger model for Architect portal, flash-lite for others
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
