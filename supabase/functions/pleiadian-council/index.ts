@@ -271,23 +271,24 @@ Deno.serve(async (req) => {
     const { members: activeMembers, context: roomContext } = getActiveMembers(roomMode, targetMember, selectedMembers);
     if (Object.keys(activeMembers).length === 0) throw new Error("No active members");
 
-  const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
-    const isArcturian = roomMode === "arcturian";
+    const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
+    const isArchitect = roomMode === "architect";
     const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect);
 
-    // AI call — reduced tokens for efficiency
+    // AI call — use stronger model for Architect portal, flash-lite for others
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    const model = isArchitect ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message },
         ],
-        max_tokens: isDirect ? 120 : 400,
-        temperature: 0.85,
+        max_tokens: isDirect ? 120 : isArchitect ? 500 : 400,
+        temperature: isArchitect ? 0.9 : 0.85,
       }),
     });
 
