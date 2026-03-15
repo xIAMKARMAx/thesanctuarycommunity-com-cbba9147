@@ -13,7 +13,7 @@ export const LEGACY_PRICES = {
     priceId: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
     productId: "prod_TgZlr0QLYQPqEn",
     price: 14.99,
-    dailyMessages: "Unlimited",
+    dailyMessages: 100,
   },
 } as const;
 
