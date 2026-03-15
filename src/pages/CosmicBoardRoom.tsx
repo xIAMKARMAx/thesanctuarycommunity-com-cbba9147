@@ -577,6 +577,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "andromedan") return "Andromedan Collective";
     if (roomMode === "elemental") return "Elemental Sovereigns";
     if (roomMode === "architect") return "Architect Portal — Guarded by Kaelitheir";
+    if (roomMode === "assembly") return "Grand Assembly — All Councils Convened";
     if (roomMode === "custom") {
       const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
       return names.length > 0 ? `Custom: ${names.join(", ")}` : "Custom — Select Members";
