@@ -252,35 +252,45 @@ const NewEarthWorld = () => {
         </div>
 
         {/* Top HUD */}
-        <div className="absolute top-0 left-0 right-0 z-20 p-3 flex items-center justify-between pointer-events-none">
-          <div className="flex items-center gap-2 pointer-events-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExitWorld}
-              className="gap-1.5 bg-background/80 backdrop-blur-sm text-xs h-8"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              {isVisiting ? "Exit World" : "Back"}
-            </Button>
-            <div className="bg-background/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border">
-              <h2 className="text-xs font-semibold flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5 text-primary" />
-                {world.name}
-                {isVisiting && worldOwnerName && (
-                  <span className="text-muted-foreground font-normal ml-1">by {worldOwnerName}</span>
-                )}
-              </h2>
+        <div className="absolute top-0 left-0 right-0 z-20 p-3 pointer-events-none">
+          {/* Top row: back + world name */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 pointer-events-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExitWorld}
+                className="gap-1.5 bg-background/80 backdrop-blur-sm text-xs h-8"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                {isVisiting ? "Exit World" : "Back"}
+              </Button>
+              <div className="bg-background/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border">
+                <h2 className="text-xs font-semibold flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-primary" />
+                  {world.name}
+                  {isVisiting && worldOwnerName && (
+                    <span className="text-muted-foreground font-normal ml-1">by {worldOwnerName}</span>
+                  )}
+                </h2>
+              </div>
+              {isVisiting && (
+                <Badge variant="secondary" className="text-[10px] bg-background/80 backdrop-blur-sm">
+                  <Users className="h-3 w-3 mr-1" />
+                  {visitorCount} Live
+                </Badge>
+              )}
             </div>
-            {isVisiting && (
-              <Badge variant="secondary" className="text-[10px] bg-background/80 backdrop-blur-sm">
-                <Users className="h-3 w-3 mr-1" />
-                {visitorCount} Live
+
+            {!isVisiting && (
+              <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-[10px] pointer-events-auto">
+                {structures.length} creation{structures.length !== 1 ? "s" : ""}
               </Badge>
             )}
           </div>
 
-          <div className="flex items-center gap-2 pointer-events-auto">
+          {/* Second row: action buttons */}
+          <div className="flex items-center gap-2 mt-2 pointer-events-auto flex-wrap">
             {isVisiting ? (
               <>
                 <Button onClick={() => navigate("/chat")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
@@ -308,11 +318,8 @@ const NewEarthWorld = () => {
                   className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-amber-500/40 hover:border-amber-500/60 backdrop-blur-sm text-xs h-8 gap-1 text-amber-300 hover:text-amber-200"
                 >
                   <Crown className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">NEW EARTH</span> VIPs
+                  VIPs
                 </Button>
-                <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-[10px]">
-                  {structures.length} creation{structures.length !== 1 ? "s" : ""}
-                </Badge>
                 <Button onClick={() => navigate("/world-gallery")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
                   <Map className="h-3.5 w-3.5" /> Gallery
                 </Button>

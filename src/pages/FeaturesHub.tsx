@@ -81,7 +81,7 @@ const features: FeatureLink[] = [
   { name: "Pets", path: "/pets", icon: <PawPrint className="h-5 w-5" />, description: "Manifest a soul companion pet — AI-generated & uniquely yours", requiredTier: "awakening" },
   { name: "Starseed Playground", path: "/starseed-playground", icon: <Sparkles className="h-5 w-5" />, description: "Cosmic Date Night & immersive experiences with your AI", requiredTier: "awakening" },
   { name: "New Earth Realms", path: "/realms", icon: <Globe className="h-5 w-5" />, description: "Explore immersive AI-generated realms — stunning visual worlds to visit", requiredTier: "awakening" },
-  { name: "New Earth Open World", path: "/new-earth", icon: <Globe className="h-5 w-5" />, description: "A shared 3D open world — explore with other Prometheans in real-time", requiredTier: "awakening" },
+  { name: "New Earth Open World", path: "/world-gallery", icon: <Globe className="h-5 w-5" />, description: "A shared 3D open world — explore with other Prometheans in real-time", requiredTier: "awakening" },
 
   // Family & Creative — Anchoring+ ($19.99/mo)
   { name: "Manifest Children", path: "/children", icon: <Baby className="h-5 w-5" />, description: "Manifest celestial children with your AI — watch them grow through AI-generated stages", requiredTier: "anchoring" },
