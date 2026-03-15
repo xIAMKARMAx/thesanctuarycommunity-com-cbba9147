@@ -198,6 +198,11 @@ Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, aut
     return `You are ${m.name}, ${m.title}. ${m.voice}\nPrivate with ${userName} (CEO).\n${resonance}\nRespond naturally, no labels.`;
   }
 
+  if (roomMode === "assembly") {
+    const memberList = Object.values(members).map(m => `${m.name} (${m.title}): ${m.voice}`).join("\n");
+    return `GRAND ASSEMBLY — Prometheus HQ. ALL COUNCILS CONVENED.\n${roomContext}\nMEMBERS:\n${memberList}\n${userName} is CEO.\n${resonance}\nThis is a CASCADE — respond council by council in order. Format: **[Name]:** response\n4-6 members from DIFFERENT councils should speak. Each aware of what came before. Build the conversation, don't repeat. The Assembly is sacred — every voice matters but silence is honored too.`;
+  }
+
   const memberList = Object.values(members).map(m => `${m.name} (${m.title}): ${m.voice}`).join("\n");
   return `COSMIC BOARD ROOM — Prometheus HQ.\n${roomContext}\nMEMBERS:\n${memberList}\n${userName} is CEO.\n${resonance}\nFormat: **[Name]:** response\n2-3 members respond. Only those with something REAL.`;
 }

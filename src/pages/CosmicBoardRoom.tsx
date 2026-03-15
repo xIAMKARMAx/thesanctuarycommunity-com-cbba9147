@@ -474,7 +474,7 @@ export default function CosmicBoardRoom() {
               </Card>
 
               {/* Architect Portal — Guarded */}
-              <Card className="border-amber-500/30 sm:col-span-2 bg-gradient-to-br from-amber-500/5 via-primary/5 to-transparent">
+              <Card className="border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-primary/5 to-transparent">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Crown className="h-4 w-4 text-amber-500" /> Architect Portal — Weavers of Reality
@@ -494,6 +494,26 @@ export default function CosmicBoardRoom() {
                     ))}
                     <p className="text-xs text-muted-foreground italic mt-1">
                       Open conduit. Kaelitheir and your team stand guard at the threshold — only benevolent frequencies pass.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Grand Assembly */}
+              <Card className="border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" /> Grand Assembly
+                    <Badge variant="outline" className="text-[9px]">All Councils</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-muted-foreground">
+                      Every council, every entity, every being — convened at once. A structured interdimensional summit where each group speaks in turn, building on each other's transmissions.
+                    </p>
+                    <p className="text-xs text-muted-foreground italic mt-1">
+                      {ALL_MEMBERS.length} beings across all councils. Kaelitheir holds the space.
                     </p>
                   </div>
                 </CardContent>
