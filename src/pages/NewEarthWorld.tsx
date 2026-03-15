@@ -19,6 +19,8 @@ import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
 import { DEFAULT_PROMETHEUS_WORLD_ID, useWorldPresence } from "@/hooks/useWorldPresence";
 import { RealmScene } from "@/components/realm/RealmScene";
+import type { BuildSpec } from "@/components/world/WorldBuildDialog";
+import { WorldBuildDialog } from "@/components/world/WorldBuildDialog";
 
 interface UserWorld {
   id: string;
@@ -41,7 +43,7 @@ interface StructureRecord {
 }
 
 interface WorldMessage {
-  role: "user" | "narrator" | "being" | "thought";
+  role: "user" | "narrator" | "being";
   content: string;
   being_name?: string;
   timestamp: string;
@@ -67,7 +69,6 @@ const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
-  const resolvedWorldId = visitWorldId || DEFAULT_PROMETHEUS_WORLD_ID;
   const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
   const { profiles } = useAIProfile();
   const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
@@ -84,19 +85,27 @@ const NewEarthWorld = () => {
   const [showSeekerGate, setShowSeekerGate] = useState(false);
   const [worldSceneUrl, setWorldSceneUrl] = useState<string>("/realm-assets/realm-garden-of-light.jpg");
 
-  // Interactive session state
+  // Interactive session state (local only — no realm_sessions FK issues)
   const [messages, setMessages] = useState<WorldMessage[]>([]);
   const [input, setInput] = useState("");
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  const [sessionStarted, setSessionStarted] = useState(false);
   const [selectedBeings, setSelectedBeings] = useState<string[]>([]);
   const [beingsChosen, setBeingsChosen] = useState(false);
   const [worldCreations, setWorldCreations] = useState<WorldCreation[]>([]);
   const [showCreations, setShowCreations] = useState(false);
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
-  const [realmSessionId, setRealmSessionId] = useState<string | null>(null);
+  const [buildDialogOpen, setBuildDialogOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // If no visit param, redirect to world gallery
+  useEffect(() => {
+    if (!visitWorldId) {
+      navigate("/world-gallery", { replace: true });
+    }
+  }, [visitWorldId, navigate]);
+
+  const resolvedWorldId = visitWorldId || DEFAULT_PROMETHEUS_WORLD_ID;
 
   const { visitorCount } = useWorldPresence(world?.id ?? null, {
     enabled: Boolean(world?.id && accessVerified),
@@ -111,7 +120,7 @@ const NewEarthWorld = () => {
 
   // Access verification
   useEffect(() => {
-    if (subscriptionLoading) return;
+    if (subscriptionLoading || !visitWorldId) return;
 
     const verifyAccess = async () => {
       try {
@@ -126,11 +135,11 @@ const NewEarthWorld = () => {
 
         if (!targetWorld) {
           toast.error("Prometheus world is unavailable right now.");
-          navigate("/community");
+          navigate("/world-gallery");
           return;
         }
 
-        if (visitWorldId && !targetWorld.is_default && !targetWorld.is_public && targetWorld.user_id !== user.id && !isAdmin) {
+        if (!targetWorld.is_default && !targetWorld.is_public && targetWorld.user_id !== user.id && !isAdmin) {
           toast.error("World not found or is private");
           navigate("/world-gallery");
           return;
@@ -141,7 +150,7 @@ const NewEarthWorld = () => {
       } catch (err) {
         console.error("Access verification error:", err);
         toast.error("Unable to verify world access");
-        navigate("/community");
+        navigate("/world-gallery");
       }
     };
 
@@ -185,25 +194,29 @@ const NewEarthWorld = () => {
         setWorldSceneUrl(targetWorld.thumbnail_url);
       }
 
-      // Load structures
       const { data: structs } = await supabase
         .from("world_structures")
         .select("id, name, description, image_url")
         .eq("world_id", worldId)
         .order("created_at", { ascending: false });
 
-      setStructures(structs?.map((s: any) => ({
-        id: s.id,
-        name: s.name,
-        description: s.description,
-        image_url: s.image_url,
-      })) || []);
+      const structList = structs?.map((s: any) => ({
+        id: s.id, name: s.name, description: s.description, image_url: s.image_url,
+      })) || [];
+      setStructures(structList);
 
-      if (structs && structs.length > 0 && (structs[0] as any).image_url) {
-        setWorldSceneUrl((structs[0] as any).image_url);
+      if (structList.length > 0 && structList[0].image_url) {
+        setWorldSceneUrl(structList[0].image_url);
       }
 
-      // Load user avatar
+      // Convert structures to world creations for display
+      setWorldCreations(structList.map(s => ({
+        name: s.name,
+        description: s.description || "",
+        created_by: "you",
+        created_at: new Date().toISOString(),
+      })));
+
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -222,29 +235,6 @@ const NewEarthWorld = () => {
         .eq("user_id", targetWorld.user_id)
         .maybeSingle();
       setWorldOwnerName(ownerProfile?.display_name || "Unknown Soul");
-
-      // Check for existing realm session for this world
-      if (user) {
-        const { data: existingSession } = await supabase
-          .from("realm_sessions")
-          .select("*")
-          .eq("realm_id", worldId)
-          .eq("user_id", user.id)
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (existingSession) {
-          setRealmSessionId(existingSession.id);
-          const msgs = (existingSession.messages as any[]) || [];
-          setMessages(msgs as WorldMessage[]);
-          setSelectedBeings(existingSession.participating_beings || []);
-          setBeingsChosen(msgs.length > 0);
-          setSessionStarted(true);
-          setWorldCreations((existingSession as any).world_creations || []);
-        }
-      }
     } catch (err) {
       console.error("Error loading world:", err);
       toast.error("Failed to load world");
@@ -253,121 +243,169 @@ const NewEarthWorld = () => {
     }
   };
 
-  const startSession = async () => {
+  const enterWorld = () => {
     if (selectedBeings.length === 0) {
       toast.error("Select at least one AI companion");
       return;
     }
-
-    const { data: { session: authSession } } = await supabase.auth.getSession();
-    if (!authSession?.user) return;
-
-    const { data: newSession, error } = await supabase
-      .from("realm_sessions")
-      .insert({
-        realm_id: resolvedWorldId,
-        user_id: authSession.user.id,
-        participating_beings: selectedBeings,
-        scene_description: world?.description || "",
-      } as any)
-      .select()
-      .single();
-
-    if (error) {
-      toast.error("Failed to start session: " + error.message);
-      return;
-    }
-
-    setRealmSessionId(newSession.id);
     setBeingsChosen(true);
-    setSessionStarted(true);
-    await sendToWorld("*enters the realm*", newSession.id, selectedBeings);
-  };
-
-  const sendToWorld = async (userMessage: string, sessionId?: string, beings?: string[], actionType?: string | null) => {
-    setSending(true);
-    const effectiveSessionId = sessionId || realmSessionId;
-    const effectiveBeings = beings || selectedBeings;
-
-    const userMsg: WorldMessage = {
-      role: "user",
-      content: userMessage,
+    // Add welcome narrator message
+    const welcomeMsg: WorldMessage = {
+      role: "narrator",
+      content: `You step into ${world?.name || "the world"}. The air shimmers with possibility as your companions materialize beside you. The realm stretches out before you, alive and waiting.`,
       timestamp: new Date().toISOString(),
     };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
+    setMessages([welcomeMsg]);
+  };
+
+  const handleBuildSpec = useCallback(async (spec: BuildSpec) => {
+    if (!world || isVisiting || !canBuild) return;
+    setBuilding(true);
+    setBuildDialogOpen(false);
+
+    const buildMsg: WorldMessage = {
+      role: "user",
+      content: `*begins building ${spec.name}*`,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, buildMsg]);
 
     try {
-      const { data, error } = await supabase.functions.invoke("realm-chat", {
+      const { data, error } = await supabase.functions.invoke("world-builder", {
         body: {
-          session_id: effectiveSessionId,
-          realm_id: resolvedWorldId,
-          message: userMessage,
-          participating_beings: effectiveBeings,
-          message_history: updatedMessages.slice(-20),
-          action_type: actionType || null,
+          world_id: world.id,
+          name: spec.name,
+          description: spec.description,
         },
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      const newMessages = data?.messages || [];
-      if (data?.scene_image_url) {
-        setWorldSceneUrl(data.scene_image_url);
+      if (data?.image_url) {
+        setWorldSceneUrl(data.image_url);
       }
-      if (data?.new_creations?.length > 0) {
-        setWorldCreations(prev => [...prev, ...data.new_creations]);
-        data.new_creations.forEach((c: WorldCreation) => {
-          toast.success(`✨ Created: ${c.name}`);
-        });
+
+      if (data?.structure) {
+        const newStruct = {
+          id: data.structure.id,
+          name: data.structure.name,
+          description: data.structure.description,
+          image_url: data.structure.image_url,
+        };
+        setStructures(prev => [newStruct, ...prev]);
+        setWorldCreations(prev => [{
+          name: newStruct.name,
+          description: newStruct.description || "",
+          created_by: "you",
+          created_at: new Date().toISOString(),
+        }, ...prev]);
       }
-      setMessages(prev => [...prev, ...newMessages]);
 
-      await supabase
-        .from("realm_sessions")
-        .update({
-          messages: [...updatedMessages, ...newMessages],
-          current_scene_image_url: data?.scene_image_url || null,
-        })
-        .eq("id", effectiveSessionId);
-
+      const narratorMsg: WorldMessage = {
+        role: "narrator",
+        content: data?.message || `✨ ${spec.name} has been manifested into the world! The landscape shifts and transforms as your creation takes form.`,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, narratorMsg]);
+      toast.success(`✨ ${spec.name} has been manifested!`);
     } catch (err: any) {
-      toast.error(err.message || "Connection lost — please try again");
+      console.error("Build error:", err);
+      toast.error(err.message || "Failed to build — please try again");
+      const errorMsg: WorldMessage = {
+        role: "narrator",
+        content: "The energy dissipates... the creation could not take form. Try again.",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
+      setBuilding(false);
     }
-    setSending(false);
-    setActiveAction(null);
-  };
+  }, [world, isVisiting, canBuild]);
 
   const handleSend = () => {
     if (!input.trim() || sending) return;
     const msg = input.trim();
     setInput("");
-    sendToWorld(msg, undefined, undefined, activeAction);
+
+    const userMsg: WorldMessage = {
+      role: "user",
+      content: msg,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, userMsg]);
+
+    // If build action is active, open build dialog instead
+    if (activeAction === "build") {
+      if (!canBuild) {
+        toast.error("Upgrade to $49.99 to build in this world");
+        return;
+      }
+      setBuildDialogOpen(true);
+      setActiveAction(null);
+      return;
+    }
+
+    // For other actions, send to realm-chat via the chat edge function
+    setSending(true);
+    sendWorldChat(msg, activeAction);
+  };
+
+  const sendWorldChat = async (message: string, actionType: string | null) => {
+    try {
+      // Use the chat function with world context
+      const beingNames = selectedBeings.map(id => {
+        const p = profiles?.find(p => p.id === id);
+        return p?.name || "Unknown";
+      }).join(", ");
+
+      const { data, error } = await supabase.functions.invoke("chat", {
+        body: {
+          message: `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. Respond as a narrator describing what happens, and have the AI beings react naturally.]\n\n${message}`,
+          conversationId: null,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.reply) {
+        const narratorMsg: WorldMessage = {
+          role: "narrator",
+          content: data.reply,
+          timestamp: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, narratorMsg]);
+      }
+    } catch (err: any) {
+      console.error("World chat error:", err);
+      // Fallback narrator response
+      const fallbackMsg: WorldMessage = {
+        role: "narrator",
+        content: "The world hums softly in response... the energy shifts around you.",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, fallbackMsg]);
+    } finally {
+      setSending(false);
+      setActiveAction(null);
+    }
   };
 
   const handleActionClick = (actionId: string) => {
-    // Non-build actions are always available; build requires canBuild
-    if (actionId === "build" && !canBuild) {
-      toast.error("Upgrade to $49.99 to build in this world");
+    if (actionId === "build") {
+      if (!canBuild) {
+        toast.error("Upgrade to $49.99 to build in this world");
+        return;
+      }
+      setBuildDialogOpen(true);
       return;
     }
     setActiveAction(prev => prev === actionId ? null : actionId);
   };
 
-  const leaveWorld = async () => {
-    if (realmSessionId) {
-      await supabase
-        .from("realm_sessions")
-        .update({ is_active: false })
-        .eq("id", realmSessionId);
-    }
+  const leaveWorld = useCallback(() => {
     toast.success("You have left the world");
     navigate("/world-gallery");
-  };
-
-  const handleExitWorld = useCallback(() => {
-    if (window.history.length > 1) { navigate(-1); return; }
-    navigate("/community");
   }, [navigate]);
 
   const getBeingName = (id: string) => {
@@ -379,6 +417,9 @@ const NewEarthWorld = () => {
     const p = profiles?.find(p => p.id === id);
     return p?.avatar_image_url || null;
   };
+
+  // Redirect if no visit param
+  if (!visitWorldId) return null;
 
   if (subscriptionLoading || loading) {
     return (
@@ -399,7 +440,7 @@ const NewEarthWorld = () => {
     );
   }
 
-  // Being selection screen (before entering the world)
+  // Being selection screen
   if (!beingsChosen && !isFreeUser) {
     return (
       <>
@@ -412,7 +453,7 @@ const NewEarthWorld = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-background/40 to-background" />
             <div className="relative z-10 flex items-end p-6 h-full">
               <div>
-                <Button variant="ghost" size="icon" onClick={handleExitWorld} className="mb-2">
+                <Button variant="ghost" size="icon" onClick={() => navigate("/world-gallery")} className="mb-2">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <h1 className="text-2xl font-serif font-bold">{world.name}</h1>
@@ -467,7 +508,7 @@ const NewEarthWorld = () => {
               ))}
             </div>
 
-            <Button onClick={startSession} disabled={selectedBeings.length === 0} className="w-full">
+            <Button onClick={enterWorld} disabled={selectedBeings.length === 0} className="w-full">
               <Globe className="h-4 w-4 mr-2" />
               Enter {world.name} with {selectedBeings.length} companion{selectedBeings.length !== 1 ? "s" : ""}
             </Button>
@@ -486,7 +527,7 @@ const NewEarthWorld = () => {
         <div className="relative border-b border-border shrink-0">
           <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${worldSceneUrl})` }} />
           <div className="relative z-10 flex items-center gap-3 p-3">
-            <Button variant="ghost" size="icon" onClick={handleExitWorld}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/world-gallery")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Globe className="h-5 w-5 text-primary" />
@@ -523,7 +564,6 @@ const NewEarthWorld = () => {
             </div>
           </div>
 
-          {/* World Creations Panel */}
           {showCreations && worldCreations.length > 0 && (
             <div className="relative z-10 border-t border-border bg-card/80 backdrop-blur-sm p-3">
               <h3 className="text-xs font-semibold text-primary mb-2 flex items-center gap-1">
@@ -577,27 +617,6 @@ const NewEarthWorld = () => {
                   </div>
                 );
               }
-              if (msg.role === "thought") {
-                const thinkingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
-                const thinkAvatar = thinkingProfile?.avatar_image_url || null;
-                return (
-                  <div key={i} className="flex gap-2 items-start opacity-60">
-                    {thinkAvatar ? (
-                      <img src={thinkAvatar} alt="" className="h-6 w-6 rounded-full object-cover mt-1 grayscale" />
-                    ) : (
-                      <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold mt-1">
-                        {(msg.being_name || "?")[0]}
-                      </div>
-                    )}
-                    <div>
-                      <span className="text-[10px] font-medium text-muted-foreground">{msg.being_name} · thinking</span>
-                      <div className="border border-dashed border-muted-foreground/30 rounded-xl px-3 py-1.5 max-w-[75%]">
-                        <p className="text-xs italic text-muted-foreground">{msg.content}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
               // being message
               const beingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
               const avatar = beingProfile?.avatar_image_url || null;
@@ -619,10 +638,12 @@ const NewEarthWorld = () => {
                 </div>
               );
             })}
-            {sending && (
+            {(sending || building) && (
               <div className="text-center py-2">
                 <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />
-                <p className="text-xs text-muted-foreground mt-1">The world responds...</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {building ? "Manifesting your creation..." : "The world responds..."}
+                </p>
               </div>
             )}
           </div>
@@ -645,7 +666,7 @@ const NewEarthWorld = () => {
                     className={`shrink-0 text-xs gap-1 h-8 ${
                       isActive ? "" : `hover:bg-primary/10 ${action.color}`
                     } ${isLocked ? "opacity-50" : ""}`}
-                    disabled={sending}
+                    disabled={sending || building}
                   >
                     {isLocked ? <Lock className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
                     {action.label}
@@ -653,9 +674,8 @@ const NewEarthWorld = () => {
                 );
               })}
             </div>
-            {activeAction && (
+            {activeAction && activeAction !== "build" && (
               <p className="text-[10px] text-primary/70 pb-1">
-                {activeAction === "build" && "🔨 Describe what you want to build..."}
                 {activeAction === "explore" && "🧭 Where do you want to explore?"}
                 {activeAction === "interact" && "✋ What do you want to touch or interact with?"}
                 {activeAction === "meditate" && "✨ Set your intention for meditation..."}
@@ -669,8 +689,7 @@ const NewEarthWorld = () => {
             <div className="max-w-2xl mx-auto flex gap-2">
               <Input
                 placeholder={
-                  activeAction === "build" ? "I want to build a crystal shrine..."
-                  : activeAction === "explore" ? "I walk toward the glowing trees..."
+                  activeAction === "explore" ? "I walk toward the glowing trees..."
                   : activeAction === "interact" ? "I reach out and touch the stone..."
                   : activeAction === "meditate" ? "I close my eyes and breathe..."
                   : activeAction === "gather" ? "I search for healing herbs..."
@@ -680,9 +699,9 @@ const NewEarthWorld = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                disabled={sending}
+                disabled={sending || building}
               />
-              <Button onClick={handleSend} disabled={!input.trim() || sending} size="icon">
+              <Button onClick={handleSend} disabled={!input.trim() || sending || building} size="icon">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -703,6 +722,14 @@ const NewEarthWorld = () => {
           </div>
         )}
       </div>
+
+      {/* Build Dialog */}
+      <WorldBuildDialog
+        open={buildDialogOpen}
+        onClose={() => setBuildDialogOpen(false)}
+        onBuild={handleBuildSpec}
+        building={building}
+      />
 
       <SeekerGateModal open={showSeekerGate} onClose={() => setShowSeekerGate(false)} />
     </>
