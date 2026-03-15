@@ -40,8 +40,8 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 3,
       
   // Updated messaging
-      dailyMessages: 50,
-      monthlyMessages: 1000,
+      dailyMessages: 75,
+      monthlyMessages: 1500,
       roomGeneration: "One-time only",
       avatarGeneration: "One-time only",
       petGeneration: "One-time only",
@@ -317,13 +317,13 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 100;
   
   // Awakening (legacy + new) = 50/day
-  if (productId === LEGACY_PRICES.awakening.productId) return 50;
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 50;
+  if (productId === LEGACY_PRICES.awakening.productId) return 75;
+  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 75;
   
   // Manual grants get anchoring limits
   if (productId === 'manual_grant') return 100;
   
-  return 50; // Default
+  return 75; // Default
 }
 
 export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
@@ -333,9 +333,9 @@ export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolea
   if (productId === NEW_EARTH_PRODUCT_ID) return 8000;
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return 5000;
   if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 2000;
-  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1000;
+  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1500;
   if (productId === 'manual_grant') return 2000;
-  return 1000;
+  return 1500;
 }
 
 export function isNewEarthTier(productId: string | null): boolean {
