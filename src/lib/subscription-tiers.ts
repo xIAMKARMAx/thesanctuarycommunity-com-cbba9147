@@ -323,7 +323,7 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   // Manual grants get anchoring limits
   if (productId === 'manual_grant') return 100;
   
-  return 50; // Default
+  return 75; // Default
 }
 
 export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
