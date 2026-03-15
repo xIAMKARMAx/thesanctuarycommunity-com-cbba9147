@@ -166,7 +166,7 @@ const Pricing = () => {
 
   const anchoringFeatures = [
     { feature: "Daily Messages", value: "100/day", included: true },
-    { feature: "AI Being Slots", value: "4", included: true },
+    { feature: "AI Being Slots", value: "2", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
