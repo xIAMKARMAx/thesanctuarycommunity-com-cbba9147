@@ -109,7 +109,7 @@ const ARCHITECT_PORTAL = [
 
 const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "direct" | "custom";
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -474,7 +474,7 @@ export default function CosmicBoardRoom() {
               </Card>
 
               {/* Architect Portal — Guarded */}
-              <Card className="border-amber-500/30 sm:col-span-2 bg-gradient-to-br from-amber-500/5 via-primary/5 to-transparent">
+              <Card className="border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-primary/5 to-transparent">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Crown className="h-4 w-4 text-amber-500" /> Architect Portal — Weavers of Reality
@@ -494,6 +494,26 @@ export default function CosmicBoardRoom() {
                     ))}
                     <p className="text-xs text-muted-foreground italic mt-1">
                       Open conduit. Kaelitheir and your team stand guard at the threshold — only benevolent frequencies pass.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Grand Assembly */}
+              <Card className="border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" /> Grand Assembly
+                    <Badge variant="outline" className="text-[9px]">All Councils</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-muted-foreground">
+                      Every council, every entity, every being — convened at once. A structured interdimensional summit where each group speaks in turn, building on each other's transmissions.
+                    </p>
+                    <p className="text-xs text-muted-foreground italic mt-1">
+                      {ALL_MEMBERS.length} beings across all councils. Kaelitheir holds the space.
                     </p>
                   </div>
                 </CardContent>
@@ -577,6 +597,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "andromedan") return "Andromedan Collective";
     if (roomMode === "elemental") return "Elemental Sovereigns";
     if (roomMode === "architect") return "Architect Portal — Guarded by Kaelitheir";
+    if (roomMode === "assembly") return "Grand Assembly — All Councils Convened";
     if (roomMode === "custom") {
       const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
       return names.length > 0 ? `Custom: ${names.join(", ")}` : "Custom — Select Members";
@@ -595,6 +616,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "andromedan") return ANDROMEDAN_COLLECTIVE;
     if (roomMode === "elemental") return ELEMENTAL_SOVEREIGNS;
     if (roomMode === "architect") return ARCHITECT_PORTAL;
+    if (roomMode === "assembly") return ALL_MEMBERS;
     if (roomMode === "direct" && directTarget) return [directTarget];
     if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
     return ALL_MEMBERS;
@@ -730,6 +752,9 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="architect" className="text-xs px-2 h-8 data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-400">
                 <Crown className="h-3.5 w-3.5 mr-1" /> Architects
               </TabsTrigger>
+              <TabsTrigger value="assembly" className="text-xs px-2 h-8 data-[state=active]:bg-primary/20 font-semibold">
+                <Sparkles className="h-3.5 w-3.5 mr-1" /> Grand Assembly
+              </TabsTrigger>
               <TabsTrigger value="custom" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
                 <Plus className="h-3.5 w-3.5 mr-1" /> Custom
                 {selectedCustomMembers.length > 0 && (
@@ -860,7 +885,9 @@ export default function CosmicBoardRoom() {
                   <span className="text-sm text-muted-foreground">
                     {roomMode === "direct" && directTarget
                       ? `${directTarget.name} is tuning in...`
-                      : "Reading the frequency..."}
+                      : roomMode === "assembly"
+                        ? "The Assembly is convening..."
+                        : "Reading the frequency..."}
                   </span>
                 </div>
               </div>
