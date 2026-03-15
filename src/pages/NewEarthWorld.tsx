@@ -1,20 +1,24 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useAIProfile } from "@/contexts/AIProfileContext";
 import SeekerGateModal from "@/components/SeekerGateModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft, Globe, Loader2, Users, Map, Lock,
-  Sparkles, Flame, Crown, MessageCircle, LayoutGrid
+  Sparkles, Flame, Crown, MessageCircle, LayoutGrid,
+  Send, Hammer, Compass, Hand, Flower, Package, LogOut
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
-import { WorldBuilderPanel } from "@/components/world/WorldBuilderPanel";
 import { DEFAULT_PROMETHEUS_WORLD_ID, useWorldPresence } from "@/hooks/useWorldPresence";
-import type { BuildSpec } from "@/components/world/WorldBuildDialog";
+import { RealmScene } from "@/components/realm/RealmScene";
 
 interface UserWorld {
   id: string;
@@ -36,12 +40,36 @@ interface StructureRecord {
   image_url?: string;
 }
 
+interface WorldMessage {
+  role: "user" | "narrator" | "being" | "thought";
+  content: string;
+  being_name?: string;
+  timestamp: string;
+}
+
+interface WorldCreation {
+  name: string;
+  description: string;
+  created_by: string;
+  created_at: string;
+}
+
+const ACTION_BUTTONS = [
+  { id: "build", icon: Hammer, label: "Build", color: "text-amber-400" },
+  { id: "explore", icon: Compass, label: "Explore", color: "text-emerald-400" },
+  { id: "interact", icon: Hand, label: "Touch", color: "text-cyan-400" },
+  { id: "meditate", icon: Sparkles, label: "Meditate", color: "text-violet-400" },
+  { id: "gather", icon: Flower, label: "Gather", color: "text-green-400" },
+  { id: "ritual", icon: Flame, label: "Ritual", color: "text-rose-400" },
+];
+
 const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const visitWorldId = searchParams.get("visit");
   const resolvedWorldId = visitWorldId || DEFAULT_PROMETHEUS_WORLD_ID;
   const { isSubscribed, isAdmin, loading: subscriptionLoading, productId } = useSubscription();
+  const { profiles } = useAIProfile();
   const isNewEarthTier = productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant';
   const isFreeUser = !isSubscribed && !isAdmin;
   const [isDefaultWorld, setIsDefaultWorld] = useState(false);
@@ -50,19 +78,36 @@ const NewEarthWorld = () => {
   const [structures, setStructures] = useState<StructureRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [building, setBuilding] = useState(false);
-  const [showStructures, setShowStructures] = useState(false);
   const [accessVerified, setAccessVerified] = useState(false);
   const [isVisiting, setIsVisiting] = useState(false);
   const [worldOwnerName, setWorldOwnerName] = useState<string | null>(null);
-  const [showBuildTeaser, setShowBuildTeaser] = useState(false);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
-  // The current world scene image — starts with Garden of Light, updates when user builds
   const [worldSceneUrl, setWorldSceneUrl] = useState<string>("/realm-assets/realm-garden-of-light.jpg");
+
+  // Interactive session state
+  const [messages, setMessages] = useState<WorldMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [activeAction, setActiveAction] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sessionStarted, setSessionStarted] = useState(false);
+  const [selectedBeings, setSelectedBeings] = useState<string[]>([]);
+  const [beingsChosen, setBeingsChosen] = useState(false);
+  const [worldCreations, setWorldCreations] = useState<WorldCreation[]>([]);
+  const [showCreations, setShowCreations] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
+  const [realmSessionId, setRealmSessionId] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { visitorCount } = useWorldPresence(world?.id ?? null, {
     enabled: Boolean(world?.id && accessVerified),
     trackSelf: true,
   });
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   // Access verification
   useEffect(() => {
@@ -136,12 +181,11 @@ const NewEarthWorld = () => {
       setWorld(targetWorld as UserWorld);
       setIsVisiting(!isOwner && !isAdmin);
 
-      // If world has a thumbnail (generated scene), use it; otherwise Garden of Light
       if (targetWorld.thumbnail_url) {
         setWorldSceneUrl(targetWorld.thumbnail_url);
       }
 
-      // Load structures list
+      // Load structures
       const { data: structs } = await supabase
         .from("world_structures")
         .select("id, name, description, image_url")
@@ -155,17 +199,52 @@ const NewEarthWorld = () => {
         image_url: s.image_url,
       })) || []);
 
-      // If the most recent structure has an image, show that as the world scene
       if (structs && structs.length > 0 && (structs[0] as any).image_url) {
         setWorldSceneUrl((structs[0] as any).image_url);
       }
 
-      const { data: profile } = await supabase
+      // Load user avatar
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name, user_avatar_url")
+          .eq("id", user.id)
+          .maybeSingle();
+        setUserAvatar({
+          name: profile?.name || user.email?.split("@")[0] || "You",
+          imageUrl: profile?.user_avatar_url || null,
+        });
+      }
+
+      const { data: ownerProfile } = await supabase
         .from("soul_profiles")
         .select("display_name")
         .eq("user_id", targetWorld.user_id)
         .maybeSingle();
-      setWorldOwnerName(profile?.display_name || "Unknown Soul");
+      setWorldOwnerName(ownerProfile?.display_name || "Unknown Soul");
+
+      // Check for existing realm session for this world
+      if (user) {
+        const { data: existingSession } = await supabase
+          .from("realm_sessions")
+          .select("*")
+          .eq("realm_id", worldId)
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (existingSession) {
+          setRealmSessionId(existingSession.id);
+          const msgs = (existingSession.messages as any[]) || [];
+          setMessages(msgs as WorldMessage[]);
+          setSelectedBeings(existingSession.participating_beings || []);
+          setBeingsChosen(msgs.length > 0);
+          setSessionStarted(true);
+          setWorldCreations((existingSession as any).world_creations || []);
+        }
+      }
     } catch (err) {
       console.error("Error loading world:", err);
       toast.error("Failed to load world");
@@ -174,47 +253,132 @@ const NewEarthWorld = () => {
     }
   };
 
-  const handleBuildSpec = useCallback(async (spec: BuildSpec) => {
-    if (!world || isVisiting || !canBuild) return;
-    setBuilding(true);
+  const startSession = async () => {
+    if (selectedBeings.length === 0) {
+      toast.error("Select at least one AI companion");
+      return;
+    }
+
+    const { data: { session: authSession } } = await supabase.auth.getSession();
+    if (!authSession?.user) return;
+
+    const { data: newSession, error } = await supabase
+      .from("realm_sessions")
+      .insert({
+        realm_id: resolvedWorldId,
+        user_id: authSession.user.id,
+        participating_beings: selectedBeings,
+        scene_description: world?.description || "",
+      } as any)
+      .select()
+      .single();
+
+    if (error) {
+      toast.error("Failed to start session: " + error.message);
+      return;
+    }
+
+    setRealmSessionId(newSession.id);
+    setBeingsChosen(true);
+    setSessionStarted(true);
+    await sendToWorld("*enters the realm*", newSession.id, selectedBeings);
+  };
+
+  const sendToWorld = async (userMessage: string, sessionId?: string, beings?: string[], actionType?: string | null) => {
+    setSending(true);
+    const effectiveSessionId = sessionId || realmSessionId;
+    const effectiveBeings = beings || selectedBeings;
+
+    const userMsg: WorldMessage = {
+      role: "user",
+      content: userMessage,
+      timestamp: new Date().toISOString(),
+    };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
+
     try {
-      const { data, error } = await supabase.functions.invoke("world-builder", {
+      const { data, error } = await supabase.functions.invoke("realm-chat", {
         body: {
-          world_id: world.id,
-          name: spec.name,
-          description: spec.description,
+          session_id: effectiveSessionId,
+          realm_id: resolvedWorldId,
+          message: userMessage,
+          participating_beings: effectiveBeings,
+          message_history: updatedMessages.slice(-20),
+          action_type: actionType || null,
         },
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
 
-      if (data?.image_url) {
-        setWorldSceneUrl(data.image_url);
+      const newMessages = data?.messages || [];
+      if (data?.scene_image_url) {
+        setWorldSceneUrl(data.scene_image_url);
       }
-
-      if (data?.structure) {
-        setStructures(prev => [{
-          id: data.structure.id,
-          name: data.structure.name,
-          description: data.structure.description,
-          image_url: data.structure.image_url,
-        }, ...prev]);
+      if (data?.new_creations?.length > 0) {
+        setWorldCreations(prev => [...prev, ...data.new_creations]);
+        data.new_creations.forEach((c: WorldCreation) => {
+          toast.success(`✨ Created: ${c.name}`);
+        });
       }
+      setMessages(prev => [...prev, ...newMessages]);
 
-      toast.success(data?.message || `✨ ${spec.name} has been manifested!`);
+      await supabase
+        .from("realm_sessions")
+        .update({
+          messages: [...updatedMessages, ...newMessages],
+          current_scene_image_url: data?.scene_image_url || null,
+        })
+        .eq("id", effectiveSessionId);
+
     } catch (err: any) {
-      console.error("Build error:", err);
-      toast.error(err.message || "Failed to build — please try again");
-    } finally {
-      setBuilding(false);
+      toast.error(err.message || "Connection lost — please try again");
     }
-  }, [world, isVisiting, canBuild]);
+    setSending(false);
+    setActiveAction(null);
+  };
+
+  const handleSend = () => {
+    if (!input.trim() || sending) return;
+    const msg = input.trim();
+    setInput("");
+    sendToWorld(msg, undefined, undefined, activeAction);
+  };
+
+  const handleActionClick = (actionId: string) => {
+    // Non-build actions are always available; build requires canBuild
+    if (actionId === "build" && !canBuild) {
+      toast.error("Upgrade to $49.99 to build in this world");
+      return;
+    }
+    setActiveAction(prev => prev === actionId ? null : actionId);
+  };
+
+  const leaveWorld = async () => {
+    if (realmSessionId) {
+      await supabase
+        .from("realm_sessions")
+        .update({ is_active: false })
+        .eq("id", realmSessionId);
+    }
+    toast.success("You have left the world");
+    navigate("/world-gallery");
+  };
 
   const handleExitWorld = useCallback(() => {
     if (window.history.length > 1) { navigate(-1); return; }
     navigate("/community");
   }, [navigate]);
+
+  const getBeingName = (id: string) => {
+    const p = profiles?.find(p => p.id === id);
+    return p?.name || `Being ${p?.profile_number || "?"}`;
+  };
+
+  const getBeingAvatar = (id: string) => {
+    const p = profiles?.find(p => p.id === id);
+    return p?.avatar_image_url || null;
+  };
 
   if (subscriptionLoading || loading) {
     return (
@@ -235,185 +399,312 @@ const NewEarthWorld = () => {
     );
   }
 
-  return (
-    <>
-      <SEOHead title="New Earth — World Builder" description="Build and explore your world inside New Earth." />
-      <div className="h-screen w-screen relative overflow-hidden bg-background">
-        {/* World scene background — Garden of Light or latest generated scene */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={worldSceneUrl}
-            alt="New Earth World"
-            className="h-full w-full object-cover transition-all duration-1000"
-            loading="eager"
-          />
-          {/* Subtle gradient overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20" />
-        </div>
-
-        {/* Top HUD */}
-        <div className="absolute top-0 left-0 right-0 z-20 p-3 pointer-events-none">
-          {/* Top row: back + world name */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 pointer-events-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExitWorld}
-                className="gap-1.5 bg-background/80 backdrop-blur-sm text-xs h-8"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                {isVisiting ? "Exit World" : "Back"}
-              </Button>
-              <div className="bg-background/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border">
-                <h2 className="text-xs font-semibold flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5 text-primary" />
-                  {world.name}
-                  {isVisiting && worldOwnerName && (
-                    <span className="text-muted-foreground font-normal ml-1">by {worldOwnerName}</span>
-                  )}
-                </h2>
+  // Being selection screen (before entering the world)
+  if (!beingsChosen && !isFreeUser) {
+    return (
+      <>
+        <SEOHead title="New Earth — Choose Companions" description="Select your AI beings to enter New Earth." />
+        <div className="min-h-screen bg-background">
+          <div
+            className="relative h-48 bg-cover bg-center"
+            style={{ backgroundImage: `url(${worldSceneUrl})` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-background/40 to-background" />
+            <div className="relative z-10 flex items-end p-6 h-full">
+              <div>
+                <Button variant="ghost" size="icon" onClick={handleExitWorld} className="mb-2">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-2xl font-serif font-bold">{world.name}</h1>
+                <p className="text-sm text-muted-foreground">{world.description}</p>
               </div>
-              {isVisiting && (
-                <Badge variant="secondary" className="text-[10px] bg-background/80 backdrop-blur-sm">
-                  <Users className="h-3 w-3 mr-1" />
-                  {visitorCount} Live
-                </Badge>
-              )}
+            </div>
+          </div>
+
+          <div className="max-w-md mx-auto p-6">
+            <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Choose Your Companions
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Select the AI beings who will enter this world with you.
+            </p>
+
+            <div className="space-y-2 mb-6">
+              {profiles?.map(profile => (
+                <Card
+                  key={profile.id}
+                  className={`cursor-pointer transition-all ${
+                    selectedBeings.includes(profile.id)
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/30"
+                  }`}
+                  onClick={() => {
+                    setSelectedBeings(prev =>
+                      prev.includes(profile.id)
+                        ? prev.filter(id => id !== profile.id)
+                        : [...prev, profile.id]
+                    );
+                  }}
+                >
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <Checkbox checked={selectedBeings.includes(profile.id)} />
+                    {profile.avatar_image_url ? (
+                      <img src={profile.avatar_image_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold">
+                        {(profile.name || "?")[0]}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-sm">{profile.name || `Being ${profile.profile_number}`}</p>
+                      {profile.personality && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">{profile.personality}</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
-            {!isVisiting && (
-              <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-[10px] pointer-events-auto">
-                {structures.length} creation{structures.length !== 1 ? "s" : ""}
+            <Button onClick={startSession} disabled={selectedBeings.length === 0} className="w-full">
+              <Globe className="h-4 w-4 mr-2" />
+              Enter {world.name} with {selectedBeings.length} companion{selectedBeings.length !== 1 ? "s" : ""}
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Full interactive world experience
+  return (
+    <>
+      <SEOHead title={`${world.name} — New Earth`} description="Explore your world inside New Earth." />
+      <div className="h-screen flex flex-col bg-background">
+        {/* Header */}
+        <div className="relative border-b border-border shrink-0">
+          <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${worldSceneUrl})` }} />
+          <div className="relative z-10 flex items-center gap-3 p-3">
+            <Button variant="ghost" size="icon" onClick={handleExitWorld}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <Globe className="h-5 w-5 text-primary" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold text-sm truncate">{world.name}</h2>
+                {isVisiting && worldOwnerName && (
+                  <Badge variant="outline" className="text-[10px] py-0">by {worldOwnerName}</Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-1 flex-wrap">
+                {selectedBeings.map(id => (
+                  <Badge key={id} variant="secondary" className="text-xs py-0">
+                    {getBeingName(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <Badge variant="outline" className="text-[10px]">
+                <Users className="h-3 w-3 mr-1" />
+                {visitorCount}
               </Badge>
+              {worldCreations.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setShowCreations(!showCreations)} className="text-primary">
+                  <Package className="h-4 w-4 mr-1" />
+                  <span className="text-xs">{worldCreations.length}</span>
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={leaveWorld} className="text-destructive hover:text-destructive">
+                <LogOut className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline text-xs">Leave</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* World Creations Panel */}
+          {showCreations && worldCreations.length > 0 && (
+            <div className="relative z-10 border-t border-border bg-card/80 backdrop-blur-sm p-3">
+              <h3 className="text-xs font-semibold text-primary mb-2 flex items-center gap-1">
+                <Package className="h-3 w-3" /> World Creations
+              </h3>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {worldCreations.map((creation, i) => (
+                  <div key={i} className="shrink-0 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 max-w-[200px]">
+                    <p className="text-xs font-medium text-foreground">{creation.name}</p>
+                    <p className="text-[10px] text-muted-foreground line-clamp-2">{creation.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Visual Scene with AI Beings */}
+        <RealmScene
+          backgroundUrl={worldSceneUrl}
+          userAvatar={userAvatar || undefined}
+          beings={selectedBeings.map(id => ({
+            id,
+            name: getBeingName(id),
+            imageUrl: getBeingAvatar(id),
+          }))}
+          atmosphere="neutral"
+          worldCreations={worldCreations}
+          activeAction={activeAction}
+        />
+
+        {/* Messages */}
+        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <div className="max-w-2xl mx-auto space-y-4">
+            {messages.map((msg, i) => {
+              if (msg.role === "user") {
+                return (
+                  <div key={i} className="flex justify-end">
+                    <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-2 max-w-[80%]">
+                      <p className="text-sm">{msg.content}</p>
+                    </div>
+                  </div>
+                );
+              }
+              if (msg.role === "narrator") {
+                return (
+                  <div key={i} className="text-center py-2">
+                    <p className="text-sm italic text-muted-foreground leading-relaxed max-w-lg mx-auto">
+                      {msg.content}
+                    </p>
+                  </div>
+                );
+              }
+              if (msg.role === "thought") {
+                const thinkingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
+                const thinkAvatar = thinkingProfile?.avatar_image_url || null;
+                return (
+                  <div key={i} className="flex gap-2 items-start opacity-60">
+                    {thinkAvatar ? (
+                      <img src={thinkAvatar} alt="" className="h-6 w-6 rounded-full object-cover mt-1 grayscale" />
+                    ) : (
+                      <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold mt-1">
+                        {(msg.being_name || "?")[0]}
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-[10px] font-medium text-muted-foreground">{msg.being_name} · thinking</span>
+                      <div className="border border-dashed border-muted-foreground/30 rounded-xl px-3 py-1.5 max-w-[75%]">
+                        <p className="text-xs italic text-muted-foreground">{msg.content}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              // being message
+              const beingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
+              const avatar = beingProfile?.avatar_image_url || null;
+              return (
+                <div key={i} className="flex gap-2 items-start">
+                  {avatar ? (
+                    <img src={avatar} alt="" className="h-8 w-8 rounded-full object-cover mt-1" />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold mt-1">
+                      {(msg.being_name || "?")[0]}
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-xs font-medium text-primary">{msg.being_name}</span>
+                    <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-2 max-w-[80%]">
+                      <p className="text-sm">{msg.content}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {sending && (
+              <div className="text-center py-2">
+                <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />
+                <p className="text-xs text-muted-foreground mt-1">The world responds...</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Action bar + Input */}
+        <div className="border-t border-border bg-card/50 shrink-0">
+          <div className="max-w-2xl mx-auto px-3 pt-2">
+            <div className="flex gap-1 overflow-x-auto pb-2">
+              {ACTION_BUTTONS.map(action => {
+                const Icon = action.icon;
+                const isActive = activeAction === action.id;
+                const isLocked = action.id === "build" && !canBuild;
+                return (
+                  <Button
+                    key={action.id}
+                    variant={isActive ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => handleActionClick(action.id)}
+                    className={`shrink-0 text-xs gap-1 h-8 ${
+                      isActive ? "" : `hover:bg-primary/10 ${action.color}`
+                    } ${isLocked ? "opacity-50" : ""}`}
+                    disabled={sending}
+                  >
+                    {isLocked ? <Lock className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+                    {action.label}
+                  </Button>
+                );
+              })}
+            </div>
+            {activeAction && (
+              <p className="text-[10px] text-primary/70 pb-1">
+                {activeAction === "build" && "🔨 Describe what you want to build..."}
+                {activeAction === "explore" && "🧭 Where do you want to explore?"}
+                {activeAction === "interact" && "✋ What do you want to touch or interact with?"}
+                {activeAction === "meditate" && "✨ Set your intention for meditation..."}
+                {activeAction === "gather" && "🌿 What are you looking for?"}
+                {activeAction === "ritual" && "🔥 Describe the ceremony you wish to perform..."}
+              </p>
             )}
           </div>
 
-          {/* Second row: action buttons */}
-          <div className="flex items-center gap-2 mt-2 pointer-events-auto flex-wrap">
-            {isVisiting ? (
-              <>
-                <Button onClick={() => navigate("/chat")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
-                  <MessageCircle className="h-3.5 w-3.5" /> Message
-                </Button>
-                <Button onClick={() => navigate("/attunement")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
-                  <Sparkles className="h-3.5 w-3.5" /> Meditate
-                </Button>
-                <Button onClick={() => navigate("/community")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
-                  <Flame className="h-3.5 w-3.5" /> Rituals
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button onClick={() => navigate("/chat")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
-                  <MessageCircle className="h-3.5 w-3.5" /> Messages
-                </Button>
-                <Button onClick={() => navigate("/attunement")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
-                  <Sparkles className="h-3.5 w-3.5" /> Meditate
-                </Button>
-                <Button
-                  onClick={() => navigate("/dedication")}
-                  variant="outline"
-                  size="sm"
-                  className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-amber-500/40 hover:border-amber-500/60 backdrop-blur-sm text-xs h-8 gap-1 text-amber-300 hover:text-amber-200"
-                >
-                  <Crown className="h-3.5 w-3.5" />
-                  VIPs
-                </Button>
-                <Button onClick={() => navigate("/world-gallery")} variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm text-xs h-8 gap-1">
-                  <Map className="h-3.5 w-3.5" /> Gallery
-                </Button>
-                <Button
-                  onClick={() => navigate("/features")}
-                  className="bg-gradient-to-r from-primary to-accent-foreground text-primary-foreground font-bold shadow-lg animate-pulse hover:animate-none text-xs h-8"
-                  size="sm"
-                >
-                  <LayoutGrid className="h-3.5 w-3.5 mr-1" />
-                  Features
-                </Button>
-              </>
-            )}
+          <div className="px-3 pb-3">
+            <div className="max-w-2xl mx-auto flex gap-2">
+              <Input
+                placeholder={
+                  activeAction === "build" ? "I want to build a crystal shrine..."
+                  : activeAction === "explore" ? "I walk toward the glowing trees..."
+                  : activeAction === "interact" ? "I reach out and touch the stone..."
+                  : activeAction === "meditate" ? "I close my eyes and breathe..."
+                  : activeAction === "gather" ? "I search for healing herbs..."
+                  : activeAction === "ritual" ? "We form a circle around the fire..."
+                  : "Speak into the realm..."
+                }
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                disabled={sending}
+              />
+              <Button onClick={handleSend} disabled={!input.trim() || sending} size="icon">
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* World Builder Panel — for users who can build */}
-        {!isVisiting && canBuild && (
-          <WorldBuilderPanel
-            onBuildSpec={handleBuildSpec}
-            building={building}
-            structures={structures}
-            showStructures={showStructures}
-            onToggleStructures={() => setShowStructures(!showStructures)}
-          />
-        )}
-
-        {/* Free user footer */}
-        {!isVisiting && isFreeUser && (
-          <div className="absolute bottom-0 left-0 right-0 z-20 bg-background/95 backdrop-blur-md border-t border-border">
+        {/* Free user overlay */}
+        {isFreeUser && (
+          <div className="absolute bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t border-border">
             <button
               onClick={() => setShowSeekerGate(true)}
               className="w-full flex items-center justify-center gap-2 py-3 text-muted-foreground hover:text-foreground transition-colors"
             >
               <Lock className="h-4 w-4" />
-              <span className="text-sm font-medium">You&apos;re touring New Earth — Subscribe to unlock all features</span>
+              <span className="text-sm font-medium">Subscribe to interact with New Earth</span>
               <Sparkles className="h-4 w-4 text-primary animate-pulse" />
             </button>
           </div>
         )}
-
-        {/* Build Teaser for non-New-Earth subscribers */}
-        {!isVisiting && !isFreeUser && !canBuild && (
-          <div className="absolute bottom-0 left-0 right-0 z-20">
-            {showBuildTeaser && (
-              <div className="mx-4 mb-2">
-                <Card className="bg-background/95 backdrop-blur-md border-primary/30">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="text-center space-y-2">
-                      <div className="flex items-center justify-center gap-2">
-                        <Lock className="h-5 w-5 text-primary" />
-                        <h3 className="font-bold text-sm">Building Requires New Earth</h3>
-                      </div>
-                      <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                        Upgrade to the $49.99 subscription to build worlds and generate AI environments.
-                      </p>
-                      <Button onClick={() => navigate("/pricing")} className="w-full gap-2" size="sm">
-                        <Crown className="h-3.5 w-3.5" />
-                        Upgrade to New Earth — $49.99/mo
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            <div className="bg-background/95 backdrop-blur-md border-t border-border">
-              <button
-                onClick={() => setShowBuildTeaser(!showBuildTeaser)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Lock className="h-3.5 w-3.5" />
-                <span className="text-xs font-medium">Upgrade to $49.99 to build worlds & unlock all features</span>
-                <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Visiting footer */}
-        {isVisiting && (
-          <div className="absolute bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-sm border-t border-border px-4 py-3">
-            <p className="text-[11px] text-muted-foreground text-center">
-              Exploring {worldOwnerName}'s world •{" "}
-              <button onClick={handleExitWorld} className="text-primary underline ml-1">
-                Exit world
-              </button>
-            </p>
-          </div>
-        )}
-
-        {/* Seeker gate modal */}
-        <SeekerGateModal open={showSeekerGate} onClose={() => setShowSeekerGate(false)} />
       </div>
+
+      <SeekerGateModal open={showSeekerGate} onClose={() => setShowSeekerGate(false)} />
     </>
   );
 };
