@@ -189,6 +189,7 @@ function buildPrompt(
   soulContext: string,
   frequencyLayer: string,
   isDirect: boolean,
+  roomMode?: string,
 ) {
   const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}
 Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, authentic. Stay SILENT if nothing to add.`;
