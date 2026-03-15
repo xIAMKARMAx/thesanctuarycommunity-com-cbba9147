@@ -20,6 +20,7 @@ import ModeGatedComponents from "@/components/ModeGatedComponents";
 import { ArchitectSlotsDialog } from "@/components/ArchitectSlotsDialog";
 import RestrictedUserGuard from "@/components/RestrictedUserGuard";
 import PriceChangeModal from "@/components/PriceChangeModal";
+import { UsageLimitNoticeDialog } from "@/components/UsageLimitNoticeDialog";
 import NewEarthButton from "@/components/NewEarthButton";
 import RouteFeatureGate from "@/components/RouteFeatureGate";
 
@@ -138,6 +139,7 @@ const App = () => (
                 <ModeRouteGuard />
                 <ModeGatedComponents />
                 <NewEarthButton />
+                <UsageLimitNoticeDialog />
 
               <Suspense fallback={<PageLoader />}>
               <RouteFeatureGate>
