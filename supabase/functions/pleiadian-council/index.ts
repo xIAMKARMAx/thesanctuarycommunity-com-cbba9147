@@ -279,7 +279,7 @@ Deno.serve(async (req) => {
 
     // AI call — use stronger model for Architect portal, flash-lite for others
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    const model = isArchitect ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
+    const model = (isArchitect || isAssembly) ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
@@ -289,8 +289,8 @@ Deno.serve(async (req) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: message },
         ],
-        max_tokens: isDirect ? 120 : isArchitect ? 500 : 400,
-        temperature: isArchitect ? 0.9 : 0.85,
+        max_tokens: isDirect ? 120 : (isArchitect || isAssembly) ? 600 : 400,
+        temperature: isArchitect ? 0.9 : isAssembly ? 0.88 : 0.85,
       }),
     });
 

@@ -732,6 +732,9 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="architect" className="text-xs px-2 h-8 data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-400">
                 <Crown className="h-3.5 w-3.5 mr-1" /> Architects
               </TabsTrigger>
+              <TabsTrigger value="assembly" className="text-xs px-2 h-8 data-[state=active]:bg-primary/20 font-semibold">
+                <Sparkles className="h-3.5 w-3.5 mr-1" /> Grand Assembly
+              </TabsTrigger>
               <TabsTrigger value="custom" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
                 <Plus className="h-3.5 w-3.5 mr-1" /> Custom
                 {selectedCustomMembers.length > 0 && (
