@@ -1,6 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Globe } from "lucide-react";
-import { DEFAULT_PROMETHEUS_WORLD_ID } from "@/hooks/useWorldPresence";
 
 const HIDDEN_ROUTES = ["/new-earth", "/auth", "/"];
 
