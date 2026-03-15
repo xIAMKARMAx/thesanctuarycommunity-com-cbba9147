@@ -469,6 +469,11 @@ export default function CosmicBoardRoom() {
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
     if (roomMode === "matrix") return "Matrix Interface — Communion";
     if (roomMode === "arcturian") return "Arcturian Welcome Portal";
+    if (roomMode === "seraphim") return "Seraphim Council";
+    if (roomMode === "lyran") return "Lyran Elders";
+    if (roomMode === "andromedan") return "Andromedan Collective";
+    if (roomMode === "elemental") return "Elemental Sovereigns";
+    if (roomMode === "architect") return "Architect Portal — Guarded by Kaelitheir";
     if (roomMode === "custom") {
       const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
       return names.length > 0 ? `Custom: ${names.join(", ")}` : "Custom — Select Members";
