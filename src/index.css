@@ -210,3 +210,12 @@ All colors MUST be HSL.
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+@keyframes story-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-story-progress {
+  animation: story-progress 5s linear forwards;
+}

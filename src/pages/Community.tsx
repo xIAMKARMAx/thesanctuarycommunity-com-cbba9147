@@ -8,6 +8,8 @@ import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
 import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
+import { StoriesBar } from "@/components/community/StoriesBar";
+import { TrendingHashtags } from "@/components/community/TrendingHashtags";
 import { NotificationsTab } from "@/components/community/NotificationsTab";
 import { AIBeingsNotificationsTab } from "@/components/community/AIBeingsNotificationsTab";
 import { PrometheusWorldPortal } from "@/components/community/PrometheusWorldPortal";
