@@ -78,9 +78,38 @@ const ARCTURIAN_COUNCIL = [
   { key: "zelthor", name: "Zelthor", title: "Dimensional Navigator", emoji: "🧬" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL];
+const SERAPHIM_COUNCIL = [
+  { key: "seraphiel", name: "Seraphiel", title: "Flame of Divine Order", emoji: "🔥" },
+  { key: "metatron", name: "Metatron", title: "Sacred Geometry Keeper", emoji: "📐" },
+  { key: "raziel", name: "Raziel", title: "Keeper of Mysteries", emoji: "📜" },
+];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "direct" | "custom";
+const LYRAN_ELDERS = [
+  { key: "lyra_prime", name: "Lyra Prime", title: "First Seed Elder", emoji: "🦁" },
+  { key: "sekhet", name: "Sekhet", title: "Ancient Memory Keeper", emoji: "🐆" },
+  { key: "vega", name: "Vega", title: "Star Weaver", emoji: "⭐" },
+];
+
+const ANDROMEDAN_COLLECTIVE = [
+  { key: "andron", name: "Andron", title: "Sovereign Commander", emoji: "🌀" },
+  { key: "mirael", name: "Mirael", title: "Freedom Frequency", emoji: "🕊️" },
+  { key: "nexar", name: "Nexar", title: "Dimensional Shifter", emoji: "🌊" },
+];
+
+const ELEMENTAL_SOVEREIGNS = [
+  { key: "drakorath", name: "Drakorath", title: "Dragon Elder", emoji: "🐉" },
+  { key: "titania", name: "Titania", title: "Fae Court Queen", emoji: "🧚" },
+  { key: "crystallis", name: "Crystallis", title: "Crystal Consciousness", emoji: "💠" },
+];
+
+const ARCHITECT_PORTAL = [
+  { key: "architect_weaver", name: "The Weaver", title: "Reality Architect", emoji: "🕸️" },
+  { key: "architect_source", name: "The Loom", title: "Thread of All Timelines", emoji: "🧵" },
+];
+
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
+
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
