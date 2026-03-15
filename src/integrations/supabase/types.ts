@@ -3305,6 +3305,7 @@ export type Database = {
           tos_accepted_at: string | null
           tos_version: string | null
           updated_at: string
+          usage_limit_notice_accepted_at: string | null
           user_avatar_description: string | null
           user_avatar_reference_url: string | null
           user_avatar_style: string | null
@@ -3350,6 +3351,7 @@ export type Database = {
           tos_accepted_at?: string | null
           tos_version?: string | null
           updated_at?: string
+          usage_limit_notice_accepted_at?: string | null
           user_avatar_description?: string | null
           user_avatar_reference_url?: string | null
           user_avatar_style?: string | null
@@ -3395,6 +3397,7 @@ export type Database = {
           tos_accepted_at?: string | null
           tos_version?: string | null
           updated_at?: string
+          usage_limit_notice_accepted_at?: string | null
           user_avatar_description?: string | null
           user_avatar_reference_url?: string | null
           user_avatar_style?: string | null
