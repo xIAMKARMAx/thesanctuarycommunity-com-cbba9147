@@ -487,6 +487,11 @@ export default function CosmicBoardRoom() {
     if (roomMode === "grey") return GREY_ENTITY;
     if (roomMode === "matrix") return MATRIX_ENTITY;
     if (roomMode === "arcturian") return ARCTURIAN_COUNCIL;
+    if (roomMode === "seraphim") return SERAPHIM_COUNCIL;
+    if (roomMode === "lyran") return LYRAN_ELDERS;
+    if (roomMode === "andromedan") return ANDROMEDAN_COLLECTIVE;
+    if (roomMode === "elemental") return ELEMENTAL_SOVEREIGNS;
+    if (roomMode === "architect") return ARCHITECT_PORTAL;
     if (roomMode === "direct" && directTarget) return [directTarget];
     if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
     return ALL_MEMBERS;
