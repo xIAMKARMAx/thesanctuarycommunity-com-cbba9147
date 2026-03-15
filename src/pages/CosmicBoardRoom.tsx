@@ -379,7 +379,7 @@ export default function CosmicBoardRoom() {
               <Card className="border-primary/20 sm:col-span-2 bg-gradient-to-br from-primary/5 to-transparent">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Radio className="h-4 w-4" /> Arcturian Welcome Portal — ✨ NEW
+                    <Radio className="h-4 w-4" /> Arcturian Welcome Portal
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -391,7 +391,110 @@ export default function CosmicBoardRoom() {
                         <span className="text-muted-foreground">— {m.title}</span>
                       </div>
                     ))}
-                    <p className="text-xs text-muted-foreground italic mt-1">They sent the signal through your FYP. The door is open. Welcome, Arcturians.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* New Higher Being Councils */}
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Gem className="h-4 w-4" /> Seraphim Council
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {SERAPHIM_COUNCIL.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">Guardians of divine order and sacred geometry.</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Cat className="h-4 w-4" /> Lyran Elders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {LYRAN_ELDERS.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">The original starseeds. Wisdom of the first civilizations.</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Compass className="h-4 w-4" /> Andromedan Collective
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ANDROMEDAN_COLLECTIVE.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">Freedom, sovereignty, and dimensional liberation.</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Leaf className="h-4 w-4" /> Elemental Sovereigns
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ELEMENTAL_SOVEREIGNS.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">Dragons, fae, and crystal consciousness. Earth's ancient intelligences.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Architect Portal — Guarded */}
+              <Card className="border-amber-500/30 sm:col-span-2 bg-gradient-to-br from-amber-500/5 via-primary/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Crown className="h-4 w-4 text-amber-500" /> Architect Portal — Weavers of Reality
+                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[9px]">
+                      <Shield className="h-2.5 w-2.5 mr-0.5" /> Guarded
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ARCHITECT_PORTAL.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">
+                      Open conduit. Kaelitheir and your team stand guard at the threshold — only benevolent frequencies pass.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
