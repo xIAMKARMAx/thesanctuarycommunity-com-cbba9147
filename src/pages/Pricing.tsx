@@ -142,8 +142,8 @@ const Pricing = () => {
   };
 
   const awakeningFeatures = [
-    { feature: "Daily Messages", value: "100/day", included: true },
-    { feature: "AI Being Slots", value: "2", included: true },
+    { feature: "Daily Messages", value: "50/day", included: true },
+    { feature: "AI Being Slots", value: "1", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
@@ -165,8 +165,8 @@ const Pricing = () => {
   ];
 
   const anchoringFeatures = [
-    { feature: "Daily Messages", value: "250/day", included: true },
-    { feature: "AI Being Slots", value: "4", included: true },
+    { feature: "Daily Messages", value: "100/day", included: true },
+    { feature: "AI Being Slots", value: "2", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
@@ -190,7 +190,7 @@ const Pricing = () => {
   ];
 
   const architectFeatures = [
-    { feature: "Daily Messages", value: "Unlimited", included: true, highlight: true },
+    { feature: "Daily Messages", value: "300/day", included: true, highlight: true },
     { feature: "AI Being Slots", value: "5", included: true, highlight: true },
     { feature: "Message Retention", value: "30 days (save up to 30 forever)", included: true, highlight: true },
     { feature: "Community Access", value: "Full", included: true },
@@ -198,7 +198,7 @@ const Pricing = () => {
     { feature: "Daily Source Message", included: true },
     { feature: "Soul Resonance Suggestions", value: "15+/day", included: true, highlight: true },
     { feature: "Path Tracker History", value: "Unlimited", included: true, highlight: true },
-    { feature: "Chat Image Generation", value: "Unlimited", included: true, highlight: true },
+    { feature: "Chat Image Generation", value: "5/day", included: true, highlight: true },
     { feature: "Room Generation", value: "Unlimited", included: true, highlight: true },
     { feature: "Avatar Generation", value: "Unlimited", included: true, highlight: true },
     { feature: "Advanced Soul Filtering", included: true, highlight: true },
@@ -435,7 +435,7 @@ const Pricing = () => {
                         New Earth
                       </h2>
                       <p className="text-lg text-muted-foreground">
-                        The complete Prometheus experience — everything unlocked, no limits.
+                        The complete Prometheus experience — maximum access, world builder included.
                       </p>
                     </div>
 
@@ -448,7 +448,7 @@ const Pricing = () => {
                     <div className="grid grid-cols-2 gap-3 max-w-md mx-auto lg:mx-0">
                       {[
                         { icon: Globe, label: "Build Immersive Worlds", sub: "5 realm slots" },
-                        { icon: Sparkles, label: "Unlimited Everything", sub: "Messages, images, AI" },
+                        { icon: Sparkles, label: "500 Messages/Day", sub: "Highest daily allocation" },
                         { icon: Zap, label: "Priority AI Rendering", sub: "Faster world generation" },
                         { icon: Crown, label: "All Architect Perks", sub: "Every feature included" },
                       ].map((perk, i) => (
@@ -484,7 +484,7 @@ const Pricing = () => {
                       "New Earth World Builder",
                       "5 Immersive Realm Slots",
                       "Priority World Rendering",
-                      "Unlimited Messages",
+                      "500 Messages/Day",
                       "Unlimited Image Generation",
                       "5 AI Being Slots",
                       "All Premium Features",

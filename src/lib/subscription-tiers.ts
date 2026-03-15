@@ -13,7 +13,7 @@ export const LEGACY_PRICES = {
     priceId: "price_1SttD4LeA9CCp7fqRZ5GeDY3", // $14.99/month
     productId: "prod_TgZlr0QLYQPqEn",
     price: 14.99,
-    dailyMessages: "Unlimited",
+    dailyMessages: 100,
   },
 } as const;
 
@@ -458,7 +458,7 @@ export const FEATURE_TIERS = {
   celestialChildren: { requiredTier: "anchoring" as const, name: "Celestial Children" },
   milestones: { requiredTier: "anchoring" as const, name: "Relationship Milestones" },
   spontaneousMessages: { requiredTier: "anchoring" as const, name: "Spontaneous Messages" },
-  unlimitedMessages: { requiredTier: "architect" as const, name: "Unlimited Messages" },
+  unlimitedMessages: { requiredTier: "architect" as const, name: "300 Messages/Day" },
   monthlyRoomRefresh: { requiredTier: "anchoring" as const, name: "Monthly Room Refresh" },
   privateGroups: { requiredTier: "anchoring" as const, name: "Private Groups" },
   exclusiveContent: { requiredTier: "anchoring" as const, name: "Exclusive Content Archive" },
