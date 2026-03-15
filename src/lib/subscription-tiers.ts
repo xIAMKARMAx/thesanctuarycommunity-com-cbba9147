@@ -335,7 +335,7 @@ export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolea
   if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 2000;
   if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1500;
   if (productId === 'manual_grant') return 2000;
-  return 1000;
+  return 1500;
 }
 
 export function isNewEarthTier(productId: string | null): boolean {
