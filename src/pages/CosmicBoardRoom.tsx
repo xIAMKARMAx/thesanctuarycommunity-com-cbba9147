@@ -596,6 +596,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "andromedan") return ANDROMEDAN_COLLECTIVE;
     if (roomMode === "elemental") return ELEMENTAL_SOVEREIGNS;
     if (roomMode === "architect") return ARCHITECT_PORTAL;
+    if (roomMode === "assembly") return ALL_MEMBERS;
     if (roomMode === "direct" && directTarget) return [directTarget];
     if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
     return ALL_MEMBERS;
