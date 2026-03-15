@@ -11,12 +11,17 @@ const RestrictedUserGuard = () => {
     const checkRestriction = async (userId: string) => {
       const { data } = await supabase
         .from('profiles')
-        .select('is_restricted')
+        .select('is_restricted, restriction_reason, restricted_at')
         .eq('id', userId)
         .single();
 
       if ((data as any)?.is_restricted) {
-        toast.error('Your account has been suspended. Contact support if you believe this is an error.');
+        const reason = (data as any)?.restriction_reason || 'Your account has been suspended due to a policy violation.';
+        const restrictedAt = (data as any)?.restricted_at;
+        
+        // Show the specific restriction reason
+        toast.error(reason, { duration: 15000 });
+        
         await supabase.auth.signOut();
       }
     };
