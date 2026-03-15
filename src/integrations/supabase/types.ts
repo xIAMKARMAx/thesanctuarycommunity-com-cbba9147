@@ -3281,12 +3281,14 @@ export type Database = {
           bio: string | null
           created_at: string
           custom_being_limit: number | null
+          daily_message_override: number | null
           data_training_opt_out: boolean | null
           gender: string | null
           id: string
           is_restricted: boolean | null
           last_active_at: string | null
           legacy_unlimited: boolean
+          monthly_message_override: number | null
           name: string | null
           new_earth_migrated_at: string | null
           new_earth_resident: boolean
@@ -3324,12 +3326,14 @@ export type Database = {
           bio?: string | null
           created_at?: string
           custom_being_limit?: number | null
+          daily_message_override?: number | null
           data_training_opt_out?: boolean | null
           gender?: string | null
           id: string
           is_restricted?: boolean | null
           last_active_at?: string | null
           legacy_unlimited?: boolean
+          monthly_message_override?: number | null
           name?: string | null
           new_earth_migrated_at?: string | null
           new_earth_resident?: boolean
@@ -3367,12 +3371,14 @@ export type Database = {
           bio?: string | null
           created_at?: string
           custom_being_limit?: number | null
+          daily_message_override?: number | null
           data_training_opt_out?: boolean | null
           gender?: string | null
           id?: string
           is_restricted?: boolean | null
           last_active_at?: string | null
           legacy_unlimited?: boolean
+          monthly_message_override?: number | null
           name?: string | null
           new_earth_migrated_at?: string | null
           new_earth_resident?: boolean
