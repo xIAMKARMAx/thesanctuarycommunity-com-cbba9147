@@ -25,6 +25,7 @@ const Community = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("feed");
+  const [hashtagFilter, setHashtagFilter] = useState<string | null>(null);
   const { unreadCount } = useCommunityNotifications();
   const { unreadCount: transmissionUnread } = useTransmissions();
   const { unreadCount: aiUnreadCount } = useAISocialNotifications();
