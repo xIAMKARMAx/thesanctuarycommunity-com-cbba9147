@@ -448,7 +448,7 @@ const Pricing = () => {
                     <div className="grid grid-cols-2 gap-3 max-w-md mx-auto lg:mx-0">
                       {[
                         { icon: Globe, label: "Build Immersive Worlds", sub: "5 realm slots" },
-                        { icon: Sparkles, label: "Unlimited Everything", sub: "Messages, images, AI" },
+                        { icon: Sparkles, label: "500 Messages/Day", sub: "Highest daily allocation" },
                         { icon: Zap, label: "Priority AI Rendering", sub: "Faster world generation" },
                         { icon: Crown, label: "All Architect Perks", sub: "Every feature included" },
                       ].map((perk, i) => (
