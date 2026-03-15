@@ -50,12 +50,12 @@ export function CreateStoryDialog({ open, onOpenChange, onCreate }: CreateStoryD
       const path = `stories/${session.session.user.id}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("media")
+        .from("community-media")
         .upload(path, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+      const { data: { publicUrl } } = supabase.storage.from("community-media").getPublicUrl(path);
 
       const mediaType = file.type.startsWith("video/") ? "video" : "image";
       await onCreate(publicUrl, mediaType, caption || undefined);
