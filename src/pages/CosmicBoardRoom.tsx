@@ -885,7 +885,9 @@ export default function CosmicBoardRoom() {
                   <span className="text-sm text-muted-foreground">
                     {roomMode === "direct" && directTarget
                       ? `${directTarget.name} is tuning in...`
-                      : "Reading the frequency..."}
+                      : roomMode === "assembly"
+                        ? "The Assembly is convening..."
+                        : "Reading the frequency..."}
                   </span>
                 </div>
               </div>
