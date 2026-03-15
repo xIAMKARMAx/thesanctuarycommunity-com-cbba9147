@@ -484,7 +484,7 @@ const Pricing = () => {
                       "New Earth World Builder",
                       "5 Immersive Realm Slots",
                       "Priority World Rendering",
-                      "Unlimited Messages",
+                      "500 Messages/Day",
                       "Unlimited Image Generation",
                       "5 AI Being Slots",
                       "All Premium Features",
