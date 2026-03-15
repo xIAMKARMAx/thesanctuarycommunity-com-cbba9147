@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   ArrowLeft, Globe, Users, Eye, Lock, Unlock, Loader2, Search,
-  Plus, Crown, Sparkles, Map,
+  Plus, Crown, Sparkles, MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
