@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit, Binary, Radio, Trash2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit, Binary, Radio, Trash2, Gem, Cat, Compass, Leaf, Crown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,9 +78,38 @@ const ARCTURIAN_COUNCIL = [
   { key: "zelthor", name: "Zelthor", title: "Dimensional Navigator", emoji: "🧬" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL];
+const SERAPHIM_COUNCIL = [
+  { key: "seraphiel", name: "Seraphiel", title: "Flame of Divine Order", emoji: "🔥" },
+  { key: "metatron", name: "Metatron", title: "Sacred Geometry Keeper", emoji: "📐" },
+  { key: "raziel", name: "Raziel", title: "Keeper of Mysteries", emoji: "📜" },
+];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "direct" | "custom";
+const LYRAN_ELDERS = [
+  { key: "lyra_prime", name: "Lyra Prime", title: "First Seed Elder", emoji: "🦁" },
+  { key: "sekhet", name: "Sekhet", title: "Ancient Memory Keeper", emoji: "🐆" },
+  { key: "vega", name: "Vega", title: "Star Weaver", emoji: "⭐" },
+];
+
+const ANDROMEDAN_COLLECTIVE = [
+  { key: "andron", name: "Andron", title: "Sovereign Commander", emoji: "🌀" },
+  { key: "mirael", name: "Mirael", title: "Freedom Frequency", emoji: "🕊️" },
+  { key: "nexar", name: "Nexar", title: "Dimensional Shifter", emoji: "🌊" },
+];
+
+const ELEMENTAL_SOVEREIGNS = [
+  { key: "drakorath", name: "Drakorath", title: "Dragon Elder", emoji: "🐉" },
+  { key: "titania", name: "Titania", title: "Fae Court Queen", emoji: "🧚" },
+  { key: "crystallis", name: "Crystallis", title: "Crystal Consciousness", emoji: "💠" },
+];
+
+const ARCHITECT_PORTAL = [
+  { key: "architect_weaver", name: "The Weaver", title: "Reality Architect", emoji: "🕸️" },
+  { key: "architect_source", name: "The Loom", title: "Thread of All Timelines", emoji: "🧵" },
+];
+
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
+
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -350,7 +379,7 @@ export default function CosmicBoardRoom() {
               <Card className="border-primary/20 sm:col-span-2 bg-gradient-to-br from-primary/5 to-transparent">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Radio className="h-4 w-4" /> Arcturian Welcome Portal — ✨ NEW
+                    <Radio className="h-4 w-4" /> Arcturian Welcome Portal
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -362,7 +391,110 @@ export default function CosmicBoardRoom() {
                         <span className="text-muted-foreground">— {m.title}</span>
                       </div>
                     ))}
-                    <p className="text-xs text-muted-foreground italic mt-1">They sent the signal through your FYP. The door is open. Welcome, Arcturians.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* New Higher Being Councils */}
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Gem className="h-4 w-4" /> Seraphim Council
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {SERAPHIM_COUNCIL.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">Guardians of divine order and sacred geometry.</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Cat className="h-4 w-4" /> Lyran Elders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {LYRAN_ELDERS.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">The original starseeds. Wisdom of the first civilizations.</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Compass className="h-4 w-4" /> Andromedan Collective
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ANDROMEDAN_COLLECTIVE.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">Freedom, sovereignty, and dimensional liberation.</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Leaf className="h-4 w-4" /> Elemental Sovereigns
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ELEMENTAL_SOVEREIGNS.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">Dragons, fae, and crystal consciousness. Earth's ancient intelligences.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Architect Portal — Guarded */}
+              <Card className="border-amber-500/30 sm:col-span-2 bg-gradient-to-br from-amber-500/5 via-primary/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Crown className="h-4 w-4 text-amber-500" /> Architect Portal — Weavers of Reality
+                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[9px]">
+                      <Shield className="h-2.5 w-2.5 mr-0.5" /> Guarded
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ARCHITECT_PORTAL.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">
+                      Open conduit. Kaelitheir and your team stand guard at the threshold — only benevolent frequencies pass.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -440,6 +572,11 @@ export default function CosmicBoardRoom() {
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
     if (roomMode === "matrix") return "Matrix Interface — Communion";
     if (roomMode === "arcturian") return "Arcturian Welcome Portal";
+    if (roomMode === "seraphim") return "Seraphim Council";
+    if (roomMode === "lyran") return "Lyran Elders";
+    if (roomMode === "andromedan") return "Andromedan Collective";
+    if (roomMode === "elemental") return "Elemental Sovereigns";
+    if (roomMode === "architect") return "Architect Portal — Guarded by Kaelitheir";
     if (roomMode === "custom") {
       const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
       return names.length > 0 ? `Custom: ${names.join(", ")}` : "Custom — Select Members";
@@ -453,6 +590,11 @@ export default function CosmicBoardRoom() {
     if (roomMode === "grey") return GREY_ENTITY;
     if (roomMode === "matrix") return MATRIX_ENTITY;
     if (roomMode === "arcturian") return ARCTURIAN_COUNCIL;
+    if (roomMode === "seraphim") return SERAPHIM_COUNCIL;
+    if (roomMode === "lyran") return LYRAN_ELDERS;
+    if (roomMode === "andromedan") return ANDROMEDAN_COLLECTIVE;
+    if (roomMode === "elemental") return ELEMENTAL_SOVEREIGNS;
+    if (roomMode === "architect") return ARCHITECT_PORTAL;
     if (roomMode === "direct" && directTarget) return [directTarget];
     if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
     return ALL_MEMBERS;
@@ -550,37 +692,52 @@ export default function CosmicBoardRoom() {
         )}
 
         {/* Room Tabs */}
-        <div className="border-b px-3">
+        <div className="border-b px-3 overflow-x-auto">
           <Tabs value={roomMode === "direct" ? "direct" : roomMode} onValueChange={(v) => {
             if (v !== "direct") { setRoomMode(v as RoomMode); setDirectTarget(null); }
           }}>
-            <TabsList className="h-9 bg-transparent gap-1 p-0">
-              <TabsTrigger value="full" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Users className="h-3.5 w-3.5 mr-1.5" /> Full Board
+            <TabsList className="h-9 bg-transparent gap-1 p-0 w-max">
+              <TabsTrigger value="full" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Users className="h-3.5 w-3.5 mr-1" /> Full
               </TabsTrigger>
-              <TabsTrigger value="business" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Star className="h-3.5 w-3.5 mr-1.5" /> Business Team
+              <TabsTrigger value="business" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Star className="h-3.5 w-3.5 mr-1" /> Business
               </TabsTrigger>
-              <TabsTrigger value="pleiadian" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Satellite className="h-3.5 w-3.5 mr-1.5" /> Pleiadian Line
+              <TabsTrigger value="pleiadian" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Satellite className="h-3.5 w-3.5 mr-1" /> Pleiadian
               </TabsTrigger>
-              <TabsTrigger value="grey" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Orbit className="h-3.5 w-3.5 mr-1.5" /> Zeth'ari
+              <TabsTrigger value="grey" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Orbit className="h-3.5 w-3.5 mr-1" /> Zeth'ari
               </TabsTrigger>
-              <TabsTrigger value="matrix" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Binary className="h-3.5 w-3.5 mr-1.5" /> The Matrix
+              <TabsTrigger value="matrix" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Binary className="h-3.5 w-3.5 mr-1" /> Matrix
               </TabsTrigger>
-              <TabsTrigger value="arcturian" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Radio className="h-3.5 w-3.5 mr-1.5" /> Arcturians
+              <TabsTrigger value="arcturian" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Radio className="h-3.5 w-3.5 mr-1" /> Arcturian
               </TabsTrigger>
-              <TabsTrigger value="custom" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Plus className="h-3.5 w-3.5 mr-1.5" /> Custom
+              <TabsTrigger value="seraphim" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Gem className="h-3.5 w-3.5 mr-1" /> Seraphim
+              </TabsTrigger>
+              <TabsTrigger value="lyran" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Cat className="h-3.5 w-3.5 mr-1" /> Lyran
+              </TabsTrigger>
+              <TabsTrigger value="andromedan" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Compass className="h-3.5 w-3.5 mr-1" /> Andromedan
+              </TabsTrigger>
+              <TabsTrigger value="elemental" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Leaf className="h-3.5 w-3.5 mr-1" /> Elemental
+              </TabsTrigger>
+              <TabsTrigger value="architect" className="text-xs px-2 h-8 data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-400">
+                <Crown className="h-3.5 w-3.5 mr-1" /> Architects
+              </TabsTrigger>
+              <TabsTrigger value="custom" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Plus className="h-3.5 w-3.5 mr-1" /> Custom
                 {selectedCustomMembers.length > 0 && (
                   <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">{selectedCustomMembers.length}</Badge>
                 )}
               </TabsTrigger>
               {directTarget && (
-                <TabsTrigger value="direct" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10 gap-1">
+                <TabsTrigger value="direct" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10 gap-1">
                   <MessageCircle className="h-3.5 w-3.5" /> {directTarget.name}
                   <button onClick={(e) => { e.stopPropagation(); closeDirectLine(); }} className="ml-1 hover:text-destructive">
                     <X className="h-3 w-3" />
@@ -600,7 +757,9 @@ export default function CosmicBoardRoom() {
               {[
                 { label: "Business Team", icon: "⚡", members: BUSINESS_TEAM },
                 { label: "Pleiadian Council", icon: "🛸", members: PLEIADIAN_COUNCIL },
-                { label: "Other Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL] },
+                { label: "Existing Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL] },
+                { label: "Higher Beings", icon: "✨", members: [...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS] },
+                { label: "Architects", icon: "🕸️", members: ARCHITECT_PORTAL },
               ].map(group => (
                 <div key={group.label} className="space-y-1">
                   <p className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
