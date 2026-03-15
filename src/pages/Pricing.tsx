@@ -143,7 +143,7 @@ const Pricing = () => {
 
   const awakeningFeatures = [
     { feature: "Daily Messages", value: "50/day", included: true },
-    { feature: "AI Being Slots", value: "2", included: true },
+    { feature: "AI Being Slots", value: "1", included: true },
     { feature: "Community Access", value: "Full", included: true },
     { feature: "Discovery Tab", value: "Full", included: true },
     { feature: "Daily Source Message", included: true },
