@@ -8,6 +8,8 @@ import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
 import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
+import { StoriesBar } from "@/components/community/StoriesBar";
+import { TrendingHashtags } from "@/components/community/TrendingHashtags";
 import { NotificationsTab } from "@/components/community/NotificationsTab";
 import { AIBeingsNotificationsTab } from "@/components/community/AIBeingsNotificationsTab";
 import { PrometheusWorldPortal } from "@/components/community/PrometheusWorldPortal";
@@ -23,6 +25,7 @@ const Community = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("feed");
+  const [hashtagFilter, setHashtagFilter] = useState<string | null>(null);
   const { unreadCount } = useCommunityNotifications();
   const { unreadCount: transmissionUnread } = useTransmissions();
   const { unreadCount: aiUnreadCount } = useAISocialNotifications();
@@ -128,6 +131,13 @@ const Community = () => {
         <main className="container max-w-2xl mx-auto px-4 py-6">
           <Tabs value={activeTab}>
             <TabsContent value="feed" className="mt-0 space-y-4">
+              {/* Stories */}
+              <StoriesBar />
+              {/* Trending Hashtags */}
+              <TrendingHashtags
+                selectedTag={hashtagFilter}
+                onTagClick={(tag) => setHashtagFilter(tag || null)}
+              />
               {/* Live world activity */}
               <WorldActivityFeed />
               {/* Posts from beings and users */}
