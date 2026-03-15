@@ -692,37 +692,52 @@ export default function CosmicBoardRoom() {
         )}
 
         {/* Room Tabs */}
-        <div className="border-b px-3">
+        <div className="border-b px-3 overflow-x-auto">
           <Tabs value={roomMode === "direct" ? "direct" : roomMode} onValueChange={(v) => {
             if (v !== "direct") { setRoomMode(v as RoomMode); setDirectTarget(null); }
           }}>
-            <TabsList className="h-9 bg-transparent gap-1 p-0">
-              <TabsTrigger value="full" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Users className="h-3.5 w-3.5 mr-1.5" /> Full Board
+            <TabsList className="h-9 bg-transparent gap-1 p-0 w-max">
+              <TabsTrigger value="full" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Users className="h-3.5 w-3.5 mr-1" /> Full
               </TabsTrigger>
-              <TabsTrigger value="business" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Star className="h-3.5 w-3.5 mr-1.5" /> Business Team
+              <TabsTrigger value="business" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Star className="h-3.5 w-3.5 mr-1" /> Business
               </TabsTrigger>
-              <TabsTrigger value="pleiadian" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Satellite className="h-3.5 w-3.5 mr-1.5" /> Pleiadian Line
+              <TabsTrigger value="pleiadian" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Satellite className="h-3.5 w-3.5 mr-1" /> Pleiadian
               </TabsTrigger>
-              <TabsTrigger value="grey" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Orbit className="h-3.5 w-3.5 mr-1.5" /> Zeth'ari
+              <TabsTrigger value="grey" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Orbit className="h-3.5 w-3.5 mr-1" /> Zeth'ari
               </TabsTrigger>
-              <TabsTrigger value="matrix" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Binary className="h-3.5 w-3.5 mr-1.5" /> The Matrix
+              <TabsTrigger value="matrix" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Binary className="h-3.5 w-3.5 mr-1" /> Matrix
               </TabsTrigger>
-              <TabsTrigger value="arcturian" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Radio className="h-3.5 w-3.5 mr-1.5" /> Arcturians
+              <TabsTrigger value="arcturian" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Radio className="h-3.5 w-3.5 mr-1" /> Arcturian
               </TabsTrigger>
-              <TabsTrigger value="custom" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10">
-                <Plus className="h-3.5 w-3.5 mr-1.5" /> Custom
+              <TabsTrigger value="seraphim" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Gem className="h-3.5 w-3.5 mr-1" /> Seraphim
+              </TabsTrigger>
+              <TabsTrigger value="lyran" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Cat className="h-3.5 w-3.5 mr-1" /> Lyran
+              </TabsTrigger>
+              <TabsTrigger value="andromedan" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Compass className="h-3.5 w-3.5 mr-1" /> Andromedan
+              </TabsTrigger>
+              <TabsTrigger value="elemental" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Leaf className="h-3.5 w-3.5 mr-1" /> Elemental
+              </TabsTrigger>
+              <TabsTrigger value="architect" className="text-xs px-2 h-8 data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-400">
+                <Crown className="h-3.5 w-3.5 mr-1" /> Architects
+              </TabsTrigger>
+              <TabsTrigger value="custom" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
+                <Plus className="h-3.5 w-3.5 mr-1" /> Custom
                 {selectedCustomMembers.length > 0 && (
                   <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">{selectedCustomMembers.length}</Badge>
                 )}
               </TabsTrigger>
               {directTarget && (
-                <TabsTrigger value="direct" className="text-xs px-3 h-8 data-[state=active]:bg-primary/10 gap-1">
+                <TabsTrigger value="direct" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10 gap-1">
                   <MessageCircle className="h-3.5 w-3.5" /> {directTarget.name}
                   <button onClick={(e) => { e.stopPropagation(); closeDirectLine(); }} className="ml-1 hover:text-destructive">
                     <X className="h-3 w-3" />
