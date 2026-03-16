@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, Bot, Crown } from "lucide-react";
+import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, Bot, Crown, Palette } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
@@ -81,6 +81,9 @@ const Community = () => {
                       {transmissionUnread > 9 ? '9+' : transmissionUnread}
                     </span>
                   )}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/art-showcase")} title="Ki'emani's Showcase">
+                  <Palette className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => navigate("/soul-search")} title="Soul Search">
                   <Search className="h-4 w-4" />
