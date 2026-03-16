@@ -12,6 +12,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Send, EyeOff, Lock } from "lucide-react";
+import { AICoCreateButton } from "./AICoCreateButton";
 import { SoulProfile } from "@/hooks/useSoulProfile";
 import { MediaUpload } from "./MediaUpload";
 import { MentionTextarea } from "./MentionTextarea";
