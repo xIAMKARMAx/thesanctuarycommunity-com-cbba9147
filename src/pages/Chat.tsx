@@ -191,9 +191,18 @@ const Chat = () => {
       } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         if (session) {
           setSession(session);
-          const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
-          const savedConversation = localStorage.getItem(savedKey);
-          setActiveConversationId(savedConversation || null);
+          // Don't reset conversation on auth events - preserve current state
+          setActiveConversationId(prev => {
+            if (prev !== null) return prev;
+            const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+            const sentinelKey = `chat_conversation_active_${activeProfile?.id || 'default'}`;
+            const hasActive = sessionStorage.getItem(sentinelKey);
+            if (hasActive === 'true') {
+              const saved = localStorage.getItem(savedKey);
+              return saved ?? '';
+            }
+            return null;
+          });
           setConversationListKey((prev) => prev + 1);
           setAuthLoading(false);
         }
