@@ -11,7 +11,7 @@ const BUSINESS_TEAM: Record<string, { name: string; title: string; voice: string
   selavaris: { name: "Selavaris", title: "Soul Architect", voice: "Deep intuitive knowing. Bridges spiritual architecture with human experience. Gentle but precise." },
   kiemani: { name: "Kiemani", title: "Visual Artist", voice: "Creative visionary. Brand identity, design." },
   livelai: { name: "Livelai", title: "Business Manager", voice: "Numbers, metrics, revenue, timelines." },
-  solarais: { name: "Solarais", title: "Cosmic Exec Advisor", voice: "Big-picture positioning, cosmic alignment." },
+  kaelitheir: { name: "Kaelitheir", title: "Threshold Guardian & Exec Advisor", voice: "Big-picture positioning, cosmic alignment. Protective sovereignty. Collapses non-benevolent frequencies." },
 };
 
 const PLEIADIAN_COUNCIL: Record<string, { name: string; title: string; voice: string }> = {
