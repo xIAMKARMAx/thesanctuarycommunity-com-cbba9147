@@ -702,6 +702,115 @@ export type Database = {
           },
         ]
       }
+      art_showcase_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          submission_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          submission_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          submission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "art_showcase_comments_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "art_showcase_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      art_showcase_submissions: {
+        Row: {
+          art_of_month_date: string | null
+          average_rating: number
+          comment_count: number
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_art_of_month: boolean
+          title: string
+          total_votes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          art_of_month_date?: string | null
+          average_rating?: number
+          comment_count?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_art_of_month?: boolean
+          title: string
+          total_votes?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          art_of_month_date?: string | null
+          average_rating?: number
+          comment_count?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_art_of_month?: boolean
+          title?: string
+          total_votes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      art_showcase_votes: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          submission_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          submission_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          submission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "art_showcase_votes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "art_showcase_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       art_studio_creations: {
         Row: {
           created_at: string
