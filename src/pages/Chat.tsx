@@ -119,10 +119,16 @@ const Chat = () => {
   // Persist conversation ID when it changes
   useEffect(() => {
     const key = `chat_conversation_${activeProfile?.id || 'default'}`;
-    if (activeConversationId) {
-      localStorage.setItem(key, activeConversationId);
+    const sentinelKey = `chat_conversation_active_${activeProfile?.id || 'default'}`;
+    if (activeConversationId !== null) {
+      // Persist even empty string (new conversation) so mobile camera resume works
+      if (activeConversationId) {
+        localStorage.setItem(key, activeConversationId);
+      }
+      sessionStorage.setItem(sentinelKey, 'true');
     } else {
       localStorage.removeItem(key);
+      sessionStorage.removeItem(sentinelKey);
     }
   }, [activeConversationId, activeProfile?.id]);
 
