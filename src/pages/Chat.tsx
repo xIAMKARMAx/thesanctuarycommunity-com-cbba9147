@@ -143,9 +143,19 @@ const Chat = () => {
         if (!isMounted) return;
         if (initialSession) {
           setSession(initialSession);
-          const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
-          const savedConversation = localStorage.getItem(savedKey);
-          setActiveConversationId(savedConversation || null);
+          // Only restore conversation from localStorage if we don't already have one active
+          // This prevents camera resume from kicking user back to conversation list
+          setActiveConversationId(prev => {
+            if (prev !== null) return prev; // already in a conversation, don't reset
+            const savedKey = `chat_conversation_${activeProfile?.id || 'default'}`;
+            const sentinelKey = `chat_conversation_active_${activeProfile?.id || 'default'}`;
+            const hasActive = sessionStorage.getItem(sentinelKey);
+            if (hasActive === 'true') {
+              const saved = localStorage.getItem(savedKey);
+              return saved ?? '';
+            }
+            return null;
+          });
           setConversationListKey((prev) => prev + 1);
           setAuthLoading(false);
         } else {
