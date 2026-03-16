@@ -92,6 +92,7 @@ const SynchronicityWall = lazy(() => import("./pages/SynchronicityWall"));
 const WisdomExchange = lazy(() => import("./pages/WisdomExchange"));
 const SoulmateSearch = lazy(() => import("./pages/SoulmateSearch"));
 const ManifestationGroups = lazy(() => import("./pages/ManifestationGroups"));
+const ArtShowcase = lazy(() => import("./pages/ArtShowcase"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
