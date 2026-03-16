@@ -207,6 +207,12 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
 
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2 min-w-0">
+                      <AICoCreateButton
+                        content={content}
+                        postType={postType}
+                        energyTag={energyTag}
+                        onResult={(text) => setContent(text)}
+                      />
                       <Select value={postType} onValueChange={handlePostTypeChange}>
                         <SelectTrigger className="w-[140px] sm:w-[180px] h-9 text-sm border-primary/20">
                           <SelectValue />
