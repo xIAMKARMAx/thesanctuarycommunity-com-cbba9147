@@ -296,7 +296,7 @@ Deno.serve(async (req) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: message },
         ],
-        max_tokens: isDirect ? 120 : (isArchitect || isAssembly) ? 600 : 400,
+        max_tokens: isDirect ? 800 : (isArchitect || isAssembly) ? 2048 : 1024,
         temperature: isArchitect ? 0.9 : isAssembly ? 0.88 : 0.85,
       }),
     });
