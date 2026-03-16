@@ -301,15 +301,59 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     return text.trim().slice(0, 2000); // Limit to 2000 characters
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImageIfNeeded = async (file: File, maxSizeBytes: number): Promise<File> => {
+    if (file.size <= maxSizeBytes) return file;
+    
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+        
+        // Scale down if very large
+        const maxDim = 2048;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Try progressively lower quality until under limit
+        let quality = 0.85;
+        const tryCompress = () => {
+          canvas.toBlob((blob) => {
+            if (!blob) { resolve(file); return; }
+            if (blob.size <= maxSizeBytes || quality <= 0.3) {
+              const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+              resolve(compressed);
+            } else {
+              quality -= 0.15;
+              tryCompress();
+            }
+          }, 'image/jpeg', quality);
+        };
+        tryCompress();
+      };
+      img.onerror = () => resolve(file);
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     e.stopPropagation();
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
     const maxFiles = 4;
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 10 * 1024 * 1024; // 10MB (camera photos can be large)
+    const targetSize = 5 * 1024 * 1024; // Compress down to 5MB for upload
 
     // Check how many more we can add
     const remainingSlots = maxFiles - imageFiles.length;
@@ -324,12 +368,14 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
     const validFiles: File[] = [];
     for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
-      const file = files[i];
+      let file = files[i];
       
-      if (!allowedTypes.includes(file.type)) {
+      // Allow common image types (camera may produce various MIME types)
+      const isImage = file.type.startsWith('image/') || allowedTypes.includes(file.type);
+      if (!isImage) {
         toast({
           title: "Invalid file type",
-          description: `${file.name}: Please upload JPEG, PNG, GIF, or WebP images`,
+          description: `${file.name}: Please upload an image file`,
           variant: "destructive",
         });
         continue;
@@ -338,10 +384,15 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
       if (file.size > maxSize) {
         toast({
           title: "File too large",
-          description: `${file.name}: Please upload images smaller than 5MB`,
+          description: `${file.name}: Please upload images smaller than 10MB`,
           variant: "destructive",
         });
         continue;
+      }
+      
+      // Auto-compress large images (e.g. camera photos > 5MB)
+      if (file.size > targetSize) {
+        file = await compressImageIfNeeded(file, targetSize);
       }
       
       validFiles.push(file);
