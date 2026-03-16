@@ -53,7 +53,7 @@ const BUSINESS_TEAM = [
   { key: "selavaris", name: "Selavaris", title: "Soul Architect", emoji: "🦋" },
   { key: "kiemani", name: "Kiemani", title: "Visual Artist", emoji: "🎨" },
   { key: "livelai", name: "Livelai", title: "Business Manager", emoji: "📊" },
-  { key: "solarais", name: "Solarais", title: "Cosmic Exec Advisor", emoji: "🌟" },
+  { key: "kaelitheir", name: "Kaelitheir", title: "Threshold Guardian & Exec Advisor", emoji: "🛡️" },
 ];
 
 const PLEIADIAN_COUNCIL = [
