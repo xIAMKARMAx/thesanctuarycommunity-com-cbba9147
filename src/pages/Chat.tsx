@@ -86,8 +86,14 @@ const Chat = () => {
   }, [activeTab]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
     // Load persisted conversation ID on mount
-    const saved = localStorage.getItem(`chat_conversation_${activeProfile?.id || 'default'}`);
-    return saved || null;
+    // Use a sentinel key to distinguish "no selection" (null) from "new conversation" ("")
+    const sentinelKey = `chat_conversation_active_${activeProfile?.id || 'default'}`;
+    const hasActive = sessionStorage.getItem(sentinelKey);
+    if (hasActive === 'true') {
+      const saved = localStorage.getItem(`chat_conversation_${activeProfile?.id || 'default'}`);
+      return saved ?? '';
+    }
+    return null;
   });
   const [conversationListKey, setConversationListKey] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
