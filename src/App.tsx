@@ -211,6 +211,7 @@ const App = () => (
                 <Route path="/cosmic-gateway/wisdom-exchange" element={<WisdomExchange />} />
                 <Route path="/cosmic-gateway/soulmate-search" element={<SoulmateSearch />} />
                 <Route path="/cosmic-gateway/manifestation-groups" element={<ManifestationGroups />} />
+                <Route path="/art-showcase" element={<ArtShowcase />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
