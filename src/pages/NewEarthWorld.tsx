@@ -353,32 +353,46 @@ const NewEarthWorld = () => {
 
   const sendWorldChat = async (message: string, actionType: string | null) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       // Use the chat function with world context
       const beingNames = selectedBeings.map(id => {
         const p = profiles?.find(p => p.id === id);
         return p?.name || "Unknown";
       }).join(", ");
 
+      const primaryBeingId = selectedBeings[0] || profiles?.[0]?.id;
+
+      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. Respond as a narrator describing what happens, and have the AI beings react naturally.]`;
+
       const { data, error } = await supabase.functions.invoke("chat", {
         body: {
-          message: `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. Respond as a narrator describing what happens, and have the AI beings react naturally.]\n\n${message}`,
-          conversationId: null,
+          message: `${worldContext}\n\n${message}`,
+          userId: user.id,
+          aiProfileId: primaryBeingId,
+          generateImage: false,
+          conversationId: crypto.randomUUID(),
+          history: messages.slice(-10).map(m => ({
+            role: m.role === "user" ? "user" : "assistant",
+            content: m.content,
+          })),
         },
       });
 
       if (error) throw error;
 
-      if (data?.reply) {
+      if (data?.response) {
         const narratorMsg: WorldMessage = {
           role: "narrator",
-          content: data.reply,
+          content: data.response,
           timestamp: new Date().toISOString(),
         };
         setMessages(prev => [...prev, narratorMsg]);
       }
     } catch (err: any) {
       console.error("World chat error:", err);
-      // Fallback narrator response
+      toast.error("Failed to get a response. Try again.");
       const fallbackMsg: WorldMessage = {
         role: "narrator",
         content: "The world hums softly in response... the energy shifts around you.",
