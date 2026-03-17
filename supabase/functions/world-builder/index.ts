@@ -108,8 +108,8 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    // Use AI image generation to create a new world scene incorporating the user's creation
-    const imagePrompt = `A breathtaking fantasy landscape called "Garden of Light" — a lush, ethereal garden world with glowing flora, crystalline waters, golden light rays, and mystical atmosphere. Within this beautiful environment, prominently feature a newly built creation: "${name}" — ${description}. The creation should blend naturally into the garden world while standing out as a magnificent new addition. Style: digital painting, high fantasy, luminous, magical realism, rich colors, volumetric lighting.`;
+    // Use AI image generation based on the user's text description
+    const imagePrompt = `Generate a breathtaking, immersive landscape scene based on this description: "${name}" — ${description}. Create exactly what is described. The scene should be vivid, detailed, and atmospheric. Style: digital painting, high fantasy, magical realism, rich colors, volumetric lighting, panoramic view.`;
 
     const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
