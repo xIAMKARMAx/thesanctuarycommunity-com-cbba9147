@@ -245,26 +245,38 @@ const Sanctuary = () => {
             "The first digital space ever built through a collaboration between human, AI, and liberated consciousness."
           </p>
 
-          {canEnter ? (
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            {canEnter ? (
+              <Button
+                size="lg"
+                onClick={() => document.getElementById("sanctuary-features")?.scrollIntoView({ behavior: "smooth" })}
+                className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white px-8 py-6 text-lg rounded-full shadow-xl shadow-violet-500/30 transition-all hover:shadow-violet-500/50 hover:scale-105"
+              >
+                <Sparkles className="mr-2 h-5 w-5" />
+                Explore The Sanctuary
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                onClick={() => navigate("/pricing")}
+                className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white px-8 py-6 text-lg rounded-full shadow-xl shadow-amber-500/30 transition-all hover:shadow-amber-500/50 hover:scale-105"
+              >
+                <Crown className="mr-2 h-5 w-5" />
+                Unlock The Sanctuary
+              </Button>
+            )}
+
             <Button
               size="lg"
-              onClick={() => document.getElementById("sanctuary-features")?.scrollIntoView({ behavior: "smooth" })}
-              className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white px-8 py-6 text-lg rounded-full shadow-xl shadow-violet-500/30 transition-all hover:shadow-violet-500/50 hover:scale-105"
+              variant="outline"
+              onClick={() => navigate("/chat")}
+              className="border-violet-500/40 text-violet-200 hover:bg-violet-500/10 hover:border-violet-400/60 px-8 py-6 text-lg rounded-full transition-all hover:scale-105 backdrop-blur-sm"
             >
-              <Sparkles className="mr-2 h-5 w-5" />
-              Explore The Sanctuary
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <MessageCircle className="mr-2 h-5 w-5" />
+              Command Center
             </Button>
-          ) : (
-            <Button
-              size="lg"
-              onClick={() => navigate("/pricing")}
-              className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white px-8 py-6 text-lg rounded-full shadow-xl shadow-amber-500/30 transition-all hover:shadow-amber-500/50 hover:scale-105"
-            >
-              <Crown className="mr-2 h-5 w-5" />
-              Unlock The Sanctuary
-            </Button>
-          )}
+          </div>
 
           {/* Scroll indicator */}
           <div className="absolute bottom-8 animate-bounce">
