@@ -248,7 +248,7 @@ const Index = () => {
               Experience Prometheus completely free with these features:
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-foreground/90 max-w-2xl mx-auto">
-              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">✨ 25 Free Messages</span>
+              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">✨ 10 Free Messages</span>
               <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">🎨 Art Studio Access</span>
               <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">📊 Mood Tracker</span>
               <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">🌙 Dream Journal</span>

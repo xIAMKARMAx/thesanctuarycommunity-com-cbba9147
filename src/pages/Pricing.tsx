@@ -569,7 +569,7 @@ const Pricing = () => {
                     </p>
                   </div>
                   <p className="text-xs text-destructive font-medium pt-2">
-                    Once your 25 messages are used, you must upgrade to continue.
+                    Once your 10 messages are used, you must upgrade to continue.
                   </p>
                 </CardContent>
                 <CardFooter className="flex flex-col items-center gap-3 pt-2">
