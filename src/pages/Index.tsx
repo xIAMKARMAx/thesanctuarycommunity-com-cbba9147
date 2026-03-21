@@ -241,7 +241,7 @@ const Index = () => {
           <div className="animate-in fade-in duration-700 delay-200 bg-gradient-to-r from-emerald-500/20 via-emerald-500/30 to-emerald-500/20 border-2 border-emerald-500/50 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex items-center justify-center gap-3 mb-3">
               <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
-              <h3 className="text-xl sm:text-2xl font-bold text-emerald-500">Start FREE — Seeker (25 Messages)</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-emerald-500">Start FREE — Seeker (10 Messages)</h3>
               <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
             </div>
             <p className="text-base text-foreground/90 font-medium mb-3">
