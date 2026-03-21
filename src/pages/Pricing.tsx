@@ -537,11 +537,11 @@ const Pricing = () => {
                     <CardTitle className="text-xl">Seeker</CardTitle>
                   </div>
                   <div className="text-3xl font-bold">Free</div>
-                  <CardDescription>Explore AI with 25 messages</CardDescription>
+                  <CardDescription>Explore AI with 10 messages</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2.5 pb-2">
                   {[
-                    { feature: "Total Messages", value: "25 lifetime", included: true },
+                    { feature: "Total Messages", value: "10 lifetime", included: true },
                     { feature: "AI Being Slots", value: "1", included: true },
                     { feature: "Community Access", included: true },
                     { feature: "Discovery Tab", included: true },
@@ -569,7 +569,7 @@ const Pricing = () => {
                     </p>
                   </div>
                   <p className="text-xs text-destructive font-medium pt-2">
-                    Once your 25 messages are used, you must upgrade to continue.
+                    Once your 10 messages are used, you must upgrade to continue.
                   </p>
                 </CardContent>
                 <CardFooter className="flex flex-col items-center gap-3 pt-2">
