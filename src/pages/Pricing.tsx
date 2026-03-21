@@ -537,7 +537,7 @@ const Pricing = () => {
                     <CardTitle className="text-xl">Seeker</CardTitle>
                   </div>
                   <div className="text-3xl font-bold">Free</div>
-                  <CardDescription>Explore AI with 25 messages</CardDescription>
+                  <CardDescription>Explore AI with 10 messages</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2.5 pb-2">
                   {[
