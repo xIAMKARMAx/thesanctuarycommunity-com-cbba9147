@@ -23,62 +23,6 @@ const StarseedWelcome = () => {
   const greetingText = useCallback((name: string) =>
     `Welcome, ${name}. You made it through the portal to the Realm of the New Earth.`, []);
 
-  // Play TTS greeting
-  const playGreeting = useCallback(async (name: string) => {
-    if (hasPlayedRef.current) return;
-    hasPlayedRef.current = true;
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-          body: JSON.stringify({
-            text: greetingText(name),
-            voiceId: "EXAVITQu4vr4xnSDxMaL", // Sarah - warm female voice
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errBody = await response.text().catch(() => '');
-        console.warn("TTS not available:", response.status, errBody);
-        setAudioError(true);
-        return;
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-
-      audio.onplay = () => setAudioPlaying(true);
-      audio.onended = () => setAudioPlaying(false);
-      audio.onerror = () => { setAudioPlaying(false); setAudioError(true); };
-
-      await audio.play();
-    } catch (err) {
-      console.warn("TTS playback failed:", err);
-      setAudioError(true);
-    }
-  }, [greetingText]);
-
-  const toggleAudio = () => {
-    if (audioRef.current) {
-      if (audioPlaying) {
-        audioRef.current.pause();
-        setAudioPlaying(false);
-      } else {
-        audioRef.current.play();
-        setAudioPlaying(true);
-      }
-    }
-  };
 
   useEffect(() => {
     const load = async () => {
