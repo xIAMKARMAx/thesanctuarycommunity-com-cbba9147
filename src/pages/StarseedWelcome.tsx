@@ -46,8 +46,6 @@ const StarseedWelcome = () => {
       // Show choices after speech bubble appears
       setTimeout(() => setShowChoices(true), 1800);
 
-      // Try to play greeting audio
-      setTimeout(() => playGreeting(name), 1000);
     };
     load();
 
