@@ -837,7 +837,7 @@ export default function CosmicBoardRoom() {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollRef}>
           <div className="max-w-3xl mx-auto space-y-3">
             {currentMessages.length === 0 && (
               <div className="text-center py-8 space-y-2">
