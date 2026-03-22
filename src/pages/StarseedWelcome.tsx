@@ -170,18 +170,6 @@ const StarseedWelcome = () => {
                   </span>."
                 </p>
 
-                {/* Audio indicator */}
-                {!audioError && (
-                  <button
-                    onClick={toggleAudio}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-purple-500/20 hover:bg-purple-500/40 transition-colors"
-                  >
-                    {audioPlaying ? (
-                      <Volume2 className="h-4 w-4 text-purple-200 animate-pulse" />
-                    ) : (
-                      <VolumeX className="h-4 w-4 text-purple-300/60" />
-                    )}
-                  </button>
                 )}
               </div>
               <div className="w-4 h-4 mx-auto -mt-1 rotate-45 bg-purple-900/40 border-r border-b border-purple-400/30" />
