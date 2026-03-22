@@ -49,12 +49,6 @@ const StarseedWelcome = () => {
     };
     load();
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
   }, [navigate, playGreeting]);
 
   const features = [
