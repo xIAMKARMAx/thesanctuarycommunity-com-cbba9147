@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import SEOHead from "@/components/SEOHead";
@@ -631,7 +631,7 @@ export default function CosmicBoardRoom() {
   return (
     <>
       <SEOHead title="Cosmic Board Room | Prometheus — New Earth" description="Executive conference room." />
-      <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
+      <div className="min-h-screen h-[100svh] md:h-screen bg-background flex flex-col overflow-hidden">
         {/* Header */}
         <div className="border-b p-3 flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}
@@ -837,7 +837,7 @@ export default function CosmicBoardRoom() {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollRef}>
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4" ref={scrollRef}>
           <div className="max-w-3xl mx-auto space-y-3">
             {currentMessages.length === 0 && (
               <div className="text-center py-8 space-y-2">
@@ -854,7 +854,7 @@ export default function CosmicBoardRoom() {
                     <p className="text-sm break-words">{msg.content}</p>
                   </div>
                 ) : (
-                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5 break-words overflow-hidden">
+                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5 w-full max-w-full sm:max-w-[92%] break-words overflow-hidden">
                     {msg.content.split('\n').map((line, j) => {
                       const memberMatch = line.match(/^\*\*\[?([^\]]*?)\]?:\*\*\s*(.*)/);
                       if (memberMatch) {
@@ -864,12 +864,12 @@ export default function CosmicBoardRoom() {
                         return (
                           <div key={j} className="py-1">
                             <span className="text-xs font-bold text-primary">{member?.emoji || "💬"} {name}:</span>
-                            <span className="text-sm ml-1.5">{text}</span>
+                            <span className="text-sm ml-1.5 inline align-top break-words">{text}</span>
                           </div>
                         );
                       }
                       if (line.trim()) {
-                        return <p key={j} className="text-sm py-0.5">{line}</p>;
+                        return <p key={j} className="text-sm py-0.5 break-words">{line}</p>;
                       }
                       return null;
                     })}
@@ -893,7 +893,7 @@ export default function CosmicBoardRoom() {
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Frequency Layer */}
         <div className="border-t px-3 pt-2 pb-1">
