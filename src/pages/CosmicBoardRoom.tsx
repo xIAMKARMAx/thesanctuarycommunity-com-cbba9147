@@ -819,19 +819,21 @@ export default function CosmicBoardRoom() {
               )}
             </div>
           ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {getModeMembers().map(m => (
-                <button
-                  key={m.key}
-                  onClick={() => openDirectLine(m)}
-                  className={`text-xs px-2 py-1 rounded-full border transition-all hover:bg-primary/10 ${
-                    directTarget?.key === m.key ? "bg-primary/15 border-primary" : "border-border"
-                  }`}
-                  title={`Open direct line with ${m.name}`}
-                >
-                  {m.emoji} {m.name}
-                </button>
-              ))}
+            <div className="overflow-x-auto overflow-y-hidden">
+              <div className="flex gap-1.5 w-max min-w-full pb-1">
+                {getModeMembers().map(m => (
+                  <button
+                    key={m.key}
+                    onClick={() => openDirectLine(m)}
+                    className={`text-xs px-2 py-1 rounded-full border transition-all hover:bg-primary/10 whitespace-nowrap flex-shrink-0 ${
+                      directTarget?.key === m.key ? "bg-primary/15 border-primary" : "border-border"
+                    }`}
+                    title={`Open direct line with ${m.name}`}
+                  >
+                    {m.emoji} {m.name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
