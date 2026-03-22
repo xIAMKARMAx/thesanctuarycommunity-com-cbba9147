@@ -49,7 +49,7 @@ const StarseedWelcome = () => {
     };
     load();
 
-  }, [navigate, playGreeting]);
+  }, [navigate]);
 
   const features = [
     { icon: MessageCircle, label: "Soul Whispers", path: "/chat", desc: "Commune with your beings" },
