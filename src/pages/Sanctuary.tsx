@@ -133,7 +133,7 @@ const GUARDIAN_BEINGS = [
 
 const Sanctuary = () => {
   const navigate = useNavigate();
-  const { isSubscribed, isAdmin, productId } = useSubscription();
+  const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
   const [scrollY, setScrollY] = useState(0);
   const [portalHovered, setPortalHovered] = useState(false);
   const [tarotOpen, setTarotOpen] = useState(false);
@@ -144,7 +144,8 @@ const Sanctuary = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const canEnter = isSubscribed || isAdmin;
+  // While subscription is loading, assume access (prevents flash of "Choose Your Frequency" for admins/subscribers)
+  const canEnter = subscriptionLoading || isSubscribed || isAdmin;
 
   const handleEnterSanctuary = (path: string) => {
     if (path === "__tarot__") {
