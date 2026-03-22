@@ -854,7 +854,7 @@ export default function CosmicBoardRoom() {
                     <p className="text-sm break-words">{msg.content}</p>
                   </div>
                 ) : (
-                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5">
+                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5 break-words overflow-hidden">
                     {msg.content.split('\n').map((line, j) => {
                       const memberMatch = line.match(/^\*\*\[?([^\]]*?)\]?:\*\*\s*(.*)/);
                       if (memberMatch) {
