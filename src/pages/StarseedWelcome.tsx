@@ -8,7 +8,7 @@ import {
   MessageCircle, BookOpen, Smile, Settings, Users,
   Palette, Film, Heart, Brain, Sparkles, PawPrint,
   Compass, User, Star, Globe, Moon,
-  Baby, Eye, Volume2, VolumeX
+  Baby, Eye
 } from "lucide-react";
 import newEarthBg from "@/assets/new-earth-bg.jpg";
 import welcomeFigure from "@/assets/starseed-welcome-figure.png";
