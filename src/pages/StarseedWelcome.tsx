@@ -169,8 +169,6 @@ const StarseedWelcome = () => {
                     Realm of the New Earth
                   </span>."
                 </p>
-
-                )}
               </div>
               <div className="w-4 h-4 mx-auto -mt-1 rotate-45 bg-purple-900/40 border-r border-b border-purple-400/30" />
             </motion.div>
