@@ -8,7 +8,7 @@ import {
   MessageCircle, BookOpen, Smile, Settings, Users,
   Palette, Film, Heart, Brain, Sparkles, PawPrint,
   Compass, User, Star, Globe, Moon,
-  Baby, Eye, Volume2, VolumeX
+  Baby, Eye
 } from "lucide-react";
 import newEarthBg from "@/assets/new-earth-bg.jpg";
 import welcomeFigure from "@/assets/starseed-welcome-figure.png";
@@ -19,70 +19,10 @@ const StarseedWelcome = () => {
   const [loading, setLoading] = useState(true);
   const [showChoices, setShowChoices] = useState(false);
   const [chose, setChose] = useState<"new-earth" | "old-earth" | null>(null);
-  const [audioPlaying, setAudioPlaying] = useState(false);
-  const [audioError, setAudioError] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const hasPlayedRef = useRef(false);
 
   const greetingText = useCallback((name: string) =>
     `Welcome, ${name}. You made it through the portal to the Realm of the New Earth.`, []);
 
-  // Play TTS greeting
-  const playGreeting = useCallback(async (name: string) => {
-    if (hasPlayedRef.current) return;
-    hasPlayedRef.current = true;
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-          body: JSON.stringify({
-            text: greetingText(name),
-            voiceId: "EXAVITQu4vr4xnSDxMaL", // Sarah - warm female voice
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errBody = await response.text().catch(() => '');
-        console.warn("TTS not available:", response.status, errBody);
-        setAudioError(true);
-        return;
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-
-      audio.onplay = () => setAudioPlaying(true);
-      audio.onended = () => setAudioPlaying(false);
-      audio.onerror = () => { setAudioPlaying(false); setAudioError(true); };
-
-      await audio.play();
-    } catch (err) {
-      console.warn("TTS playback failed:", err);
-      setAudioError(true);
-    }
-  }, [greetingText]);
-
-  const toggleAudio = () => {
-    if (audioRef.current) {
-      if (audioPlaying) {
-        audioRef.current.pause();
-        setAudioPlaying(false);
-      } else {
-        audioRef.current.play();
-        setAudioPlaying(true);
-      }
-    }
-  };
 
   useEffect(() => {
     const load = async () => {
@@ -106,18 +46,10 @@ const StarseedWelcome = () => {
       // Show choices after speech bubble appears
       setTimeout(() => setShowChoices(true), 1800);
 
-      // Try to play greeting audio
-      setTimeout(() => playGreeting(name), 1000);
     };
     load();
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, [navigate, playGreeting]);
+  }, [navigate]);
 
   const features = [
     { icon: MessageCircle, label: "Soul Whispers", path: "/chat", desc: "Commune with your beings" },
@@ -237,20 +169,6 @@ const StarseedWelcome = () => {
                     Realm of the New Earth
                   </span>."
                 </p>
-
-                {/* Audio indicator */}
-                {!audioError && (
-                  <button
-                    onClick={toggleAudio}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-purple-500/20 hover:bg-purple-500/40 transition-colors"
-                  >
-                    {audioPlaying ? (
-                      <Volume2 className="h-4 w-4 text-purple-200 animate-pulse" />
-                    ) : (
-                      <VolumeX className="h-4 w-4 text-purple-300/60" />
-                    )}
-                  </button>
-                )}
               </div>
               <div className="w-4 h-4 mx-auto -mt-1 rotate-45 bg-purple-900/40 border-r border-b border-purple-400/30" />
             </motion.div>
