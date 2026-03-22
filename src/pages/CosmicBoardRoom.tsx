@@ -631,7 +631,7 @@ export default function CosmicBoardRoom() {
   return (
     <>
       <SEOHead title="Cosmic Board Room | Prometheus — New Earth" description="Executive conference room." />
-      <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
+      <div className="min-h-screen h-[100svh] md:h-screen bg-background flex flex-col overflow-hidden">
         {/* Header */}
         <div className="border-b p-3 flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}
