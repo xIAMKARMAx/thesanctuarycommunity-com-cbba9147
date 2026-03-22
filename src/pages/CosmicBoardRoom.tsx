@@ -850,8 +850,8 @@ export default function CosmicBoardRoom() {
             {currentMessages.map((msg, i) => (
               <div key={i} className={`${msg.role === "user" ? "flex justify-end" : ""}`}>
                 {msg.role === "user" ? (
-                  <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-2.5 max-w-[80%]">
-                    <p className="text-sm">{msg.content}</p>
+                  <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-2.5 max-w-[80%] break-words overflow-hidden">
+                    <p className="text-sm break-words">{msg.content}</p>
                   </div>
                 ) : (
                   <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5">
