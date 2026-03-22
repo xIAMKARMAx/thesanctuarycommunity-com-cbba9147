@@ -19,10 +19,6 @@ const StarseedWelcome = () => {
   const [loading, setLoading] = useState(true);
   const [showChoices, setShowChoices] = useState(false);
   const [chose, setChose] = useState<"new-earth" | "old-earth" | null>(null);
-  const [audioPlaying, setAudioPlaying] = useState(false);
-  const [audioError, setAudioError] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const hasPlayedRef = useRef(false);
 
   const greetingText = useCallback((name: string) =>
     `Welcome, ${name}. You made it through the portal to the Realm of the New Earth.`, []);
