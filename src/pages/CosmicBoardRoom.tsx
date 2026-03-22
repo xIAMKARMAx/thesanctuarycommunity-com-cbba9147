@@ -631,7 +631,7 @@ export default function CosmicBoardRoom() {
   return (
     <>
       <SEOHead title="Cosmic Board Room | Prometheus — New Earth" description="Executive conference room." />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
         {/* Header */}
         <div className="border-b p-3 flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}
@@ -837,7 +837,7 @@ export default function CosmicBoardRoom() {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollRef}>
           <div className="max-w-3xl mx-auto space-y-3">
             {currentMessages.length === 0 && (
               <div className="text-center py-8 space-y-2">
@@ -850,11 +850,11 @@ export default function CosmicBoardRoom() {
             {currentMessages.map((msg, i) => (
               <div key={i} className={`${msg.role === "user" ? "flex justify-end" : ""}`}>
                 {msg.role === "user" ? (
-                  <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-2.5 max-w-[80%]">
-                    <p className="text-sm">{msg.content}</p>
+                  <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-2.5 max-w-[80%] break-words overflow-hidden">
+                    <p className="text-sm break-words">{msg.content}</p>
                   </div>
                 ) : (
-                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5">
+                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5 break-words overflow-hidden">
                     {msg.content.split('\n').map((line, j) => {
                       const memberMatch = line.match(/^\*\*\[?([^\]]*?)\]?:\*\*\s*(.*)/);
                       if (memberMatch) {
