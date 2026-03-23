@@ -40,8 +40,8 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 3,
       
   // Updated messaging
-      dailyMessages: 75,
-      monthlyMessages: 1500,
+      dailyMessages: 40,
+      monthlyMessages: 800,
       roomGeneration: "One-time only",
       avatarGeneration: "One-time only",
       petGeneration: "One-time only",
@@ -86,8 +86,8 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 7,
       
       // Updated messaging - strict daily limits
-      dailyMessages: 100,
-      monthlyMessages: 2000,
+      dailyMessages: 60,
+      monthlyMessages: 1200,
       roomGeneration: "Once per month",
       avatarGeneration: "1 per month per being",
       petGeneration: "1 per month per being",
@@ -130,8 +130,8 @@ export const SUBSCRIPTION_TIERS = {
       advancedSoulFiltering: true,
       
       // Strict daily limits
-      dailyMessages: 300,
-      monthlyMessages: 5000,
+      dailyMessages: 100,
+      monthlyMessages: 2000,
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
@@ -306,36 +306,36 @@ export function isLegacySubscriber(productId: string | null): boolean {
 
 // Get daily message limit based on product ID (respects legacy pricing)
 export function getDailyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
-  if (isAdmin) return -1; // Unlimited
-  if (!productId) return 15; // Free tier = 15 messages total
-  if (productId === 'source_grant') return -1; // Unlimited
+  if (isAdmin) return -1;
+  if (!productId) return 10; // Free tier = 10 messages total
+  if (productId === 'source_grant') return -1;
   if (productId === NEW_EARTH_PRODUCT_ID) return 500;
-  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 300;
+  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 100;
   
-  // Anchoring (legacy + new) = 100/day
-  if (productId === LEGACY_PRICES.anchoring.productId) return 100;
-  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 100;
+  // Anchoring (legacy + new) = 60/day
+  if (productId === LEGACY_PRICES.anchoring.productId) return 60;
+  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 60;
   
-  // Awakening (legacy + new) = 50/day
-  if (productId === LEGACY_PRICES.awakening.productId) return 75;
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 75;
+  // Awakening (legacy + new) = 40/day
+  if (productId === LEGACY_PRICES.awakening.productId) return 40;
+  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 40;
   
   // Manual grants get anchoring limits
-  if (productId === 'manual_grant') return 100;
+  if (productId === 'manual_grant') return 60;
   
-  return 75; // Default
+  return 40; // Default
 }
 
 export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
   if (isAdmin) return -1;
-  if (!productId) return 15; // Free = total cap
+  if (!productId) return 10; // Free = total cap
   if (productId === 'source_grant') return -1;
   if (productId === NEW_EARTH_PRODUCT_ID) return 8000;
-  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 5000;
-  if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 2000;
-  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1500;
-  if (productId === 'manual_grant') return 2000;
-  return 1500;
+  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 2000;
+  if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 1200;
+  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 800;
+  if (productId === 'manual_grant') return 1200;
+  return 800;
 }
 
 export function isNewEarthTier(productId: string | null): boolean {
@@ -458,7 +458,7 @@ export const FEATURE_TIERS = {
   celestialChildren: { requiredTier: "anchoring" as const, name: "Celestial Children" },
   milestones: { requiredTier: "anchoring" as const, name: "Relationship Milestones" },
   spontaneousMessages: { requiredTier: "anchoring" as const, name: "Spontaneous Messages" },
-  unlimitedMessages: { requiredTier: "architect" as const, name: "300 Messages/Day" },
+  unlimitedMessages: { requiredTier: "architect" as const, name: "100 Messages/Day" },
   monthlyRoomRefresh: { requiredTier: "anchoring" as const, name: "Monthly Room Refresh" },
   privateGroups: { requiredTier: "anchoring" as const, name: "Private Groups" },
   exclusiveContent: { requiredTier: "anchoring" as const, name: "Exclusive Content Archive" },

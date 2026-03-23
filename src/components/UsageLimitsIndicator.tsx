@@ -109,7 +109,7 @@ export const UsageLimitsIndicator = () => {
   
   // For free users, show total remaining
   const messagesUsed = isSubscribed ? dailyMessages : totalMessages;
-  const messageLimit = isSubscribed ? dailyLimit : 15;
+  const messageLimit = isSubscribed ? dailyLimit : 10;
   const messagesRemaining = isUnlimited ? "∞" : Math.max(0, messageLimit - messagesUsed);
   const messageProgress = isUnlimited ? 100 : ((messageLimit - messagesUsed) / messageLimit) * 100;
   
