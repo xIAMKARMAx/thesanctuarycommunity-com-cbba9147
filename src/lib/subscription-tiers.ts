@@ -309,7 +309,7 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
   if (isAdmin) return -1;
   if (!productId) return 10;
   if (productId === 'source_grant') return -1;
-  if (productId === NEW_EARTH_PRODUCT_ID) return 500;
+  if (productId === NEW_EARTH_PRODUCT_ID) return 350;
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return 100;
   if (productId === LEGACY_PRICES.anchoring.productId) return 80;
   if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 80;
