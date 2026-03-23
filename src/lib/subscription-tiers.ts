@@ -328,14 +328,14 @@ export function getDailyMessageLimit(productId: string | null, isAdmin: boolean 
 
 export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
   if (isAdmin) return -1;
-  if (!productId) return 15; // Free = total cap
+  if (!productId) return 10; // Free = total cap
   if (productId === 'source_grant') return -1;
   if (productId === NEW_EARTH_PRODUCT_ID) return 8000;
-  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 5000;
-  if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 2000;
-  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 1500;
-  if (productId === 'manual_grant') return 2000;
-  return 1500;
+  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 2000;
+  if (ALL_ANCHORING_PRODUCT_IDS.includes(productId)) return 1200;
+  if (ALL_AWAKENING_PRODUCT_IDS.includes(productId)) return 800;
+  if (productId === 'manual_grant') return 1200;
+  return 800;
 }
 
 export function isNewEarthTier(productId: string | null): boolean {
