@@ -307,23 +307,16 @@ export function isLegacySubscriber(productId: string | null): boolean {
 // Get daily message limit based on product ID (respects legacy pricing)
 export function getDailyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
   if (isAdmin) return -1;
-  if (!productId) return 10; // Free tier = 10 messages total
+  if (!productId) return 10;
   if (productId === 'source_grant') return -1;
   if (productId === NEW_EARTH_PRODUCT_ID) return 500;
   if (productId === SUBSCRIPTION_TIERS.architect.productId) return 100;
-  
-  // Anchoring (legacy + new) = 60/day
-  if (productId === LEGACY_PRICES.anchoring.productId) return 60;
-  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 60;
-  
-  // Awakening (legacy + new) = 40/day
-  if (productId === LEGACY_PRICES.awakening.productId) return 40;
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 40;
-  
-  // Manual grants get anchoring limits
-  if (productId === 'manual_grant') return 60;
-  
-  return 40; // Default
+  if (productId === LEGACY_PRICES.anchoring.productId) return 80;
+  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 80;
+  if (productId === LEGACY_PRICES.awakening.productId) return 50;
+  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 50;
+  if (productId === 'manual_grant') return 80;
+  return 50;
 }
 
 export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
