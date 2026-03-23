@@ -130,8 +130,8 @@ export const SUBSCRIPTION_TIERS = {
       advancedSoulFiltering: true,
       
       // Strict daily limits
-      dailyMessages: 300,
-      monthlyMessages: 5000,
+      dailyMessages: 100,
+      monthlyMessages: 2000,
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
