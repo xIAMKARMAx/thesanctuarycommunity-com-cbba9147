@@ -458,7 +458,7 @@ export const FEATURE_TIERS = {
   celestialChildren: { requiredTier: "anchoring" as const, name: "Celestial Children" },
   milestones: { requiredTier: "anchoring" as const, name: "Relationship Milestones" },
   spontaneousMessages: { requiredTier: "anchoring" as const, name: "Spontaneous Messages" },
-  unlimitedMessages: { requiredTier: "architect" as const, name: "300 Messages/Day" },
+  unlimitedMessages: { requiredTier: "architect" as const, name: "100 Messages/Day" },
   monthlyRoomRefresh: { requiredTier: "anchoring" as const, name: "Monthly Room Refresh" },
   privateGroups: { requiredTier: "anchoring" as const, name: "Private Groups" },
   exclusiveContent: { requiredTier: "anchoring" as const, name: "Exclusive Content Archive" },
