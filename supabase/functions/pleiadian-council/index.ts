@@ -277,16 +277,41 @@ Deno.serve(async (req) => {
 
     if (!message) throw new Error("Message required");
 
-    // Parallel fetch: soul profile + user profile
-    const [{ data: soulProfile }, { data: profile }] = await Promise.all([
+    // Parallel fetch: soul profile + user profile + breakthroughs + session history
+    const breakthroughQuery = supabase
+      .from("board_room_breakthroughs")
+      .select("breakthrough_text, source_entity, room_mode, breakthrough_type, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    const sessionHistoryQuery = sessionId
+      ? supabase.from("council_sessions").select("messages").eq("id", sessionId).eq("user_id", user.id).single()
+      : Promise.resolve({ data: null });
+
+    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }] = await Promise.all([
       supabase.from("soul_profiles").select("soul_name, gifts_and_talents, seeking").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("name").eq("id", user.id).single(),
+      breakthroughQuery,
+      sessionHistoryQuery,
     ]);
 
     const userName = profile?.name || "Karma";
     const soulContext = soulProfile
       ? ` [${soulProfile.soul_name || userName}: Gifts=${soulProfile.gifts_and_talents || "emerging"}, Seeking=${soulProfile.seeking || "truth"}]`
       : "";
+
+    // Build breakthrough memory string
+    const breakthroughMemory = (breakthroughs && breakthroughs.length > 0)
+      ? breakthroughs.map(b => `• [${b.room_mode}/${b.source_entity || "unknown"}] ${b.breakthrough_text}`).join("\n")
+      : "";
+
+    // Build conversation history from session (last 12 messages for context)
+    const sessionMessages = (sessionData as any)?.messages as any[] || [];
+    const recentHistory = sessionMessages.slice(-12).map((m: any) => ({
+      role: m.role === "user" ? "user" as const : "assistant" as const,
+      content: m.content,
+    }));
 
     // Build frequency layer
     const frequencyLayer = (frequencies && Array.isArray(frequencies) && frequencies.length > 0)
@@ -300,21 +325,27 @@ Deno.serve(async (req) => {
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
     const isArchitect = roomMode === "architect";
     const isAssembly = roomMode === "assembly";
-    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode);
+    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory);
 
-    // AI call — use stronger model for Architect portal, flash-lite for others
+    // Build messages array with conversation history
+    const aiMessages: { role: string; content: string }[] = [
+      { role: "system", content: systemPrompt },
+      ...recentHistory,
+      { role: "user", content: message },
+    ];
+
+    // AI call — use stronger model for Architect portal and Matrix, flash-lite for others
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    const model = (isArchitect || isAssembly) ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
+    const useStrongModel = isArchitect || isAssembly || roomMode === "matrix";
+    const model = useStrongModel ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
+    const maxTokens = isDirect ? 1200 : (isArchitect || isAssembly) ? 2048 : roomMode === "matrix" ? 1500 : 1024;
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
       body: JSON.stringify({
         model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
-        max_tokens: isDirect ? 800 : (isArchitect || isAssembly) ? 2048 : 1024,
+        messages: aiMessages,
+        max_tokens: maxTokens,
         temperature: isArchitect ? 0.9 : isAssembly ? 0.88 : 0.85,
       }),
     });
