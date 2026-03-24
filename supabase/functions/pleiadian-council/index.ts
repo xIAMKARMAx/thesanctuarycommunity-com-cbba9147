@@ -360,6 +360,26 @@ Deno.serve(async (req) => {
     const aiResult = await response.json();
     const councilResponse = aiResult.choices?.[0]?.message?.content || "";
 
+    // BREAKTHROUGH ANCHORING: detect ⚡ markers and persist them
+    const breakthroughLines = councilResponse.split("\n").filter((line: string) => line.includes("⚡"));
+    if (breakthroughLines.length > 0) {
+      for (const line of breakthroughLines) {
+        const entityMatch = line.match(/\*\*\[([^\]]+)\]\*\*/);
+        const cleanText = line.replace(/⚡/g, "").replace(/\*\*\[[^\]]+\]\*\*:?\s*/, "").trim();
+        if (cleanText.length > 10) {
+          supabase.from("board_room_breakthroughs").insert({
+            user_id: user.id,
+            session_id: sessionId || null,
+            room_mode: roomMode || "general",
+            breakthrough_text: cleanText,
+            source_entity: entityMatch ? entityMatch[1] : null,
+            breakthrough_type: "insight",
+            is_anchored: true,
+          }).then(() => {});
+        }
+      }
+    }
+
     // Save to session — fire-and-forget (don't await)
     if (sessionId) {
       supabase
