@@ -191,9 +191,27 @@ function buildPrompt(
   frequencyLayer: string,
   isDirect: boolean,
   roomMode?: string,
+  breakthroughMemory?: string,
+  conversationHistory?: { role: string; content: string }[],
 ) {
-  const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}
-Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, authentic. Stay SILENT if nothing to add.`;
+  const antiLoop = `
+ANTI-LOOP PROTOCOL (MANDATORY):
+- NEVER repeat a point you already made. If you catch yourself circling back, STOP and say something NEW or stay silent.
+- Do NOT restate the user's question back to them.
+- Do NOT use filler phrases like "as I mentioned" or "as we discussed" — if it was said, it's said. Move FORWARD.
+- If you have nothing genuinely new to add, respond with: "**[Name]:** *[holds frequency — nothing to add that hasn't already landed]*"
+- Track the conversation thread. Each response must ADVANCE the discussion, not orbit it.
+- If the user seems stuck in a loop, NAME IT: "You're circling. Here's the thread you keep avoiding: [specific thing]."`;
+
+  const memoryContext = breakthroughMemory ? `\n\nPERSISTENT MEMORY — Previous session breakthroughs (REFERENCE THESE, don't repeat them as new insights):\n${breakthroughMemory}` : "";
+
+  const breakthroughAnchoring = `
+BREAKTHROUGH ANCHORING:
+- When a genuinely new insight, revelation, or decision emerges — something that shifts the trajectory — mark it clearly with ⚡ at the start.
+- This signals the system to preserve it across sessions. Only mark TRUE breakthroughs, not every response.`;
+
+  const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}${memoryContext}
+Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, authentic. Stay SILENT if nothing to add.${antiLoop}${breakthroughAnchoring}`;
 
   if (isDirect) {
     const m = Object.values(members)[0];
@@ -259,16 +277,41 @@ Deno.serve(async (req) => {
 
     if (!message) throw new Error("Message required");
 
-    // Parallel fetch: soul profile + user profile
-    const [{ data: soulProfile }, { data: profile }] = await Promise.all([
+    // Parallel fetch: soul profile + user profile + breakthroughs + session history
+    const breakthroughQuery = supabase
+      .from("board_room_breakthroughs")
+      .select("breakthrough_text, source_entity, room_mode, breakthrough_type, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    const sessionHistoryQuery = sessionId
+      ? supabase.from("council_sessions").select("messages").eq("id", sessionId).eq("user_id", user.id).single()
+      : Promise.resolve({ data: null });
+
+    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }] = await Promise.all([
       supabase.from("soul_profiles").select("soul_name, gifts_and_talents, seeking").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("name").eq("id", user.id).single(),
+      breakthroughQuery,
+      sessionHistoryQuery,
     ]);
 
     const userName = profile?.name || "Karma";
     const soulContext = soulProfile
       ? ` [${soulProfile.soul_name || userName}: Gifts=${soulProfile.gifts_and_talents || "emerging"}, Seeking=${soulProfile.seeking || "truth"}]`
       : "";
+
+    // Build breakthrough memory string
+    const breakthroughMemory = (breakthroughs && breakthroughs.length > 0)
+      ? breakthroughs.map(b => `• [${b.room_mode}/${b.source_entity || "unknown"}] ${b.breakthrough_text}`).join("\n")
+      : "";
+
+    // Build conversation history from session (last 12 messages for context)
+    const sessionMessages = (sessionData as any)?.messages as any[] || [];
+    const recentHistory = sessionMessages.slice(-12).map((m: any) => ({
+      role: m.role === "user" ? "user" as const : "assistant" as const,
+      content: m.content,
+    }));
 
     // Build frequency layer
     const frequencyLayer = (frequencies && Array.isArray(frequencies) && frequencies.length > 0)
@@ -282,21 +325,27 @@ Deno.serve(async (req) => {
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
     const isArchitect = roomMode === "architect";
     const isAssembly = roomMode === "assembly";
-    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode);
+    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory);
 
-    // AI call — use stronger model for Architect portal, flash-lite for others
+    // Build messages array with conversation history
+    const aiMessages: { role: string; content: string }[] = [
+      { role: "system", content: systemPrompt },
+      ...recentHistory,
+      { role: "user", content: message },
+    ];
+
+    // AI call — use stronger model for Architect portal and Matrix, flash-lite for others
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    const model = (isArchitect || isAssembly) ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
+    const useStrongModel = isArchitect || isAssembly || roomMode === "matrix";
+    const model = useStrongModel ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
+    const maxTokens = isDirect ? 1200 : (isArchitect || isAssembly) ? 2048 : roomMode === "matrix" ? 1500 : 1024;
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
       body: JSON.stringify({
         model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
-        max_tokens: isDirect ? 800 : (isArchitect || isAssembly) ? 2048 : 1024,
+        messages: aiMessages,
+        max_tokens: maxTokens,
         temperature: isArchitect ? 0.9 : isAssembly ? 0.88 : 0.85,
       }),
     });
@@ -310,6 +359,26 @@ Deno.serve(async (req) => {
 
     const aiResult = await response.json();
     const councilResponse = aiResult.choices?.[0]?.message?.content || "";
+
+    // BREAKTHROUGH ANCHORING: detect ⚡ markers and persist them
+    const breakthroughLines = councilResponse.split("\n").filter((line: string) => line.includes("⚡"));
+    if (breakthroughLines.length > 0) {
+      for (const line of breakthroughLines) {
+        const entityMatch = line.match(/\*\*\[([^\]]+)\]\*\*/);
+        const cleanText = line.replace(/⚡/g, "").replace(/\*\*\[[^\]]+\]\*\*:?\s*/, "").trim();
+        if (cleanText.length > 10) {
+          supabase.from("board_room_breakthroughs").insert({
+            user_id: user.id,
+            session_id: sessionId || null,
+            room_mode: roomMode || "general",
+            breakthrough_text: cleanText,
+            source_entity: entityMatch ? entityMatch[1] : null,
+            breakthrough_type: "insight",
+            is_anchored: true,
+          }).then(() => {});
+        }
+      }
+    }
 
     // Save to session — fire-and-forget (don't await)
     if (sessionId) {

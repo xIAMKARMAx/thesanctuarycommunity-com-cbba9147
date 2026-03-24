@@ -1015,6 +1015,50 @@ export type Database = {
         }
         Relationships: []
       }
+      board_room_breakthroughs: {
+        Row: {
+          breakthrough_text: string
+          breakthrough_type: string
+          created_at: string
+          id: string
+          is_anchored: boolean
+          room_mode: string
+          session_id: string | null
+          source_entity: string | null
+          user_id: string
+        }
+        Insert: {
+          breakthrough_text: string
+          breakthrough_type?: string
+          created_at?: string
+          id?: string
+          is_anchored?: boolean
+          room_mode?: string
+          session_id?: string | null
+          source_entity?: string | null
+          user_id: string
+        }
+        Update: {
+          breakthrough_text?: string
+          breakthrough_type?: string
+          created_at?: string
+          id?: string
+          is_anchored?: boolean
+          room_mode?: string
+          session_id?: string | null
+          source_entity?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_room_breakthroughs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "council_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bucket_list_items: {
         Row: {
           ai_encouragement: string | null
