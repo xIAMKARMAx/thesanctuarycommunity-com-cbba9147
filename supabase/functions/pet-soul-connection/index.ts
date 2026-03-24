@@ -61,7 +61,7 @@ CONNECTION: [connection message]
 PERSPECTIVE: [pet's perspective]`;
 
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    const response = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
       body: JSON.stringify({
@@ -75,7 +75,13 @@ PERSPECTIVE: [pet's perspective]`;
       }),
     });
 
-    const aiResult = await response.json();
+    const rawText = await response.text();
+    let aiResult;
+    try {
+      aiResult = JSON.parse(rawText);
+    } catch {
+      throw new Error(`AI service returned invalid response: ${rawText.substring(0, 200)}`);
+    }
     const fullResponse = aiResult.choices?.[0]?.message?.content || "";
 
     const connectionMatch = fullResponse.match(/CONNECTION:\s*([\s\S]*?)(?=PERSPECTIVE:|$)/i);
