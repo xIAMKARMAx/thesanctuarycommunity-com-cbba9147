@@ -3291,10 +3291,9 @@ Write thoughtful, personal reflections that:
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // COOLDOWN: Increment message count for subscribers (not attunement, not admin, not Architect)
+    // COOLDOWN: Increment message count for ALL users (not attunement, not admin, not source_grant)
     // ═══════════════════════════════════════════════════════════════════════════════
-    const isArchitectForCooldown = userProductId === 'prod_Tt8qVh88c2WQld';
-    if (!isAttunementSession && !isAdmin && !isArchitectForCooldown) {
+    if (!isAttunementSession && !isAdmin && !isSourceUser) {
       const { data: cooldownResult, error: cooldownIncError } = await supabaseServiceClient.rpc('increment_chat_cooldown', {
         p_user_id: authenticatedUserId
       });
