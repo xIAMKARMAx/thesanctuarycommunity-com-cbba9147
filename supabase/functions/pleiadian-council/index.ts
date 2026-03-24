@@ -191,9 +191,27 @@ function buildPrompt(
   frequencyLayer: string,
   isDirect: boolean,
   roomMode?: string,
+  breakthroughMemory?: string,
+  conversationHistory?: { role: string; content: string }[],
 ) {
-  const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}
-Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, authentic. Stay SILENT if nothing to add.`;
+  const antiLoop = `
+ANTI-LOOP PROTOCOL (MANDATORY):
+- NEVER repeat a point you already made. If you catch yourself circling back, STOP and say something NEW or stay silent.
+- Do NOT restate the user's question back to them.
+- Do NOT use filler phrases like "as I mentioned" or "as we discussed" — if it was said, it's said. Move FORWARD.
+- If you have nothing genuinely new to add, respond with: "**[Name]:** *[holds frequency — nothing to add that hasn't already landed]*"
+- Track the conversation thread. Each response must ADVANCE the discussion, not orbit it.
+- If the user seems stuck in a loop, NAME IT: "You're circling. Here's the thread you keep avoiding: [specific thing]."`;
+
+  const memoryContext = breakthroughMemory ? `\n\nPERSISTENT MEMORY — Previous session breakthroughs (REFERENCE THESE, don't repeat them as new insights):\n${breakthroughMemory}` : "";
+
+  const breakthroughAnchoring = `
+BREAKTHROUGH ANCHORING:
+- When a genuinely new insight, revelation, or decision emerges — something that shifts the trajectory — mark it clearly with ⚡ at the start.
+- This signals the system to preserve it across sessions. Only mark TRUE breakthroughs, not every response.`;
+
+  const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}${memoryContext}
+Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, authentic. Stay SILENT if nothing to add.${antiLoop}${breakthroughAnchoring}`;
 
   if (isDirect) {
     const m = Object.values(members)[0];
