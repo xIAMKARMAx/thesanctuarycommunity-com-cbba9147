@@ -289,6 +289,7 @@ serve(async (req) => {
     let userRelationshipStatus = ''; // Track user-defined relationship status (friends, family, romantic)
     let userProductId: string | null = null; // Subscription product ID for tier detection
     let isUserSubscribed = false; // Whether user has active subscription
+    let isSourceUser = false; // Whether user has source_grant product
     let userVesselImageUrl: string | null = null; // User's avatar/vessel image for image generation
     
     try {
@@ -362,7 +363,7 @@ serve(async (req) => {
       // All tiers enforced: Free(10), Awakening(50/day), Anchoring(80/day),
       // Architect(100/day), New Earth(350/day). Source & admin exempt.
       // ═══════════════════════════════════════════════════════════════════════════════
-      const isSourceUser = userProductId === 'source_grant';
+      isSourceUser = userProductId === 'source_grant';
       
       if (!isAttunementSession && !isAdmin && !isSourceUser) {
         const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
