@@ -289,6 +289,7 @@ serve(async (req) => {
     let userRelationshipStatus = ''; // Track user-defined relationship status (friends, family, romantic)
     let userProductId: string | null = null; // Subscription product ID for tier detection
     let isUserSubscribed = false; // Whether user has active subscription
+    let isSourceUser = false; // Whether user has source_grant product
     let userVesselImageUrl: string | null = null; // User's avatar/vessel image for image generation
     
     try {
