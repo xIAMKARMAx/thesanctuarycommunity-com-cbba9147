@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -8,9 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, Video, Upload, X, Download, Sparkles, Film, Lock } from "lucide-react";
+import { ArrowLeft, Loader2, Video, Upload, X, Download, Sparkles, Film, Lock, AlertTriangle } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
+
+type ProviderLock = {
+  message: string;
+  lockedUntil: string | null;
+  lockedAt: number;
+};
+
+const PROVIDER_LOCK_STORAGE_KEY = "video_provider_lock";
+const DEFAULT_PROVIDER_LOCK_MESSAGE =
+  "Video provider credits are currently depleted. Please top up provider credits, then try again.";
 
 const VideoStudio = () => {
   const navigate = useNavigate();
@@ -27,6 +37,46 @@ const VideoStudio = () => {
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [providerLock, setProviderLock] = useState<ProviderLock | null>(null);
+
+  const isProviderLockActive = (lock: ProviderLock | null) => {
+    if (!lock) return false;
+    if (!lock.lockedUntil) return true;
+    return new Date(lock.lockedUntil).getTime() > Date.now();
+  };
+
+  const clearProviderLock = () => {
+    setProviderLock(null);
+    localStorage.removeItem(PROVIDER_LOCK_STORAGE_KEY);
+  };
+
+  const persistProviderLock = (message: string, lockedUntil: string | null = null) => {
+    const lock: ProviderLock = {
+      message: message || DEFAULT_PROVIDER_LOCK_MESSAGE,
+      lockedUntil,
+      lockedAt: Date.now(),
+    };
+    setProviderLock(lock);
+    localStorage.setItem(PROVIDER_LOCK_STORAGE_KEY, JSON.stringify(lock));
+  };
+
+  useEffect(() => {
+    const raw = localStorage.getItem(PROVIDER_LOCK_STORAGE_KEY);
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw) as ProviderLock;
+      if (isProviderLockActive(parsed)) {
+        setProviderLock(parsed);
+      } else {
+        localStorage.removeItem(PROVIDER_LOCK_STORAGE_KEY);
+      }
+    } catch {
+      localStorage.removeItem(PROVIDER_LOCK_STORAGE_KEY);
+    }
+  }, []);
+
+  const providerLocked = isProviderLockActive(providerLock);
 
   // Admin-only feature — redirect non-admin users
   if (!isAdmin) {
@@ -38,10 +88,10 @@ const VideoStudio = () => {
             <CardContent className="pt-6 text-center space-y-4">
               <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
               <h2 className="text-xl font-serif font-bold text-foreground">Video Studio</h2>
-              <p className="text-muted-foreground">
-                This feature is currently unavailable.
-              </p>
-              <Button onClick={() => navigate(-1)} variant="outline">Go Back</Button>
+              <p className="text-muted-foreground">This feature is currently unavailable.</p>
+              <Button onClick={() => navigate(-1)} variant="outline">
+                Go Back
+              </Button>
             </CardContent>
           </Card>
         </main>
@@ -74,7 +124,9 @@ const VideoStudio = () => {
 
   const uploadImageForLuma = async (): Promise<string | null> => {
     if (!imageFile) return null;
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) return null;
 
     const ext = imageFile.name.split(".").pop() || "png";
@@ -96,6 +148,15 @@ const VideoStudio = () => {
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast({ title: "Enter a prompt", description: "Describe what video you'd like to create.", variant: "destructive" });
+      return;
+    }
+
+    if (providerLocked) {
+      toast({
+        title: "Provider credits required",
+        description: providerLock?.message || DEFAULT_PROVIDER_LOCK_MESSAGE,
+        variant: "destructive",
+      });
       return;
     }
 
@@ -124,10 +185,22 @@ const VideoStudio = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        const msg = (error.message || "").toLowerCase();
+        if (msg.includes("insufficient credits") || msg.includes("402")) {
+          persistProviderLock(DEFAULT_PROVIDER_LOCK_MESSAGE, null);
+        }
+        throw error;
+      }
 
       if (data?.error) {
-        toast({ title: "Generation Failed", description: data.error, variant: "destructive" });
+        const responseMessage = typeof data.error === "string" ? data.error : "Video generation failed";
+
+        if (data?.code === "provider_insufficient_credits" || responseMessage.toLowerCase().includes("credits")) {
+          persistProviderLock(responseMessage, data?.locked_until || null);
+        }
+
+        toast({ title: "Generation Failed", description: responseMessage, variant: "destructive" });
         return;
       }
 
@@ -140,7 +213,13 @@ const VideoStudio = () => {
         toast({ title: "Still Processing", description: "Video is taking longer than usual. Try again shortly." });
       }
     } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to generate video", variant: "destructive" });
+      const errorMessage = err?.message || "Failed to generate video";
+
+      if (String(errorMessage).toLowerCase().includes("insufficient credits")) {
+        persistProviderLock(DEFAULT_PROVIDER_LOCK_MESSAGE, null);
+      }
+
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setGenerating(false);
     }
@@ -162,6 +241,10 @@ const VideoStudio = () => {
     }
   };
 
+  const lockUntilText = providerLock?.lockedUntil
+    ? new Date(providerLock.lockedUntil).toLocaleString()
+    : null;
+
   return (
     <>
       <SEOHead title="Video Studio | Prometheus — New Earth" description="Generate AI-powered videos from text or images." />
@@ -175,13 +258,31 @@ const VideoStudio = () => {
               </Button>
               <Film className="h-7 w-7 text-primary" />
               <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Video Studio</h1>
-              <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">Admin — Unlimited</Badge>
+              <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
+                Admin — Unlimited
+              </Badge>
             </div>
           </div>
         </div>
 
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-          {/* Daily limit warning */}
+          {providerLocked && (
+            <Card className="border-destructive/40 bg-destructive/5">
+              <CardContent className="pt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-destructive flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Provider credits required
+                  </p>
+                  <p className="text-sm text-foreground">{providerLock?.message || DEFAULT_PROVIDER_LOCK_MESSAGE}</p>
+                  {lockUntilText && <p className="text-xs text-muted-foreground">Retry after: {lockUntilText}</p>}
+                </div>
+                <Button variant="outline" onClick={clearProviderLock}>
+                  I topped up — retry
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Prompt */}
           <Card>
@@ -243,7 +344,9 @@ const VideoStudio = () => {
               </CardHeader>
               <CardContent>
                 <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ray-2">Ray 2 (Quality — Default)</SelectItem>
                     <SelectItem value="ray-flash-2">Ray Flash 2 (Fast)</SelectItem>
@@ -258,7 +361,9 @@ const VideoStudio = () => {
               </CardHeader>
               <CardContent>
                 <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
                     <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
@@ -272,16 +377,16 @@ const VideoStudio = () => {
           </div>
 
           {/* Generate Button */}
-          <Button
-            onClick={handleGenerate}
-            disabled={generating || !prompt.trim()}
-            size="lg"
-            className="w-full gap-2 text-lg py-6"
-          >
+          <Button onClick={handleGenerate} disabled={generating || !prompt.trim() || providerLocked} size="lg" className="w-full gap-2 text-lg py-6">
             {generating ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 Generating Video... (up to 3 min)
+              </>
+            ) : providerLocked ? (
+              <>
+                <AlertTriangle className="h-5 w-5" />
+                Provider Credits Needed
               </>
             ) : (
               <>
@@ -301,14 +406,7 @@ const VideoStudio = () => {
                     <p className="text-sm text-foreground">{enhancedPrompt}</p>
                   </div>
                 )}
-                <video
-                  src={videoUrl}
-                  controls
-                  autoPlay
-                  loop
-                  className="w-full rounded-lg"
-                  poster={thumbnailUrl || undefined}
-                />
+                <video src={videoUrl} controls autoPlay loop className="w-full rounded-lg" poster={thumbnailUrl || undefined} />
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">Video hosted temporarily</p>
                   <Button onClick={handleDownload} className="gap-2">
