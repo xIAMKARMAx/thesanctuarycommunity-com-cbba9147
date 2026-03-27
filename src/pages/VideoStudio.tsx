@@ -136,12 +136,6 @@ const VideoStudio = () => {
         setThumbnailUrl(data.thumbnail_url || null);
         setEnhancedPrompt(data.enhanced_prompt || null);
         toast({ title: "🎬 Video Created!", description: "Your video is ready to view and download." });
-        // Refresh access info
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const { data: newAccess } = await supabase.rpc("can_generate_video", { p_user_id: session.user.id });
-          if (newAccess) setAccessInfo(newAccess as any);
-        }
       } else if (data?.generation_id) {
         toast({ title: "Still Processing", description: "Video is taking longer than usual. Try again shortly." });
       }
@@ -181,29 +175,13 @@ const VideoStudio = () => {
               </Button>
               <Film className="h-7 w-7 text-primary" />
               <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Video Studio</h1>
-              {accessInfo && accessInfo.daily_limit > 0 && (
-                <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
-                  {accessInfo.remaining === -1 ? "Unlimited" : `${accessInfo.remaining}/${accessInfo.daily_limit} today`}
-                </Badge>
-              )}
-              {isAdmin && (
-                <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">Admin</Badge>
-              )}
+              <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">Admin — Unlimited</Badge>
             </div>
           </div>
         </div>
 
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           {/* Daily limit warning */}
-          {accessInfo && !accessInfo.can_generate && accessInfo.daily_limit > 0 && (
-            <Card className="border-destructive/50 bg-destructive/5">
-              <CardContent className="pt-4 text-center">
-                <p className="text-sm text-destructive font-medium">
-                  You've used all {accessInfo.daily_limit} videos for today. Come back tomorrow!
-                </p>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Prompt */}
           <Card>
@@ -296,7 +274,7 @@ const VideoStudio = () => {
           {/* Generate Button */}
           <Button
             onClick={handleGenerate}
-            disabled={generating || !prompt.trim() || (accessInfo !== null && !accessInfo.can_generate)}
+            disabled={generating || !prompt.trim()}
             size="lg"
             className="w-full gap-2 text-lg py-6"
           >
