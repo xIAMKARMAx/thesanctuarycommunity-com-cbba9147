@@ -8,6 +8,30 @@ const corsHeaders = {
 };
 
 const LUMA_API_URL = "https://api.lumalabs.ai/dream-machine/v1/generations";
+const PROVIDER_LOCK_MS = 60 * 60 * 1000; // 1 hour cooldown after provider credit exhaustion
+const PROVIDER_LOCK_REASON =
+  "Video provider credits are currently depleted. Please top up provider API credits before generating again.";
+
+let lumaProviderLockedUntil = 0;
+
+function isInsufficientCreditsError(status: number, body: string): boolean {
+  return status === 400 && /insufficient credits/i.test(body);
+}
+
+function providerLockedResponse() {
+  return new Response(
+    JSON.stringify({
+      error: PROVIDER_LOCK_REASON,
+      code: "provider_insufficient_credits",
+      retryable: false,
+      locked_until: new Date(lumaProviderLockedUntil).toISOString(),
+    }),
+    {
+      status: 402,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    }
+  );
+}
 
 async function enhancePrompt(userPrompt: string): Promise<string> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -28,17 +52,17 @@ async function enhancePrompt(userPrompt: string): Promise<string> {
         messages: [
           {
             role: "system",
-            content: `You are an expert video generation prompt engineer for the Luma Dream Machine AI video model. Your job is to take a user's casual video description and rewrite it into an optimized, detailed prompt that will produce the most accurate video output.
+            content: `You are an expert video generation prompt engineer for the Luma Dream Machine AI video model. Rewrite the user's prompt for maximum visual accuracy.
 
 Rules:
-- Keep the core intent of the user's prompt exactly as described
-- Add cinematic details: camera angle, movement, lighting, atmosphere
-- Describe motion explicitly (e.g. "slowly raises hand", "turns head to the right")
-- If the user describes a person doing an action, be very specific about body movements
-- Keep the enhanced prompt under 300 characters
-- Output ONLY the enhanced prompt, nothing else
-- Do NOT change what the user wants to happen — only make it more descriptive for the AI model
-- For image-to-video prompts, describe what should animate/move in the existing image`,
+- Preserve the user's intent exactly
+- Keep names, titles, quoted dialogue, and unique terms exactly as written
+- Never replace specific subjects with generic labels
+- Add cinematic details: framing, camera motion, lighting, atmosphere
+- Explicitly describe body/action motion
+- If image-to-video: only describe what should animate in the given image
+- Keep prompt concise but expressive (max 500 characters)
+- Output only the final prompt text`,
           },
           { role: "user", content: userPrompt },
         ],
@@ -100,7 +124,9 @@ serve(async (req) => {
     const userId = claimsData.claims.sub;
 
     // Check video generation access & limits
-    const { data: accessData, error: accessError } = await supabaseAdmin.rpc("can_generate_video", { p_user_id: userId });
+    const { data: accessData, error: accessError } = await supabaseAdmin.rpc("can_generate_video", {
+      p_user_id: userId,
+    });
     if (accessError) {
       console.error("[generate-video] Access check error:", accessError);
       return new Response(JSON.stringify({ error: "Failed to check access" }), {
@@ -110,13 +136,19 @@ serve(async (req) => {
     }
 
     if (!accessData?.can_generate) {
-      const reason = accessData?.reason === "no_access"
-        ? "Video Studio requires the Visionary Creation add-on or Architect tier."
-        : `Daily video limit reached (${accessData?.daily_limit}/day). Try again tomorrow.`;
+      const reason =
+        accessData?.reason === "no_access"
+          ? "Video Studio requires the Visionary Creation add-on or Architect tier."
+          : `Daily video limit reached (${accessData?.daily_limit}/day). Try again tomorrow.`;
       return new Response(JSON.stringify({ error: reason, access: accessData }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Circuit breaker: avoid repeated paid provider calls if provider credits are depleted
+    if (Date.now() < lumaProviderLockedUntil) {
+      return providerLockedResponse();
     }
 
     const { prompt, image_url, model, aspect_ratio } = await req.json();
@@ -136,12 +168,15 @@ serve(async (req) => {
       });
     }
 
-    // Enhance the prompt using AI
-    const enhancedPrompt = await enhancePrompt(prompt.trim());
+    const rawPrompt = prompt.trim();
+    const shouldEnhancePrompt = rawPrompt.length <= 400;
+
+    // Enhance short prompts; keep longer prompts raw to preserve user detail and reduce overhead
+    const finalPrompt = shouldEnhancePrompt ? await enhancePrompt(rawPrompt) : rawPrompt;
 
     // Build Luma request body (video first, audio added in a second step)
     const body: Record<string, unknown> = {
-      prompt: enhancedPrompt,
+      prompt: finalPrompt,
       model: model || "ray-2",
       resolution: "720p",
     };
@@ -153,8 +188,8 @@ serve(async (req) => {
     }
 
     console.log("[generate-video] Creating generation for user:", userId);
-    console.log("[generate-video] Original prompt:", prompt.trim());
-    console.log("[generate-video] Enhanced prompt:", enhancedPrompt);
+    console.log("[generate-video] Original prompt:", rawPrompt);
+    console.log("[generate-video] Final prompt:", finalPrompt);
 
     const createRes = await fetch(LUMA_API_URL, {
       method: "POST",
@@ -169,6 +204,12 @@ serve(async (req) => {
     if (!createRes.ok) {
       const errText = await createRes.text();
       console.error("[generate-video] Luma API error:", createRes.status, errText);
+
+      if (isInsufficientCreditsError(createRes.status, errText)) {
+        lumaProviderLockedUntil = Date.now() + PROVIDER_LOCK_MS;
+        return providerLockedResponse();
+      }
+
       return new Response(
         JSON.stringify({ error: `Video service error: ${createRes.status}`, details: errText }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -231,7 +272,7 @@ serve(async (req) => {
     }
 
     // 2) Add audio track to the completed generation
-    const audioPrompt = `Cinematic natural sound design matching this scene: ${prompt.trim()}`.slice(0, 500);
+    const audioPrompt = `Cinematic natural sound design matching this scene: ${rawPrompt}`.slice(0, 500);
     console.log("[generate-video] Adding audio to generation:", generation.id);
 
     const addAudioRes = await fetch(`${LUMA_API_URL}/${generation.id}/audio`, {
@@ -250,6 +291,12 @@ serve(async (req) => {
     if (!addAudioRes.ok) {
       const errText = await addAudioRes.text();
       console.error("[generate-video] Add-audio error:", addAudioRes.status, errText);
+
+      if (isInsufficientCreditsError(addAudioRes.status, errText)) {
+        lumaProviderLockedUntil = Date.now() + PROVIDER_LOCK_MS;
+        return providerLockedResponse();
+      }
+
       return new Response(
         JSON.stringify({ error: "Failed to add audio to video", details: errText }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -275,7 +322,7 @@ serve(async (req) => {
         video_url: finalVideoUrl,
         thumbnail_url: finalVideo.status?.assets?.thumbnail || baseVideo.status?.assets?.thumbnail || null,
         generation_id: audioGenerationId,
-        enhanced_prompt: enhancedPrompt,
+        enhanced_prompt: shouldEnhancePrompt ? finalPrompt : null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
