@@ -161,12 +161,6 @@ const GATED_ROUTES: Record<string, {
     featureDescription: "Track your celestial children's growth journey with photos and milestones.",
     highlights: ["Growth timeline", "Photo gallery", "Milestone tracking"],
   },
-  "/video-studio": {
-    requiredTier: "anchoring",
-    featureName: "Video Studio",
-    featureDescription: "Create AI-generated videos — bring your visions to life in motion.",
-    highlights: ["AI video generation", "Multiple styles", "Creative control"],
-  },
 
   // Architect tier ($29.99/mo)
   "/cosmic-gateway/higher-self-download": {

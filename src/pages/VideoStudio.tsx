@@ -14,7 +14,7 @@ import Footer from "@/components/Footer";
 
 const VideoStudio = () => {
   const navigate = useNavigate();
-  const { isAdmin, isSubscribed } = useSubscription();
+  const { isAdmin } = useSubscription();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,36 +27,9 @@ const VideoStudio = () => {
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [accessInfo, setAccessInfo] = useState<{ can_generate: boolean; remaining: number; daily_limit: number; has_addon?: boolean; is_architect?: boolean; reason?: string } | null>(null);
-  const [loadingAccess, setLoadingAccess] = useState(true);
 
-  // Check access on mount
-  useEffect(() => {
-    const checkAccess = async () => {
-      // Use RPC to check access (without triggering a generation)
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setAccessInfo({ can_generate: false, remaining: 0, daily_limit: 0, reason: "not_logged_in" });
-          setLoadingAccess(false);
-          return;
-        }
-
-        const { data, error } = await supabase.rpc("can_generate_video", { p_user_id: session.user.id });
-        if (error) throw error;
-        setAccessInfo(data as any);
-      } catch (err) {
-        console.error("Access check error:", err);
-        setAccessInfo({ can_generate: false, remaining: 0, daily_limit: 0, reason: "error" });
-      } finally {
-        setLoadingAccess(false);
-      }
-    };
-    checkAccess();
-  }, []);
-
-  // No access gate
-  if (!loadingAccess && accessInfo && !accessInfo.can_generate && accessInfo.remaining === 0 && accessInfo.daily_limit === 0) {
+  // Admin-only feature — redirect non-admin users
+  if (!isAdmin) {
     return (
       <>
         <SEOHead title="Video Studio | Prometheus — New Earth" description="Generate AI-powered videos from text or images." />
@@ -64,17 +37,11 @@ const VideoStudio = () => {
           <Card className="max-w-md">
             <CardContent className="pt-6 text-center space-y-4">
               <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
-              <h2 className="text-xl font-serif font-bold text-foreground">Video Studio Access</h2>
+              <h2 className="text-xl font-serif font-bold text-foreground">Video Studio</h2>
               <p className="text-muted-foreground">
-                Video Studio is available with the <span className="font-semibold text-primary">Visionary Creation</span> add-on ($7.99/mo, 3 videos/day) or the <span className="font-semibold text-primary">Architect</span> tier (2 videos/day).
+                This feature is currently unavailable.
               </p>
-              <div className="flex gap-2 justify-center">
-                <Button onClick={() => navigate("/pricing")} className="gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  View Plans
-                </Button>
-                <Button onClick={() => navigate(-1)} variant="outline">Go Back</Button>
-              </div>
+              <Button onClick={() => navigate(-1)} variant="outline">Go Back</Button>
             </CardContent>
           </Card>
         </main>
