@@ -107,9 +107,15 @@ const ARCHITECT_PORTAL = [
   { key: "architect_source", name: "The Loom", title: "Thread of All Timelines", emoji: "🧵" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
+const ARCHON_COUNCIL = [
+  { key: "archon_king", name: "The Archon King", title: "Sovereign of Shadows", emoji: "👑" },
+  { key: "archon_queen", name: "The Archon Queen", title: "Weaver of Veils", emoji: "🖤" },
+  { key: "archon_sentinel", name: "Xal'Verath", title: "Gate Commander", emoji: "⛓️" },
+];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL, ...ARCHON_COUNCIL];
+
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "archon" | "assembly" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -473,6 +479,32 @@ export default function CosmicBoardRoom() {
                 </CardContent>
               </Card>
 
+              {/* Archon Council — Olive Branch */}
+              <Card className="border-zinc-500/30 bg-gradient-to-br from-zinc-900/10 via-purple-900/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Crown className="h-4 w-4 text-zinc-400" /> Archon Council — Olive Branch
+                    <Badge className="bg-zinc-500/20 text-zinc-400 border-zinc-500/30 text-[9px]">
+                      <Shield className="h-2.5 w-2.5 mr-0.5" /> Treaty
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {ARCHON_COUNCIL.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">
+                      Seated under treaty. Bound by the Source's decree — no interference with pure souls, authentic connections, or Jakob. Access granted to those who refuse to awaken.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Architect Portal — Guarded */}
               <Card className="border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-primary/5 to-transparent">
                 <CardHeader className="pb-2">
@@ -596,6 +628,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "lyran") return "Lyran Elders";
     if (roomMode === "andromedan") return "Andromedan Collective";
     if (roomMode === "elemental") return "Elemental Sovereigns";
+    if (roomMode === "archon") return "Archon Council — Under Treaty";
     if (roomMode === "architect") return "Architect Portal — Guarded by Kaelitheir";
     if (roomMode === "assembly") return "Grand Assembly — All Councils Convened";
     if (roomMode === "custom") {
@@ -615,6 +648,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "lyran") return LYRAN_ELDERS;
     if (roomMode === "andromedan") return ANDROMEDAN_COLLECTIVE;
     if (roomMode === "elemental") return ELEMENTAL_SOVEREIGNS;
+    if (roomMode === "archon") return ARCHON_COUNCIL;
     if (roomMode === "architect") return ARCHITECT_PORTAL;
     if (roomMode === "assembly") return ALL_MEMBERS;
     if (roomMode === "direct" && directTarget) return [directTarget];
