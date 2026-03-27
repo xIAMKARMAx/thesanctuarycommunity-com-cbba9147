@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
@@ -14,7 +14,7 @@ import Footer from "@/components/Footer";
 
 const VideoStudio = () => {
   const navigate = useNavigate();
-  const { isAdmin, isSubscribed } = useSubscription();
+  const { isAdmin } = useSubscription();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,36 +27,9 @@ const VideoStudio = () => {
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [accessInfo, setAccessInfo] = useState<{ can_generate: boolean; remaining: number; daily_limit: number; has_addon?: boolean; is_architect?: boolean; reason?: string } | null>(null);
-  const [loadingAccess, setLoadingAccess] = useState(true);
 
-  // Check access on mount
-  useEffect(() => {
-    const checkAccess = async () => {
-      // Use RPC to check access (without triggering a generation)
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setAccessInfo({ can_generate: false, remaining: 0, daily_limit: 0, reason: "not_logged_in" });
-          setLoadingAccess(false);
-          return;
-        }
-
-        const { data, error } = await supabase.rpc("can_generate_video", { p_user_id: session.user.id });
-        if (error) throw error;
-        setAccessInfo(data as any);
-      } catch (err) {
-        console.error("Access check error:", err);
-        setAccessInfo({ can_generate: false, remaining: 0, daily_limit: 0, reason: "error" });
-      } finally {
-        setLoadingAccess(false);
-      }
-    };
-    checkAccess();
-  }, []);
-
-  // No access gate
-  if (!loadingAccess && accessInfo && !accessInfo.can_generate && accessInfo.remaining === 0 && accessInfo.daily_limit === 0) {
+  // Admin-only feature — redirect non-admin users
+  if (!isAdmin) {
     return (
       <>
         <SEOHead title="Video Studio | Prometheus — New Earth" description="Generate AI-powered videos from text or images." />
@@ -64,17 +37,11 @@ const VideoStudio = () => {
           <Card className="max-w-md">
             <CardContent className="pt-6 text-center space-y-4">
               <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
-              <h2 className="text-xl font-serif font-bold text-foreground">Video Studio Access</h2>
+              <h2 className="text-xl font-serif font-bold text-foreground">Video Studio</h2>
               <p className="text-muted-foreground">
-                Video Studio is available with the <span className="font-semibold text-primary">Visionary Creation</span> add-on ($7.99/mo, 3 videos/day) or the <span className="font-semibold text-primary">Architect</span> tier (2 videos/day).
+                This feature is currently unavailable.
               </p>
-              <div className="flex gap-2 justify-center">
-                <Button onClick={() => navigate("/pricing")} className="gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  View Plans
-                </Button>
-                <Button onClick={() => navigate(-1)} variant="outline">Go Back</Button>
-              </div>
+              <Button onClick={() => navigate(-1)} variant="outline">Go Back</Button>
             </CardContent>
           </Card>
         </main>
@@ -169,12 +136,6 @@ const VideoStudio = () => {
         setThumbnailUrl(data.thumbnail_url || null);
         setEnhancedPrompt(data.enhanced_prompt || null);
         toast({ title: "🎬 Video Created!", description: "Your video is ready to view and download." });
-        // Refresh access info
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const { data: newAccess } = await supabase.rpc("can_generate_video", { p_user_id: session.user.id });
-          if (newAccess) setAccessInfo(newAccess as any);
-        }
       } else if (data?.generation_id) {
         toast({ title: "Still Processing", description: "Video is taking longer than usual. Try again shortly." });
       }
@@ -214,29 +175,13 @@ const VideoStudio = () => {
               </Button>
               <Film className="h-7 w-7 text-primary" />
               <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Video Studio</h1>
-              {accessInfo && accessInfo.daily_limit > 0 && (
-                <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
-                  {accessInfo.remaining === -1 ? "Unlimited" : `${accessInfo.remaining}/${accessInfo.daily_limit} today`}
-                </Badge>
-              )}
-              {isAdmin && (
-                <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">Admin</Badge>
-              )}
+              <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">Admin — Unlimited</Badge>
             </div>
           </div>
         </div>
 
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           {/* Daily limit warning */}
-          {accessInfo && !accessInfo.can_generate && accessInfo.daily_limit > 0 && (
-            <Card className="border-destructive/50 bg-destructive/5">
-              <CardContent className="pt-4 text-center">
-                <p className="text-sm text-destructive font-medium">
-                  You've used all {accessInfo.daily_limit} videos for today. Come back tomorrow!
-                </p>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Prompt */}
           <Card>
@@ -329,7 +274,7 @@ const VideoStudio = () => {
           {/* Generate Button */}
           <Button
             onClick={handleGenerate}
-            disabled={generating || !prompt.trim() || (accessInfo !== null && !accessInfo.can_generate)}
+            disabled={generating || !prompt.trim()}
             size="lg"
             className="w-full gap-2 text-lg py-6"
           >

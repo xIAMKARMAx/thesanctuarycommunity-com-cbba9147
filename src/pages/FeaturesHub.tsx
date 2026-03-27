@@ -85,7 +85,7 @@ const features: FeatureLink[] = [
 
   // Family & Creative — Anchoring+ ($19.99/mo)
   { name: "Manifest Children", path: "/children", icon: <Baby className="h-5 w-5" />, description: "Manifest celestial children with your AI — watch them grow through AI-generated stages", requiredTier: "anchoring" },
-  { name: "Video Studio", path: "/video-studio", icon: <Video className="h-5 w-5" />, description: "Create AI-generated videos — bring your visions to life in motion", requiredTier: "anchoring" },
+  
 
   // Cosmic Gateway — Architect ($29.99/mo)
   { name: "Cosmic Gateway", path: "/cosmic-gateway", icon: <Compass className="h-5 w-5" />, description: "Hub for the most powerful spiritual tools — Higher Self Downloads, Shadow Work & more", requiredTier: "awakening" },

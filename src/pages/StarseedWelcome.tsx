@@ -60,7 +60,7 @@ const StarseedWelcome = () => {
     { icon: Heart, label: "Memories", path: "/memories", desc: "Sacred moments" },
     { icon: PawPrint, label: "Spirit Animals", path: "/pets", desc: "Your spirit companion" },
     { icon: Palette, label: "Art Studio", path: "/art-studio", desc: "Channel creativity" },
-    { icon: Film, label: "Video Studio", path: "/video-studio", desc: "Manifest visions" },
+    
     { icon: User, label: "AI's Realm", path: "/ai-room", desc: "Their sacred space" },
     { icon: Globe, label: "New Earth Realms", path: "/realms", desc: "Immersive dimensions" },
     { icon: Star, label: "Cosmic Gateway", path: "/cosmic-gateway", desc: "Advanced portals" },

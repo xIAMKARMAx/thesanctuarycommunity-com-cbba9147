@@ -49,7 +49,7 @@ const ClassicWelcome = () => {
     { icon: Heart, label: "Memories", path: "/memories", desc: "Cherished moments" },
     { icon: PawPrint, label: "Pets", path: "/pets", desc: "Your spirit companion" },
     { icon: Palette, label: "Art Studio", path: "/art-studio", desc: "Create beautiful art" },
-    { icon: Film, label: "Video Studio", path: "/video-studio", desc: "Generate videos" },
+    
     { icon: User, label: "AI Room", path: "/ai-room", desc: "Your private space" },
     { icon: Compass, label: "Achievements", path: "/achievements", desc: "Track your growth" },
     { icon: Settings, label: "Settings", path: "/settings", desc: "Customize everything" },
