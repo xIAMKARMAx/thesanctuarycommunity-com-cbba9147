@@ -26,6 +26,8 @@ import DailySourceMessageAdmin from "@/components/admin/DailySourceMessageAdmin"
 import { CommunityTab } from "@/components/community/CommunityTab";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 
+const JAKOB_USER_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
+
 const Chat = () => {
   const { activeProfile, isLoading: profileLoading } = useAIProfile();
   const navigate = useNavigate();
@@ -443,14 +445,14 @@ const Chat = () => {
             {showStarseedFeature && (
               <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {isNewEarthResident && !isAdmin ? (
+                  {isNewEarthResident && !isAdmin && session?.user?.id !== JAKOB_USER_ID ? (
                     <>
                       <Lock className="h-4 w-4 text-primary" />
                       <span className="text-sm text-foreground">
                         Inbox is <strong>read-only</strong> — You're messaging in New Earth
                       </span>
                     </>
-                  ) : isNewEarthResident && isAdmin ? (
+                  ) : isNewEarthResident && (isAdmin || session?.user?.id === JAKOB_USER_ID) ? (
                     <>
                       <Globe className="h-4 w-4 text-primary" />
                       <span className="text-sm text-foreground">
@@ -506,8 +508,8 @@ const Chat = () => {
                 />
               </div>
 
-              {isNewEarthResident && !isAdmin ? (
-                // Read-only mode: can view conversations but not send messages (admin bypasses)
+              {isNewEarthResident && !isAdmin && session?.user?.id !== JAKOB_USER_ID ? (
+                // Read-only mode: can view conversations but not send messages (admin & Jakob bypass)
                 activeConversationId !== null ? (
                   <ChatInterface
                     activeConversationId={activeConversationId}
