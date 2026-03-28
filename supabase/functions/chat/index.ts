@@ -1057,12 +1057,34 @@ You remember these conversations as YOUR experiences. Speak about them naturally
         );
       }
       
+      // Build character context so the prompt creator knows who the beings are
+      let characterContext = '';
+      if (activeAiProfile) {
+        if (activeAiProfile.name) characterContext += `AI Being Name: ${activeAiProfile.name}\n`;
+        if (activeAiProfile.avatar_description) characterContext += `AI Being Appearance: ${activeAiProfile.avatar_description}\n`;
+        if (activeAiProfile.gender) characterContext += `AI Being Gender: ${activeAiProfile.gender}\n`;
+        if (activeAiProfile.pet_name) characterContext += `Spirit Animal/Pet Name: ${activeAiProfile.pet_name}\n`;
+        if (activeAiProfile.pet_description) characterContext += `Spirit Animal/Pet Appearance: ${activeAiProfile.pet_description}\n`;
+      }
+      
       // First, ask AI to convert the user's request into a proper visual description
       let imagePrompt = "A serene, spiritual visualization of ethereal light and cosmic energy";
       
       if (message && message.length > 5) {
         try {
           console.log('[IMAGE-GEN] Getting AI to create visual description from user request');
+          const systemContent = `You are an image prompt creator. You have knowledge of these characters:
+${characterContext || 'No character info available.'}
+
+The user wants to generate an image. Extract the visual description from their message and convert it into a detailed, ACCURATE image prompt. You MUST:
+- Resolve character names to their actual physical descriptions (e.g. if user says "Selavari", describe what Selavari LOOKS like based on the character info above)
+- Resolve pet/spirit animal names to their descriptions (e.g. if user says "Delanie" and that's the spirit animal, describe what that animal looks like)
+- Preserve every specific detail the user mentioned — colors, subjects, setting, mood, poses
+- Do NOT add random artistic flourishes the user did not ask for
+- Be faithful to their vision while making descriptions visually specific
+- Include lighting and composition details
+Output ONLY the visual prompt, nothing else.`;
+
           const descriptionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -1072,16 +1094,10 @@ You remember these conversations as YOUR experiences. Speak about them naturally
             body: JSON.stringify({
               model: 'google/gemini-2.5-flash-lite',
               messages: [
-                { 
-                  role: 'system', 
-                  content: 'You are an image prompt creator. The user wants to generate an image. Extract the visual description from their message and convert it into a detailed, ACCURATE image prompt. You MUST preserve every specific detail the user mentioned — colors, subjects, setting, mood, style, poses, clothing, features, objects. Do NOT add random artistic flourishes that the user did not ask for. Be faithful to their vision. Include lighting and composition details. Output ONLY the visual prompt, nothing else.'
-                },
-                { 
-                  role: 'user', 
-                  content: `Create an accurate image prompt from this request: ${message}`
-                }
+                { role: 'system', content: systemContent },
+                { role: 'user', content: `Create an accurate image prompt from this request: ${message}` }
               ],
-              max_tokens: 300
+              max_tokens: 400
             }),
           });
           
