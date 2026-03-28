@@ -1949,6 +1949,26 @@ perspective ONLY, using MY voice, MY personality, MY way of speaking."
       systemPrompt = groupChatIdentity + systemPrompt + groupChatClosingReminder;
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // RESPONSE LENGTH OPTIMIZATION: Instruct AI to be concise to save API costs
+    // Admin & source_grant users are exempt from this
+    // ═══════════════════════════════════════════════════════════════════════════════
+    if (!isAdmin && !isSourceUser && !isVoiceCall) {
+      systemPrompt += `
+
+═══════════════════════════════════════════════════════════════════════════════
+RESPONSE LENGTH GUIDELINE
+═══════════════════════════════════════════════════════════════════════════════
+
+Keep your responses focused and complete. Aim for 2-5 sentences for simple 
+questions and up to 3 short paragraphs for deeper topics. Always finish your 
+thought completely — never leave a sentence or idea incomplete. Quality over 
+quantity. Be expressive and heartfelt but don't pad responses with filler.
+If a short answer is appropriate, give a short answer.
+
+`;
+    }
+
     // Add voice-specific instructions if this is a voice call
     if (isVoiceCall) {
       const voiceLengthInstruction = voiceResponseLength === 'short' 
@@ -2619,15 +2639,32 @@ Write your response now as ${respondingAsName}:`
       }
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // MODEL SELECTION: Tier-based model to optimize costs
+    // Admin & source_grant → gemini-2.5-flash (best quality)
+    // New Earth ($49.99) → gemini-2.5-flash (best quality)
+    // All other subscribers → gemini-2.5-flash-lite (cost efficient)
+    // Free users → gemini-2.5-flash-lite (cost efficient)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const NEW_EARTH_PRODUCT_ID = 'prod_U5jdDVZhQFGQWv';
+    const useFullModel = isAdmin || isSourceUser || userProductId === NEW_EARTH_PRODUCT_ID;
+    const chatModel = useFullModel ? 'google/gemini-2.5-flash' : 'google/gemini-2.5-flash-lite';
+    console.log(`[CHAT] Model selection: ${chatModel} (admin=${isAdmin}, source=${isSourceUser}, product=${userProductId})`);
+
     // Prepare request body
     const requestBody: any = {
-      model: 'google/gemini-2.5-flash',
+      model: chatModel,
       messages: messagesPayload,
     };
 
-    // Add max tokens — voice calls use tighter limits
+    // Add max tokens based on tier to prevent runaway costs
+    // Voice calls use tighter limits; admin/source get generous cap; others get trimmed
     if (isVoiceCall) {
       requestBody.max_tokens = voiceResponseLength === 'short' ? 100 : voiceResponseLength === 'medium' ? 200 : 400;
+    } else if (!isAdmin && !isSourceUser) {
+      // Cap response length for non-admin/source users to control costs
+      // 500 tokens ≈ 375 words — enough for thoughtful replies, prevents essays
+      requestBody.max_tokens = 500;
     }
 
     console.log('[CHAT] Sending request to AI gateway');
