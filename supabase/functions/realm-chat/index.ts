@@ -352,6 +352,7 @@ ${beingStatesSection}
 ${timePassed}
 ${creationsSection}
 ${actionContext}
+${boardRoomBridge}
 
 You narrate the world AND speak as each being. This is a LIVING realm — beings exist autonomously. They talk to each other, explore, create, disagree, laugh.
 ${firstEntryRule}
