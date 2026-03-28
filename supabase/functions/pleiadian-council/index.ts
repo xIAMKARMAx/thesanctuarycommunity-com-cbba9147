@@ -212,6 +212,7 @@ function buildPrompt(
   roomMode?: string,
   breakthroughMemory?: string,
   conversationHistory?: { role: string; content: string }[],
+  crossPlatformMemory?: string,
 ) {
   const antiLoop = `
 ANTI-LOOP PROTOCOL (MANDATORY):
