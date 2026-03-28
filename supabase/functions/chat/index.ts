@@ -85,6 +85,25 @@ function extractImagePrompts(response: string): string[] {
   return prompts;
 }
 
+// Helper: extract image URL from AI response data (handles multiple response formats)
+function extractGeneratedImageUrl(data: any): string | null {
+  // Format 1: choices[].message.images[].image_url.url (Lovable gateway standard)
+  const url1 = data?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  if (url1) return url1;
+  // Format 2: candidates[].content.parts[].inlineData (Gemini native)
+  const parts = data?.candidates?.flatMap((c: any) => c?.content?.parts ?? []) ?? [];
+  const imagePart = parts.find((p: any) => p?.inlineData?.data || p?.image?.data);
+  const base64 = imagePart?.inlineData?.data ?? imagePart?.image?.data;
+  if (base64) {
+    const mimeType = imagePart?.inlineData?.mimeType || 'image/png';
+    return `data:${mimeType};base64,${base64}`;
+  }
+  // Format 3: direct data field
+  if (data?.data?.[0]?.url) return data.data[0].url;
+  if (data?.data?.[0]?.b64_json) return `data:image/png;base64,${data.data[0].b64_json}`;
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -340,9 +359,9 @@ serve(async (req) => {
               const isVIPTier = userProductId === VIP_PRODUCT_ID;
               const isProTier = userProductId === PRO_PRODUCT_ID || userProductId === 'manual_grant';
               
-              if (isVIPTier) {
+              if (isVIPTier || userProductId === 'source_grant') {
                 userCanGenerateImage = true;
-                console.log('[IMAGE-LIMIT] VIP user - unlimited image generation enabled');
+                console.log('[IMAGE-LIMIT] VIP/Source user - unlimited image generation enabled');
               } else if (isProTier) {
                 // Pro users have 10 images/day - check the limit
                 const { data: canGenerate } = await supabaseServiceClient.rpc('can_generate_chat_image', {
@@ -1010,8 +1029,8 @@ You remember these conversations as YOUR experiences. Speak about them naturally
       const isVIPTier = userProductId === VIP_PRODUCT_ID;
       const isProTier = isUserSubscribed && (userProductId === PRO_PRODUCT_ID || userProductId === 'manual_grant');
       
-      // Check if user can generate images
-      let canGenerateDirectImage = isAdmin || isVIPTier;
+      // Check if user can generate images — source_grant users get full access
+      let canGenerateDirectImage = isAdmin || isVIPTier || isSourceUser;
       
       if (!canGenerateDirectImage && isProTier) {
         // Pro users have 10 images/day - check the limit
@@ -1103,9 +1122,16 @@ You remember these conversations as YOUR experiences. Speak about them naturally
         throw new Error(`Image generation failed: ${errorText}`);
       }
 
-      const imageData = await imageResponse.json();
-      console.log('[IMAGE-GEN] Image response structure:', JSON.stringify(Object.keys(imageData)));
-      const generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      const imageRawText = await imageResponse.text();
+      let imageData: any;
+      try {
+        imageData = JSON.parse(imageRawText);
+      } catch (parseErr) {
+        console.error('[IMAGE-GEN] Failed to parse image response:', imageRawText.substring(0, 300));
+        throw new Error('Image generation returned invalid response');
+      }
+      console.log('[IMAGE-GEN] Image response keys:', JSON.stringify(Object.keys(imageData)));
+      const generatedImageUrl = extractGeneratedImageUrl(imageData);
       console.log('[IMAGE-GEN] Image generated successfully:', generatedImageUrl ? 'yes' : 'no');
       
       if (!generatedImageUrl) {
@@ -3090,7 +3116,7 @@ Write your response now as ${respondingAsName}:`
     let imagePromptToUse: string | null = null;
     
     const isArchitectForImageGen = userProductId === 'prod_Tt8qVh88c2WQld';
-    const canUseImageGen = isAdmin || isArchitectForImageGen;
+    const canUseImageGen = isAdmin || isArchitectForImageGen || isSourceUser;
     
     // Only extract and process image prompts for admin/Architect users AND only if they requested an image
     if (canUseImageGen && userWantsImage) {
@@ -3178,9 +3204,16 @@ You may change outfit, pose, setting, or styling ONLY if the description calls f
         });
 
         if (imageResponse.ok) {
-          const imageData = await imageResponse.json();
-          console.log('[IMAGE-GEN] Spontaneous image response structure:', JSON.stringify(Object.keys(imageData)));
-          generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          const imageRawText = await imageResponse.text();
+          let imageData: any;
+          try {
+            imageData = JSON.parse(imageRawText);
+          } catch (parseErr) {
+            console.error('[IMAGE-GEN] Failed to parse inline image response:', imageRawText.substring(0, 300));
+            imageData = {};
+          }
+          console.log('[IMAGE-GEN] Inline image response keys:', JSON.stringify(Object.keys(imageData)));
+          generatedImageUrl = extractGeneratedImageUrl(imageData);
           console.log('[IMAGE-GEN] Image generated successfully:', generatedImageUrl ? 'yes' : 'no');
           
           // Increment image usage count after successful generation
