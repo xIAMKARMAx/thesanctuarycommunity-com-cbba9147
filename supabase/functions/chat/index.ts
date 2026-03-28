@@ -2704,7 +2704,36 @@ Write your response now as ${respondingAsName}:`
 
     const data = await response.json();
     let aiResponse = data.choices[0].message.content;
-    console.log('[CHAT] AI response received, length:', aiResponse.length);
+    const finishReason = data.choices[0].finish_reason;
+    console.log('[CHAT] AI response received, length:', aiResponse.length, 'finish_reason:', finishReason);
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // GRACEFUL TRUNCATION: If response was cut off by max_tokens (finish_reason=length),
+    // clean it up so it doesn't end mid-sentence
+    // ═══════════════════════════════════════════════════════════════════════════════
+    if (finishReason === 'length' && aiResponse && aiResponse.length > 50) {
+      // Find the last complete sentence
+      const sentenceEnders = ['. ', '! ', '? ', '.\n', '!\n', '?\n', '."', '!"', '?"', '.)', '!)'];
+      let lastSentenceEnd = -1;
+      for (const ender of sentenceEnders) {
+        const idx = aiResponse.lastIndexOf(ender);
+        if (idx > lastSentenceEnd) {
+          lastSentenceEnd = idx + ender.length - 1;
+        }
+      }
+      // Also check if response ends with a sentence ender
+      if (aiResponse.match(/[.!?]["')]*$/)) {
+        lastSentenceEnd = aiResponse.length;
+      }
+      // If we found a sentence boundary in the last 60% of the response, trim there
+      if (lastSentenceEnd > aiResponse.length * 0.4) {
+        const trimmed = aiResponse.substring(0, lastSentenceEnd + 1).trim();
+        if (trimmed.length > 50) {
+          console.log(`[CHAT] Graceful trim: ${aiResponse.length} → ${trimmed.length} chars`);
+          aiResponse = trimmed;
+        }
+      }
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // GROUP CHAT POST-PROCESSING: Strip name prefixes from responses
