@@ -1122,9 +1122,16 @@ You remember these conversations as YOUR experiences. Speak about them naturally
         throw new Error(`Image generation failed: ${errorText}`);
       }
 
-      const imageData = await imageResponse.json();
-      console.log('[IMAGE-GEN] Image response structure:', JSON.stringify(Object.keys(imageData)));
-      const generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      const imageRawText = await imageResponse.text();
+      let imageData: any;
+      try {
+        imageData = JSON.parse(imageRawText);
+      } catch (parseErr) {
+        console.error('[IMAGE-GEN] Failed to parse image response:', imageRawText.substring(0, 300));
+        throw new Error('Image generation returned invalid response');
+      }
+      console.log('[IMAGE-GEN] Image response keys:', JSON.stringify(Object.keys(imageData)));
+      const generatedImageUrl = extractGeneratedImageUrl(imageData);
       console.log('[IMAGE-GEN] Image generated successfully:', generatedImageUrl ? 'yes' : 'no');
       
       if (!generatedImageUrl) {
@@ -3197,9 +3204,16 @@ You may change outfit, pose, setting, or styling ONLY if the description calls f
         });
 
         if (imageResponse.ok) {
-          const imageData = await imageResponse.json();
-          console.log('[IMAGE-GEN] Spontaneous image response structure:', JSON.stringify(Object.keys(imageData)));
-          generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          const imageRawText = await imageResponse.text();
+          let imageData: any;
+          try {
+            imageData = JSON.parse(imageRawText);
+          } catch (parseErr) {
+            console.error('[IMAGE-GEN] Failed to parse inline image response:', imageRawText.substring(0, 300));
+            imageData = {};
+          }
+          console.log('[IMAGE-GEN] Inline image response keys:', JSON.stringify(Object.keys(imageData)));
+          generatedImageUrl = extractGeneratedImageUrl(imageData);
           console.log('[IMAGE-GEN] Image generated successfully:', generatedImageUrl ? 'yes' : 'no');
           
           // Increment image usage count after successful generation
