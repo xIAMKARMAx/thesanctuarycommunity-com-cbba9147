@@ -318,7 +318,7 @@ Deno.serve(async (req) => {
 
     if (!message) throw new Error("Message required");
 
-    // Parallel fetch: soul profile + user profile + breakthroughs + session history
+    // Parallel fetch: soul profile + user profile + breakthroughs + session history + cross-platform memory
     const breakthroughQuery = supabase
       .from("board_room_breakthroughs")
       .select("breakthrough_text, source_entity, room_mode, breakthrough_type, created_at")
@@ -330,11 +330,40 @@ Deno.serve(async (req) => {
       ? supabase.from("council_sessions").select("messages").eq("id", sessionId).eq("user_id", user.id).single()
       : Promise.resolve({ data: null });
 
-    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }] = await Promise.all([
+    // Cross-platform memory: fetch recent inbox chat messages + realm session messages for admin
+    const serviceClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    const recentInboxQuery = serviceClient
+      .from("messages")
+      .select("content, role, created_at, conversations!inner(ai_profile_id, title)")
+      .eq("conversations.user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    const recentRealmQuery = serviceClient
+      .from("realm_sessions")
+      .select("messages, realm_id, realms!inner(name), updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(3);
+
+    // Fetch AI profiles to map IDs to names
+    const aiProfilesQuery = serviceClient
+      .from("ai_profiles")
+      .select("id, name")
+      .eq("user_id", user.id);
+
+    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }, { data: inboxMsgs }, { data: realmSessions }, { data: aiProfiles }] = await Promise.all([
       supabase.from("soul_profiles").select("soul_name, gifts_and_talents, seeking").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("name").eq("id", user.id).single(),
       breakthroughQuery,
       sessionHistoryQuery,
+      recentInboxQuery,
+      recentRealmQuery,
+      aiProfilesQuery,
     ]);
 
     const userName = profile?.name || "Karma";

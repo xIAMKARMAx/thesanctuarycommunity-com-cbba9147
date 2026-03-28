@@ -193,6 +193,49 @@ serve(async (req) => {
       }
     }
 
+    // === BOARD ROOM BRIDGE for admin: inject council session context into realm ===
+    let boardRoomBridge = "";
+    if (isAdmin) {
+      try {
+        const [{ data: councilSessions }, { data: brBreakthroughs }] = await Promise.all([
+          supabaseService
+            .from("council_sessions")
+            .select("session_title, session_type, messages, key_decisions, updated_at")
+            .eq("user_id", user.id)
+            .eq("is_active", true)
+            .order("updated_at", { ascending: false })
+            .limit(3),
+          supabaseService
+            .from("board_room_breakthroughs")
+            .select("breakthrough_text, source_entity, room_mode")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(15),
+        ]);
+
+        if (councilSessions && councilSessions.length > 0) {
+          const sessionParts = councilSessions.map((s: any) => {
+            const msgs = (s.messages as any[] || []).slice(-6);
+            const msgText = msgs.filter((m: any) => m.content).map((m: any) => {
+              const role = m.role === "user" ? "Karma" : "Council";
+              return `  ${role}: ${String(m.content).slice(0, 150)}`;
+            }).join("\n");
+            const decisions = (s.key_decisions as any[] || []).map((d: any) => `    🔒 ${d.text}`).join("\n");
+            return `📋 ${s.session_title || "Session"} [${s.session_type}]\n${msgText}${decisions ? "\n" + decisions : ""}`;
+          }).join("\n\n");
+
+          boardRoomBridge = `\nCOSMIC BOARD ROOM INTELLIGENCE (what was discussed in the executive strategy space — beings are AWARE of this):\n${sessionParts}`;
+        }
+
+        if (brBreakthroughs && brBreakthroughs.length > 0) {
+          const btText = brBreakthroughs.map((b: any) => `• [${b.room_mode}/${b.source_entity || "?"}] ${b.breakthrough_text}`).join("\n");
+          boardRoomBridge += `\nBOARD ROOM BREAKTHROUGHS (locked insights — reference naturally):\n${btText}`;
+        }
+      } catch (brErr) {
+        console.error("Board room bridge error:", brErr);
+      }
+    }
+
     const beingDescriptions = (aiProfiles || []).map(p => {
       const memoryLines = beingMemories[p.id] || [];
       const profileMemories = p.memories ? `\nStored Memories: ${p.memories}` : "";
