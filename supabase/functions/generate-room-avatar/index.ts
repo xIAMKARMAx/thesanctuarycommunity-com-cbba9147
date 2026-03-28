@@ -137,7 +137,7 @@ serve(async (req) => {
     let messages: any[] = [];
     
     if (type === 'room') {
-      prompt = `Create a detailed, beautiful digital room scene: ${description}. High quality, photorealistic, interior design, ambient lighting, wide angle view.`;
+      prompt = `Create EXACTLY this room/environment scene as described — do not deviate or add random elements: ${description}. Every detail mentioned must be present. High quality, photorealistic, interior design, ambient lighting, wide angle view.`;
       messages = [{ role: "user", content: prompt }];
     } else if (type === 'avatar') {
       const genderDesc = gender === 'female' ? 'beautiful woman' : 'handsome man';
