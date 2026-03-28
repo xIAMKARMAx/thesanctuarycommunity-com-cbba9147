@@ -35,7 +35,7 @@ const soulTitles = [
   "Wayshower",
 ];
 
-const BIO_MAX_LENGTH = 200;
+const BIO_MAX_LENGTH = 300;
 
 export function EditSoulProfileDialog({
   open,
