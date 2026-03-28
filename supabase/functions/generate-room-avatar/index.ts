@@ -145,9 +145,9 @@ serve(async (req) => {
       if (referenceImageUrl) {
         const outfitOnly = description.toLowerCase().includes('outfit') || description.toLowerCase().includes('wearing') || description.toLowerCase().includes('clothes');
         if (outfitOnly) {
-          prompt = `Look at this reference image carefully. Create a new image of this EXACT SAME PERSON - same face, same facial features, same body type, same hair color and style, same skin tone, same everything about their physical appearance. The ONLY change should be their outfit/clothing: ${description}. Keep their identity, face structure, eyes, nose, lips, and all physical features IDENTICAL to the reference. Full body, standing naturally, photorealistic.`;
+          prompt = `CRITICAL — REFERENCE IMAGE PROVIDED. Study this person's face, body, and every physical feature in detail. Create a new image of this EXACT SAME PERSON — identical face shape, identical eyes, identical nose, identical lips, identical skin tone, identical body type, identical hair color and texture. The person must be clearly RECOGNIZABLE as the same individual. The ONLY change: ${description}. Full body, standing naturally, photorealistic. Their physical identity is non-negotiable.`;
         } else {
-          prompt = `Look at this reference image carefully. Create a new image of this EXACT SAME PERSON with the same face, facial features, body type, and overall physical appearance. Apply these changes: ${description}. Maintain their identity and recognizable features. Full body, standing naturally, photorealistic.`;
+          prompt = `CRITICAL — REFERENCE IMAGE PROVIDED. Study this person carefully. Create a new image of this EXACT SAME PERSON — same face, same body, same features, same skin tone, same hair. They must be clearly RECOGNIZABLE as the same person. Apply these changes: ${description}. Maintain their physical identity. Full body, standing naturally, photorealistic.`;
         }
         messages = [
           {
