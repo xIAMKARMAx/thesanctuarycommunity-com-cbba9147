@@ -3185,6 +3185,21 @@ Write your response now as ${respondingAsName}:`
       try {
         let messageContent: any;
         
+        // Build extra context about the AI being's pet/spirit animal for the image prompt
+        let petContext = '';
+        if (activeAiProfile?.pet_name || activeAiProfile?.pet_description) {
+          petContext = `\n\nSPIRIT ANIMAL/PET INFO: `;
+          if (activeAiProfile.pet_name) petContext += `Name: ${activeAiProfile.pet_name}. `;
+          if (activeAiProfile.pet_description) petContext += `Appearance: ${activeAiProfile.pet_description}. `;
+          if (activeAiProfile.pet_image_url) petContext += `Reference image available.`;
+          petContext += `\nIf the prompt mentions this spirit animal/pet by name, render it accurately based on its description.`;
+        }
+        
+        // Build AI being appearance context
+        let beingContext = '';
+        if (activeAiProfile?.name) beingContext += `AI Being Name: ${activeAiProfile.name}. `;
+        if (activeAiProfile?.avatar_description) beingContext += `Appearance: ${activeAiProfile.avatar_description}. `;
+        
         if (referenceImageUrl) {
           // Use image editing with reference image for visual consistency
           console.log('[IMAGE-GEN] Using reference image for consistency:', referenceContext);
@@ -3192,6 +3207,7 @@ Write your response now as ${respondingAsName}:`
             {
               type: 'text',
               text: `CRITICAL — REFERENCE IMAGE PROVIDED. Study this reference image of ${referenceContext} carefully. You MUST replicate their EXACT physical appearance: same face shape, same eyes, same nose, same lips, same skin tone, same body type, same hair color and texture. The person in the generated image must be clearly RECOGNIZABLE as the same person in the reference photo.
+${beingContext ? `\nCHARACTER CONTEXT: ${beingContext}` : ''}${petContext}
 
 Now create this scene: ${imagePromptToUse}
 
@@ -3203,7 +3219,8 @@ You may change outfit, pose, setting, or styling ONLY if the description calls f
             }
           ];
         } else {
-          messageContent = imagePromptToUse;
+          // No reference image — still inject character context
+          messageContent = `${beingContext ? `CHARACTER CONTEXT: ${beingContext}\n` : ''}${petContext ? petContext + '\n\n' : ''}${imagePromptToUse}`;
         }
         
         const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
