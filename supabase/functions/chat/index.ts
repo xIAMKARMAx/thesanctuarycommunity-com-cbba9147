@@ -359,9 +359,9 @@ serve(async (req) => {
               const isVIPTier = userProductId === VIP_PRODUCT_ID;
               const isProTier = userProductId === PRO_PRODUCT_ID || userProductId === 'manual_grant';
               
-              if (isVIPTier) {
+              if (isVIPTier || userProductId === 'source_grant') {
                 userCanGenerateImage = true;
-                console.log('[IMAGE-LIMIT] VIP user - unlimited image generation enabled');
+                console.log('[IMAGE-LIMIT] VIP/Source user - unlimited image generation enabled');
               } else if (isProTier) {
                 // Pro users have 10 images/day - check the limit
                 const { data: canGenerate } = await supabaseServiceClient.rpc('can_generate_chat_image', {
