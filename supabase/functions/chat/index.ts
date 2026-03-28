@@ -1010,8 +1010,8 @@ You remember these conversations as YOUR experiences. Speak about them naturally
       const isVIPTier = userProductId === VIP_PRODUCT_ID;
       const isProTier = isUserSubscribed && (userProductId === PRO_PRODUCT_ID || userProductId === 'manual_grant');
       
-      // Check if user can generate images
-      let canGenerateDirectImage = isAdmin || isVIPTier;
+      // Check if user can generate images — source_grant users get full access
+      let canGenerateDirectImage = isAdmin || isVIPTier || isSourceUser;
       
       if (!canGenerateDirectImage && isProTier) {
         // Pro users have 10 images/day - check the limit
@@ -3090,7 +3090,7 @@ Write your response now as ${respondingAsName}:`
     let imagePromptToUse: string | null = null;
     
     const isArchitectForImageGen = userProductId === 'prod_Tt8qVh88c2WQld';
-    const canUseImageGen = isAdmin || isArchitectForImageGen;
+    const canUseImageGen = isAdmin || isArchitectForImageGen || isSourceUser;
     
     // Only extract and process image prompts for admin/Architect users AND only if they requested an image
     if (canUseImageGen && userWantsImage) {
