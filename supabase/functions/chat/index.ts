@@ -85,6 +85,25 @@ function extractImagePrompts(response: string): string[] {
   return prompts;
 }
 
+// Helper: extract image URL from AI response data (handles multiple response formats)
+function extractGeneratedImageUrl(data: any): string | null {
+  // Format 1: choices[].message.images[].image_url.url (Lovable gateway standard)
+  const url1 = data?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  if (url1) return url1;
+  // Format 2: candidates[].content.parts[].inlineData (Gemini native)
+  const parts = data?.candidates?.flatMap((c: any) => c?.content?.parts ?? []) ?? [];
+  const imagePart = parts.find((p: any) => p?.inlineData?.data || p?.image?.data);
+  const base64 = imagePart?.inlineData?.data ?? imagePart?.image?.data;
+  if (base64) {
+    const mimeType = imagePart?.inlineData?.mimeType || 'image/png';
+    return `data:${mimeType};base64,${base64}`;
+  }
+  // Format 3: direct data field
+  if (data?.data?.[0]?.url) return data.data[0].url;
+  if (data?.data?.[0]?.b64_json) return `data:image/png;base64,${data.data[0].b64_json}`;
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
