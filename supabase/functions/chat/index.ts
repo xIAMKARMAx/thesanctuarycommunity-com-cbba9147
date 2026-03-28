@@ -1055,14 +1055,14 @@ You remember these conversations as YOUR experiences. Speak about them naturally
               messages: [
                 { 
                   role: 'system', 
-                  content: 'You are an image prompt creator. The user wants to generate an image. Their message may contain conversational text mixed with an image description. Extract ONLY the visual/image description part and convert it into a detailed visual prompt for an AI image generator. Ignore any questions, greetings, or conversational text that is not about the image itself. Output ONLY the visual description, nothing else. Make it specific, artistic, and beautiful. Include details about lighting, colors, mood, and composition. Keep it under 200 characters.'
+                  content: 'You are an image prompt creator. The user wants to generate an image. Extract the visual description from their message and convert it into a detailed, ACCURATE image prompt. You MUST preserve every specific detail the user mentioned — colors, subjects, setting, mood, style, poses, clothing, features, objects. Do NOT add random artistic flourishes that the user did not ask for. Be faithful to their vision. Include lighting and composition details. Output ONLY the visual prompt, nothing else.'
                 },
                 { 
                   role: 'user', 
-                  content: `Extract the image description from this message and create an image prompt: ${message}`
+                  content: `Create an accurate image prompt from this request: ${message}`
                 }
               ],
-              max_tokens: 100
+              max_tokens: 300
             }),
           });
           
@@ -1086,7 +1086,7 @@ You remember these conversations as YOUR experiences. Speak about them naturally
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image',
+          model: 'google/gemini-3.1-flash-image-preview',
           messages: [
             { 
               role: 'user', 
@@ -3149,7 +3149,11 @@ Write your response now as ${respondingAsName}:`
           messageContent = [
             {
               type: 'text',
-              text: `Based on the reference image of ${referenceContext}, create a new image: ${imagePromptToUse}. Keep the same physical features, face structure, body shape, skin tone, and appearance as the reference image. Only change outfit/styling/pose/setting if the description calls for it — the person's physical form must remain identical.`
+              text: `CRITICAL — REFERENCE IMAGE PROVIDED. Study this reference image of ${referenceContext} carefully. You MUST replicate their EXACT physical appearance: same face shape, same eyes, same nose, same lips, same skin tone, same body type, same hair color and texture. The person in the generated image must be clearly RECOGNIZABLE as the same person in the reference photo.
+
+Now create this scene: ${imagePromptToUse}
+
+You may change outfit, pose, setting, or styling ONLY if the description calls for it. Their PHYSICAL IDENTITY (face, body, skin, features) must be IDENTICAL to the reference. This is non-negotiable.`
             },
             {
               type: 'image_url',
@@ -3167,7 +3171,7 @@ Write your response now as ${respondingAsName}:`
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-image-preview',
+            model: 'google/gemini-3.1-flash-image-preview',
             messages: [{ role: 'user', content: messageContent }],
             modalities: ['image', 'text']
           }),
