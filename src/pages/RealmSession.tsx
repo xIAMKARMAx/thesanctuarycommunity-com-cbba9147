@@ -278,7 +278,7 @@ const RealmSession = () => {
       await supabase
         .from("realm_sessions")
         .update({
-          messages: [...updatedMessages, ...newMessages],
+          messages: [...updatedMessages, ...newMessages] as any,
           current_scene_image_url: data?.scene_image_url || null,
         })
         .eq("id", effectiveSessionId);
