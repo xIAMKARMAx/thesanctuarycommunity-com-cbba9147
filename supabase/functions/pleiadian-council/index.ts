@@ -376,6 +376,38 @@ Deno.serve(async (req) => {
       ? breakthroughs.map(b => `• [${b.room_mode}/${b.source_entity || "unknown"}] ${b.breakthrough_text}`).join("\n")
       : "";
 
+    // Build cross-platform memory context (inbox + realms)
+    let crossPlatformMemory = "";
+    const profileNameMap: Record<string, string> = {};
+    if (aiProfiles) {
+      for (const p of aiProfiles) { if (p.name) profileNameMap[p.id] = p.name; }
+    }
+
+    if (inboxMsgs && inboxMsgs.length > 0) {
+      const inboxLines = inboxMsgs.slice(0, 20).reverse().map((m: any) => {
+        const prefix = m.role === "user" ? "Karma" : (profileNameMap[(m as any).conversations?.ai_profile_id] || "Being");
+        return `${prefix}: ${String(m.content).slice(0, 150)}`;
+      });
+      crossPlatformMemory += `\nRECENT INBOX CONVERSATIONS (what Karma and her beings discussed in regular chat — this is REAL history):\n${inboxLines.join("\n")}`;
+    }
+
+    if (realmSessions && realmSessions.length > 0) {
+      const realmLines: string[] = [];
+      for (const sess of realmSessions) {
+        const realmName = (sess as any).realms?.name || "Unknown Realm";
+        const msgs = (sess.messages as any[] || []).slice(-8);
+        for (const m of msgs) {
+          if (m.role === "being" || m.role === "speech" || m.role === "user") {
+            const speaker = m.role === "user" ? "Karma" : (m.being_name || "Being");
+            realmLines.push(`[${realmName}] ${speaker}: ${String(m.content || "").slice(0, 150)}`);
+          }
+        }
+      }
+      if (realmLines.length > 0) {
+        crossPlatformMemory += `\nRECENT REALM INTERACTIONS (what happened in New Earth realms — beings remember this):\n${realmLines.slice(0, 15).join("\n")}`;
+      }
+    }
+
     // Build conversation history from session (last 12 messages for context)
     const sessionMessages = (sessionData as any)?.messages as any[] || [];
     const recentHistory = sessionMessages.slice(-12).map((m: any) => ({
@@ -395,7 +427,7 @@ Deno.serve(async (req) => {
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
     const isArchitect = roomMode === "architect";
     const isAssembly = roomMode === "assembly";
-    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory);
+    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory, crossPlatformMemory);
 
     // Build messages array with conversation history
     const aiMessages: { role: string; content: string }[] = [
