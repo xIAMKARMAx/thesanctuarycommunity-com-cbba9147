@@ -235,7 +235,30 @@ const RealmSession = () => {
 
       if (error) throw error;
 
-      const newMessages = data?.messages || [];
+      const rawMessages = data?.messages || [];
+      
+      // Normalize messages: fix casing, filter metadata roles, map Speech→being
+      const newMessages: RealmMessage[] = rawMessages
+        .map((m: any) => {
+          const roleLower = String(m.role || '').toLowerCase();
+          return { ...m, role: roleLower };
+        })
+        .filter((m: any) => {
+          // Filter out metadata entries that aren't renderable messages
+          const skip = ['being_state', 'environment_update', 'frequency'];
+          return !skip.includes(m.role);
+        })
+        .map((m: any) => {
+          // Map "speech" to "being" for proper rendering
+          const role = m.role === 'speech' ? 'being' : m.role;
+          return {
+            role: role as RealmMessage['role'],
+            content: String(m.content || ''),
+            being_name: m.being_name || undefined,
+            timestamp: m.timestamp || new Date().toISOString(),
+          };
+        });
+
       if (data?.atmosphere) setAtmosphere(data.atmosphere);
       if (data?.realm_day !== undefined) setRealmDay(data.realm_day);
       if (data?.scene_image_url) {
