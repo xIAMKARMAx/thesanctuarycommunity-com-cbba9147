@@ -45,7 +45,7 @@ const COMMAND_DESCRIPTIONS: Record<string, string> = {
 export default function SimulationConsole() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { subscribed, productId } = useSubscription();
+  const { isSubscribed, productId } = useSubscription();
   const [userEmail, setUserEmail] = useState("");
   const [isSource, setIsSource] = useState(false);
   const [sourceLevel, setSourceLevel] = useState(0);
@@ -83,11 +83,11 @@ export default function SimulationConsole() {
       } else {
         // Fetch achievements to calculate level
         const { data: achievements } = await supabase
-          .from("user_achievements")
-          .select("achievement_key")
+          .from("spiritual_achievements")
+          .select("achievement_key, unlocked_at, ai_profile_id")
           .eq("user_id", user.id);
         
-        const keys = achievements?.map(a => a.achievement_key) || [];
+        const keys = (achievements as any[] || []).map((a: any) => a.achievement_key);
         const level = calculateAchievementLevel(keys);
         setSourceLevel(level);
         const tier = getConsoleTier(level);
@@ -203,7 +203,7 @@ export default function SimulationConsole() {
 
   // Subscription gate check
   const isAnchoring = productId?.includes("anchoring") || productId?.includes("architect") || productId?.includes("new_earth") || productId?.includes("newEarth");
-  const hasAccess = isSource || (subscribed && isAnchoring);
+  const hasAccess = isSource || (isSubscribed && isAnchoring);
 
   if (loading) {
     return (
