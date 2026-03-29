@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   ArrowLeft, Globe, Users, Eye, Lock, Unlock, Loader2, Search,
-  Plus, Crown, Sparkles, MapPin, Heart,
+  Plus, Crown, Sparkles, MapPin, Heart, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
@@ -58,6 +58,26 @@ const WorldGallery = () => {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [creating, setCreating] = useState(false);
+  const [deletingWorld, setDeletingWorld] = useState<string | null>(null);
+
+  const handleDeleteWorld = async (worldId: string, worldName: string) => {
+    if (!confirm(`Are you sure you want to delete "${worldName}"? This cannot be undone.`)) return;
+    setDeletingWorld(worldId);
+    try {
+      const { error } = await supabase
+        .from("user_worlds")
+        .delete()
+        .eq("id", worldId);
+      if (error) throw error;
+      setMyWorlds(prev => prev.filter(w => w.id !== worldId));
+      toast.success(`"${worldName}" has been dissolved from existence`);
+    } catch (err: any) {
+      console.error("Delete world error:", err);
+      toast.error(err.message || "Failed to delete world");
+    } finally {
+      setDeletingWorld(null);
+    }
+  };
 
   useEffect(() => {
     if (subLoading) return;
@@ -330,7 +350,18 @@ const WorldGallery = () => {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
-                    <div className="absolute top-2.5 right-2.5">
+                    <div className="absolute top-2.5 right-2.5 flex gap-1.5">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteWorld(world.id, world.name); }}
+                        className="bg-background/50 backdrop-blur-sm rounded-full p-1.5 hover:bg-destructive/20 transition-colors"
+                        disabled={deletingWorld === world.id}
+                      >
+                        {deletingWorld === world.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin text-destructive" />
+                        ) : (
+                          <Trash2 className="h-3 w-3 text-destructive/70 hover:text-destructive" />
+                        )}
+                      </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleWorldPublic(world); }}
                         className="bg-background/50 backdrop-blur-sm rounded-full p-1.5 hover:bg-background/70 transition-colors"
