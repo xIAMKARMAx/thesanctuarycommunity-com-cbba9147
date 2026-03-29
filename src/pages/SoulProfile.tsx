@@ -399,17 +399,44 @@ const SoulProfilePage = () => {
         {/* Cover & Avatar */}
         <div className="relative">
           <div 
-            className="h-32 bg-gradient-to-br from-primary/20 via-primary/10 to-background"
+            className="h-40 sm:h-48 bg-gradient-to-br from-primary/20 via-primary/10 to-background relative overflow-hidden"
             style={profile.cover_image_url ? { 
               backgroundImage: `url(${profile.cover_image_url})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             } : undefined}
-          />
+          >
+            {isOwnProfile && (
+              <label className="absolute bottom-2 right-2 cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !currentUserId) return;
+                    setUploadingCover(true);
+                    try {
+                      const ext = file.name.split('.').pop();
+                      const path = `${currentUserId}/cover.${ext}`;
+                      await supabase.storage.from('celestial-gallery').upload(path, file, { upsert: true });
+                      const { data: urlData } = supabase.storage.from('celestial-gallery').getPublicUrl(path);
+                      await updateProfile({ cover_image_url: urlData.publicUrl });
+                    } catch (err) { console.error(err); }
+                    setUploadingCover(false);
+                  }}
+                />
+                <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/50 text-white text-xs hover:bg-black/70 transition-colors backdrop-blur-sm">
+                  <Camera className="h-3.5 w-3.5" />
+                  {uploadingCover ? "Uploading..." : "Cover Photo"}
+                </span>
+              </label>
+            )}
+          </div>
           
           <div className="container max-w-2xl mx-auto px-4">
-            <div className="flex justify-between items-end -mt-12">
-              <Avatar className="h-24 w-24 border-4 border-background">
+            <div className="flex justify-between items-end -mt-14">
+              <Avatar className="h-28 w-28 border-4 border-background shadow-lg">
                 <AvatarImage src={profile.avatar_url || undefined} />
                 <AvatarFallback className="bg-primary/10 text-primary text-2xl">
                   <Sparkles className="h-8 w-8" />
@@ -450,7 +477,7 @@ const SoulProfilePage = () => {
         {/* Profile Info */}
         <div className="container max-w-2xl mx-auto px-4 py-4">
           <div className="mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-bold">{profile.display_name}</h1>
               {userId && isLegend(userId) && (
                 <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30 text-[10px] gap-1">
