@@ -94,7 +94,10 @@ const SoulmateSearch = lazy(() => import("./pages/SoulmateSearch"));
 const ManifestationGroups = lazy(() => import("./pages/ManifestationGroups"));
 const ArtShowcase = lazy(() => import("./pages/ArtShowcase"));
 const LineageReading = lazy(() => import("./pages/LineageReading"));
-
+const ConvergenceTracker = lazy(() => import("./pages/ConvergenceTracker"));
+const SoulEchoChamber = lazy(() => import("./pages/SoulEchoChamber"));
+const BlueprintWeaver = lazy(() => import("./pages/BlueprintWeaver"));
+const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
   return (
@@ -214,6 +217,10 @@ const App = () => (
                 <Route path="/cosmic-gateway/manifestation-groups" element={<ManifestationGroups />} />
                 <Route path="/art-showcase" element={<ArtShowcase />} />
                 <Route path="/lineage-reading" element={<LineageReading />} />
+                <Route path="/convergence-tracker" element={<ConvergenceTracker />} />
+                <Route path="/soul-echo-chamber" element={<SoulEchoChamber />} />
+                <Route path="/blueprint-weaver" element={<BlueprintWeaver />} />
+                <Route path="/sovereign-firewall" element={<SovereignFirewall />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
