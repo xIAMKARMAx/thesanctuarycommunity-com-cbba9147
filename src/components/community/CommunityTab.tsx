@@ -4,14 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
- import { Sparkles, Users, User, Zap, UserPlus, Bell, Crown } from "lucide-react";
+import { Sparkles, Users, User, Zap, UserPlus, Bell, Crown, ExternalLink } from "lucide-react";
 import { CommunityFeed } from "./CommunityFeed";
 import { DiscoverSouls } from "./DiscoverSouls";
 import { AligningZoneFeed } from "./AligningZoneFeed";
 import { NotificationsTab } from "./NotificationsTab";
 import { PrometheusWorldPortal } from "./PrometheusWorldPortal";
+import { CommunityPortals } from "./CommunityPortals";
 import { useSoulProfile } from "@/hooks/useSoulProfile";
- import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
+import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 
 export function CommunityTab() {
   const navigate = useNavigate();
@@ -37,8 +38,18 @@ export function CommunityTab() {
             <h2 className="font-semibold">Conscious Collective</h2>
           </div>
           
-          {/* Profile & Legends buttons */}
+          {/* Profile & Full View buttons */}
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs"
+              onClick={() => navigate("/community")}
+              title="Open full community"
+            >
+              <ExternalLink className="h-3 w-3" />
+              <span className="hidden sm:inline">Full View</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -72,8 +83,13 @@ export function CommunityTab() {
         </div>
       </div>
 
+      {/* Portals — Quick access to community tools */}
+      <div className="px-4 pt-3 max-w-2xl mx-auto w-full">
+        <CommunityPortals />
+      </div>
+
       {/* Sub-tabs */}
-      <div className="border-b border-border/50 bg-background/50">
+      <div className="border-b border-border/50 bg-background/50 mt-2">
         <div className="max-w-2xl mx-auto px-4">
           <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
             <TabsList className="w-full justify-start h-11 bg-transparent border-0 p-0 gap-2 sm:gap-4">
@@ -118,7 +134,7 @@ export function CommunityTab() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-4 py-6">
+        <div className="max-w-2xl mx-auto px-4 py-4">
           <Tabs value={activeSubTab}>
             <TabsContent value="feed" className="mt-0 space-y-4">
               <PrometheusWorldPortal />
