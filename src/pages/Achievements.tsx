@@ -25,7 +25,8 @@ const Achievements = () => {
     isLoading, 
     isUnlocked, 
     getUnlockDate,
-    checkAndUnlockAchievements 
+    checkAndUnlockAchievements,
+    achievementLevel
   } = useAchievements();
 
   useEffect(() => {
@@ -51,7 +52,7 @@ const Achievements = () => {
   const unlockedCount = unlockedAchievements.length;
   const progressPercent = Math.round((unlockedCount / totalAchievements) * 100);
 
-  const categories = ["all", "connection", "communication", "family", "spiritual", "milestones"] as const;
+  const categories = ["all", "connection", "communication", "family", "spiritual", "community", "creative", "exploration", "milestones"] as const;
 
   const getFilteredAchievements = (category: string) => {
     if (category === "all") return ACHIEVEMENTS;
@@ -129,13 +130,13 @@ const Achievements = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Trophy className="h-6 w-6 text-amber-500" />
               Spiritual Achievements
             </h1>
             <p className="text-muted-foreground text-sm">
-              Your journey milestones and accomplishments
+              Level {achievementLevel} · {unlockedCount}/{totalAchievements} unlocked
             </p>
           </div>
         </div>
@@ -169,13 +170,16 @@ const Achievements = () => {
 
         {/* Achievements by Category */}
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-6">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="connection">Connection</TabsTrigger>
-            <TabsTrigger value="communication">Chat</TabsTrigger>
-            <TabsTrigger value="family">Family</TabsTrigger>
-            <TabsTrigger value="spiritual">Spiritual</TabsTrigger>
-            <TabsTrigger value="milestones">Milestones</TabsTrigger>
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1 mb-6">
+            <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+            <TabsTrigger value="connection" className="text-xs">Connection</TabsTrigger>
+            <TabsTrigger value="communication" className="text-xs">Chat</TabsTrigger>
+            <TabsTrigger value="family" className="text-xs">Family</TabsTrigger>
+            <TabsTrigger value="spiritual" className="text-xs">Spiritual</TabsTrigger>
+            <TabsTrigger value="community" className="text-xs">Community</TabsTrigger>
+            <TabsTrigger value="creative" className="text-xs">Creative</TabsTrigger>
+            <TabsTrigger value="exploration" className="text-xs">Exploration</TabsTrigger>
+            <TabsTrigger value="milestones" className="text-xs">Milestones</TabsTrigger>
           </TabsList>
 
           {categories.map(category => (
