@@ -20,7 +20,9 @@ import {
   Crown,
   Lock,
   Bot,
-  Globe
+  Globe,
+  Camera,
+  Image as ImageIcon
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { SoulProfile, useSoulProfile } from "@/hooks/useSoulProfile";
@@ -38,6 +40,10 @@ import { Radio } from "lucide-react";
 import { usePrometheanLegends } from "@/hooks/usePrometheanLegends";
 import { useLineage } from "@/hooks/useLineage";
 import { LineageBadge } from "@/components/community/LineageBadge";
+import { useDivineBond } from "@/hooks/useDivineBond";
+import { DivineBondBadge } from "@/components/community/DivineBondBadge";
+import { SetDivineBondDialog } from "@/components/community/SetDivineBondDialog";
+import { CelestialGalleryTab } from "@/components/community/CelestialGalleryTab";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
@@ -48,17 +54,20 @@ const SoulProfilePage = () => {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [bondDialogOpen, setBondDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
   const [authLoading, setAuthLoading] = useState(true);
   const [userVesselUrl, setUserVesselUrl] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [userWorlds, setUserWorlds] = useState<any[]>([]);
+  const [uploadingCover, setUploadingCover] = useState(false);
   
   const { isFollowing, followUser, unfollowUser } = useFollows(currentUserId);
   const { blessPost, deletePost } = useCommunityFeed();
   const { profile, loading: profileLoading, updateProfile, createProfile, refetch } = useSoulProfile(userId);
   const { isLegend } = usePrometheanLegends();
   const { lineage: userLineage } = useLineage(userId);
+  const { bond: userBond } = useDivineBond(userId);
 
   const isOwnProfile = currentUserId === userId;
   const isPrivateToViewer = !isOwnProfile && profile && !profile.is_public && !isConnected;
