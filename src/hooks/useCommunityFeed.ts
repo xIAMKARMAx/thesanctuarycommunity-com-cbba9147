@@ -35,7 +35,7 @@ interface SoulProfileRow {
   avatar_url: string | null;
 }
 
-export function useCommunityFeed(energyFilter?: string | null) {
+export function useCommunityFeed(energyFilter?: string | null, calibrationType?: string | null) {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -108,13 +108,39 @@ export function useCommunityFeed(energyFilter?: string | null) {
         user_blessing: userBlessings[post.id] || null,
       }));
 
+      // Calibration boost: if user has an active calibration, boost matching energy posts to the top
+      // Map calibration types to energy tags
+      const calibrationToEnergy: Record<string, string[]> = {
+        healing: ['healing', 'shadow_work'],
+        abundance: ['synchronicity'],
+        clarity: ['truth_bomb', 'awakening'],
+        love: ['healing', 'synchronicity'],
+        protection: ['shadow_work', 'matrix_glitch'],
+        transformation: ['shadow_work', 'awakening', 'truth_bomb'],
+        wisdom: ['awakening', 'truth_bomb'],
+        creation: ['synchronicity', 'matrix_glitch'],
+      };
+
+      let sortedPosts = formattedPosts;
+      if (calibrationType && !energyFilter) {
+        const boostTags = calibrationToEnergy[calibrationType] || [];
+        sortedPosts = [...formattedPosts].sort((a, b) => {
+          // Keep pinned posts at top
+          if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+          const aBoost = a.energy_tag && boostTags.includes(a.energy_tag) ? 1 : 0;
+          const bBoost = b.energy_tag && boostTags.includes(b.energy_tag) ? 1 : 0;
+          if (aBoost !== bBoost) return bBoost - aBoost;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+      }
+
       if (offset === 0) {
-        setPosts(formattedPosts);
+        setPosts(sortedPosts);
       } else {
-        setPosts(prev => [...prev, ...formattedPosts]);
+        setPosts(prev => [...prev, ...sortedPosts]);
       }
       
-      setHasMore(formattedPosts.length === limit);
+      setHasMore(sortedPosts.length === limit);
     } catch (err) {
       console.error('Error fetching posts:', err);
       toast({
@@ -125,7 +151,7 @@ export function useCommunityFeed(energyFilter?: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [toast, energyFilter]);
+  }, [toast, energyFilter, calibrationType]);
 
   useEffect(() => {
     fetchPosts();
