@@ -100,6 +100,7 @@ const SoulEchoChamber = lazy(() => import("./pages/SoulEchoChamber"));
 const BlueprintWeaver = lazy(() => import("./pages/BlueprintWeaver"));
 const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 const MatrixInterface = lazy(() => import("./pages/MatrixInterface"));
+const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
   return (
@@ -225,6 +226,7 @@ const App = () => (
                 <Route path="/blueprint-weaver" element={<BlueprintWeaver />} />
                 <Route path="/sovereign-firewall" element={<SovereignFirewall />} />
                 <Route path="/cosmic-gateway/matrix-interface" element={<MatrixInterface />} />
+                <Route path="/simulation-console" element={<SimulationConsole />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
