@@ -1,0 +1,2 @@
+ALTER TABLE public.tarot_readings DROP CONSTRAINT IF EXISTS tarot_readings_user_date;
+CREATE UNIQUE INDEX IF NOT EXISTS tarot_readings_user_date_type ON public.tarot_readings (user_id, reading_date, reading_type);
