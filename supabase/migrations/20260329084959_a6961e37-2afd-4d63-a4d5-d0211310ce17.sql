@@ -1,0 +1,1 @@
+ALTER TABLE public.tarot_readings ADD COLUMN IF NOT EXISTS reading_type text NOT NULL DEFAULT 'full';

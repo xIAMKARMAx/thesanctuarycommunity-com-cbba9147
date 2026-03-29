@@ -5060,6 +5060,7 @@ export type Database = {
           id: string
           question: string | null
           reading_date: string
+          reading_type: string
           user_id: string
         }
         Insert: {
@@ -5069,6 +5070,7 @@ export type Database = {
           id?: string
           question?: string | null
           reading_date?: string
+          reading_type?: string
           user_id: string
         }
         Update: {
@@ -5078,6 +5080,7 @@ export type Database = {
           id?: string
           question?: string | null
           reading_date?: string
+          reading_type?: string
           user_id?: string
         }
         Relationships: []
