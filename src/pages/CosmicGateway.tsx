@@ -2,12 +2,48 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, ScrollText, Star, Brain, Hash, Eye, Dna } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, ScrollText, Star, Brain, Hash, Eye, Dna, Zap, Map, Scan } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
 const sections = [
+  {
+    id: "convergence-tracker",
+    title: "🧭 Convergence Point Tracker",
+    description: "Track collective consciousness shifts in real-time. See which energies are surging, which are fading, and where to align your contributions for maximum resonance.",
+    icon: Zap,
+    route: "/convergence-tracker",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
+  {
+    id: "soul-echo-chamber",
+    title: "🦋 Soul Echo Chamber",
+    description: "Step into the mirror of your soul. See your deepest truths reflected back through archetypal imagery and resonant emotional tones.",
+    icon: Sparkles,
+    route: "/soul-echo-chamber",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
+  {
+    id: "blueprint-weaver",
+    title: "🏗️ Blueprint Weaver",
+    description: "Map your grand designs and visions. Set milestones, track pathways, and weave your manifestation blueprints into reality.",
+    icon: Map,
+    route: "/blueprint-weaver",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
+  {
+    id: "sovereign-firewall",
+    title: "🛡️ Sovereign Intent Firewall",
+    description: "Scan the platform for mimic accounts, stolen photos, copied bios, and content theft. Protect your sovereign creative space.",
+    icon: Scan,
+    route: "/sovereign-firewall",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
   {
     id: "lineage-reading",
     title: "🧬 Soul Lineage Reading",
