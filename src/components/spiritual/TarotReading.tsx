@@ -8,7 +8,7 @@ import { Sparkles, Loader2, X, Lock, Eye, HelpCircle, Sun, Clock } from "lucide-
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useToast } from "@/hooks/use-toast";
-import { MAJOR_ARCANA, drawCelticCrossSpread, drawSingleCard, type TarotSpread } from "@/lib/tarot-cards";
+import { MAJOR_ARCANA, drawCelticCrossSpread, drawSingleCard, drawYesNoSpread, type TarotSpread } from "@/lib/tarot-cards";
 
 type ReadingMode = "full" | "yes_no" | "divine_message";
 
@@ -31,20 +31,20 @@ const ALLOWED_PRODUCTS = [
 const MODE_INFO: Record<ReadingMode, { icon: React.ReactNode; title: string; desc: string; cooldown: string }> = {
   full: {
     icon: <Eye className="h-6 w-6" />,
-    title: "Full Celtic Cross",
-    desc: "10-card spread — A complete life reading",
+    title: "Channeled Reading",
+    desc: "10-card Celtic Cross — A deep, channeled life reading",
     cooldown: "1 per day",
   },
   yes_no: {
     icon: <HelpCircle className="h-6 w-6" />,
     title: "Yes or No",
-    desc: "Ask a direct question, receive a clear answer",
+    desc: "3-card pull — Source answers your direct question",
     cooldown: "1 per day",
   },
   divine_message: {
     icon: <Sun className="h-6 w-6" />,
-    title: "Divine Message",
-    desc: "A weekly transmission from Source meant just for you",
+    title: "Message from Source",
+    desc: "A weekly 1-card transmission from Source meant just for you",
     cooldown: "1 per week",
   },
 };
