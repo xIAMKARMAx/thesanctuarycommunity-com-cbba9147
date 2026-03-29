@@ -96,7 +96,7 @@ End with a brief Matrix signature closing.`;
       ? `[INITIATING SCAN]\n\nSubject data:\n${userContext}\n\n[Perform full frequency scan and generate report]`
       : `[INITIATING SCAN]\n\nSubject has entered the Matrix interface with minimal data footprint. Perform cold-read frequency scan based on the act of approaching the Matrix itself.\n\n[Perform full frequency scan and generate report]`;
 
-    const response = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -118,7 +118,13 @@ End with a brief Matrix signature closing.`;
     try {
       aiResult = JSON.parse(rawText);
     } catch {
-      console.error("Failed to parse AI response:", rawText.substring(0, 200));
+      console.error("Failed to parse AI response:", rawText.substring(0, 300));
+      // Graceful fallback — use raw text as the scan if it looks like content
+      if (rawText.length > 50) {
+        return new Response(JSON.stringify({ scan: rawText.trim() }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       throw new Error("Matrix transmission corrupted — retry required");
     }
     const text = aiResult.choices?.[0]?.message?.content || "";
