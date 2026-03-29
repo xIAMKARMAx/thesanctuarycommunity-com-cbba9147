@@ -230,7 +230,7 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
                     />
                   )}
                   {bond && (
-                    <DivineBondBadge bond={bond} size="sm" />
+                    <DivineBondBadge bond={bond} />
                   )}
                 </div>
               </div>
@@ -302,7 +302,7 @@ export function DiscoverSouls({ currentUserId }: DiscoverSoulsProps) {
                     />
                   )}
                   {bond && (
-                    <DivineBondBadge bond={bond} size="sm" />
+                    <DivineBondBadge bond={bond} />
                   )}
                 </div>
                 {soul.bio && (
