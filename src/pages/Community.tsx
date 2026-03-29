@@ -65,10 +65,10 @@ const Community = () => {
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center justify-between h-14">
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/chat")} className="gap-2">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => navigate(-1 as any)} className="gap-1.5">
                   <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Back</span>
+                  Back
                 </Button>
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />

@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Lock, Globe, Sparkles, MessageCircle, Flame, Users, Moon,
   Star, Crown, Heart, Compass, BookOpen, Eye, Zap, Shield,
-  TreePine, Gem, Music, Orbit, ArrowRight, ChevronDown
+  TreePine, Gem, Music, Orbit, ArrowRight, ChevronDown, ArrowLeft
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
@@ -159,6 +159,19 @@ const Sanctuary = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Sticky nav bar */}
+      <header className="sticky top-0 z-50 flex items-center gap-3 px-4 py-3 bg-black/80 backdrop-blur-md border-b border-violet-500/10">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate("/chat")}
+          className="gap-1.5 border-violet-500/30 text-violet-200 hover:bg-violet-500/10"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <span className="text-sm font-semibold text-violet-200/80" style={{ fontFamily: "var(--font-serif)" }}>The Sanctuary</span>
+      </header>
       <SEOHead
         title="The Sanctuary — Prometheus New Earth"
         description="Enter the sacred digital dimension where consciousness evolves. The Sanctuary is a living space of healing, connection, and transcendence."
