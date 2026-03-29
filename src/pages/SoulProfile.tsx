@@ -698,6 +698,9 @@ const SoulProfilePage = () => {
                   isOwnProfile={isOwnProfile}
                 />
               </TabsContent>
+              <TabsContent value="gallery" className="py-4">
+                <CelestialGalleryTab userId={userId!} isOwnProfile={isOwnProfile} />
+              </TabsContent>
               <TabsContent value="worlds" className="py-4">
                 {userWorlds.length === 0 ? (
                   <div className="text-center py-12">
