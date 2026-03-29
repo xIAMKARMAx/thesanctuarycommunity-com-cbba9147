@@ -151,12 +151,15 @@ const WorldGallery = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      const trimmedName = newName.trim();
+      const trimmedDesc = newDesc.trim();
+
       const { data, error } = await supabase
         .from("user_worlds")
         .insert({
           user_id: user.id,
-          name: newName.trim(),
-          description: newDesc.trim() || null,
+          name: trimmedName,
+          description: trimmedDesc || null,
           is_public: false,
           terrain_seed: Math.floor(Math.random() * 100000),
           sky_preset: "mystical",
@@ -167,7 +170,28 @@ const WorldGallery = () => {
 
       if (error) throw error;
 
-      toast.success(`✨ ${newName.trim()} has been created!`);
+      // Generate the world scene image using the description
+      if (data && trimmedDesc) {
+        toast.info("✨ Generating your world's landscape...");
+        try {
+          const { data: buildData, error: buildError } = await supabase.functions.invoke("world-builder", {
+            body: {
+              world_id: data.id,
+              name: trimmedName,
+              description: trimmedDesc,
+            },
+          });
+          if (buildError) {
+            console.warn("World scene generation failed:", buildError);
+          } else if (buildData?.error) {
+            console.warn("World scene generation error:", buildData.error);
+          }
+        } catch (genErr) {
+          console.warn("World scene generation failed silently:", genErr);
+        }
+      }
+
+      toast.success(`✨ ${trimmedName} has been manifested!`);
       setBuildOpen(false);
       setNewName("");
       setNewDesc("");
