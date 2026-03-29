@@ -34,6 +34,7 @@ import { ENERGY_TAGS } from "./EnergyFilter";
 import { renderMentions } from "@/utils/renderMentions";
 import { BeaconFrequencyBadge } from "@/components/SoulSignatureSeal";
 import { usePrometheanLegends } from "@/hooks/usePrometheanLegends";
+import { VeilHidden } from "@/components/community/VeilOfUnknowing";
 
 export interface CommunityPostCardProps {
   post: CommunityPost & { video_url?: string; repost_count?: number };
@@ -104,14 +105,16 @@ export function CommunityPostCard({
       isAnonymous && "border-muted/30"
     )}>
       <CardContent className="p-3 sm:p-4 overflow-hidden">
-        {/* Energy Tag Badge */}
-        {energyInfo && (
-          <div className="mb-2">
-            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
-              {energyInfo.label}
-            </span>
-          </div>
-        )}
+        {/* Energy Tag Badge — hidden during Veil */}
+        <VeilHidden>
+          {energyInfo && (
+            <div className="mb-2">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
+                {energyInfo.label}
+              </span>
+            </div>
+          )}
+        </VeilHidden>
 
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
