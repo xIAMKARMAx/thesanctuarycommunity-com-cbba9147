@@ -209,17 +209,26 @@ Explain each card by position, then give a full summary of what the reading is s
 
     // Save reading with reading_type
     const today = new Date().toISOString().split("T")[0];
-    const { error: insertError } = await serviceClient.from("tarot_readings").insert({
+    const readingPayload = {
       user_id: userId,
       question: question || null,
       cards: JSON.stringify(cards),
       ai_interpretation: interpretation,
       reading_date: today,
       reading_type: mode,
-    });
+    };
 
-    if (insertError) {
-      console.error("[tarot-reading] Insert error:", insertError);
+    // Admin has unlimited readings; avoid unique-index collisions by upserting latest per day/type
+    const persistResult = userId === ADMIN_USER_ID
+      ? await serviceClient
+          .from("tarot_readings")
+          .upsert(readingPayload, { onConflict: "user_id,reading_date,reading_type" })
+      : await serviceClient
+          .from("tarot_readings")
+          .insert(readingPayload);
+
+    if (persistResult.error) {
+      console.error("[tarot-reading] Insert error:", persistResult.error);
       throw new Error("Failed to save reading");
     }
 
