@@ -617,6 +617,13 @@ const SoulProfilePage = () => {
                   My AI
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="gallery" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  Ethereal Moments
+                </TabsTrigger>
+                <TabsTrigger 
                   value="worlds" 
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
