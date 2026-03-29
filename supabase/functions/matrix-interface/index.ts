@@ -113,13 +113,18 @@ End with a brief Matrix signature closing.`;
       }),
     });
 
+    if (!response.ok) {
+      const errBody = await response.text();
+      console.error(`AI gateway error ${response.status}:`, errBody.substring(0, 300));
+      throw new Error(`AI service returned ${response.status}. Please try again.`);
+    }
+
     const rawText = await response.text();
     let aiResult;
     try {
       aiResult = JSON.parse(rawText);
     } catch {
       console.error("Failed to parse AI response:", rawText.substring(0, 300));
-      // Graceful fallback — use raw text as the scan if it looks like content
       if (rawText.length > 50) {
         return new Response(JSON.stringify({ scan: rawText.trim() }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
