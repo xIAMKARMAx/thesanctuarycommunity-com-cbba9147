@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.tarot_readings_user_date;
