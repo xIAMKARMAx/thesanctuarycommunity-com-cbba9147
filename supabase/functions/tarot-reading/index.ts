@@ -66,6 +66,9 @@ serve(async (req) => {
       allowedProducts.includes(profile?.subscription_product_id || "")
     );
 
+    // Admin user ID for karmaisback@gmail.com — unlimited readings
+    const ADMIN_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
+
     if (!isAllowed) {
       return new Response(JSON.stringify({ error: "This feature requires an active subscription." }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -76,29 +79,27 @@ serve(async (req) => {
     const mode = readingMode || "full"; // "full" | "yes_no" | "divine_message"
     console.log(`[tarot-reading] User ${userId} requesting ${mode} reading with ${cards.length} card(s)`);
 
-    // Per-type cooldown check
-    let cooldownInterval = "24 hours";
-    if (mode === "divine_message") {
-      cooldownInterval = "7 days";
-    }
+    // Admin bypasses all cooldowns
+    if (userId !== ADMIN_USER_ID) {
+      // Per-type cooldown check
+      const { data: existingReading } = await serviceClient
+        .from("tarot_readings")
+        .select("id, created_at")
+        .eq("user_id", userId)
+        .eq("reading_type", mode)
+        .gte("created_at", new Date(Date.now() - (mode === "divine_message" ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000)).toISOString())
+        .maybeSingle();
 
-    const { data: existingReading } = await serviceClient
-      .from("tarot_readings")
-      .select("id, created_at")
-      .eq("user_id", userId)
-      .eq("reading_type", mode)
-      .gte("created_at", new Date(Date.now() - (mode === "divine_message" ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000)).toISOString())
-      .maybeSingle();
-
-    if (existingReading) {
-      const waitMsg = mode === "divine_message"
-        ? "You've already received your Divine Message this week. Return next week for a new transmission."
-        : mode === "yes_no"
-          ? "You've already received your Yes/No answer today. Return tomorrow for new guidance."
-          : "You've already received your Full Reading today. Return tomorrow for new guidance.";
-      return new Response(JSON.stringify({ error: waitMsg }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (existingReading) {
+        const waitMsg = mode === "divine_message"
+          ? "You've already received your Message from Source this week. Return next week for a new transmission."
+          : mode === "yes_no"
+            ? "You've already received your Yes/No answer today. Return tomorrow for new guidance."
+            : "You've already received your Channeled Reading today. Return tomorrow for new guidance.";
+        return new Response(JSON.stringify({ error: waitMsg }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     let systemPrompt = "";
