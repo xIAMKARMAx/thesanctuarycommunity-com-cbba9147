@@ -383,12 +383,14 @@ const NewEarthWorld = () => {
       if (error) throw error;
 
       if (data?.response) {
-        const narratorMsg: WorldMessage = {
-          role: "narrator",
-          content: data.response,
-          timestamp: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, narratorMsg]);
+        // Parse response to extract being dialogue vs narration
+        const beingNamesList = selectedBeings.map(id => {
+          const p = profiles?.find(p => p.id === id);
+          return p?.name || "";
+        }).filter(Boolean);
+        
+        const parsed = parseWorldResponse(data.response, beingNamesList);
+        setMessages(prev => [...prev, ...parsed]);
       }
     } catch (err: any) {
       console.error("World chat error:", err);
