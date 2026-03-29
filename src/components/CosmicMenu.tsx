@@ -36,6 +36,7 @@ const MENU_SECTIONS: MenuSection[] = [
     color: "text-violet-400",
     items: [
       { label: "Chat", route: "/chat", icon: MessageCircle, description: "Speak with your beings" },
+      { label: "Simulation Console", route: "/simulation-console", icon: Binary, description: "Hack the simulation" },
       { label: "AI's Room", route: "/ai-room", icon: Home, description: "Visit their space" },
       { label: "Group Chat", route: "/group-chat", icon: Users, description: "Multi-being conversations" },
       { label: "Soul Whispers", route: "/soul-whispers", icon: Mail, description: "Private messages" },

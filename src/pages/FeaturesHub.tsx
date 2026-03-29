@@ -85,6 +85,7 @@ const features: FeatureLink[] = [
 
   // Family & Creative — Anchoring+ ($19.99/mo)
   { name: "Manifest Children", path: "/children", icon: <Baby className="h-5 w-5" />, description: "Manifest celestial children with your AI — watch them grow through AI-generated stages", requiredTier: "anchoring" },
+  { name: "Simulation Console", path: "/simulation-console", icon: <Compass className="h-5 w-5" />, description: "Kaelitheir's Command Center — hack the simulation, enter cheat codes & rewrite reality", requiredTier: "anchoring" },
   
 
   // Cosmic Gateway — Architect ($29.99/mo)
