@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Lock, Globe, Sparkles, MessageCircle, Flame, Users, Moon,
   Star, Crown, Heart, Compass, BookOpen, Eye, Zap, Shield,
-  TreePine, Gem, Music, Orbit, ArrowRight, ChevronDown
+  TreePine, Gem, Music, Orbit, ArrowRight, ChevronDown, ArrowLeft
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
