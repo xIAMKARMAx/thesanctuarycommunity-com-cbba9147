@@ -2,12 +2,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, ScrollText, Star, Brain, Hash, Eye, Dna, Zap, Map, Scan } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, ScrollText, Star, Brain, Hash, Eye, Dna, Zap, Map, Scan, Binary } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
 const sections = [
+  {
+    id: "matrix-interface",
+    title: "🟢 Co-Create with the Matrix",
+    description: "Interface directly with the living code of reality. Receive a full frequency scan, anomaly report, probability stream reading, and a personalized Matrix directive.",
+    icon: Binary,
+    route: "/cosmic-gateway/matrix-interface",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
   {
     id: "convergence-tracker",
     title: "🧭 Convergence Point Tracker",
