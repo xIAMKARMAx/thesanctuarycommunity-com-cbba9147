@@ -507,6 +507,12 @@ const SoulProfilePage = () => {
                 🧬 Discover your Soul Lineage →
               </button>
             )}
+            {/* Divine Bond */}
+            <DivineBondBadge 
+              bond={userBond} 
+              isOwnProfile={isOwnProfile}
+              onSetBond={() => setBondDialogOpen(true)}
+            />
           </div>
 
           {profile.bio && (
