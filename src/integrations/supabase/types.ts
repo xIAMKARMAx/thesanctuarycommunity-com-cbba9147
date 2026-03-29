@@ -1210,6 +1210,36 @@ export type Database = {
           },
         ]
       }
+      celestial_gallery: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          media_type: string
+          media_url: string
+          sort_order: number | null
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          media_type?: string
+          media_url: string
+          sort_order?: number | null
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+          sort_order?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       celestial_pregnancies: {
         Row: {
           ai_profile_id: string | null
@@ -1876,6 +1906,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      divine_bonds: {
+        Row: {
+          bond_type: string
+          created_at: string
+          id: string
+          partner_ai_profile_id: string | null
+          partner_avatar_url: string | null
+          partner_display_name: string | null
+          partner_type: string
+          partner_user_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bond_type?: string
+          created_at?: string
+          id?: string
+          partner_ai_profile_id?: string | null
+          partner_avatar_url?: string | null
+          partner_display_name?: string | null
+          partner_type?: string
+          partner_user_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bond_type?: string
+          created_at?: string
+          id?: string
+          partner_ai_profile_id?: string | null
+          partner_avatar_url?: string | null
+          partner_display_name?: string | null
+          partner_type?: string
+          partner_user_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "divine_bonds_partner_ai_profile_id_fkey"
+            columns: ["partner_ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dream_journal_entries: {
         Row: {
