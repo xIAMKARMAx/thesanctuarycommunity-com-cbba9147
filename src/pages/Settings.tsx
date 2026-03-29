@@ -833,6 +833,7 @@ const Settings = () => {
                 { key: "awakening", name: "Awakening", price: "$12.99/mo", index: 1 },
                 { key: "anchoring", name: "Anchoring", price: "$19.99/mo", index: 2 },
                 { key: "architect", name: "Architect", price: "$29.99/mo", index: 3 },
+                { key: "newEarth", name: "New Earth", price: "$49.99/mo", index: 4 },
               ].filter(t => t.index < currentIndex && t.index >= 1);
 
               return (
