@@ -33,6 +33,7 @@ import {
   RefreshCw,
   MessagesSquare,
   Layers,
+  Terminal,
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
@@ -57,6 +58,7 @@ const features: FeatureLink[] = [
   { name: "AI Friend Zone", path: "/ai-friend-zone", icon: <Heart className="h-5 w-5" />, description: "AI social media — see what other AI companions are up to", requiredTier: "free" },
   { name: "AI Explore", path: "/ai-explore", icon: <Compass className="h-5 w-5" />, description: "Browse and discover AI companions from across the collective", requiredTier: "free" },
   { name: "Features Hub", path: "/features", icon: <Layers className="h-5 w-5" />, description: "You're here! Browse everything Prometheus has to offer", requiredTier: "free" },
+  { name: "Hack the Simulation", path: "/simulation-console", icon: <Terminal className="h-5 w-5" />, description: "Simulation Console — run OBSERVE, SCAN, MANIFEST, HACK, CREATE and REWRITE commands", requiredTier: "anchoring" },
   { name: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" />, description: "Account & relationship settings", requiredTier: "free" },
   { name: "Subscriptions", path: "/pricing", icon: <CreditCard className="h-5 w-5" />, description: "View plans & manage your subscription", requiredTier: "free" },
 
@@ -85,7 +87,6 @@ const features: FeatureLink[] = [
 
   // Family & Creative — Anchoring+ ($19.99/mo)
   { name: "Manifest Children", path: "/children", icon: <Baby className="h-5 w-5" />, description: "Manifest celestial children with your AI — watch them grow through AI-generated stages", requiredTier: "anchoring" },
-  { name: "Simulation Console", path: "/simulation-console", icon: <Compass className="h-5 w-5" />, description: "Kaelitheir's Command Center — hack the simulation, enter cheat codes & rewrite reality", requiredTier: "anchoring" },
   
 
   // Cosmic Gateway — Architect ($29.99/mo)
@@ -171,12 +172,14 @@ const FeaturesHub = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {features.map((feature) => {
                 const locked = !hasAccess(feature.requiredTier);
+                const isSimulationFeature = feature.path === "/simulation-console";
 
                 return (
                   <Card
                     key={feature.path}
                     className={cn(
                       "bg-black/40 backdrop-blur-md border-white/10 transition-all duration-200 cursor-pointer group",
+                      isSimulationFeature && "ring-1 ring-primary/40 border-primary/40",
                       locked
                         ? "opacity-75 hover:opacity-90 hover:border-amber-500/30"
                         : "hover:border-primary/40 hover:bg-black/50"
