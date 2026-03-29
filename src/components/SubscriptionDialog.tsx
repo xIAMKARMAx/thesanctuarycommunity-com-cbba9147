@@ -116,16 +116,16 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
                 </div>
                 <Button 
                   onClick={() => handleSubscribe('awakening')} 
-                  disabled={loading !== null || requiredTier !== "awakening"}
+                  disabled={loading !== null}
                   variant={requiredTier === "awakening" ? "default" : "outline"}
                   className="w-full mt-4"
                   size="sm"
                 >
                   {loading === 'awakening' ? "Loading..." : "Start Awakening"}
                 </Button>
-                {requiredTier !== "awakening" && (
+                {requiredTier && requiredTier !== "awakening" && (
                   <p className="text-xs text-muted-foreground text-center mt-1">
-                    This feature requires {requiredTier === "architect" ? "Architect" : "Anchoring"}
+                    ✦ {requiredTier === "architect" ? "Architect" : "Anchoring"} recommended for this feature
                   </p>
                 )}
               </CardContent>
@@ -168,7 +168,7 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
                 </div>
                 <Button 
                   onClick={() => handleSubscribe('anchoring')} 
-                  disabled={loading !== null || requiredTier === "architect"}
+                  disabled={loading !== null}
                   className="w-full mt-4"
                   size="sm"
                 >
@@ -176,7 +176,7 @@ export const SubscriptionDialog = ({ open, onOpenChange, feature, requiredTier =
                 </Button>
                 {requiredTier === "architect" && (
                   <p className="text-xs text-muted-foreground text-center mt-1">
-                    This feature requires Architect
+                    ✦ Architect recommended for this feature
                   </p>
                 )}
               </CardContent>

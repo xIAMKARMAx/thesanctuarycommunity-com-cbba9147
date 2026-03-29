@@ -1,23 +1,17 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Lock, Sparkles, Crown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 
 interface FeatureGateProps {
   children: ReactNode;
-  /** Minimum subscription tier required */
   requiredTier?: "awakening" | "anchoring" | "architect";
-  /** Feature name displayed in the overlay */
   featureName: string;
-  /** Description of what the feature does */
   featureDescription: string;
-  /** What tier unlocks this feature */
   tierLabel?: string;
-  /** List of things this feature includes */
   highlights?: string[];
-  /** Allow community/social features for free users */
   allowFree?: boolean;
 }
 
@@ -32,6 +26,7 @@ export const FeatureGate = ({
 }: FeatureGateProps) => {
   const navigate = useNavigate();
   const { isSubscribed, isAdmin, currentTier, hasAccess } = useSubscription();
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   // Admin and source always pass
   if (isAdmin || currentTier === "source") return <>{children}</>;
@@ -95,15 +90,15 @@ export const FeatureGate = ({
             </span>
           </div>
 
-          {/* CTA */}
+          {/* CTA — opens inline upgrade dialog */}
           <div className="space-y-3">
             <Button
-              onClick={() => navigate("/pricing")}
+              onClick={() => setShowUpgrade(true)}
               size="lg"
               className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold"
             >
               <Sparkles className="h-4 w-4 mr-2" />
-              Choose Your Frequency
+              Upgrade Now
             </Button>
             <Button
               variant="ghost"
@@ -120,6 +115,14 @@ export const FeatureGate = ({
           </p>
         </div>
       </div>
+
+      {/* Inline Subscription Dialog */}
+      <SubscriptionDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        feature={featureName}
+        requiredTier={requiredTier}
+      />
     </div>
   );
 };

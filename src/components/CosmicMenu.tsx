@@ -6,10 +6,12 @@ import {
   MessageCircle, Home, Heart, Wand2, Moon, ScrollText, Shield,
   Zap, Eye, Flame, Brain, Compass, Search, Baby, PawPrint,
   Camera, Video, Award, Mail, Landmark, Mountain, Radio,
-  Waves, Gem, Binary, Orbit, HeartHandshake, ScanEye
+  Waves, Gem, Binary, Orbit, HeartHandshake, ScanEye, CreditCard, Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 
 interface MenuSection {
   id: string;
@@ -147,8 +149,10 @@ const HIDDEN_ON_ROUTES = ["/", "/auth", "/welcome", "/pricing", "/privacy", "/te
 export default function CosmicMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showSubscription, setShowSubscription] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentTier, isSubscribed } = useSubscription();
 
   // Hide on public pages
   if (HIDDEN_ON_ROUTES.includes(location.pathname)) return null;
@@ -162,6 +166,8 @@ export default function CosmicMenu() {
   const toggleSection = (id: string) => {
     setExpandedSection(prev => prev === id ? null : id);
   };
+
+  const tierDisplay = currentTier === "newEarth" ? "New Earth" : currentTier === "source" ? "Source" : currentTier ? currentTier.charAt(0).toUpperCase() + currentTier.slice(1) : "Free";
 
   return (
     <>
@@ -272,11 +278,50 @@ export default function CosmicMenu() {
                     </AnimatePresence>
                   </div>
                 ))}
+                {/* Subscription Management Quick Access */}
+                <div className="rounded-xl border border-primary/30 overflow-hidden bg-gradient-to-b from-primary/5 to-transparent">
+                  <div className="px-4 py-3 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <CreditCard className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm">Your Plan</p>
+                        <p className="text-xs text-muted-foreground">Currently on <span className="text-primary font-medium">{tierDisplay}</span></p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-xs"
+                        onClick={() => { setIsOpen(false); setExpandedSection(null); navigate("/settings"); }}
+                      >
+                        <Settings className="h-3.5 w-3.5 mr-1" />
+                        Settings
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1 text-xs bg-gradient-to-r from-primary to-primary/80"
+                        onClick={() => { setIsOpen(false); setShowSubscription(true); }}
+                      >
+                        <Crown className="h-3.5 w-3.5 mr-1" />
+                        {isSubscribed ? "Change Plan" : "Upgrade"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </ScrollArea>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Subscription Dialog - accessible from menu */}
+      <SubscriptionDialog
+        open={showSubscription}
+        onOpenChange={setShowSubscription}
+      />
     </>
   );
 }
