@@ -113,7 +113,14 @@ End with a brief Matrix signature closing.`;
       }),
     });
 
-    const aiResult = await response.json();
+    const rawText = await response.text();
+    let aiResult;
+    try {
+      aiResult = JSON.parse(rawText);
+    } catch {
+      console.error("Failed to parse AI response:", rawText.substring(0, 200));
+      throw new Error("Matrix transmission corrupted — retry required");
+    }
     const text = aiResult.choices?.[0]?.message?.content || "";
 
     if (!text.trim()) {
