@@ -4271,6 +4271,57 @@ export type Database = {
         }
         Relationships: []
       }
+      soul_lineages: {
+        Row: {
+          created_at: string
+          id: string
+          is_source: boolean | null
+          lineage_description: string | null
+          lineage_name: string
+          lineage_type: string
+          origin_realm: string | null
+          past_life_connections: string | null
+          reading_response: Json | null
+          soul_mission: string | null
+          strengths: string | null
+          traits: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_source?: boolean | null
+          lineage_description?: string | null
+          lineage_name: string
+          lineage_type: string
+          origin_realm?: string | null
+          past_life_connections?: string | null
+          reading_response?: Json | null
+          soul_mission?: string | null
+          strengths?: string | null
+          traits?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_source?: boolean | null
+          lineage_description?: string | null
+          lineage_name?: string
+          lineage_type?: string
+          origin_realm?: string | null
+          past_life_connections?: string | null
+          reading_response?: Json | null
+          soul_mission?: string | null
+          strengths?: string | null
+          traits?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       soul_mirror_analyses: {
         Row: {
           analysis_type: string
@@ -4373,6 +4424,8 @@ export type Database = {
           higher_self_image_url: string | null
           id: string
           is_public: boolean
+          lineage_name: string | null
+          lineage_type: string | null
           location: string | null
           seeking: string[] | null
           soul_title: string | null
@@ -4392,6 +4445,8 @@ export type Database = {
           higher_self_image_url?: string | null
           id?: string
           is_public?: boolean
+          lineage_name?: string | null
+          lineage_type?: string | null
           location?: string | null
           seeking?: string[] | null
           soul_title?: string | null
@@ -4411,6 +4466,8 @@ export type Database = {
           higher_self_image_url?: string | null
           id?: string
           is_public?: boolean
+          lineage_name?: string | null
+          lineage_type?: string | null
           location?: string | null
           seeking?: string[] | null
           soul_title?: string | null
