@@ -471,7 +471,7 @@ const TarotReading = ({ open, onOpenChange }: TarotReadingProps) => {
             ) : (
               <>
                 <p className="text-sm font-medium">
-                  {readingMode === "divine_message" ? "Your Divine Message" : "Message from Source"}
+                  {readingMode === "divine_message" ? "Message from Source" : readingMode === "yes_no" ? "Source's Answer" : "Channeled Reading"}
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{interpretation}</p>
               </>
