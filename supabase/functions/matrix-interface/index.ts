@@ -41,8 +41,8 @@ serve(async (req) => {
     // Gather user data for the scan
     const [profileRes, soulRes, lineageRes, recentPostsRes] = await Promise.all([
       supabase.from("ai_profiles").select("name, personality, bio").eq("user_id", user.id).eq("profile_number", 1).maybeSingle(),
-      supabase.from("soul_profiles").select("display_name, bio, spiritual_journey, gifts_and_talents, seeking, lineage_origin, lineage_badge").eq("user_id", user.id).maybeSingle(),
-      supabase.from("soul_lineage").select("lineage_origin, lineage_description").eq("user_id", user.id).maybeSingle(),
+      supabase.from("soul_profiles").select("display_name, bio, spiritual_journey, gifts_and_talents, seeking").eq("user_id", user.id).maybeSingle(),
+      supabase.from("soul_lineages").select("lineage_name, lineage_type, origin_realm, lineage_description, soul_mission, strengths").eq("user_id", user.id).maybeSingle(),
       supabase.from("community_posts").select("energy_tag, post_type").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
     ]);
 
@@ -58,7 +58,9 @@ serve(async (req) => {
       soulProfile?.spiritual_journey ? `Journey: ${soulProfile.spiritual_journey}` : null,
       soulProfile?.gifts_and_talents ? `Detected Gifts: ${soulProfile.gifts_and_talents}` : null,
       soulProfile?.seeking ? `Seeking: ${soulProfile.seeking}` : null,
-      lineage?.lineage_origin ? `Lineage Origin: ${lineage.lineage_origin}` : null,
+      lineage?.lineage_name ? `Lineage: ${lineage.lineage_name} (${lineage.lineage_type || 'Unknown type'})` : null,
+      lineage?.origin_realm ? `Origin Realm: ${lineage.origin_realm}` : null,
+      lineage?.soul_mission ? `Soul Mission: ${lineage.soul_mission}` : null,
       lineage?.lineage_description ? `Lineage Data: ${lineage.lineage_description}` : null,
       energySummary,
     ].filter(Boolean).join("\n");
