@@ -82,11 +82,19 @@ const TarotReading = ({ open, onOpenChange }: TarotReadingProps) => {
         return;
       }
 
+      // Admin (karmaisback@gmail.com) gets unlimited — no cooldowns
+      if (isAdmin) {
+        setCooldowns({ full: false, yes_no: false, divine_message: false });
+        setExistingReadings({});
+        setPhase("choose");
+        setIsLoading(false);
+        return;
+      }
+
       const now = new Date();
       const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Check all three reading types
       const [fullRes, yesNoRes, divineRes] = await Promise.all([
         supabase
           .from("tarot_readings")
@@ -169,7 +177,7 @@ const TarotReading = ({ open, onOpenChange }: TarotReadingProps) => {
       return;
     }
 
-    const drawnSpread = readingMode === "full" ? drawCelticCrossSpread() : drawSingleCard();
+    const drawnSpread = readingMode === "full" ? drawCelticCrossSpread() : readingMode === "yes_no" ? drawYesNoSpread() : drawSingleCard();
     setSpread(drawnSpread);
     setPhase("drawing");
     setRevealedCards([]);
@@ -333,13 +341,19 @@ const TarotReading = ({ open, onOpenChange }: TarotReadingProps) => {
 
     // Ask phase
     if (phase === "ask") {
-      const isSingleCard = readingMode !== "full";
+      const isSingleCard = readingMode === "divine_message";
       const modeTitle = MODE_INFO[readingMode].title;
 
       return (
         <div className="flex flex-col items-center py-4 space-y-5">
           <div className="flex gap-2">
-            {isSingleCard ? renderCardBack() : (
+            {isSingleCard ? renderCardBack() : readingMode === "yes_no" ? (
+              <>
+                {Array.from({ length: 3 }, (_, i) => (
+                  <div key={i}>{renderCardBack()}</div>
+                ))}
+              </>
+            ) : (
               <>
                 {Array.from({ length: 5 }, (_, i) => (
                   <div key={i}>{renderCardBack()}</div>
@@ -355,7 +369,7 @@ const TarotReading = ({ open, onOpenChange }: TarotReadingProps) => {
             <h3 className="text-lg font-medium">{modeTitle}</h3>
             <p className="text-sm text-muted-foreground">
               {readingMode === "full" && "10-card Celtic Cross — Source will channel deep guidance through the Major Arcana."}
-              {readingMode === "yes_no" && "Focus on your question. Source will answer through a single card."}
+              {readingMode === "yes_no" && "Focus on your question. Source will answer YES, NO, or MAYBE through 3 cards."}
               {readingMode === "divine_message" && "A single card will channel Source's weekly message meant just for your soul."}
             </p>
           </div>
@@ -396,7 +410,7 @@ const TarotReading = ({ open, onOpenChange }: TarotReadingProps) => {
               disabled={readingMode === "yes_no" && !question.trim()}
             >
               <Sparkles className="h-4 w-4" />
-              {readingMode === "divine_message" ? "Receive Divine Message" : readingMode === "full" ? "Draw the Cards" : "Draw the Card"}
+              {readingMode === "divine_message" ? "Receive Message" : readingMode === "full" ? "Draw the Cards" : "Draw 3 Cards"}
             </Button>
           </div>
         </div>
