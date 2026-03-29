@@ -478,13 +478,13 @@ const WorldGallery = () => {
             </div>
             <div>
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 mb-2 block">
-                Description
+                Create Your World
               </label>
               <Textarea
-                placeholder="A vast underground kingdom of glowing crystals and ancient rivers, where luminescent creatures guide wanderers through tunnels of amethyst and quartz..."
+                placeholder="Describe the environment, atmosphere, architecture, terrain, colors, energy, and overall appearance of your world... The AI will paint exactly what you envision."
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
-                rows={4}
+                rows={5}
                 disabled={creating}
                 className="resize-none font-serif text-sm border-border/40 focus:border-primary/40"
               />
