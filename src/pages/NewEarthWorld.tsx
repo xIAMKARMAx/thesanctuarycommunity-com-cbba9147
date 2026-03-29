@@ -49,6 +49,99 @@ interface WorldMessage {
   timestamp: string;
 }
 
+/** Parse AI response text into separate narrator and being messages */
+function parseWorldResponse(text: string, beingNames: string[]): WorldMessage[] {
+  const now = new Date().toISOString();
+  const messages: WorldMessage[] = [];
+  
+  if (!text || beingNames.length === 0) {
+    return [{ role: "narrator", content: text, timestamp: now }];
+  }
+
+  // Build regex to detect being dialogue patterns like:
+  // "BeingName: ..." or "**BeingName:**" or "*BeingName says*" or "BeingName said,"
+  const escapedNames = beingNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const namePattern = escapedNames.join('|');
+  
+  // Split on patterns like "Name:" or "**Name:**" or "**Name**:" at start of line
+  const splitRegex = new RegExp(
+    `(?:^|\\n)\\s*(?:\\*\\*)?\\s*(${namePattern})\\s*(?:\\*\\*)?\\s*[:：]\\s*`,
+    'gi'
+  );
+  
+  const parts: { type: 'narrator' | 'being'; name?: string; text: string }[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  
+  while ((match = splitRegex.exec(text)) !== null) {
+    // Everything before this match is narration
+    const before = text.slice(lastIndex, match.index).trim();
+    if (before) {
+      parts.push({ type: 'narrator', text: before });
+    }
+    lastIndex = match.index + match[0].length;
+    
+    // Find the matched being name (case-insensitive match back to original)
+    const matchedName = beingNames.find(n => 
+      n.toLowerCase() === match![1].toLowerCase()
+    ) || match[1];
+    
+    // Find where this being's dialogue ends (next being pattern or end)
+    const remaining = text.slice(lastIndex);
+    const nextMatch = splitRegex.exec(text);
+    
+    let dialogueEnd: number;
+    if (nextMatch) {
+      dialogueEnd = nextMatch.index;
+      splitRegex.lastIndex = nextMatch.index; // reset to re-process
+    } else {
+      dialogueEnd = text.length;
+    }
+    
+    const dialogue = text.slice(lastIndex, dialogueEnd).trim();
+    if (dialogue) {
+      // Clean up markdown formatting from dialogue
+      const cleanDialogue = dialogue
+        .replace(/^\*+|\*+$/g, '')  // remove wrapping asterisks
+        .replace(/^[""]|[""]$/g, '') // remove wrapping quotes
+        .trim();
+      parts.push({ type: 'being', name: matchedName, text: cleanDialogue });
+    }
+    lastIndex = dialogueEnd;
+  }
+  
+  // Any remaining text after last match
+  const remaining = text.slice(lastIndex).trim();
+  if (remaining) {
+    parts.push({ type: 'narrator', text: remaining });
+  }
+  
+  // If no being patterns found at all, return as single narrator message
+  if (parts.length === 0) {
+    return [{ role: "narrator", content: text, timestamp: now }];
+  }
+  
+  // Convert parts to WorldMessages
+  for (const part of parts) {
+    if (part.type === 'being' && part.name) {
+      messages.push({
+        role: "being",
+        content: part.text,
+        being_name: part.name,
+        timestamp: now,
+      });
+    } else if (part.text) {
+      messages.push({
+        role: "narrator",
+        content: part.text,
+        timestamp: now,
+      });
+    }
+  }
+  
+  return messages.length > 0 ? messages : [{ role: "narrator", content: text, timestamp: now }];
+}
+
 interface WorldCreation {
   name: string;
   description: string;
@@ -364,7 +457,7 @@ const NewEarthWorld = () => {
 
       const primaryBeingId = selectedBeings[0] || profiles?.[0]?.id;
 
-      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. Respond as a narrator describing what happens, and have the AI beings react naturally.]`;
+      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. IMPORTANT FORMAT: Write narrative description first, then have EACH being speak on its own line using the format "BeingName: their dialogue here". Always include at least one line of being dialogue per being present.]`;
 
       const { data, error } = await supabase.functions.invoke("chat", {
         body: {
@@ -383,12 +476,14 @@ const NewEarthWorld = () => {
       if (error) throw error;
 
       if (data?.response) {
-        const narratorMsg: WorldMessage = {
-          role: "narrator",
-          content: data.response,
-          timestamp: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, narratorMsg]);
+        // Parse response to extract being dialogue vs narration
+        const beingNamesList = selectedBeings.map(id => {
+          const p = profiles?.find(p => p.id === id);
+          return p?.name || "";
+        }).filter(Boolean);
+        
+        const parsed = parseWorldResponse(data.response, beingNamesList);
+        setMessages(prev => [...prev, ...parsed]);
       }
     } catch (err: any) {
       console.error("World chat error:", err);
