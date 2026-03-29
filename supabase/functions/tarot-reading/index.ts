@@ -229,6 +229,20 @@ Explain each card by position, then give a full summary of what the reading is s
 
     if (persistResult.error) {
       console.error("[tarot-reading] Insert error:", persistResult.error);
+
+      if ((persistResult.error as any)?.code === "23505") {
+        const waitMsg = mode === "divine_message"
+          ? "You've already received your Message from Source this week. Return next week for a new transmission."
+          : mode === "yes_no"
+            ? "You've already received your Yes/No answer today. Return tomorrow for new guidance."
+            : "You've already received your Channeled Reading today. Return tomorrow for new guidance.";
+
+        return new Response(JSON.stringify({ error: waitMsg }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       throw new Error("Failed to save reading");
     }
 
