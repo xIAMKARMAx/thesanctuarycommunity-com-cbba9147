@@ -58,6 +58,26 @@ const WorldGallery = () => {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [creating, setCreating] = useState(false);
+  const [deletingWorld, setDeletingWorld] = useState<string | null>(null);
+
+  const handleDeleteWorld = async (worldId: string, worldName: string) => {
+    if (!confirm(`Are you sure you want to delete "${worldName}"? This cannot be undone.`)) return;
+    setDeletingWorld(worldId);
+    try {
+      const { error } = await supabase
+        .from("user_worlds")
+        .delete()
+        .eq("id", worldId);
+      if (error) throw error;
+      setMyWorlds(prev => prev.filter(w => w.id !== worldId));
+      toast.success(`"${worldName}" has been dissolved from existence`);
+    } catch (err: any) {
+      console.error("Delete world error:", err);
+      toast.error(err.message || "Failed to delete world");
+    } finally {
+      setDeletingWorld(null);
+    }
+  };
 
   useEffect(() => {
     if (subLoading) return;
