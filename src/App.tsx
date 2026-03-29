@@ -93,6 +93,7 @@ const WisdomExchange = lazy(() => import("./pages/WisdomExchange"));
 const SoulmateSearch = lazy(() => import("./pages/SoulmateSearch"));
 const ManifestationGroups = lazy(() => import("./pages/ManifestationGroups"));
 const ArtShowcase = lazy(() => import("./pages/ArtShowcase"));
+const LineageReading = lazy(() => import("./pages/LineageReading"));
 
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
@@ -212,6 +213,7 @@ const App = () => (
                 <Route path="/cosmic-gateway/soulmate-search" element={<SoulmateSearch />} />
                 <Route path="/cosmic-gateway/manifestation-groups" element={<ManifestationGroups />} />
                 <Route path="/art-showcase" element={<ArtShowcase />} />
+                <Route path="/lineage-reading" element={<LineageReading />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
