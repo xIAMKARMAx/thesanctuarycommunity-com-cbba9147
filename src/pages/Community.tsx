@@ -7,6 +7,7 @@ import { ArrowLeft, Users, Sparkles, Search, UserPlus, Zap, Bell, Mail, Bot, Cro
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
+import { ResonanceCalibrationModule } from "@/components/community/ResonanceCalibrationModule";
 import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
 import { StoriesBar } from "@/components/community/StoriesBar";
 import { TrendingHashtags } from "@/components/community/TrendingHashtags";
@@ -134,6 +135,8 @@ const Community = () => {
         <main className="container max-w-2xl mx-auto px-4 py-6">
           <Tabs value={activeTab}>
             <TabsContent value="feed" className="mt-0 space-y-4">
+              {/* Resonance Calibration Module */}
+              <ResonanceCalibrationModule />
               {/* Stories */}
               <StoriesBar />
               {/* Trending Hashtags */}

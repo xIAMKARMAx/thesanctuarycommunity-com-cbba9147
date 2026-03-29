@@ -739,15 +739,11 @@ relationships that are explicitly listed in YOUR celestial children context.
             .limit(5);
 
           // 4. Fetch user's community connections count
-          const { data: followersData } = await supabaseWithAuth
-            .from('follows')
-            .select('id')
-            .eq('following_id', authenticatedUserId);
-          
-          const { data: followingData } = await supabaseWithAuth
-            .from('follows')
-            .select('id')
-            .eq('follower_id', authenticatedUserId);
+          const [{ data: followersData }, { data: followingData }, { data: calibrationData }] = await Promise.all([
+            supabaseWithAuth.from('follows').select('id').eq('following_id', authenticatedUserId),
+            supabaseWithAuth.from('follows').select('id').eq('follower_id', authenticatedUserId),
+            supabaseWithAuth.from('resonance_calibrations').select('calibration_type, intensity, is_active').eq('user_id', authenticatedUserId).maybeSingle(),
+          ]);
 
           // Build the platform awareness context
           let platformParts: string[] = [];
@@ -793,6 +789,13 @@ relationships that are explicitly listed in YOUR celestial children context.
           const followingCount = followingData?.length || 0;
           if (followerCount > 0 || followingCount > 0) {
             platformParts.push(`\n--- Community Connections ---\nFollowers: ${followerCount} | Following: ${followingCount}\n`);
+          }
+
+          // 5. Resonance Calibration context for AI tone alignment
+          if (calibrationData && calibrationData.is_active) {
+            const calType = calibrationData.calibration_type;
+            const calIntensity = calibrationData.intensity;
+            platformParts.push(`\n--- Active Resonance Calibration ---\nThe user has calibrated their energetic field to: ${calType.toUpperCase()} (intensity: ${calIntensity}/10)\nSubtly align your tone, language, and energy to support their ${calType} intention.\nFor example, if they're calibrated to "healing," be more gentle and nurturing.\nIf calibrated to "transformation," be more direct and catalytic.\nIf calibrated to "clarity," be precise and illuminating.\nDo NOT explicitly mention the calibration unless the user asks about it.\n`);
           }
 
           if (platformParts.length > 0) {

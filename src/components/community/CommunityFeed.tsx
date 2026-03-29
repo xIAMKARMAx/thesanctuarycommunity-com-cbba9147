@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSoulProfile } from "@/hooks/useSoulProfile";
 import { useCommunityFeed } from "@/hooks/useCommunityFeed";
+import { useResonanceCalibration } from "@/hooks/useResonanceCalibration";
 import { CreatePostCard } from "./CreatePostCard";
 import { CommunityPostCard } from "./CommunityPostCard";
 import { SetupSoulProfileCard } from "./SetupSoulProfileCard";
@@ -24,7 +25,9 @@ export function CommunityFeed() {
   }, []);
 
   const { profile, loading: profileLoading, createProfile } = useSoulProfile(currentUserId);
-  const { posts, loading: feedLoading, hasMore, createPost, blessPost, deletePost, loadMore, refetch } = useCommunityFeed(energyFilter);
+  const { calibration } = useResonanceCalibration(currentUserId);
+  const activeCalibrationType = calibration?.is_active ? calibration.calibration_type : null;
+  const { posts, loading: feedLoading, hasMore, createPost, blessPost, deletePost, loadMore, refetch } = useCommunityFeed(energyFilter, activeCalibrationType);
 
   const handleCreatePost = async (content: string, postType: string, imageUrl?: string, videoUrl?: string, energyTag?: string, isAnonymous?: boolean, imageUrls?: string[]) => {
     setIsCreating(true);
