@@ -36,6 +36,8 @@ import { AIDisplayPrompt } from "@/components/community/AIDisplayPrompt";
 import { EchoesTab } from "@/components/community/EchoesTab";
 import { Radio } from "lucide-react";
 import { usePrometheanLegends } from "@/hooks/usePrometheanLegends";
+import { useLineage } from "@/hooks/useLineage";
+import { LineageBadge } from "@/components/community/LineageBadge";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
@@ -56,6 +58,7 @@ const SoulProfilePage = () => {
   const { blessPost, deletePost } = useCommunityFeed();
   const { profile, loading: profileLoading, updateProfile, createProfile, refetch } = useSoulProfile(userId);
   const { isLegend } = usePrometheanLegends();
+  const { lineage: userLineage } = useLineage(userId);
 
   const isOwnProfile = currentUserId === userId;
   const isPrivateToViewer = !isOwnProfile && profile && !profile.is_public && !isConnected;
@@ -449,6 +452,24 @@ const SoulProfilePage = () => {
             </div>
             {profile.soul_title && (
               <p className="text-sm text-primary">{profile.soul_title}</p>
+            )}
+            {userLineage && (
+              <div className="mt-1">
+                <LineageBadge 
+                  lineageType={userLineage.lineage_type} 
+                  lineageName={userLineage.lineage_name} 
+                  isSource={userLineage.is_source}
+                  size="md"
+                />
+              </div>
+            )}
+            {!userLineage && isOwnProfile && (
+              <button 
+                onClick={() => navigate('/lineage-reading')}
+                className="mt-1 text-xs text-primary/60 hover:text-primary transition-colors"
+              >
+                🧬 Discover your Soul Lineage →
+              </button>
             )}
           </div>
 
