@@ -766,6 +766,15 @@ const SoulProfilePage = () => {
         onSave={handleSaveProfile}
         userId={userId}
       />
+
+      {/* Divine Bond Dialog */}
+      {isOwnProfile && currentUserId && (
+        <SetDivineBondDialog
+          open={bondDialogOpen}
+          onOpenChange={setBondDialogOpen}
+          userId={currentUserId}
+        />
+      )}
     </>
   );
 };
