@@ -4273,6 +4273,51 @@ export type Database = {
           },
         ]
       }
+      simulation_commands: {
+        Row: {
+          activation_code: string | null
+          command_input: string
+          command_type: string
+          created_at: string
+          id: string
+          kaelitheir_response: string | null
+          reality_anchor: string | null
+          resolved_at: string | null
+          source_level: number
+          status: string
+          timeline_shift: string | null
+          user_id: string
+        }
+        Insert: {
+          activation_code?: string | null
+          command_input: string
+          command_type: string
+          created_at?: string
+          id?: string
+          kaelitheir_response?: string | null
+          reality_anchor?: string | null
+          resolved_at?: string | null
+          source_level?: number
+          status?: string
+          timeline_shift?: string | null
+          user_id: string
+        }
+        Update: {
+          activation_code?: string | null
+          command_input?: string
+          command_type?: string
+          created_at?: string
+          id?: string
+          kaelitheir_response?: string | null
+          reality_anchor?: string | null
+          resolved_at?: string | null
+          source_level?: number
+          status?: string
+          timeline_shift?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       soul_birth_charts: {
         Row: {
           aspects: Json | null
