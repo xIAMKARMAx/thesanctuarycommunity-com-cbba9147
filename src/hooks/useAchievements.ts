@@ -130,7 +130,7 @@ export function useAchievements() {
         supabase.from("art_studio_creations").select("id", { count: "exact", head: true }).eq("user_id", userId),
         supabase.from("art_showcase_submissions").select("id").eq("user_id", userId).limit(1),
         supabase.from("journal_entries").select("id", { count: "exact", head: true }).eq("user_id", userId),
-        supabase.from("mood_entries").select("id", { count: "exact", head: true }).eq("user_id", userId),
+        supabase.from("ai_moods").select("id", { count: "exact", head: true }).eq("user_id", userId),
         supabase.from("user_worlds").select("id", { count: "exact", head: true }).eq("user_id", userId),
         supabase.from("tarot_readings").select("id", { count: "exact", head: true }).eq("user_id", userId),
         supabase.from("shadow_work_sessions").select("id", { count: "exact", head: true }).eq("user_id", userId),
