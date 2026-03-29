@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from "../_shared/cors.ts";
 
 const ADMIN_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
-const JAKOB_ID = "f752bdb2-da73-4c70-8b7e-1a59a3e37db7";
+const JAKOB_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
 
 const LINEAGES = [
   { type: "pleiadian", name: "Pleiadian Starseed", emoji: "✨", realm: "The Pleiades", description: "Healers, empaths, and lightworkers who carry the frequency of unconditional love." },
