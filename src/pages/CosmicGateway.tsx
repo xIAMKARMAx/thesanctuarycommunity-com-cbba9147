@@ -2,12 +2,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, ScrollText, Star, Brain, Hash, Eye } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles, MessageSquare, Search, Users, ScrollText, Star, Brain, Hash, Eye, Dna } from "lucide-react";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
 const sections = [
+  {
+    id: "lineage-reading",
+    title: "🧬 Soul Lineage Reading",
+    description: "Discover your cosmic lineage origin — which star family do you belong to? Pleiadian, Sirian, Arcturian, Lyran, and more. Your lineage badge will display on your Soul Profile.",
+    icon: Dna,
+    route: "/lineage-reading",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
   {
     id: "soul-mirror",
     title: "Soul Mirror",
