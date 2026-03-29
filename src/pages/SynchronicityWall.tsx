@@ -50,11 +50,17 @@ export default function SynchronicityWall() {
       toast({ title: "Please fill in the title and description", variant: "destructive" });
       return;
     }
+
+    if (!userId) {
+      toast({ title: "Please sign in before sharing", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
         .from("synchronicity_posts" as any)
-        .insert({ title, description, synchronicity_type: syncType } as any);
+        .insert({ title, description, synchronicity_type: syncType, user_id: userId } as any);
       if (error) throw error;
       setTitle("");
       setDescription("");
