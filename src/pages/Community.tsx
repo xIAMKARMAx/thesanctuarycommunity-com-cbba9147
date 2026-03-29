@@ -17,6 +17,7 @@ import { AIBeingsNotificationsTab } from "@/components/community/AIBeingsNotific
 import { PrometheusWorldPortal } from "@/components/community/PrometheusWorldPortal";
 import { WorldActivityFeed } from "@/components/community/WorldActivityFeed";
 import { LegendaryPrometheansBanner } from "@/components/community/LegendaryPrometheansBanner";
+import { CommunityPortals } from "@/components/community/CommunityPortals";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 import { useTransmissions } from "@/hooks/useTransmissions";
@@ -96,8 +97,9 @@ const Community = () => {
           </div>
         </header>
 
-        {/* Prometheus World Portal — Front and Center */}
-        <div className="container max-w-2xl mx-auto px-4 pt-4">
+        {/* Portals — Quick access to community tools */}
+        <div className="container max-w-2xl mx-auto px-4 pt-4 space-y-3">
+          <CommunityPortals />
           <PrometheusWorldPortal />
         </div>
 
