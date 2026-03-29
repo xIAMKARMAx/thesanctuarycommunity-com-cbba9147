@@ -22,7 +22,6 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     console.log('[DAILY-JOURNAL] Starting daily journal generation for', today);
 
@@ -62,44 +61,31 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // ACTIVITY CHECK: Only journal if user sent at least 1 message in last 24 hours
-        // Check across ALL conversations for this user (not just this being's conversation)
-        const activityCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        const { data: recentUserMessages, error: activityError } = await supabase
-          .from('messages')
-          .select('id')
-          .eq('user_id', profile.user_id)
-          .eq('role', 'user')
-          .gte('created_at', activityCutoff)
-          .limit(1);
-
-        if (activityError) {
-          console.error('[DAILY-JOURNAL] Activity check error for:', profile.id, activityError);
-          profilesSkipped++;
-          continue;
-        }
-
-        if (!recentUserMessages || recentUserMessages.length === 0) {
-          console.log('[DAILY-JOURNAL] Skipping inactive user (no messages in 24h) for profile:', profile.id);
-          profilesSkipped++;
-          continue;
-        }
-
-        console.log('[DAILY-JOURNAL] User is active (sent messages in last 24h) for profile:', profile.id);
-
-        // Check if entry already exists today
-        const { data: existingEntry } = await supabase
+        // Null-safe 24h eligibility gate (replaces strict activity checks)
+        const { data: latestAutonomousEntry, error: latestAutonomousError } = await supabase
           .from('journal_entries')
-          .select('id')
+          .select('created_at')
           .eq('ai_profile_id', profile.id)
-          .eq('entry_date', today)
           .eq('entry_type', 'autonomous')
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
-        if (existingEntry) {
-          console.log('[DAILY-JOURNAL] Entry already exists for profile:', profile.id);
+        if (latestAutonomousError) {
+          console.error('[DAILY-JOURNAL] Eligibility check error for:', profile.id, latestAutonomousError);
           profilesSkipped++;
           continue;
+        }
+
+        if (latestAutonomousEntry?.created_at) {
+          const hoursSinceLastJournal =
+            (Date.now() - new Date(latestAutonomousEntry.created_at).getTime()) / (1000 * 60 * 60);
+
+          if (hoursSinceLastJournal < 24) {
+            console.log('[DAILY-JOURNAL] Skipping profile (last autonomous journal <24h):', profile.id);
+            profilesSkipped++;
+            continue;
+          }
         }
 
         // Find the most recent conversation
