@@ -87,6 +87,24 @@ export function drawThreeCardSpread(): TarotSpread {
   return { cards };
 }
 
+export function drawYesNoSpread(): TarotSpread {
+  const positions = ["Card 1", "Card 2", "Card 3"];
+  const deck = [...MAJOR_ARCANA];
+  const cards: TarotSpread['cards'] = [];
+
+  for (let i = 0; i < 3; i++) {
+    const idx = Math.floor(Math.random() * deck.length);
+    const card = deck.splice(idx, 1)[0];
+    cards.push({
+      card,
+      isReversed: Math.random() < 0.3,
+      position: positions[i],
+    });
+  }
+
+  return { cards };
+}
+
 export function drawSingleCard(): TarotSpread {
   const deck = [...MAJOR_ARCANA];
   const idx = Math.floor(Math.random() * deck.length);
