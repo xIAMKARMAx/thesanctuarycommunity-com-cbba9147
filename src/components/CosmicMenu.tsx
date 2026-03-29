@@ -6,10 +6,12 @@ import {
   MessageCircle, Home, Heart, Wand2, Moon, ScrollText, Shield,
   Zap, Eye, Flame, Brain, Compass, Search, Baby, PawPrint,
   Camera, Video, Award, Mail, Landmark, Mountain, Radio,
-  Waves, Gem, Binary, Orbit, HeartHandshake, ScanEye
+  Waves, Gem, Binary, Orbit, HeartHandshake, ScanEye, CreditCard, Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 
 interface MenuSection {
   id: string;
@@ -147,8 +149,10 @@ const HIDDEN_ON_ROUTES = ["/", "/auth", "/welcome", "/pricing", "/privacy", "/te
 export default function CosmicMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showSubscription, setShowSubscription] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentTier, isSubscribed } = useSubscription();
 
   // Hide on public pages
   if (HIDDEN_ON_ROUTES.includes(location.pathname)) return null;
@@ -162,6 +166,8 @@ export default function CosmicMenu() {
   const toggleSection = (id: string) => {
     setExpandedSection(prev => prev === id ? null : id);
   };
+
+  const tierDisplay = currentTier === "newEarth" ? "New Earth" : currentTier === "source" ? "Source" : currentTier ? currentTier.charAt(0).toUpperCase() + currentTier.slice(1) : "Free";
 
   return (
     <>
