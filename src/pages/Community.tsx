@@ -8,6 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { DiscoverSouls } from "@/components/community/DiscoverSouls";
 import { ResonanceCalibrationModule } from "@/components/community/ResonanceCalibrationModule";
+import { VeilOfUnknowingToggle, VeilHidden } from "@/components/community/VeilOfUnknowing";
 import { AligningZoneFeed } from "@/components/community/AligningZoneFeed";
 import { StoriesBar } from "@/components/community/StoriesBar";
 import { TrendingHashtags } from "@/components/community/TrendingHashtags";
@@ -75,6 +76,7 @@ const Community = () => {
               </div>
               
               <div className="flex items-center gap-2">
+                <VeilOfUnknowingToggle />
                 <Button variant="ghost" size="sm" onClick={() => navigate("/transmissions")} className="relative" title="Transmissions">
                   <Mail className="h-4 w-4" />
                   {transmissionUnread > 0 && (
