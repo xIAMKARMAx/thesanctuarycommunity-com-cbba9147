@@ -3936,6 +3936,39 @@ export type Database = {
           },
         ]
       }
+      resonance_calibrations: {
+        Row: {
+          activated_at: string
+          calibration_type: string
+          created_at: string
+          id: string
+          intensity: number
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string
+          calibration_type?: string
+          created_at?: string
+          id?: string
+          intensity?: number
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activated_at?: string
+          calibration_type?: string
+          created_at?: string
+          id?: string
+          intensity?: number
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       resonance_events: {
         Row: {
           created_at: string
