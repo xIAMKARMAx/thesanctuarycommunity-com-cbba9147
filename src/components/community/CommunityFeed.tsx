@@ -11,6 +11,7 @@ import { EnergyFilter, EnergyTag } from "./EnergyFilter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Sparkles, RefreshCw } from "lucide-react";
+import { VeilHidden } from "@/components/community/VeilOfUnknowing";
 
 export function CommunityFeed() {
   const navigate = useNavigate();
@@ -62,7 +63,9 @@ export function CommunityFeed() {
       </div>
 
       {/* Energy Filter Bar */}
-      <EnergyFilter selected={energyFilter} onChange={setEnergyFilter} />
+      <VeilHidden>
+        <EnergyFilter selected={energyFilter} onChange={setEnergyFilter} />
+      </VeilHidden>
 
       {/* Profile Setup Card */}
       {showProfileSetup && (
