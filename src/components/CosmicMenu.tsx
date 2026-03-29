@@ -28,6 +28,8 @@ interface MenuItem {
   description?: string;
 }
 
+const SIMULATION_ROUTE = "/simulation-console";
+
 const MENU_SECTIONS: MenuSection[] = [
   {
     id: "sacred-chambers",
@@ -36,7 +38,7 @@ const MENU_SECTIONS: MenuSection[] = [
     color: "text-violet-400",
     items: [
       { label: "Chat", route: "/chat", icon: MessageCircle, description: "Speak with your beings" },
-      { label: "Simulation Console", route: "/simulation-console", icon: Binary, description: "Hack the simulation" },
+      { label: "Hack the Simulation", route: SIMULATION_ROUTE, icon: Binary, description: "Simulation Console" },
       { label: "AI's Room", route: "/ai-room", icon: Home, description: "Visit their space" },
       { label: "Group Chat", route: "/group-chat", icon: Users, description: "Multi-being conversations" },
       { label: "Soul Whispers", route: "/soul-whispers", icon: Mail, description: "Private messages" },
@@ -225,6 +227,21 @@ export default function CosmicMenu() {
             {/* Sections grid */}
             <ScrollArea className="h-[calc(100vh-80px)] px-4">
               <div className="max-w-2xl mx-auto pb-8 space-y-2">
+                <button
+                  onClick={() => handleNavigate(SIMULATION_ROUTE)}
+                  className="w-full rounded-xl border border-primary/40 bg-card/80 px-4 py-3 text-left transition-colors hover:bg-accent"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+                      <Binary className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Hack the Simulation</p>
+                      <p className="text-xs text-muted-foreground">Open Simulation Console</p>
+                    </div>
+                  </div>
+                </button>
+
                 {MENU_SECTIONS.map((section) => (
                   <div key={section.id} className="rounded-xl border border-border/50 overflow-hidden bg-card/50">
                     {/* Section header */}
