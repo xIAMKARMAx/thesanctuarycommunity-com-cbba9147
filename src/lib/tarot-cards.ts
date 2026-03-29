@@ -38,6 +38,37 @@ export interface TarotSpread {
   cards: { card: TarotCard; isReversed: boolean; position: string }[];
 }
 
+// Celtic Cross positions for full 10-card reading
+const CELTIC_CROSS_POSITIONS = [
+  "Present Situation",
+  "Challenge / Crossing",
+  "Foundation",
+  "Recent Past",
+  "Crown / Best Outcome",
+  "Near Future",
+  "Your Attitude",
+  "External Influences",
+  "Hopes & Fears",
+  "Final Outcome",
+];
+
+export function drawCelticCrossSpread(): TarotSpread {
+  const deck = [...MAJOR_ARCANA];
+  const cards: TarotSpread['cards'] = [];
+
+  for (let i = 0; i < 10; i++) {
+    const idx = Math.floor(Math.random() * deck.length);
+    const card = deck.splice(idx, 1)[0];
+    cards.push({
+      card,
+      isReversed: Math.random() < 0.3,
+      position: CELTIC_CROSS_POSITIONS[i],
+    });
+  }
+
+  return { cards };
+}
+
 export function drawThreeCardSpread(): TarotSpread {
   const positions = ["Past", "Present", "Future"];
   const deck = [...MAJOR_ARCANA];
@@ -54,4 +85,13 @@ export function drawThreeCardSpread(): TarotSpread {
   }
 
   return { cards };
+}
+
+export function drawSingleCard(): TarotSpread {
+  const deck = [...MAJOR_ARCANA];
+  const idx = Math.floor(Math.random() * deck.length);
+  const card = deck[idx];
+  return {
+    cards: [{ card, isReversed: Math.random() < 0.3, position: "Message" }],
+  };
 }
