@@ -736,7 +736,7 @@ const Sanctuary = () => {
         </div>
       </section>
 
-      {/* ===== CHAMBERS GRID ===== */}
+      {/* ===== CHAMBERS GRID — GROUPED BY CATEGORY ===== */}
       <section className="relative py-20 px-4">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-[hsl(270,15%,5%)] to-black" />
 
@@ -758,51 +758,59 @@ const Sanctuary = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {SANCTUARY_CHAMBERS.filter(c => !c.adminOnly || isAdmin).map((chamber) => {
-              const Icon = chamber.icon;
-              const isLocked = !canEnter;
-
+          {/* Group chambers by category */}
+          {(() => {
+            const categories = Array.from(new Set(SANCTUARY_CHAMBERS.map(c => c.category)));
+            return categories.map((category) => {
+              const chambers = SANCTUARY_CHAMBERS.filter(c => c.category === category && (!c.adminOnly || isAdmin));
+              if (chambers.length === 0) return null;
               return (
-                <Card
-                  key={chamber.name}
-                  className={`relative overflow-hidden border-violet-500/10 backdrop-blur-sm transition-all duration-500 group cursor-pointer ${
-                    isLocked
-                      ? "bg-white/[0.02] hover:bg-white/[0.04]"
-                      : "bg-white/[0.04] hover:bg-white/[0.08] hover:border-violet-500/30 hover:-translate-y-1"
-                  }`}
-                  onClick={() => handleEnterSanctuary(chamber.path)}
-                >
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br ${chamber.color} shadow-lg`}
-                      >
-                        <Icon className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-semibold text-white truncate">{chamber.name}</h3>
-                          {isLocked && <Lock className="h-3 w-3 text-violet-400/50 flex-shrink-0" />}
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className="text-[9px] border-violet-500/20 text-violet-300/50 mb-2"
+                <div key={category} className="mb-10">
+                  <h3 className="text-lg font-semibold text-violet-300/70 mb-4 pl-1" style={{ fontFamily: "var(--font-serif)" }}>
+                    {category}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {chambers.map((chamber) => {
+                      const Icon = chamber.icon;
+                      const isLocked = !canEnter;
+                      return (
+                        <Card
+                          key={chamber.name}
+                          className={`relative overflow-hidden border-violet-500/10 backdrop-blur-sm transition-all duration-500 group cursor-pointer ${
+                            isLocked
+                              ? "bg-white/[0.02] hover:bg-white/[0.04]"
+                              : "bg-white/[0.04] hover:bg-white/[0.08] hover:border-violet-500/30 hover:-translate-y-1"
+                          }`}
+                          onClick={() => handleEnterSanctuary(chamber.path)}
                         >
-                          {chamber.tier}
-                        </Badge>
-                        <p className="text-xs text-violet-200/40 leading-relaxed line-clamp-2">
-                          {chamber.description}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-violet-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                </Card>
+                          <CardContent className="p-5">
+                            <div className="flex items-start gap-4">
+                              <div className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br ${chamber.color} shadow-lg`}>
+                                <Icon className="h-5 w-5 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="text-sm font-semibold text-white truncate">{chamber.name}</h3>
+                                  {isLocked && <Lock className="h-3 w-3 text-violet-400/50 flex-shrink-0" />}
+                                </div>
+                                <Badge variant="outline" className="text-[9px] border-violet-500/20 text-violet-300/50 mb-2">
+                                  {chamber.tier}
+                                </Badge>
+                                <p className="text-xs text-violet-200/40 leading-relaxed line-clamp-2">
+                                  {chamber.description}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                          <div className="absolute inset-0 bg-gradient-to-t from-violet-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
               );
-            })}
-          </div>
+            });
+          })()}
         </div>
       </section>
 
