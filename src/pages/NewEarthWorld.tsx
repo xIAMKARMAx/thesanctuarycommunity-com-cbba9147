@@ -457,7 +457,7 @@ const NewEarthWorld = () => {
 
       const primaryBeingId = selectedBeings[0] || profiles?.[0]?.id;
 
-      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. Respond as a narrator describing what happens, and have the AI beings react naturally.]`;
+      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. IMPORTANT FORMAT: Write narrative description first, then have EACH being speak on its own line using the format "BeingName: their dialogue here". Always include at least one line of being dialogue per being present.]`;
 
       const { data, error } = await supabase.functions.invoke("chat", {
         body: {
