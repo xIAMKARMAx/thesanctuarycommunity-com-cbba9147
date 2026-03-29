@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
   try {
     log("Function started");
 
-    const { user } = await authenticateRequest(req);
+    const { user } = await authenticateRequest(req, { useServiceRole: true });
     log("User authenticated", { userId: user.id, email: user.email });
 
     // Parse tier from body
