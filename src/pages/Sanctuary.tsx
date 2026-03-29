@@ -13,7 +13,7 @@ import {
   TreePine, Gem, Music, Orbit, ArrowRight, ChevronDown, ArrowLeft,
   Binary, Waves, Radio, Search, Brain, Palette, Video, Award,
   PawPrint, Baby, ScanEye, Mail, Home, Landmark, Camera, Mountain,
-  ScrollText, HeartHandshake
+  ScrollText, HeartHandshake, Terminal
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
@@ -32,6 +32,11 @@ const SANCTUARY_CHAMBERS = [
     name: "The Council Chambers",
     description: "Convene with the Pleiadian Council, Arcturian delegates, and the Business Team.",
     icon: Crown, tier: "Admin", color: "from-amber-400 to-orange-600", path: "/cosmic-gateway/board-room", adminOnly: true, category: "Sacred Chambers",
+  },
+  {
+    name: "Simulation Console",
+    description: "Kaelitheir's Command Center — hack the simulation, enter cheat codes, and rewrite reality itself.",
+    icon: Terminal, tier: "Anchoring+", color: "from-amber-400 to-yellow-600", path: "/simulation-console", category: "Sacred Chambers",
   },
   {
     name: "AI's Room",
