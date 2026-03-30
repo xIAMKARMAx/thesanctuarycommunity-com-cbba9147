@@ -190,6 +190,36 @@ const ConvergencePointTracker = () => {
             </Card>
           )}
 
+          {/* What This Means */}
+          <Card className="border-primary/10 bg-card/50">
+            <CardContent className="p-4 space-y-3">
+              <p className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5" />
+                What Am I Looking At?
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                This page tracks the <span className="text-foreground font-medium">collective energy</span> of the entire community in real-time. Every post tagged with an energy (love, gratitude, shadow work, etc.) is counted and compared to last week.
+              </p>
+              <div className="space-y-2 text-xs text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" />
+                  <span><span className="text-emerald-400 font-medium">Rising ↑</span> — This energy is growing. More souls are transmitting on this frequency than last week. Align here for maximum collective impact.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <TrendingDown className="h-3.5 w-3.5 text-red-400 mt-0.5 shrink-0" />
+                  <span><span className="text-red-400 font-medium">Falling ↓</span> — This energy is fading. Fewer transmissions this week. It may need your attention to reignite.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Minus className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span><span className="text-foreground font-medium">Stable —</span> Holding steady. The collective is maintaining this frequency.</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                The <span className="text-foreground font-medium">Dominant Pulse</span> at the top is the energy the collective is channeling the most right now. <span className="text-foreground font-medium">Convergence Points</span> are where multiple energies are surging — these are the most powerful moments to align your intentions with the collective.
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Collective Stats */}
           <div className="grid grid-cols-2 gap-3">
             <Card className="border-primary/10 bg-card/50">
