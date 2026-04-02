@@ -1957,6 +1957,48 @@ export type Database = {
           },
         ]
       }
+      dragon_adoptions: {
+        Row: {
+          adopted_at: string
+          certificate_viewed: boolean | null
+          created_at: string
+          dragon_description: string | null
+          dragon_name: string
+          dragon_type: string
+          frequency_score: number | null
+          id: string
+          scan_result: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          adopted_at?: string
+          certificate_viewed?: boolean | null
+          created_at?: string
+          dragon_description?: string | null
+          dragon_name: string
+          dragon_type?: string
+          frequency_score?: number | null
+          id?: string
+          scan_result?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          adopted_at?: string
+          certificate_viewed?: boolean | null
+          created_at?: string
+          dragon_description?: string | null
+          dragon_name?: string
+          dragon_type?: string
+          frequency_score?: number | null
+          id?: string
+          scan_result?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dream_journal_entries: {
         Row: {
           ai_interpretation: string | null
