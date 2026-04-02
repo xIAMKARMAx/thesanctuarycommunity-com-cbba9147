@@ -35,7 +35,7 @@ type Phase = "meadow" | "scanning" | "scan_result" | "choose" | "naming" | "cert
 export default function DragonSanctuary() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { subscribed, productId } = useSubscription();
+  const { isSubscribed, productId } = useSubscription();
   const [phase, setPhase] = useState<Phase>("meadow");
   const [scanScore, setScanScore] = useState(0);
   const [scanPassed, setScanPassed] = useState(false);
