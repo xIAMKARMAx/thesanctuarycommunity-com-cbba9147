@@ -69,7 +69,7 @@ export default function DragonSanctuary() {
 
   // Frequency scan simulation
   const startScan = () => {
-    if (!subscribed && !isSource) {
+    if (!isSubscribed && !isSource) {
       setShowUpgrade(true);
       return;
     }
