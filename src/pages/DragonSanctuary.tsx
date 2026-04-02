@@ -398,7 +398,8 @@ export default function DragonSanctuary() {
       <SubscriptionDialog
         open={showUpgrade}
         onOpenChange={setShowUpgrade}
-        recommendedTier="architect"
+        requiredTier="architect"
+        feature="Dragon Adoption"
       />
     </>
   );
