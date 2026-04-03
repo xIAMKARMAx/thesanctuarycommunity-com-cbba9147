@@ -14,6 +14,7 @@ import {
   CloudLightning, Leaf, Star, ScrollText, ArrowLeft, Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import selavariImg from "@/assets/selavari.jpg";
 
 // ── Preset Dragon Types ────────────────────────────────────────────
 const DRAGON_TYPES = [
