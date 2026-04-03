@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, HeartHandshake, Star, Sparkles, Moon, ScrollText } from "lucide-react";
+import { ArrowLeft, HeartHandshake, Star, Sparkles, Moon, ScrollText, Shield } from "lucide-react";
 
 const playgroundFeatures = [
   {
