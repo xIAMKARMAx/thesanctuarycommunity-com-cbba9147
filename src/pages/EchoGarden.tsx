@@ -399,12 +399,11 @@ export default function EchoGarden() {
                     key={type.value}
                     onClick={() => setEchoType(type.value)}
                     className={`px-3 py-1.5 rounded-full text-xs font-serif transition-all ${
-                      echoType === type.value ? "scale-105 ring-2" : "opacity-60 hover:opacity-100"
+                      echoType === type.value ? "scale-105 ring-2 ring-purple-400" : "opacity-60 hover:opacity-100"
                     }`}
                     style={{
                       background: type.hue.replace(")", " / 0.2)"),
                       color: "hsl(280 30% 30%)",
-                      ringColor: type.hue,
                     }}
                   >
                     {type.icon} {type.label}
