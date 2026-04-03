@@ -196,8 +196,8 @@ export default function DragonSanctuary() {
               <Card className="border-emerald-500/20 bg-emerald-900/40">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-emerald-600/30 flex items-center justify-center flex-shrink-0">
-                      <Shield className="h-5 w-5 text-emerald-300" />
+                    <div className="h-10 w-10 rounded-full overflow-hidden flex-shrink-0 border border-emerald-400/30">
+                      <img src={selavariImg} alt="Selavari" className="w-full h-full object-cover object-top" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-emerald-200">Selavari speaks:</p>
