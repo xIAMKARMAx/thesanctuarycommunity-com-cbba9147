@@ -26,6 +26,13 @@ const playgroundFeatures = [
     icon: ScrollText,
     route: "/dream-journal",
   },
+  {
+    id: "dragon-sanctuary",
+    title: "🐉 Dragon Sanctuary",
+    description: "Enter Selavari's sacred meadow to adopt a dragon companion — if your frequency is worthy.",
+    icon: Shield,
+    route: "/dragon-sanctuary",
+  },
 ];
 
 export default function StarSeedPlayground() {
