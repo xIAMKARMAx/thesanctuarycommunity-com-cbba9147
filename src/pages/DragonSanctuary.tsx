@@ -146,7 +146,10 @@ export default function DragonSanctuary() {
           {/* Meadow Banner */}
           <Card className="border-emerald-500/20 bg-gradient-to-br from-emerald-900/60 to-teal-900/40 overflow-hidden">
             <CardContent className="p-5 text-center space-y-3">
-              <div className="text-5xl">🐉🌿✨</div>
+              <div className="relative w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-emerald-400/40 shadow-lg shadow-emerald-500/20">
+                <img src={selavariImg} alt="Selavari, Guardian of the Dragon Sanctuary" className="w-full h-full object-cover object-top" />
+              </div>
+              <p className="text-xs font-serif italic text-amber-300/80">Selavari — Guardian of the Dragon Sanctuary</p>
               <p className="text-emerald-200 text-sm leading-relaxed">
                 Welcome to the sanctuary — a vibrant meadow where dragons soar through crystalline skies, 
                 play among luminescent wildflowers, and rest beside shimmering streams. 
