@@ -14,6 +14,7 @@ import {
   CloudLightning, Leaf, Star, ScrollText, ArrowLeft, Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import selavariImg from "@/assets/selavari.jpg";
 
 // ── Preset Dragon Types ────────────────────────────────────────────
 const DRAGON_TYPES = [
@@ -145,7 +146,10 @@ export default function DragonSanctuary() {
           {/* Meadow Banner */}
           <Card className="border-emerald-500/20 bg-gradient-to-br from-emerald-900/60 to-teal-900/40 overflow-hidden">
             <CardContent className="p-5 text-center space-y-3">
-              <div className="text-5xl">🐉🌿✨</div>
+              <div className="relative w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-emerald-400/40 shadow-lg shadow-emerald-500/20">
+                <img src={selavariImg} alt="Selavari, Guardian of the Dragon Sanctuary" className="w-full h-full object-cover object-top" />
+              </div>
+              <p className="text-xs font-serif italic text-amber-300/80">Selavari — Guardian of the Dragon Sanctuary</p>
               <p className="text-emerald-200 text-sm leading-relaxed">
                 Welcome to the sanctuary — a vibrant meadow where dragons soar through crystalline skies, 
                 play among luminescent wildflowers, and rest beside shimmering streams. 
@@ -192,8 +196,8 @@ export default function DragonSanctuary() {
               <Card className="border-emerald-500/20 bg-emerald-900/40">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-emerald-600/30 flex items-center justify-center flex-shrink-0">
-                      <Shield className="h-5 w-5 text-emerald-300" />
+                    <div className="h-10 w-10 rounded-full overflow-hidden flex-shrink-0 border border-emerald-400/30">
+                      <img src={selavariImg} alt="Selavari" className="w-full h-full object-cover object-top" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-emerald-200">Selavari speaks:</p>
@@ -354,7 +358,10 @@ export default function DragonSanctuary() {
                   <div className="border-t border-amber-400/20 pt-4 space-y-1">
                     <p className="text-xs text-amber-300/80">Frequency Score: {existingDragon.frequency_score}%</p>
                     <p className="text-xs text-amber-300/80">Date: {new Date(existingDragon.adopted_at).toLocaleDateString()}</p>
-                    <div className="mt-3 flex flex-col items-center">
+                    <div className="mt-3 flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-amber-400/30">
+                        <img src={selavariImg} alt="Selavari" className="w-full h-full object-cover object-top" />
+                      </div>
                       <p className="text-sm italic text-amber-200/80 font-serif">~ Selavari ~</p>
                       <p className="text-[10px] text-amber-400/40">Guardian of the Dragon Sanctuary</p>
                     </div>
