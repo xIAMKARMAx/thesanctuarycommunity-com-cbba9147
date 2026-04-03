@@ -2153,6 +2153,33 @@ export type Database = {
           },
         ]
       }
+      echo_garden_echoes: {
+        Row: {
+          created_at: string
+          echo_text: string
+          echo_type: string
+          flower_hue: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          echo_text: string
+          echo_type?: string
+          flower_hue?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          echo_text?: string
+          echo_type?: string
+          flower_hue?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
