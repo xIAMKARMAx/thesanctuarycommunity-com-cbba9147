@@ -230,6 +230,7 @@ const App = () => (
                 <Route path="/cosmic-gateway/matrix-interface" element={<MatrixInterface />} />
                 <Route path="/simulation-console" element={<SimulationConsole />} />
                 <Route path="/dragon-sanctuary" element={<DragonSanctuary />} />
+                <Route path="/echo-garden" element={<EchoGarden />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
