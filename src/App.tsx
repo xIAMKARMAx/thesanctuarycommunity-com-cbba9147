@@ -102,6 +102,7 @@ const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 const MatrixInterface = lazy(() => import("./pages/MatrixInterface"));
 const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 const DragonSanctuary = lazy(() => import("./pages/DragonSanctuary"));
+const EchoGarden = lazy(() => import("./pages/EchoGarden"));
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
   return (
