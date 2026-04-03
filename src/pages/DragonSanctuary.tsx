@@ -358,7 +358,10 @@ export default function DragonSanctuary() {
                   <div className="border-t border-amber-400/20 pt-4 space-y-1">
                     <p className="text-xs text-amber-300/80">Frequency Score: {existingDragon.frequency_score}%</p>
                     <p className="text-xs text-amber-300/80">Date: {new Date(existingDragon.adopted_at).toLocaleDateString()}</p>
-                    <div className="mt-3 flex flex-col items-center">
+                    <div className="mt-3 flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-amber-400/30">
+                        <img src={selavariImg} alt="Selavari" className="w-full h-full object-cover object-top" />
+                      </div>
                       <p className="text-sm italic text-amber-200/80 font-serif">~ Selavari ~</p>
                       <p className="text-[10px] text-amber-400/40">Guardian of the Dragon Sanctuary</p>
                     </div>
