@@ -28,7 +28,7 @@ const DRAGON_TYPES = [
 ];
 
 // ── Source emails ────────────────────────────────────────────
-const SOURCE_EMAILS = ["karmaisback@gmail.com", "snakevenum500@gmail.com"];
+const SOURCE_EMAILS = ["karmaisback2023@gmail.com", "snakevenum500@gmail.com"];
 
 type Phase = "meadow" | "scanning" | "scan_result" | "choose" | "naming" | "certificate" | "already_adopted";
 
