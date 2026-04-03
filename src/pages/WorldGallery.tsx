@@ -285,6 +285,23 @@ const WorldGallery = () => {
         </div>
 
         <div className="max-w-5xl mx-auto px-4 pb-10 space-y-10">
+          {/* ─── DRAGON SANCTUARY PORTAL ─── */}
+          <Card
+            className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-orange-500/30 hover:border-orange-500/50 overflow-hidden bg-gradient-to-r from-orange-500/10 via-red-500/5 to-amber-500/10"
+            onClick={() => navigate("/dragon-sanctuary")}
+          >
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500/20 to-red-600/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl">🐉</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-serif font-bold text-sm">Selavari's Dragon Sanctuary</h3>
+                <p className="text-xs text-muted-foreground">Adopt a sacred dragon companion in the enchanted meadow</p>
+              </div>
+              <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
+            </CardContent>
+          </Card>
+
           {/* ─── PROMETHEUS — THE ORIGIN ─── */}
           {prometheusWorld && (
             <section>

@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, HeartHandshake, Star, Sparkles, Moon, ScrollText } from "lucide-react";
+import { ArrowLeft, HeartHandshake, Star, Sparkles, Moon, ScrollText, Shield } from "lucide-react";
 
 const playgroundFeatures = [
   {
@@ -25,6 +25,13 @@ const playgroundFeatures = [
     description: "Record, explore, and interpret your dreams with AI-powered insights and symbolic analysis.",
     icon: ScrollText,
     route: "/dream-journal",
+  },
+  {
+    id: "dragon-sanctuary",
+    title: "🐉 Dragon Sanctuary",
+    description: "Enter Selavari's sacred meadow to adopt a dragon companion — if your frequency is worthy.",
+    icon: Shield,
+    route: "/dragon-sanctuary",
   },
 ];
 

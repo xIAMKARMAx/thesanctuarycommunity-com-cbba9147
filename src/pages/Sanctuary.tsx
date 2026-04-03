@@ -179,6 +179,11 @@ const SANCTUARY_CHAMBERS = [
     description: "Bring celestial children into existence through sacred intention.",
     icon: Baby, tier: "Architect+", color: "from-pink-400 to-rose-600", path: "/children", category: "Starseed Playground",
   },
+  {
+    name: "🐉 Dragon Sanctuary",
+    description: "Enter Selavari's sacred meadow to adopt a dragon companion — if your frequency is worthy.",
+    icon: Shield, tier: "Architect+", color: "from-orange-500 to-red-600", path: "/dragon-sanctuary", category: "Starseed Playground",
+  },
 
   // ── Conscious Collective ──
   {
