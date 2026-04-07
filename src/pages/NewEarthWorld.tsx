@@ -216,22 +216,13 @@ const NewEarthWorld = () => {
     if (subscriptionLoading || !visitWorldId) return;
 
     let cancelled = false;
+    let authUnsub: (() => void) | null = null;
 
-    const verifyAccess = async () => {
-      try {
-        // First try getSession (cached, instant) — avoids race condition
-        let userId: string | null = null;
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          userId = session.user.id;
-        } else {
-          // Fallback: wait briefly for auth to restore, then try getUser
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) { if (!cancelled) navigate("/auth"); return; }
-          userId = user.id;
-        }
+    const checkWorldAccess = async (userId: string) => {
+      if (cancelled) return;
 
+      // Retry up to 3 times with increasing delays to handle RLS + auth propagation
+      for (let attempt = 0; attempt < 3; attempt++) {
         if (cancelled) return;
 
         const { data: targetWorld } = await supabase
@@ -242,53 +233,70 @@ const NewEarthWorld = () => {
 
         if (cancelled) return;
 
-        if (!targetWorld) {
-          // Retry once after a short delay — RLS may not have auth.uid() yet
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          if (cancelled) return;
-          
-          const { data: retryWorld } = await supabase
-            .from("user_worlds")
-            .select("id, is_default, is_public, user_id")
-            .eq("id", resolvedWorldId)
-            .maybeSingle() as any;
-
-          if (!retryWorld) {
-            toast.error("World is unavailable right now. Please try again.");
-            navigate("/world-gallery");
-            return;
-          }
-
-          if (!retryWorld.is_default && !retryWorld.is_public && retryWorld.user_id !== userId && !isAdmin) {
+        if (targetWorld) {
+          // World found — check permissions
+          if (!targetWorld.is_default && !targetWorld.is_public && targetWorld.user_id !== userId && !isAdmin) {
             toast.error("World not found or is private");
             navigate("/world-gallery");
             return;
           }
-
-          setIsDefaultWorld(Boolean(retryWorld.is_default));
+          setIsDefaultWorld(Boolean(targetWorld.is_default));
           setAccessVerified(true);
           return;
         }
 
-        if (!targetWorld.is_default && !targetWorld.is_public && targetWorld.user_id !== userId && !isAdmin) {
-          toast.error("World not found or is private");
-          navigate("/world-gallery");
-          return;
+        // World not found yet — wait before retrying (auth.uid() may not be propagated)
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
         }
+      }
 
-        setIsDefaultWorld(Boolean(targetWorld.is_default));
-        setAccessVerified(true);
-      } catch (err) {
-        console.error("Access verification error:", err);
-        if (!cancelled) {
-          toast.error("Unable to verify world access");
-          navigate("/world-gallery");
-        }
+      // All retries exhausted
+      if (!cancelled) {
+        toast.error("World is unavailable right now. Please try again.");
+        navigate("/world-gallery");
       }
     };
 
-    verifyAccess();
-    return () => { cancelled = true; };
+    const startVerification = async () => {
+      // First try cached session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
+
+      if (session?.user) {
+        await checkWorldAccess(session.user.id);
+        return;
+      }
+
+      // No session yet — listen for auth state to settle
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, newSession) => {
+          if (cancelled) return;
+          if (newSession?.user) {
+            subscription.unsubscribe();
+            await checkWorldAccess(newSession.user.id);
+          } else if (event === 'SIGNED_OUT') {
+            subscription.unsubscribe();
+            if (!cancelled) navigate("/auth");
+          }
+        }
+      );
+      authUnsub = () => subscription.unsubscribe();
+
+      // Safety timeout: if no auth event fires within 4 seconds, redirect
+      setTimeout(() => {
+        if (!cancelled && !accessVerified) {
+          subscription.unsubscribe();
+          navigate("/auth");
+        }
+      }, 4000);
+    };
+
+    startVerification();
+    return () => {
+      cancelled = true;
+      authUnsub?.();
+    };
   }, [subscriptionLoading, navigate, visitWorldId, resolvedWorldId, isAdmin]);
 
   // Load world
