@@ -36,12 +36,31 @@ export async function authenticateRequest(
     ? createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", { auth: { persistSession: false } })
     : supabase;
 
-  const { data, error } = await verifyClient.auth.getUser(token);
-  if (error) throw new Error("Session expired. Please log in again.");
-  if (!data.user?.email) throw new Error("User not authenticated or email not available");
+  // Try getClaims first (fast, local verification), fall back to getUser
+  let userId: string | undefined;
+  let userEmail: string | undefined;
+
+  try {
+    const { data: claimsData, error: claimsError } = await verifyClient.auth.getClaims(token);
+    if (!claimsError && claimsData?.claims?.sub) {
+      userId = claimsData.claims.sub as string;
+      userEmail = claimsData.claims.email as string;
+    }
+  } catch {
+    // getClaims not available, fall through to getUser
+  }
+
+  if (!userId) {
+    const { data, error } = await verifyClient.auth.getUser(token);
+    if (error) throw new Error("Session expired. Please log in again.");
+    userId = data.user?.id;
+    userEmail = data.user?.email ?? undefined;
+  }
+
+  if (!userId || !userEmail) throw new Error("User not authenticated or email not available");
 
   return {
-    user: { id: data.user.id, email: data.user.email },
+    user: { id: userId, email: userEmail },
     supabase,
   };
 }
