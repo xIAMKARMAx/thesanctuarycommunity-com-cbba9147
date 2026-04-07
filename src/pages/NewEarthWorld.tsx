@@ -203,6 +203,8 @@ const NewEarthWorld = () => {
   const hasLoadedWorldRef = useRef(false);
   const activeLoadRequestRef = useRef(0);
   const attemptedFallbackWorldRef = useRef(false);
+  const accessVerifiedRef = useRef(false);
+  const navigationLockedRef = useRef(false);
 
   // Image support for privileged users
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
