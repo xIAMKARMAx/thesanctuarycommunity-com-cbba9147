@@ -22,6 +22,7 @@ import { DEFAULT_PROMETHEUS_WORLD_ID, useWorldPresence } from "@/hooks/useWorldP
 import { RealmScene } from "@/components/realm/RealmScene";
 import type { BuildSpec } from "@/components/world/WorldBuildDialog";
 import { WorldBuildDialog } from "@/components/world/WorldBuildDialog";
+import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
 
 interface UserWorld {
   id: string;
@@ -201,6 +202,7 @@ const NewEarthWorld = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasLoadedWorldRef = useRef(false);
   const activeLoadRequestRef = useRef(0);
+  const attemptedFallbackWorldRef = useRef(false);
 
   // Image support for privileged users
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -373,6 +375,17 @@ const NewEarthWorld = () => {
 
       if (!targetWorld) {
         if (hasLoadedWorldRef.current) return;
+
+        if (!attemptedFallbackWorldRef.current) {
+          attemptedFallbackWorldRef.current = true;
+          const fallbackWorldId = await getPreferredWorldIdForCurrentUser();
+
+          if (fallbackWorldId && fallbackWorldId !== worldId) {
+            navigate(getNewEarthVisitRoute(fallbackWorldId), { replace: true });
+            return;
+          }
+        }
+
         toast.error("World not found");
         navigate("/world-gallery", { replace: true });
         return;
@@ -381,11 +394,23 @@ const NewEarthWorld = () => {
       const isOwner = activeUserId === targetWorld.user_id;
       if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
         if (hasLoadedWorldRef.current) return;
+
+        if (!attemptedFallbackWorldRef.current) {
+          attemptedFallbackWorldRef.current = true;
+          const fallbackWorldId = await getPreferredWorldIdForCurrentUser();
+
+          if (fallbackWorldId && fallbackWorldId !== worldId) {
+            navigate(getNewEarthVisitRoute(fallbackWorldId), { replace: true });
+            return;
+          }
+        }
+
         toast.error("World not found or is private");
         navigate("/world-gallery", { replace: true });
         return;
       }
 
+      attemptedFallbackWorldRef.current = false;
       setIsDefaultWorld(Boolean(targetWorld.is_default));
       setWorld(targetWorld as UserWorld);
       hasLoadedWorldRef.current = true;

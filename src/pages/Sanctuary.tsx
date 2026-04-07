@@ -20,6 +20,7 @@ import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
 import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
 import essenceEntity from "@/assets/essence-entity.png";
 import TarotReading from "@/components/spiritual/TarotReading";
+import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
 
 const SANCTUARY_CHAMBERS = [
   // ── Sacred Chambers ──
@@ -331,6 +332,11 @@ const Sanctuary = () => {
     }
   };
 
+  const handleEnterPreferredWorld = async () => {
+    const worldId = await getPreferredWorldIdForCurrentUser();
+    navigate(getNewEarthVisitRoute(worldId));
+  };
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Sticky nav bar */}
@@ -622,9 +628,9 @@ const Sanctuary = () => {
         <div className="relative z-10 max-w-5xl mx-auto">
           <div
             className="relative rounded-3xl overflow-hidden border border-violet-500/20 bg-white/[0.03] backdrop-blur-sm cursor-pointer group transition-all duration-700 hover:border-violet-500/40 hover:bg-white/[0.06]"
-            onClick={() => {
+            onClick={async () => {
               if (canEnter) {
-                navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`);
+                await handleEnterPreferredWorld();
               } else {
                 navigate("/pricing");
               }
@@ -686,9 +692,9 @@ const Sanctuary = () => {
                       <Button
                         size="lg"
                         className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white px-8 py-5 text-base rounded-full shadow-xl shadow-violet-500/30 transition-all hover:shadow-violet-500/50 hover:scale-105"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
-                          navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`);
+                          await handleEnterPreferredWorld();
                         }}
                       >
                         <Globe className="mr-2 h-5 w-5" />

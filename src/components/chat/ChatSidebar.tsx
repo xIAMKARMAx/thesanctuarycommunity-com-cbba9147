@@ -15,6 +15,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 import { useAppMode } from "@/contexts/AppModeContext";
+import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -410,7 +411,10 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
             <Button
               variant="ghost"
               className="w-full justify-start bg-primary/5 hover:bg-primary/15 border border-primary/10"
-              onClick={() => navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`)}
+              onClick={async () => {
+                const worldId = await getPreferredWorldIdForCurrentUser();
+                navigate(getNewEarthVisitRoute(worldId));
+              }}
             >
               <Globe className="h-4 w-4 mr-2 text-primary" />
               New Earth Realms
