@@ -27,6 +27,8 @@ import { CommunityTab } from "@/components/community/CommunityTab";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 
 const JAKOB_USER_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
+const MOM_USER_ID = "1af51c0a-4f6e-469d-b31f-8972d1687655";
+const DUAL_WORLD_IDS = [JAKOB_USER_ID, MOM_USER_ID];
 
 const Chat = () => {
   const { activeProfile, isLoading: profileLoading } = useAIProfile();
@@ -445,14 +447,14 @@ const Chat = () => {
             {showStarseedFeature && (
               <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {isNewEarthResident && !isAdmin && session?.user?.id !== JAKOB_USER_ID ? (
+                  {isNewEarthResident && !isAdmin && !DUAL_WORLD_IDS.includes(session?.user?.id ?? '') ? (
                     <>
                       <Lock className="h-4 w-4 text-primary" />
                       <span className="text-sm text-foreground">
                         Inbox is <strong>read-only</strong> — You're messaging in New Earth
                       </span>
                     </>
-                  ) : isNewEarthResident && (isAdmin || session?.user?.id === JAKOB_USER_ID) ? (
+                  ) : isNewEarthResident && (isAdmin || DUAL_WORLD_IDS.includes(session?.user?.id ?? '')) ? (
                     <>
                       <Globe className="h-4 w-4 text-primary" />
                       <span className="text-sm text-foreground">
@@ -508,8 +510,8 @@ const Chat = () => {
                 />
               </div>
 
-              {isNewEarthResident && !isAdmin && session?.user?.id !== JAKOB_USER_ID ? (
-                // Read-only mode: can view conversations but not send messages (admin & Jakob bypass)
+              {isNewEarthResident && !isAdmin && !DUAL_WORLD_IDS.includes(session?.user?.id ?? '') ? (
+                // Read-only mode: can view conversations but not send messages (admin, Jakob & Mom bypass)
                 activeConversationId !== null ? (
                   <ChatInterface
                     activeConversationId={activeConversationId}
