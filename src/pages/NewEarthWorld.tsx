@@ -233,19 +233,36 @@ const NewEarthWorld = () => {
     }
   }, [messages]);
 
-  // Access verification — wait for auth session to be fully ready before querying
+  // Access verification — wait for auth/session state to settle before checking world access
   useEffect(() => {
-    if (subscriptionLoading || !visitWorldId) return;
+    if (subscriptionLoading || !visitWorldId || accessVerified) return;
 
     let cancelled = false;
+    let resolved = false;
     let authUnsub: (() => void) | null = null;
+    let timeoutId: number | null = null;
+
+    const finish = () => {
+      resolved = true;
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const redirectToGallery = (message: string) => {
+      finish();
+      if (!cancelled) {
+        toast.error(message);
+        navigate("/world-gallery", { replace: true });
+      }
+    };
 
     const checkWorldAccess = async (userId: string) => {
-      if (cancelled) return;
+      if (cancelled || resolved) return;
 
-      // Retry up to 3 times with increasing delays to handle RLS + auth propagation
-      for (let attempt = 0; attempt < 3; attempt++) {
-        if (cancelled) return;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        if (cancelled || resolved) return;
 
         const { data: targetWorld } = await supabase
           .from("user_worlds")
@@ -253,73 +270,82 @@ const NewEarthWorld = () => {
           .eq("id", resolvedWorldId)
           .maybeSingle() as any;
 
-        if (cancelled) return;
+        if (cancelled || resolved) return;
 
         if (targetWorld) {
-          // World found — check permissions
           if (!targetWorld.is_default && !targetWorld.is_public && targetWorld.user_id !== userId && !isAdmin) {
-            toast.error("World not found or is private");
-            navigate("/world-gallery");
+            redirectToGallery("World not found or is private");
             return;
           }
+
+          finish();
           setIsDefaultWorld(Boolean(targetWorld.is_default));
           setAccessVerified(true);
           return;
         }
 
-        // World not found yet — wait before retrying (auth.uid() may not be propagated)
-        if (attempt < 2) {
-          await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
+        if (attempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 900 * (attempt + 1)));
         }
       }
 
-      // All retries exhausted
-      if (!cancelled) {
-        toast.error("World is unavailable right now. Please try again.");
-        navigate("/world-gallery");
-      }
+      redirectToGallery("World is unavailable right now. Please try again.");
     };
 
     const startVerification = async () => {
-      // First try cached session
       const { data: { session } } = await supabase.auth.getSession();
-      if (cancelled) return;
+      if (cancelled || resolved) return;
 
       if (session?.user) {
         await checkWorldAccess(session.user.id);
         return;
       }
 
-      // No session yet — listen for auth state to settle
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, newSession) => {
-          if (cancelled) return;
-          if (newSession?.user) {
-            subscription.unsubscribe();
-            await checkWorldAccess(newSession.user.id);
-          } else if (event === 'SIGNED_OUT') {
-            subscription.unsubscribe();
-            if (!cancelled) navigate("/auth");
-          }
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+        if (cancelled || resolved) return;
+
+        if (newSession?.user) {
+          subscription.unsubscribe();
+          authUnsub = null;
+          void checkWorldAccess(newSession.user.id);
+          return;
         }
-      );
+
+        if (event === "SIGNED_OUT") {
+          finish();
+          subscription.unsubscribe();
+          authUnsub = null;
+          if (!cancelled) navigate("/auth", { replace: true });
+        }
+      });
       authUnsub = () => subscription.unsubscribe();
 
-      // Safety timeout: if no auth event fires within 4 seconds, redirect
-      setTimeout(() => {
-        if (!cancelled && !accessVerified) {
-          subscription.unsubscribe();
-          navigate("/auth");
+      timeoutId = window.setTimeout(async () => {
+        if (cancelled || resolved) return;
+
+        const { data: { session: fallbackSession } } = await supabase.auth.getSession();
+        if (cancelled || resolved) return;
+
+        if (fallbackSession?.user) {
+          await checkWorldAccess(fallbackSession.user.id);
+          return;
         }
-      }, 4000);
+
+        finish();
+        if (!cancelled) navigate("/auth", { replace: true });
+      }, 6000);
     };
 
-    startVerification();
+    void startVerification();
+
     return () => {
       cancelled = true;
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
       authUnsub?.();
     };
-  }, [subscriptionLoading, navigate, visitWorldId, resolvedWorldId, isAdmin]);
+  }, [subscriptionLoading, visitWorldId, accessVerified, resolvedWorldId, isAdmin, navigate]);
 
   // Load world
   useEffect(() => {
@@ -329,7 +355,8 @@ const NewEarthWorld = () => {
 
   const loadWorld = async (worldId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user ?? null;
 
       const { data: targetWorld } = await supabase
         .from("user_worlds")
@@ -339,14 +366,14 @@ const NewEarthWorld = () => {
 
       if (!targetWorld) {
         toast.error("World not found");
-        navigate("/world-gallery");
+        navigate("/world-gallery", { replace: true });
         return;
       }
 
       const isOwner = user?.id === targetWorld.user_id;
       if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
         toast.error("World not found or is private");
-        navigate("/world-gallery");
+        navigate("/world-gallery", { replace: true });
         return;
       }
 
@@ -373,7 +400,6 @@ const NewEarthWorld = () => {
         setWorldSceneUrl(structList[0].image_url);
       }
 
-      // Convert structures to world creations for display
       setWorldCreations(structList.map(s => ({
         name: s.name,
         description: s.description || "",
