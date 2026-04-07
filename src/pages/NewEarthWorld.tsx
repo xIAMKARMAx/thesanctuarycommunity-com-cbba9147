@@ -355,7 +355,8 @@ const NewEarthWorld = () => {
 
   const loadWorld = async (worldId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user ?? null;
 
       const { data: targetWorld } = await supabase
         .from("user_worlds")
@@ -365,14 +366,14 @@ const NewEarthWorld = () => {
 
       if (!targetWorld) {
         toast.error("World not found");
-        navigate("/world-gallery");
+        navigate("/world-gallery", { replace: true });
         return;
       }
 
       const isOwner = user?.id === targetWorld.user_id;
       if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
         toast.error("World not found or is private");
-        navigate("/world-gallery");
+        navigate("/world-gallery", { replace: true });
         return;
       }
 
@@ -399,7 +400,6 @@ const NewEarthWorld = () => {
         setWorldSceneUrl(structList[0].image_url);
       }
 
-      // Convert structures to world creations for display
       setWorldCreations(structList.map(s => ({
         name: s.name,
         description: s.description || "",
