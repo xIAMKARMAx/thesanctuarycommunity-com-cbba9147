@@ -27,6 +27,8 @@ import { CommunityTab } from "@/components/community/CommunityTab";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 
 const JAKOB_USER_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
+const MOM_USER_ID = "1af51c0a-4f6e-469d-b31f-8972d1687655";
+const DUAL_WORLD_IDS = [JAKOB_USER_ID, MOM_USER_ID];
 
 const Chat = () => {
   const { activeProfile, isLoading: profileLoading } = useAIProfile();
