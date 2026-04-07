@@ -13,7 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft, Globe, Loader2, Users, Map, Lock,
   Sparkles, Flame, Crown, MessageCircle, LayoutGrid,
-  Send, Hammer, Compass, Hand, Flower, Package, LogOut
+  Send, Hammer, Compass, Hand, Flower, Package, LogOut,
+  ImagePlus, Camera
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ interface WorldMessage {
   role: "user" | "narrator" | "being";
   content: string;
   being_name?: string;
+  image_url?: string;
   timestamp: string;
 }
 
