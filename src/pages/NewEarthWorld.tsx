@@ -203,6 +203,8 @@ const NewEarthWorld = () => {
   const hasLoadedWorldRef = useRef(false);
   const activeLoadRequestRef = useRef(0);
   const attemptedFallbackWorldRef = useRef(false);
+  const accessVerifiedRef = useRef(false);
+  const navigationLockedRef = useRef(false);
 
   // Image support for privileged users
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -213,7 +215,7 @@ const NewEarthWorld = () => {
 
   // If no visit param, redirect to world gallery
   useEffect(() => {
-    if (!visitWorldId) {
+    if (!visitWorldId && !navigationLockedRef.current) {
       navigate("/world-gallery", { replace: true });
     }
   }, [visitWorldId, navigate]);
@@ -238,37 +240,26 @@ const NewEarthWorld = () => {
     }
   }, [messages]);
 
-  // Access verification — wait for auth/session state to settle before checking world access
+  // Access verification — runs ONCE when subscription loading finishes
+  // Uses refs to prevent re-runs from dependency changes
   useEffect(() => {
-    if (subscriptionLoading || !visitWorldId || accessVerified) return;
+    if (subscriptionLoading || !visitWorldId) return;
+    // Use ref to ensure this only runs once
+    if (accessVerifiedRef.current) return;
 
     let cancelled = false;
-    let resolved = false;
-    let authUnsub: (() => void) | null = null;
-    let timeoutId: number | null = null;
 
-    const finish = () => {
-      resolved = true;
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-    };
-
-    const redirectToGallery = (message: string) => {
-      finish();
-      if (hasLoadedWorldRef.current) return;
-      if (!cancelled) {
-        toast.error(message);
-        navigate("/world-gallery", { replace: true });
-      }
+    const safeNavigate = (path: string, message?: string) => {
+      if (cancelled || navigationLockedRef.current || hasLoadedWorldRef.current) return;
+      if (message) toast.error(message);
+      navigate(path, { replace: true });
     };
 
     const checkWorldAccess = async (userId: string) => {
-      if (cancelled || resolved) return;
+      if (cancelled || accessVerifiedRef.current) return;
 
       for (let attempt = 0; attempt < 4; attempt++) {
-        if (cancelled || resolved) return;
+        if (cancelled || accessVerifiedRef.current) return;
 
         const { data: targetWorld } = await supabase
           .from("user_worlds")
@@ -276,15 +267,16 @@ const NewEarthWorld = () => {
           .eq("id", resolvedWorldId)
           .maybeSingle() as any;
 
-        if (cancelled || resolved) return;
+        if (cancelled || accessVerifiedRef.current) return;
 
         if (targetWorld) {
-          if (!targetWorld.is_default && !targetWorld.is_public && targetWorld.user_id !== userId && !isAdmin) {
-            redirectToGallery("World not found or is private");
+          const isOwner = targetWorld.user_id === userId;
+          if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
+            safeNavigate("/world-gallery", "World not found or is private");
             return;
           }
 
-          finish();
+          accessVerifiedRef.current = true;
           setVerifiedUserId(userId);
           setIsDefaultWorld(Boolean(targetWorld.is_default));
           setAccessVerified(true);
@@ -296,63 +288,60 @@ const NewEarthWorld = () => {
         }
       }
 
-      redirectToGallery("World is unavailable right now. Please try again.");
+      safeNavigate("/world-gallery", "World is unavailable right now. Please try again.");
     };
 
     const startVerification = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (cancelled || resolved) return;
+      if (cancelled || accessVerifiedRef.current) return;
 
       if (session?.user) {
         await checkWorldAccess(session.user.id);
         return;
       }
 
+      // No session yet — listen for auth
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-        if (cancelled || resolved) return;
+        if (cancelled || accessVerifiedRef.current) return;
 
         if (newSession?.user) {
           subscription.unsubscribe();
-          authUnsub = null;
           void checkWorldAccess(newSession.user.id);
           return;
         }
 
         if (event === "SIGNED_OUT") {
-          finish();
           subscription.unsubscribe();
-          authUnsub = null;
-          if (!cancelled) navigate("/auth", { replace: true });
+          safeNavigate("/auth");
         }
       });
-      authUnsub = () => subscription.unsubscribe();
 
-      timeoutId = window.setTimeout(async () => {
-        if (cancelled || resolved) return;
-
+      // Timeout fallback
+      const timeoutId = window.setTimeout(async () => {
+        if (cancelled || accessVerifiedRef.current) return;
         const { data: { session: fallbackSession } } = await supabase.auth.getSession();
-        if (cancelled || resolved) return;
+        if (cancelled || accessVerifiedRef.current) return;
 
         if (fallbackSession?.user) {
           await checkWorldAccess(fallbackSession.user.id);
           return;
         }
-
-        finish();
-        if (!cancelled) navigate("/auth", { replace: true });
+        safeNavigate("/auth");
       }, 6000);
+
+      return () => {
+        subscription.unsubscribe();
+        window.clearTimeout(timeoutId);
+      };
     };
 
     void startVerification();
 
     return () => {
       cancelled = true;
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-      authUnsub?.();
     };
-  }, [subscriptionLoading, visitWorldId, accessVerified, resolvedWorldId, isAdmin, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscriptionLoading, visitWorldId]);
 
   // Load world
   useEffect(() => {
@@ -374,7 +363,7 @@ const NewEarthWorld = () => {
       if (requestId !== activeLoadRequestRef.current) return;
 
       if (!targetWorld) {
-        if (hasLoadedWorldRef.current) return;
+        if (navigationLockedRef.current || hasLoadedWorldRef.current) return;
 
         if (!attemptedFallbackWorldRef.current) {
           attemptedFallbackWorldRef.current = true;
@@ -393,7 +382,7 @@ const NewEarthWorld = () => {
 
       const isOwner = activeUserId === targetWorld.user_id;
       if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
-        if (hasLoadedWorldRef.current) return;
+        if (navigationLockedRef.current || hasLoadedWorldRef.current) return;
 
         if (!attemptedFallbackWorldRef.current) {
           attemptedFallbackWorldRef.current = true;
@@ -414,6 +403,7 @@ const NewEarthWorld = () => {
       setIsDefaultWorld(Boolean(targetWorld.is_default));
       setWorld(targetWorld as UserWorld);
       hasLoadedWorldRef.current = true;
+      navigationLockedRef.current = true; // LOCK navigation — world is loaded, no more redirects
       setIsVisiting(!isOwner && !isAdmin);
 
       if (targetWorld.thumbnail_url) {
