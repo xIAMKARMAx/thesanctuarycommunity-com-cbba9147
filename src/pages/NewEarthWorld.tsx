@@ -181,6 +181,7 @@ const NewEarthWorld = () => {
   const [loading, setLoading] = useState(true);
   const [building, setBuilding] = useState(false);
   const [accessVerified, setAccessVerified] = useState(false);
+  const [verifiedUserId, setVerifiedUserId] = useState<string | null>(null);
   const [isVisiting, setIsVisiting] = useState(false);
   const [worldOwnerName, setWorldOwnerName] = useState<string | null>(null);
   const [showSeekerGate, setShowSeekerGate] = useState(false);
@@ -279,6 +280,7 @@ const NewEarthWorld = () => {
           }
 
           finish();
+          setVerifiedUserId(userId);
           setIsDefaultWorld(Boolean(targetWorld.is_default));
           setAccessVerified(true);
           return;
@@ -349,15 +351,12 @@ const NewEarthWorld = () => {
 
   // Load world
   useEffect(() => {
-    if (!accessVerified) return;
-    loadWorld(resolvedWorldId);
-  }, [accessVerified, resolvedWorldId]);
+    if (!accessVerified || !verifiedUserId) return;
+    loadWorld(resolvedWorldId, verifiedUserId);
+  }, [accessVerified, resolvedWorldId, verifiedUserId]);
 
-  const loadWorld = async (worldId: string) => {
+  const loadWorld = async (worldId: string, activeUserId: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user ?? null;
-
       const { data: targetWorld } = await supabase
         .from("user_worlds")
         .select("*")
@@ -370,7 +369,7 @@ const NewEarthWorld = () => {
         return;
       }
 
-      const isOwner = user?.id === targetWorld.user_id;
+      const isOwner = activeUserId === targetWorld.user_id;
       if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
         toast.error("World not found or is private");
         navigate("/world-gallery", { replace: true });
@@ -407,14 +406,14 @@ const NewEarthWorld = () => {
         created_at: new Date().toISOString(),
       })));
 
-      if (user) {
+      if (activeUserId) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("name, user_avatar_url")
-          .eq("id", user.id)
+          .eq("id", activeUserId)
           .maybeSingle();
         setUserAvatar({
-          name: profile?.name || user.email?.split("@")[0] || "You",
+          name: profile?.name || "You",
           imageUrl: profile?.user_avatar_url || null,
         });
       }
