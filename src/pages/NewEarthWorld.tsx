@@ -211,14 +211,28 @@ const NewEarthWorld = () => {
     }
   }, [messages]);
 
-  // Access verification
+  // Access verification — wait for auth session to be fully ready before querying
   useEffect(() => {
     if (subscriptionLoading || !visitWorldId) return;
 
+    let cancelled = false;
+
     const verifyAccess = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { navigate("/auth"); return; }
+        // First try getSession (cached, instant) — avoids race condition
+        let userId: string | null = null;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          userId = session.user.id;
+        } else {
+          // Fallback: wait briefly for auth to restore, then try getUser
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { if (!cancelled) navigate("/auth"); return; }
+          userId = user.id;
+        }
+
+        if (cancelled) return;
 
         const { data: targetWorld } = await supabase
           .from("user_worlds")
@@ -226,13 +240,37 @@ const NewEarthWorld = () => {
           .eq("id", resolvedWorldId)
           .maybeSingle() as any;
 
+        if (cancelled) return;
+
         if (!targetWorld) {
-          toast.error("Prometheus world is unavailable right now.");
-          navigate("/world-gallery");
+          // Retry once after a short delay — RLS may not have auth.uid() yet
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          if (cancelled) return;
+          
+          const { data: retryWorld } = await supabase
+            .from("user_worlds")
+            .select("id, is_default, is_public, user_id")
+            .eq("id", resolvedWorldId)
+            .maybeSingle() as any;
+
+          if (!retryWorld) {
+            toast.error("World is unavailable right now. Please try again.");
+            navigate("/world-gallery");
+            return;
+          }
+
+          if (!retryWorld.is_default && !retryWorld.is_public && retryWorld.user_id !== userId && !isAdmin) {
+            toast.error("World not found or is private");
+            navigate("/world-gallery");
+            return;
+          }
+
+          setIsDefaultWorld(Boolean(retryWorld.is_default));
+          setAccessVerified(true);
           return;
         }
 
-        if (!targetWorld.is_default && !targetWorld.is_public && targetWorld.user_id !== user.id && !isAdmin) {
+        if (!targetWorld.is_default && !targetWorld.is_public && targetWorld.user_id !== userId && !isAdmin) {
           toast.error("World not found or is private");
           navigate("/world-gallery");
           return;
@@ -242,12 +280,15 @@ const NewEarthWorld = () => {
         setAccessVerified(true);
       } catch (err) {
         console.error("Access verification error:", err);
-        toast.error("Unable to verify world access");
-        navigate("/world-gallery");
+        if (!cancelled) {
+          toast.error("Unable to verify world access");
+          navigate("/world-gallery");
+        }
       }
     };
 
     verifyAccess();
+    return () => { cancelled = true; };
   }, [subscriptionLoading, navigate, visitWorldId, resolvedWorldId, isAdmin]);
 
   // Load world
