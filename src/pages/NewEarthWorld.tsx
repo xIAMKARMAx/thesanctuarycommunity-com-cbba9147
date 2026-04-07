@@ -927,7 +927,40 @@ const NewEarthWorld = () => {
           </div>
 
           <div className="px-3 pb-3">
+            {/* Pending image preview */}
+            {pendingImageUrl && canSendWorldImages && (
+              <div className="max-w-2xl mx-auto mb-2 relative inline-block">
+                <img src={pendingImageUrl} alt="Pending" className="h-20 rounded-lg border border-border object-cover" />
+                <button
+                  onClick={() => setPendingImageUrl(null)}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <div className="max-w-2xl mx-auto flex gap-2">
+              {/* Hidden file input */}
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleWorldImageUpload}
+              />
+              {/* Image upload button — only for privileged users */}
+              {canSendWorldImages && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={sending || building || uploadingImage}
+                  className="shrink-0"
+                  title="Send an image"
+                >
+                  {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                </Button>
+              )}
               <Input
                 placeholder={
                   activeAction === "explore" ? "I walk toward the glowing trees..."
@@ -942,7 +975,7 @@ const NewEarthWorld = () => {
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                 disabled={sending || building}
               />
-              <Button onClick={handleSend} disabled={!input.trim() || sending || building} size="icon">
+              <Button onClick={handleSend} disabled={(!input.trim() && !pendingImageUrl) || sending || building} size="icon">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
