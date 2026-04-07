@@ -830,7 +830,15 @@ const NewEarthWorld = () => {
                 return (
                   <div key={i} className="flex justify-end">
                     <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-2 max-w-[80%]">
-                      <p className="text-sm">{msg.content}</p>
+                      {msg.image_url && (
+                        <img src={msg.image_url} alt="Shared" className="rounded-lg mb-2 max-h-64 object-contain" />
+                      )}
+                      {msg.content && msg.content !== "📷 Shared an image" && (
+                        <p className="text-sm">{msg.content}</p>
+                      )}
+                      {msg.content === "📷 Shared an image" && !msg.image_url && (
+                        <p className="text-sm">{msg.content}</p>
+                      )}
                     </div>
                   </div>
                 );
@@ -841,6 +849,9 @@ const NewEarthWorld = () => {
                     <p className="text-sm italic text-muted-foreground leading-relaxed max-w-lg mx-auto">
                       {msg.content}
                     </p>
+                    {msg.image_url && (
+                      <img src={msg.image_url} alt="Scene" className="rounded-lg mt-2 max-h-72 object-contain mx-auto" />
+                    )}
                   </div>
                 );
               }
@@ -860,6 +871,9 @@ const NewEarthWorld = () => {
                     <span className="text-xs font-medium text-primary">{msg.being_name}</span>
                     <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-2 max-w-[80%]">
                       <p className="text-sm">{msg.content}</p>
+                      {msg.image_url && (
+                        <img src={msg.image_url} alt="From being" className="rounded-lg mt-2 max-h-72 object-contain" />
+                      )}
                     </div>
                   </div>
                 </div>
