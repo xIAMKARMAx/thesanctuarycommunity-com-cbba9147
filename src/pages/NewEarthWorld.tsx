@@ -487,17 +487,51 @@ const NewEarthWorld = () => {
     }
   }, [world, isVisiting, canBuild]);
 
+  // Image upload handler for privileged users
+  const handleWorldImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !canSendWorldImages) return;
+    e.target.value = '';
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be under 10MB");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        setPendingImageUrl(base64);
+        setUploadingImage(false);
+      };
+      reader.onerror = () => {
+        toast.error("Failed to read image");
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      toast.error("Failed to process image");
+      setUploadingImage(false);
+    }
+  };
+
   const handleSend = () => {
-    if (!input.trim() || sending) return;
+    if ((!input.trim() && !pendingImageUrl) || sending) return;
     const msg = input.trim();
     setInput("");
 
     const userMsg: WorldMessage = {
       role: "user",
-      content: msg,
+      content: msg || (pendingImageUrl ? "📷 Shared an image" : ""),
+      image_url: pendingImageUrl || undefined,
       timestamp: new Date().toISOString(),
     };
     setMessages(prev => [...prev, userMsg]);
+
+    const imageToSend = pendingImageUrl;
+    setPendingImageUrl(null);
 
     // If build action is active, open build dialog instead
     if (activeAction === "build") {
@@ -512,13 +546,15 @@ const NewEarthWorld = () => {
 
     // For other actions, send to realm-chat via the chat edge function
     setSending(true);
-    sendWorldChat(msg, activeAction);
+    sendWorldChat(msg, activeAction, imageToSend || undefined);
   };
 
-  const sendWorldChat = async (message: string, actionType: string | null) => {
+  const sendWorldChat = async (message: string, actionType: string | null, imageUrl?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+
+      const isPrivileged = WORLD_IMAGE_PRIVILEGED_IDS.includes(user.id);
 
       // Use the chat function with world context
       const beingNames = selectedBeings.map(id => {
@@ -528,14 +564,18 @@ const NewEarthWorld = () => {
 
       const primaryBeingId = selectedBeings[0] || profiles?.[0]?.id;
 
-      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. IMPORTANT FORMAT: Write narrative description first, then have EACH being speak on its own line using the format "BeingName: their dialogue here". Always include at least one line of being dialogue per being present.]`;
+      // Detect if user is asking for an image from their being
+      const wantsImage = isPrivileged && /\b(send|show|give|share|take|snap|capture|draw|paint|create|generate|make).{0,20}(pic|photo|image|picture|selfie|portrait|scene|painting|drawing)\b/i.test(message);
+
+      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. IMPORTANT FORMAT: Write narrative description first, then have EACH being speak on its own line using the format "BeingName: their dialogue here". Always include at least one line of being dialogue per being present.${imageUrl ? " The user has shared an image with you — acknowledge and respond to it." : ""}]`;
 
       const { data, error } = await supabase.functions.invoke("chat", {
         body: {
           message: `${worldContext}\n\n${message}`,
           userId: user.id,
           aiProfileId: primaryBeingId,
-          generateImage: false,
+          generateImage: wantsImage,
+          imageUrl: imageUrl || undefined,
           conversationId: crypto.randomUUID(),
           history: messages.slice(-10).map(m => ({
             role: m.role === "user" ? "user" : "assistant",
@@ -554,6 +594,13 @@ const NewEarthWorld = () => {
         }).filter(Boolean);
         
         const parsed = parseWorldResponse(data.response, beingNamesList);
+
+        // If AI returned an image, attach it to the first being message (or narrator)
+        if (data?.imageUrl && parsed.length > 0) {
+          const beingMsg = parsed.find(m => m.role === "being") || parsed[0];
+          beingMsg.image_url = data.imageUrl;
+        }
+
         setMessages(prev => [...prev, ...parsed]);
       }
     } catch (err: any) {
