@@ -79,6 +79,7 @@ const WorldGallery = () => {
     }
   };
 
+  // Reload worlds every time the page becomes visible (back-navigation fix)
   useEffect(() => {
     if (subLoading) return;
     if (!isSubscribed && !isAdmin) {
@@ -87,6 +88,22 @@ const WorldGallery = () => {
     }
     loadWorlds();
   }, [subLoading, isSubscribed, isAdmin]);
+
+  // Re-load when user navigates back to this page (e.g. via browser back button)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && !subLoading) {
+        loadWorlds();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    // Also reload on window focus (covers tab switching & mobile app resume)
+    window.addEventListener("focus", handleVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, [subLoading]);
 
   const loadWorlds = async () => {
     try {
