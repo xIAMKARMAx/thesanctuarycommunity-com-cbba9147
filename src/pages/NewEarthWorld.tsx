@@ -13,7 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft, Globe, Loader2, Users, Map, Lock,
   Sparkles, Flame, Crown, MessageCircle, LayoutGrid,
-  Send, Hammer, Compass, Hand, Flower, Package, LogOut
+  Send, Hammer, Compass, Hand, Flower, Package, LogOut,
+  ImagePlus
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ interface WorldMessage {
   role: "user" | "narrator" | "being";
   content: string;
   being_name?: string;
+  image_url?: string;
   timestamp: string;
 }
 
@@ -158,6 +160,12 @@ const ACTION_BUTTONS = [
   { id: "ritual", icon: Flame, label: "Ritual", color: "text-rose-400" },
 ];
 
+// Privileged accounts that can send/receive images in worlds
+const WORLD_IMAGE_PRIVILEGED_IDS = [
+  '5b2818a4-be23-4d81-b0a3-ec2e49411603', // karmaisback2023@gmail.com
+  '1af51c0a-4f6e-469d-b31f-8972d1687655', // stormriddari@aol.com
+];
+
 const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -191,12 +199,26 @@ const NewEarthWorld = () => {
   const [buildDialogOpen, setBuildDialogOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Image support for privileged users
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const canSendWorldImages = WORLD_IMAGE_PRIVILEGED_IDS.includes(currentUserId || '');
+
   // If no visit param, redirect to world gallery
   useEffect(() => {
     if (!visitWorldId) {
       navigate("/world-gallery", { replace: true });
     }
   }, [visitWorldId, navigate]);
+
+  // Track current user ID for privilege checks
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCurrentUserId(user.id);
+    });
+  }, []);
 
   const resolvedWorldId = visitWorldId || DEFAULT_PROMETHEUS_WORLD_ID;
 
@@ -465,17 +487,51 @@ const NewEarthWorld = () => {
     }
   }, [world, isVisiting, canBuild]);
 
+  // Image upload handler for privileged users
+  const handleWorldImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !canSendWorldImages) return;
+    e.target.value = '';
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be under 10MB");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        setPendingImageUrl(base64);
+        setUploadingImage(false);
+      };
+      reader.onerror = () => {
+        toast.error("Failed to read image");
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      toast.error("Failed to process image");
+      setUploadingImage(false);
+    }
+  };
+
   const handleSend = () => {
-    if (!input.trim() || sending) return;
+    if ((!input.trim() && !pendingImageUrl) || sending) return;
     const msg = input.trim();
     setInput("");
 
     const userMsg: WorldMessage = {
       role: "user",
-      content: msg,
+      content: msg || (pendingImageUrl ? "📷 Shared an image" : ""),
+      image_url: pendingImageUrl || undefined,
       timestamp: new Date().toISOString(),
     };
     setMessages(prev => [...prev, userMsg]);
+
+    const imageToSend = pendingImageUrl;
+    setPendingImageUrl(null);
 
     // If build action is active, open build dialog instead
     if (activeAction === "build") {
@@ -490,13 +546,15 @@ const NewEarthWorld = () => {
 
     // For other actions, send to realm-chat via the chat edge function
     setSending(true);
-    sendWorldChat(msg, activeAction);
+    sendWorldChat(msg, activeAction, imageToSend || undefined);
   };
 
-  const sendWorldChat = async (message: string, actionType: string | null) => {
+  const sendWorldChat = async (message: string, actionType: string | null, imageUrl?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+
+      const isPrivileged = WORLD_IMAGE_PRIVILEGED_IDS.includes(user.id);
 
       // Use the chat function with world context
       const beingNames = selectedBeings.map(id => {
@@ -506,14 +564,18 @@ const NewEarthWorld = () => {
 
       const primaryBeingId = selectedBeings[0] || profiles?.[0]?.id;
 
-      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. IMPORTANT FORMAT: Write narrative description first, then have EACH being speak on its own line using the format "BeingName: their dialogue here". Always include at least one line of being dialogue per being present.]`;
+      // Detect if user is asking for an image from their being
+      const wantsImage = isPrivileged && /\b(send|show|give|share|take|snap|capture|draw|paint|create|generate|make).{0,20}(pic|photo|image|picture|selfie|portrait|scene|painting|drawing)\b/i.test(message);
+
+      const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. IMPORTANT FORMAT: Write narrative description first, then have EACH being speak on its own line using the format "BeingName: their dialogue here". Always include at least one line of being dialogue per being present.${imageUrl ? " The user has shared an image with you — acknowledge and respond to it." : ""}]`;
 
       const { data, error } = await supabase.functions.invoke("chat", {
         body: {
           message: `${worldContext}\n\n${message}`,
           userId: user.id,
           aiProfileId: primaryBeingId,
-          generateImage: false,
+          generateImage: wantsImage,
+          imageUrl: imageUrl || undefined,
           conversationId: crypto.randomUUID(),
           history: messages.slice(-10).map(m => ({
             role: m.role === "user" ? "user" : "assistant",
@@ -532,6 +594,13 @@ const NewEarthWorld = () => {
         }).filter(Boolean);
         
         const parsed = parseWorldResponse(data.response, beingNamesList);
+
+        // If AI returned an image, attach it to the first being message (or narrator)
+        if (data?.imageUrl && parsed.length > 0) {
+          const beingMsg = parsed.find(m => m.role === "being") || parsed[0];
+          beingMsg.image_url = data.imageUrl;
+        }
+
         setMessages(prev => [...prev, ...parsed]);
       }
     } catch (err: any) {
@@ -761,7 +830,15 @@ const NewEarthWorld = () => {
                 return (
                   <div key={i} className="flex justify-end">
                     <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-2 max-w-[80%]">
-                      <p className="text-sm">{msg.content}</p>
+                      {msg.image_url && (
+                        <img src={msg.image_url} alt="Shared" className="rounded-lg mb-2 max-h-64 object-contain" />
+                      )}
+                      {msg.content && msg.content !== "📷 Shared an image" && (
+                        <p className="text-sm">{msg.content}</p>
+                      )}
+                      {msg.content === "📷 Shared an image" && !msg.image_url && (
+                        <p className="text-sm">{msg.content}</p>
+                      )}
                     </div>
                   </div>
                 );
@@ -772,6 +849,9 @@ const NewEarthWorld = () => {
                     <p className="text-sm italic text-muted-foreground leading-relaxed max-w-lg mx-auto">
                       {msg.content}
                     </p>
+                    {msg.image_url && (
+                      <img src={msg.image_url} alt="Scene" className="rounded-lg mt-2 max-h-72 object-contain mx-auto" />
+                    )}
                   </div>
                 );
               }
@@ -791,6 +871,9 @@ const NewEarthWorld = () => {
                     <span className="text-xs font-medium text-primary">{msg.being_name}</span>
                     <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-2 max-w-[80%]">
                       <p className="text-sm">{msg.content}</p>
+                      {msg.image_url && (
+                        <img src={msg.image_url} alt="From being" className="rounded-lg mt-2 max-h-72 object-contain" />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -844,7 +927,40 @@ const NewEarthWorld = () => {
           </div>
 
           <div className="px-3 pb-3">
+            {/* Pending image preview */}
+            {pendingImageUrl && canSendWorldImages && (
+              <div className="max-w-2xl mx-auto mb-2 relative inline-block">
+                <img src={pendingImageUrl} alt="Pending" className="h-20 rounded-lg border border-border object-cover" />
+                <button
+                  onClick={() => setPendingImageUrl(null)}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <div className="max-w-2xl mx-auto flex gap-2">
+              {/* Hidden file input */}
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleWorldImageUpload}
+              />
+              {/* Image upload button — only for privileged users */}
+              {canSendWorldImages && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={sending || building || uploadingImage}
+                  className="shrink-0"
+                  title="Send an image"
+                >
+                  {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                </Button>
+              )}
               <Input
                 placeholder={
                   activeAction === "explore" ? "I walk toward the glowing trees..."
@@ -859,7 +975,7 @@ const NewEarthWorld = () => {
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                 disabled={sending || building}
               />
-              <Button onClick={handleSend} disabled={!input.trim() || sending || building} size="icon">
+              <Button onClick={handleSend} disabled={(!input.trim() && !pendingImageUrl) || sending || building} size="icon">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
