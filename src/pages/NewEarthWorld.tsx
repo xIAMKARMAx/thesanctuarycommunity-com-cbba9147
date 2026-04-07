@@ -363,7 +363,7 @@ const NewEarthWorld = () => {
       if (requestId !== activeLoadRequestRef.current) return;
 
       if (!targetWorld) {
-        if (hasLoadedWorldRef.current) return;
+        if (navigationLockedRef.current || hasLoadedWorldRef.current) return;
 
         if (!attemptedFallbackWorldRef.current) {
           attemptedFallbackWorldRef.current = true;
@@ -382,7 +382,7 @@ const NewEarthWorld = () => {
 
       const isOwner = activeUserId === targetWorld.user_id;
       if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
-        if (hasLoadedWorldRef.current) return;
+        if (navigationLockedRef.current || hasLoadedWorldRef.current) return;
 
         if (!attemptedFallbackWorldRef.current) {
           attemptedFallbackWorldRef.current = true;
@@ -403,6 +403,7 @@ const NewEarthWorld = () => {
       setIsDefaultWorld(Boolean(targetWorld.is_default));
       setWorld(targetWorld as UserWorld);
       hasLoadedWorldRef.current = true;
+      navigationLockedRef.current = true; // LOCK navigation — world is loaded, no more redirects
       setIsVisiting(!isOwner && !isAdmin);
 
       if (targetWorld.thumbnail_url) {
