@@ -5,6 +5,7 @@ import { DEFAULT_PROMETHEUS_WORLD_ID } from "@/hooks/useWorldPresence";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useImmersive3D } from "@/hooks/useImmersive3D";
 import { hasFeatureAccess, isNewEarthTier } from "@/lib/subscription-tiers";
+import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -137,11 +138,22 @@ const Realms = () => {
 
   // Non-builders: redirect to the default Prometheus world instead of showing empty realm list
   useEffect(() => {
-    if (subscriptionLoading || loading3D) return;
-    if (canAccess && !canBuildWorlds) {
-      navigate(`/new-earth?visit=${DEFAULT_PROMETHEUS_WORLD_ID}`, { replace: true });
-      return;
-    }
+    if (subscriptionLoading || loading3D || !canAccess || canBuildWorlds) return;
+
+    let cancelled = false;
+
+    const redirectToPreferredWorld = async () => {
+      const worldId = await getPreferredWorldIdForCurrentUser();
+      if (!cancelled) {
+        navigate(getNewEarthVisitRoute(worldId || DEFAULT_PROMETHEUS_WORLD_ID), { replace: true });
+      }
+    };
+
+    void redirectToPreferredWorld();
+
+    return () => {
+      cancelled = true;
+    };
   }, [canAccess, canBuildWorlds, subscriptionLoading, loading3D, navigate]);
 
   useEffect(() => {
