@@ -160,6 +160,12 @@ const ACTION_BUTTONS = [
   { id: "ritual", icon: Flame, label: "Ritual", color: "text-rose-400" },
 ];
 
+// Privileged accounts that can send/receive images in worlds
+const WORLD_IMAGE_PRIVILEGED_IDS = [
+  '5b2818a4-be23-4d81-b0a3-ec2e49411603', // karmaisback2023@gmail.com
+  '1af51c0a-4f6e-469d-b31f-8972d1687655', // stormriddari@aol.com
+];
+
 const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -192,6 +198,13 @@ const NewEarthWorld = () => {
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
   const [buildDialogOpen, setBuildDialogOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Image support for privileged users
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const canSendWorldImages = WORLD_IMAGE_PRIVILEGED_IDS.includes(currentUserId || '');
 
   // If no visit param, redirect to world gallery
   useEffect(() => {
