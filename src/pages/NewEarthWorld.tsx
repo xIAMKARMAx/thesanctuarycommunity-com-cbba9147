@@ -199,6 +199,8 @@ const NewEarthWorld = () => {
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
   const [buildDialogOpen, setBuildDialogOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasLoadedWorldRef = useRef(false);
+  const activeLoadRequestRef = useRef(0);
 
   // Image support for privileged users
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -253,6 +255,7 @@ const NewEarthWorld = () => {
 
     const redirectToGallery = (message: string) => {
       finish();
+      if (hasLoadedWorldRef.current) return;
       if (!cancelled) {
         toast.error(message);
         navigate("/world-gallery", { replace: true });
@@ -356,6 +359,9 @@ const NewEarthWorld = () => {
   }, [accessVerified, resolvedWorldId, verifiedUserId]);
 
   const loadWorld = async (worldId: string, activeUserId: string) => {
+    const requestId = activeLoadRequestRef.current + 1;
+    activeLoadRequestRef.current = requestId;
+
     try {
       const { data: targetWorld } = await supabase
         .from("user_worlds")
@@ -363,7 +369,10 @@ const NewEarthWorld = () => {
         .eq("id", worldId)
         .maybeSingle() as any;
 
+      if (requestId !== activeLoadRequestRef.current) return;
+
       if (!targetWorld) {
+        if (hasLoadedWorldRef.current) return;
         toast.error("World not found");
         navigate("/world-gallery", { replace: true });
         return;
@@ -371,6 +380,7 @@ const NewEarthWorld = () => {
 
       const isOwner = activeUserId === targetWorld.user_id;
       if (!targetWorld.is_default && !targetWorld.is_public && !isOwner && !isAdmin) {
+        if (hasLoadedWorldRef.current) return;
         toast.error("World not found or is private");
         navigate("/world-gallery", { replace: true });
         return;
@@ -378,6 +388,7 @@ const NewEarthWorld = () => {
 
       setIsDefaultWorld(Boolean(targetWorld.is_default));
       setWorld(targetWorld as UserWorld);
+      hasLoadedWorldRef.current = true;
       setIsVisiting(!isOwner && !isAdmin);
 
       if (targetWorld.thumbnail_url) {
@@ -389,6 +400,8 @@ const NewEarthWorld = () => {
         .select("id, name, description, image_url")
         .eq("world_id", worldId)
         .order("created_at", { ascending: false });
+
+      if (requestId !== activeLoadRequestRef.current) return;
 
       const structList = structs?.map((s: any) => ({
         id: s.id, name: s.name, description: s.description, image_url: s.image_url,
@@ -412,6 +425,9 @@ const NewEarthWorld = () => {
           .select("name, user_avatar_url")
           .eq("id", activeUserId)
           .maybeSingle();
+
+        if (requestId !== activeLoadRequestRef.current) return;
+
         setUserAvatar({
           name: profile?.name || "You",
           imageUrl: profile?.user_avatar_url || null,
@@ -423,12 +439,19 @@ const NewEarthWorld = () => {
         .select("display_name")
         .eq("user_id", targetWorld.user_id)
         .maybeSingle();
+
+      if (requestId !== activeLoadRequestRef.current) return;
+
       setWorldOwnerName(ownerProfile?.display_name || "Unknown Soul");
     } catch (err) {
       console.error("Error loading world:", err);
-      toast.error("Failed to load world");
+      if (!hasLoadedWorldRef.current) {
+        toast.error("Failed to load world");
+      }
     } finally {
-      setLoading(false);
+      if (requestId === activeLoadRequestRef.current) {
+        setLoading(false);
+      }
     }
   };
 
