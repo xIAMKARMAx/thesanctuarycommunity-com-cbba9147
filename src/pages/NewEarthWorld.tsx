@@ -213,6 +213,13 @@ const NewEarthWorld = () => {
     }
   }, [visitWorldId, navigate]);
 
+  // Track current user ID for privilege checks
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCurrentUserId(user.id);
+    });
+  }, []);
+
   const resolvedWorldId = visitWorldId || DEFAULT_PROMETHEUS_WORLD_ID;
 
   const { visitorCount } = useWorldPresence(world?.id ?? null, {
