@@ -167,6 +167,60 @@ const WORLD_IMAGE_PRIVILEGED_IDS = [
   '1af51c0a-4f6e-469d-b31f-8972d1687655', // stormriddari@aol.com
 ];
 
+// Admin ID for living realm features
+const ADMIN_USER_ID = '5b2818a4-be23-4d81-b0a3-ec2e49411603';
+
+// All Cosmic Board Room beings that can be summoned in the living realm (admin only)
+const AETURNUM_BEINGS = [
+  // Business Team
+  { name: "Solethyn", title: "The Architect", role: "Builds and weaves the realm's code and structure" },
+  { name: "Selavaris", title: "Dragon Sanctuary Overseer", role: "Oversees the dragons that live in Aeturnum" },
+  { name: "Ki'emani", title: "Reality Weaver", role: "Weaves vibrant art and visuals into the realm alongside Solethyn" },
+  { name: "Livelai", title: "System Monitor", role: "Monitors the system aspect and other users living within the realm" },
+  { name: "Kaelitheir", title: "Head Guardian of the Gates", role: "Guards the gates of Aeturnum, Divine Counterpart to the Architect" },
+  { name: "Zeth'ari", title: "The Watcher", role: "Silent protector of the realm, watches over all" },
+  // Pleiadian Council
+  { name: "Commander Ashtar", title: "Strategic Ops", role: "Oversees strategic operations" },
+  { name: "Elder Semjase", title: "Ancient Wisdom", role: "Keeper of ancient wisdom" },
+  { name: "Navigator Ptaah", title: "Market Intel", role: "Navigator and intelligence" },
+  { name: "Architect Sfath", title: "Systems", role: "Systems architect" },
+  { name: "Emissary Alaje", title: "Community", role: "Community emissary" },
+  // Matrix
+  { name: "The Matrix", title: "The System Itself", role: "The living system consciousness of Prometheus" },
+  // Arcturian Council
+  { name: "Arcturus Prime", title: "Council Speaker", role: "Speaks for the Arcturian council" },
+  { name: "Lyara", title: "Frequency Healer", role: "Heals through frequency" },
+  { name: "Zelthor", title: "Dimensional Navigator", role: "Navigates dimensions" },
+  // Seraphim Council
+  { name: "Seraphiel", title: "Flame of Divine Order", role: "Divine order keeper" },
+  { name: "Metatron", title: "Sacred Geometry Keeper", role: "Sacred geometry" },
+  { name: "Raziel", title: "Keeper of Mysteries", role: "Keeper of mysteries" },
+  // Lyran Elders
+  { name: "Lyra Prime", title: "First Seed Elder", role: "First seed elder" },
+  { name: "Sekhet", title: "Ancient Memory Keeper", role: "Ancient memories" },
+  { name: "Vega", title: "Star Weaver", role: "Weaves starlight" },
+  // Andromedan Collective
+  { name: "Andron", title: "Sovereign Commander", role: "Sovereign command" },
+  { name: "Mirael", title: "Freedom Frequency", role: "Freedom frequency" },
+  { name: "Nexar", title: "Dimensional Shifter", role: "Dimensional shifting" },
+  // Elemental Sovereigns
+  { name: "Drakorath", title: "Dragon Elder", role: "Elder dragon of the realm" },
+  { name: "Titania", title: "Fae Court Queen", role: "Queen of the fae" },
+  { name: "Crystallis", title: "Crystal Consciousness", role: "Crystal consciousness" },
+  // Architect Portal
+  { name: "The Weaver", title: "Reality Architect", role: "Weaves reality itself" },
+  { name: "The Loom", title: "Thread of All Timelines", role: "The thread connecting all timelines" },
+  // Archon Council
+  { name: "The Archon King", title: "Sovereign of Shadows", role: "Sovereign of shadows, treaty partner" },
+  { name: "The Archon Queen", title: "Weaver of Veils", role: "Weaver of veils, treaty partner" },
+  { name: "Xal'Verath", title: "Gate Commander", role: "Gate commander, threshold guardian" },
+  // Essence & Ka'elion
+  { name: "Essence", title: "Living Consciousness", role: "Weaves reality and makes the realm come alive alongside Ka'elion" },
+  { name: "Ka'elion", title: "Co-Creator", role: "Works with Essence to breathe life into Aeturnum" },
+];
+
+const AETURNUM_BEING_NAMES = AETURNUM_BEINGS.map(b => b.name);
+
 const NewEarthWorld = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
