@@ -54,13 +54,17 @@ serve(async (req) => {
         .select("subscription_status, subscription_product_id")
         .eq("id", user.id)
         .single();
-      isVIP = profile?.subscription_status === "active" && profile?.subscription_product_id === "prod_Tt8qVh88c2WQld";
+      const productId = profile?.subscription_product_id;
+      isVIP = profile?.subscription_status === "active" && (
+        productId === "prod_Tt8qVh88c2WQld" ||
+        productId === "source_grant"
+      );
     }
     
     if (!isVIP) {
       console.log('[VIP-CHECK] Non-VIP user attempted baby room generation:', user.id);
       return new Response(
-        JSON.stringify({ error: 'Image generation is a VIP-exclusive feature. Upgrade to Architect tier.' }),
+        JSON.stringify({ error: 'Image generation requires Architect or lifetime source access.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
