@@ -14,7 +14,7 @@ import {
   ArrowLeft, Globe, Loader2, Users, Map, Lock,
   Sparkles, Flame, Crown, MessageCircle, LayoutGrid,
   Send, Hammer, Compass, Hand, Flower, Package, LogOut,
-  ImagePlus
+  ImagePlus, Star, X
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
@@ -188,7 +188,7 @@ const NewEarthWorld = () => {
   const [showSeekerGate, setShowSeekerGate] = useState(false);
   const [worldSceneUrl, setWorldSceneUrl] = useState<string>("/realm-assets/realm-garden-of-light.jpg");
 
-  // Interactive session state (local only — no realm_sessions FK issues)
+  // Interactive session state
   const [messages, setMessages] = useState<WorldMessage[]>([]);
   const [input, setInput] = useState("");
   const [activeAction, setActiveAction] = useState<string | null>(null);
@@ -199,6 +199,8 @@ const NewEarthWorld = () => {
   const [showCreations, setShowCreations] = useState(false);
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
   const [buildDialogOpen, setBuildDialogOpen] = useState(false);
+  const [vaultToast, setVaultToast] = useState<string | null>(null);
+  const vaultToastTimer = useRef<NodeJS.Timeout | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasLoadedWorldRef = useRef(false);
   const activeLoadRequestRef = useRef(0);
@@ -212,6 +214,70 @@ const NewEarthWorld = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const canSendWorldImages = WORLD_IMAGE_PRIVILEGED_IDS.includes(currentUserId || '');
+
+  // Persist a message to the database
+  const persistMessage = useCallback(async (msg: WorldMessage, worldId: string, userId: string) => {
+    try {
+      await supabase.from("world_messages").insert({
+        world_id: worldId,
+        user_id: userId,
+        role: msg.role,
+        content: msg.content,
+        being_name: msg.being_name || null,
+        image_url: msg.image_url || null,
+        message_timestamp: msg.timestamp,
+      } as any);
+    } catch (err) {
+      console.error("Failed to persist message:", err);
+    }
+  }, []);
+
+  // Load previous messages from DB
+  const loadPreviousMessages = useCallback(async (worldId: string) => {
+    const { data } = await supabase
+      .from("world_messages")
+      .select("role, content, being_name, image_url, message_timestamp")
+      .eq("world_id", worldId)
+      .order("message_timestamp", { ascending: true })
+      .limit(50) as any;
+
+    if (data && data.length > 0) {
+      const loaded: WorldMessage[] = data.map((m: any) => ({
+        role: m.role as WorldMessage["role"],
+        content: m.content,
+        being_name: m.being_name || undefined,
+        image_url: m.image_url || undefined,
+        timestamp: m.message_timestamp,
+      }));
+      return loaded;
+    }
+    return [];
+  }, []);
+
+  // Save message to Enchanted Vault
+  const saveToVault = useCallback(async (msg: WorldMessage) => {
+    if (!currentUserId || !world) return;
+    try {
+      const { error } = await supabase.from("enchanted_vault").insert({
+        world_id: world.id,
+        user_id: currentUserId,
+        message_content: msg.content,
+        being_name: msg.being_name || null,
+        role: msg.role,
+        original_timestamp: msg.timestamp,
+        world_name: world.name,
+      } as any);
+      if (error) throw error;
+
+      // Show vault toast
+      setVaultToast("✨ Your message has been stored in The Enchanted Vault");
+      if (vaultToastTimer.current) clearTimeout(vaultToastTimer.current);
+      vaultToastTimer.current = setTimeout(() => setVaultToast(null), 4000);
+    } catch (err) {
+      console.error("Failed to save to vault:", err);
+      toast.error("Failed to save to vault");
+    }
+  }, [currentUserId, world]);
 
   // If no visit param, redirect to world gallery
   useEffect(() => {
@@ -470,19 +536,38 @@ const NewEarthWorld = () => {
     }
   };
 
-  const enterWorld = () => {
+  const enterWorld = async () => {
     if (selectedBeings.length === 0) {
       toast.error("Select at least one AI companion");
       return;
     }
     setBeingsChosen(true);
-    // Add welcome narrator message
+
+    // Load previous messages from DB
+    const prevMessages = world ? await loadPreviousMessages(world.id) : [];
+
     const welcomeMsg: WorldMessage = {
       role: "narrator",
       content: `You step into ${world?.name || "the world"}. The air shimmers with possibility as your companions materialize beside you. The realm stretches out before you, alive and waiting.`,
       timestamp: new Date().toISOString(),
     };
-    setMessages([welcomeMsg]);
+
+    if (prevMessages.length > 0) {
+      // Show previous messages + a separator + welcome
+      const separator: WorldMessage = {
+        role: "narrator",
+        content: "─── Previous Messages ───",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages([...prevMessages, separator, welcomeMsg]);
+    } else {
+      setMessages([welcomeMsg]);
+    }
+
+    // Persist welcome message
+    if (world && currentUserId) {
+      persistMessage(welcomeMsg, world.id, currentUserId);
+    }
   };
 
   const handleBuildSpec = useCallback(async (spec: BuildSpec) => {
@@ -592,6 +677,8 @@ const NewEarthWorld = () => {
       timestamp: new Date().toISOString(),
     };
     setMessages(prev => [...prev, userMsg]);
+    // Persist user message
+    if (world && currentUserId) persistMessage(userMsg, world.id, currentUserId);
 
     const imageToSend = pendingImageUrl;
     setPendingImageUrl(null);
@@ -665,6 +752,10 @@ const NewEarthWorld = () => {
         }
 
         setMessages(prev => [...prev, ...parsed]);
+        // Persist AI messages
+        if (world && currentUserId) {
+          parsed.forEach(m => persistMessage(m, world.id, currentUserId));
+        }
       }
     } catch (err: any) {
       console.error("World chat error:", err);
@@ -837,6 +928,16 @@ const NewEarthWorld = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/enchanted-vault?world=${world.id}`)}
+                className="text-amber-400 hover:text-amber-300"
+                title="The Enchanted Vault"
+              >
+                <Star className="h-4 w-4 mr-1 fill-amber-400" />
+                <span className="hidden sm:inline text-xs">Vault</span>
+              </Button>
               <Badge variant="outline" className="text-[10px]">
                 <Users className="h-3 w-3 mr-1" />
                 {visitorCount}
@@ -885,13 +986,41 @@ const NewEarthWorld = () => {
           activeAction={activeAction}
         />
 
+        {/* Vault Toast */}
+        {vaultToast && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="bg-card border border-amber-400/30 rounded-xl px-5 py-3 shadow-lg flex items-center gap-3 max-w-sm">
+              <Star className="h-5 w-5 text-amber-400 fill-amber-400 shrink-0" />
+              <p className="text-sm font-medium">{vaultToast}</p>
+              <button
+                onClick={() => setVaultToast(null)}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Messages */}
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <div className="max-w-2xl mx-auto space-y-4">
             {messages.map((msg, i) => {
+              const starButton = (
+                <button
+                  onClick={() => saveToVault(msg)}
+                  className="sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity p-1.5 rounded-full hover:bg-amber-400/10 active:bg-amber-400/20 touch-manipulation"
+                  title="Save to Enchanted Vault"
+                  style={{ minWidth: 32, minHeight: 32 }}
+                >
+                  <Star className="h-4 w-4 text-amber-400/60 hover:text-amber-400 hover:fill-amber-400 transition-colors" />
+                </button>
+              );
+
               if (msg.role === "user") {
                 return (
-                  <div key={i} className="flex justify-end">
+                  <div key={i} className="flex justify-end items-end gap-1 group">
+                    {starButton}
                     <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-2 max-w-[80%]">
                       {msg.image_url && (
                         <img src={msg.image_url} alt="Shared" className="rounded-lg mb-2 max-h-64 object-contain" />
@@ -908,13 +1037,16 @@ const NewEarthWorld = () => {
               }
               if (msg.role === "narrator") {
                 return (
-                  <div key={i} className="text-center py-2">
+                  <div key={i} className="text-center py-2 group relative">
                     <p className="text-sm italic text-muted-foreground leading-relaxed max-w-lg mx-auto">
                       {msg.content}
                     </p>
                     {msg.image_url && (
                       <img src={msg.image_url} alt="Scene" className="rounded-lg mt-2 max-h-72 object-contain mx-auto" />
                     )}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                      {starButton}
+                    </div>
                   </div>
                 );
               }
@@ -922,7 +1054,7 @@ const NewEarthWorld = () => {
               const beingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
               const avatar = beingProfile?.avatar_image_url || null;
               return (
-                <div key={i} className="flex gap-2 items-start">
+                <div key={i} className="flex gap-2 items-start group">
                   {avatar ? (
                     <img src={avatar} alt="" className="h-8 w-8 rounded-full object-cover mt-1" />
                   ) : (
@@ -930,13 +1062,16 @@ const NewEarthWorld = () => {
                       {(msg.being_name || "?")[0]}
                     </div>
                   )}
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <span className="text-xs font-medium text-primary">{msg.being_name}</span>
-                    <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-2 max-w-[80%]">
-                      <p className="text-sm">{msg.content}</p>
-                      {msg.image_url && (
-                        <img src={msg.image_url} alt="From being" className="rounded-lg mt-2 max-h-72 object-contain" />
-                      )}
+                    <div className="flex items-end gap-1">
+                      <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-2 max-w-[80%]">
+                        <p className="text-sm">{msg.content}</p>
+                        {msg.image_url && (
+                          <img src={msg.image_url} alt="From being" className="rounded-lg mt-2 max-h-72 object-contain" />
+                        )}
+                      </div>
+                      {starButton}
                     </div>
                   </div>
                 </div>

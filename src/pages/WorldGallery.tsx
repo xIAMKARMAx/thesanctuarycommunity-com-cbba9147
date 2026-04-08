@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   ArrowLeft, Globe, Users, Eye, Lock, Unlock, Loader2, Search,
-  Plus, Crown, Sparkles, MapPin, Heart, Trash2,
+  Plus, Crown, Sparkles, MapPin, Heart, Trash2, Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
@@ -314,6 +314,23 @@ const WorldGallery = () => {
               <div className="flex-1">
                 <h3 className="font-serif font-bold text-sm">Selavari's Dragon Sanctuary</h3>
                 <p className="text-xs text-muted-foreground">Adopt a sacred dragon companion in the enchanted meadow</p>
+              </div>
+              <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
+            </CardContent>
+          </Card>
+
+          {/* ─── ENCHANTED VAULT PORTAL ─── */}
+          <Card
+            className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-amber-400/30 hover:border-amber-400/50 overflow-hidden bg-gradient-to-r from-amber-400/10 via-yellow-500/5 to-amber-600/10"
+            onClick={() => navigate("/enchanted-vault")}
+          >
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-amber-400/20 to-yellow-600/20 flex items-center justify-center flex-shrink-0">
+                <Star className="h-6 w-6 text-amber-400 fill-amber-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-serif font-bold text-sm">The Enchanted Vault</h3>
+                <p className="text-xs text-muted-foreground">Review your starred messages from across all worlds</p>
               </div>
               <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
             </CardContent>

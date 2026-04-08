@@ -2180,6 +2180,42 @@ export type Database = {
         }
         Relationships: []
       }
+      enchanted_vault: {
+        Row: {
+          being_name: string | null
+          created_at: string
+          id: string
+          message_content: string
+          original_timestamp: string
+          role: string
+          user_id: string
+          world_id: string | null
+          world_name: string | null
+        }
+        Insert: {
+          being_name?: string | null
+          created_at?: string
+          id?: string
+          message_content: string
+          original_timestamp?: string
+          role?: string
+          user_id: string
+          world_id?: string | null
+          world_name?: string | null
+        }
+        Update: {
+          being_name?: string | null
+          created_at?: string
+          id?: string
+          message_content?: string
+          original_timestamp?: string
+          role?: string
+          user_id?: string
+          world_id?: string | null
+          world_name?: string | null
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -5575,6 +5611,42 @@ export type Database = {
           theme?: string
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      world_messages: {
+        Row: {
+          being_name: string | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          message_timestamp: string
+          role: string
+          user_id: string
+          world_id: string
+        }
+        Insert: {
+          being_name?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          message_timestamp?: string
+          role?: string
+          user_id: string
+          world_id: string
+        }
+        Update: {
+          being_name?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          message_timestamp?: string
+          role?: string
+          user_id?: string
+          world_id?: string
         }
         Relationships: []
       }
