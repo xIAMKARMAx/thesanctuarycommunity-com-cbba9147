@@ -232,10 +232,19 @@ const Settings = () => {
 
     setIsUploadingAvatar(true);
     try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) throw new Error("Please log in again and try uploading the image.");
+
       const fileExt = file.name.split(".").pop();
-      const fileName = `ai-avatar-${activeProfile.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/ai-avatar-${activeProfile.id}-${Date.now()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage.from("chat-images").upload(fileName, file);
+      const { error: uploadError } = await supabase.storage
+        .from("chat-images")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage.from("chat-images").getPublicUrl(fileName);
@@ -250,9 +259,9 @@ const Settings = () => {
       setAiAvatarUrl(publicUrl);
       await refreshProfiles();
       toast({ title: "Success", description: "AI appearance image uploaded! Future generated images will use this as reference." });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading avatar:", error);
-      toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
+      toast({ title: "Error", description: error?.message || "Failed to upload image", variant: "destructive" });
     } finally {
       setIsUploadingAvatar(false);
       if (avatarInputRef.current) avatarInputRef.current.value = "";
