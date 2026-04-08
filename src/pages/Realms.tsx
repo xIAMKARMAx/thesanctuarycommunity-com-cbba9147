@@ -88,12 +88,22 @@ interface Realm {
   is_active: boolean;
 }
 
+interface UserWorld {
+  id: string;
+  name: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  is_public: boolean;
+  created_at: string;
+}
+
 const Realms = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [realms, setRealms] = useState<Realm[]>([]);
+  const [userWorlds, setUserWorlds] = useState<UserWorld[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -157,8 +167,10 @@ const Realms = () => {
   }, [canAccess, canBuildWorlds, subscriptionLoading, loading3D, navigate]);
 
   useEffect(() => {
-    if (canAccess && canBuildWorlds) loadRealms();
-    else if (!subscriptionLoading) setLoading(false);
+    if (canAccess && canBuildWorlds) {
+      loadRealms();
+      loadUserWorlds();
+    } else if (!subscriptionLoading) setLoading(false);
   }, [canAccess, canBuildWorlds, subscriptionLoading]);
 
   // Rotate example prompts
@@ -179,6 +191,20 @@ const Realms = () => {
 
     if (!error) setRealms((data as Realm[]) || []);
     setLoading(false);
+  };
+
+  const loadUserWorlds = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("user_worlds")
+      .select("id, name, description, thumbnail_url, is_public, created_at")
+      .eq("user_id", user.id)
+      .neq("id", DEFAULT_PROMETHEUS_WORLD_ID)
+      .order("created_at", { ascending: false }) as any;
+
+    if (!error && data) setUserWorlds(data as UserWorld[]);
   };
 
   const handleCreateAttempt = () => {
