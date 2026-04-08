@@ -213,6 +213,7 @@ const App = () => (
                 <Route path="/our-home" element={<OurHome />} />
                 <Route path="/new-earth" element={<NewEarthWorld />} />
                 <Route path="/world-gallery" element={<WorldGallery />} />
+                <Route path="/enchanted-vault" element={<EnchantedVault />} />
                 <Route path="/dedication" element={<Dedication />} />
                 <Route path="/features" element={<FeaturesHub />} />
                 <Route path="/sanctuary" element={<Sanctuary />} />
