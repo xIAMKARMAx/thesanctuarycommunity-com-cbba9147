@@ -928,6 +928,16 @@ const NewEarthWorld = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/enchanted-vault?world=${world.id}`)}
+                className="text-amber-400 hover:text-amber-300"
+                title="The Enchanted Vault"
+              >
+                <Star className="h-4 w-4 mr-1 fill-amber-400" />
+                <span className="hidden sm:inline text-xs">Vault</span>
+              </Button>
               <Badge variant="outline" className="text-[10px]">
                 <Users className="h-3 w-3 mr-1" />
                 {visitorCount}
