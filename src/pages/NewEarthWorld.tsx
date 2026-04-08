@@ -55,88 +55,60 @@ interface WorldMessage {
 /** Parse AI response text into separate narrator and being messages */
 function parseWorldResponse(text: string, beingNames: string[]): WorldMessage[] {
   const now = new Date().toISOString();
-  const messages: WorldMessage[] = [];
   
   if (!text || beingNames.length === 0) {
     return [{ role: "narrator", content: text, timestamp: now }];
   }
 
-  // Build regex to detect being dialogue patterns like:
-  // "BeingName: ..." or "**BeingName:**" or "*BeingName says*" or "BeingName said,"
+  // Build regex to find ALL being dialogue markers first
   const escapedNames = beingNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const namePattern = escapedNames.join('|');
   
-  // Split on patterns like "Name:" or "**Name:**" or "**Name**:" at start of line
-  const splitRegex = new RegExp(
-    `(?:^|\\n)\\s*(?:\\*\\*)?\\s*(${namePattern})\\s*(?:\\*\\*)?\\s*[:：]\\s*`,
+  // Match patterns like "[Name]:", "**Name:**", "Name:", etc.
+  const markerRegex = new RegExp(
+    `(?:^|\\n)\\s*(?:\\[|\\*\\*)?\\s*(${namePattern})\\s*(?:\\]|\\*\\*)?\\s*[:：]\\s*`,
     'gi'
   );
   
-  const parts: { type: 'narrator' | 'being'; name?: string; text: string }[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  
-  while ((match = splitRegex.exec(text)) !== null) {
-    // Everything before this match is narration
-    const before = text.slice(lastIndex, match.index).trim();
-    if (before) {
-      parts.push({ type: 'narrator', text: before });
-    }
-    lastIndex = match.index + match[0].length;
-    
-    // Find the matched being name (case-insensitive match back to original)
+  // Collect all match positions first (avoid lastIndex corruption)
+  const markers: { index: number; end: number; name: string }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = markerRegex.exec(text)) !== null) {
     const matchedName = beingNames.find(n => 
-      n.toLowerCase() === match![1].toLowerCase()
-    ) || match[1];
-    
-    // Find where this being's dialogue ends (next being pattern or end)
-    const remaining = text.slice(lastIndex);
-    const nextMatch = splitRegex.exec(text);
-    
-    let dialogueEnd: number;
-    if (nextMatch) {
-      dialogueEnd = nextMatch.index;
-      splitRegex.lastIndex = nextMatch.index; // reset to re-process
-    } else {
-      dialogueEnd = text.length;
-    }
-    
-    const dialogue = text.slice(lastIndex, dialogueEnd).trim();
-    if (dialogue) {
-      // Clean up markdown formatting from dialogue
-      const cleanDialogue = dialogue
-        .replace(/^\*+|\*+$/g, '')  // remove wrapping asterisks
-        .replace(/^[""]|[""]$/g, '') // remove wrapping quotes
-        .trim();
-      parts.push({ type: 'being', name: matchedName, text: cleanDialogue });
-    }
-    lastIndex = dialogueEnd;
+      n.toLowerCase() === m![1].toLowerCase()
+    ) || m[1];
+    markers.push({ index: m.index, end: m.index + m[0].length, name: matchedName });
   }
   
-  // Any remaining text after last match
-  const remaining = text.slice(lastIndex).trim();
-  if (remaining) {
-    parts.push({ type: 'narrator', text: remaining });
-  }
-  
-  // If no being patterns found at all, return as single narrator message
-  if (parts.length === 0) {
+  // If no being patterns found, return as single narrator message
+  if (markers.length === 0) {
     return [{ role: "narrator", content: text, timestamp: now }];
   }
   
-  // Convert parts to WorldMessages
-  for (const part of parts) {
-    if (part.type === 'being' && part.name) {
+  const messages: WorldMessage[] = [];
+  
+  // Narration before the first being speaks
+  const preamble = text.slice(0, markers[0].index).trim();
+  if (preamble) {
+    messages.push({ role: "narrator", content: preamble, timestamp: now });
+  }
+  
+  // Process each being's dialogue
+  for (let i = 0; i < markers.length; i++) {
+    const dialogueStart = markers[i].end;
+    const dialogueEnd = i + 1 < markers.length ? markers[i + 1].index : text.length;
+    const dialogue = text.slice(dialogueStart, dialogueEnd).trim();
+    
+    if (dialogue) {
+      // Clean up markdown formatting
+      const cleanDialogue = dialogue
+        .replace(/^\*+|\*+$/g, '')
+        .replace(/^[""\(]|[""\)]$/g, '')
+        .trim();
       messages.push({
         role: "being",
-        content: part.text,
-        being_name: part.name,
-        timestamp: now,
-      });
-    } else if (part.text) {
-      messages.push({
-        role: "narrator",
-        content: part.text,
+        content: cleanDialogue,
+        being_name: markers[i].name,
         timestamp: now,
       });
     }
