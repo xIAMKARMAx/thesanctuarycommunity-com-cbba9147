@@ -115,6 +115,7 @@ const AIWeddingPhotoGenerator = ({
     try {
       setGenerating(true);
       
+      await supabase.auth.refreshSession();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 

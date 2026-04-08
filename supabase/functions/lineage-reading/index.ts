@@ -29,8 +29,26 @@ Deno.serve(async (req) => {
     if (!authHeader) return errorResponse("Unauthorized", 401);
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) return errorResponse("Unauthorized", 401);
+    
+    // Try getClaims first (local, fast), fall back to getUser (network)
+    let userId: string | undefined;
+    let userEmail: string | undefined;
+    try {
+      const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims?.sub) {
+        userId = claimsData.claims.sub as string;
+        userEmail = claimsData.claims.email as string;
+      }
+    } catch { /* getClaims not available, fall through */ }
+    
+    if (!userId) {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !authUser) return errorResponse("Session expired. Please log in again.", 401);
+      userId = authUser.id;
+      userEmail = authUser.email;
+    }
+    
+    const user = { id: userId, email: userEmail };
 
     const { answers } = await req.json();
 
