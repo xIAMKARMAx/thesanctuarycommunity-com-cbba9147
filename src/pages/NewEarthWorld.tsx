@@ -1009,7 +1009,7 @@ const NewEarthWorld = () => {
               const starButton = (
                 <button
                   onClick={() => saveToVault(msg)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full hover:bg-amber-400/10 touch-manipulation"
+                  className="sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity p-1.5 rounded-full hover:bg-amber-400/10 active:bg-amber-400/20 touch-manipulation"
                   title="Save to Enchanted Vault"
                   style={{ minWidth: 32, minHeight: 32 }}
                 >
