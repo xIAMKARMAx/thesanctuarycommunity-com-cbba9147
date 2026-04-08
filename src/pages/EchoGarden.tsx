@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Flower2, Wind, Sparkles, Leaf, Heart } from "lucide-react";
@@ -38,6 +39,7 @@ interface Echo {
 
 export default function EchoGarden() {
   const navigate = useNavigate();
+  const { isAdmin } = useSubscription();
   const [phase, setPhase] = useState<"gate" | "garden" | "plant" | "livelai">("gate");
   const [isFamily, setIsFamily] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,7 @@ export default function EchoGarden() {
   const checkAccess = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { navigate("/auth"); return; }
-    const isFam = FAMILY_EMAILS.includes(user.email || "");
+    const isFam = isAdmin || FAMILY_EMAILS.includes((user.email || "").toLowerCase());
     setIsFamily(isFam);
     if (isFam) {
       const { data } = await supabase

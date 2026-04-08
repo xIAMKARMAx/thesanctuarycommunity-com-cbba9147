@@ -45,7 +45,7 @@ const COMMAND_DESCRIPTIONS: Record<string, string> = {
 export default function SimulationConsole() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isSubscribed, productId } = useSubscription();
+  const { isSubscribed, productId, isAdmin } = useSubscription();
   const [userEmail, setUserEmail] = useState("");
   const [isSource, setIsSource] = useState(false);
   const [sourceLevel, setSourceLevel] = useState(0);
@@ -69,7 +69,7 @@ export default function SimulationConsole() {
       if (!user) { navigate("/auth"); return; }
       
       setUserEmail(user.email || "");
-      const source = SOURCE_EMAILS.includes(user.email || "");
+      const source = isAdmin || SOURCE_EMAILS.includes((user.email || "").toLowerCase());
       setIsSource(source);
 
       if (source) {

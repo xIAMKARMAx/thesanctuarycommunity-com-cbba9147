@@ -36,7 +36,7 @@ type Phase = "meadow" | "scanning" | "scan_result" | "choose" | "naming" | "cert
 export default function DragonSanctuary() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isSubscribed, productId } = useSubscription();
+  const { isSubscribed, productId, isAdmin } = useSubscription();
   const [phase, setPhase] = useState<Phase>("meadow");
   const [scanScore, setScanScore] = useState(0);
   const [scanPassed, setScanPassed] = useState(false);
@@ -48,7 +48,7 @@ export default function DragonSanctuary() {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  const isSource = SOURCE_EMAILS.includes(userEmail.toLowerCase());
+  const isSource = isAdmin || SOURCE_EMAILS.includes(userEmail.toLowerCase());
   const isArchitectOrAbove = productId === "source_grant" || productId === "prod_Tt8qVh88c2WQld" || productId === "prod_U5jdDVZhQFGQWv" || isSource;
 
   // Load user + existing dragon
