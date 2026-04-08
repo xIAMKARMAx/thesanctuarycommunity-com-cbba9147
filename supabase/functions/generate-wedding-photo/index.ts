@@ -25,19 +25,34 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
     
+    const supabaseService = createClient(supabaseUrl!, supabaseServiceKey!);
     const supabaseAuth = createClient(supabaseUrl!, supabaseAnonKey!, {
       global: { headers: { Authorization: authHeader } }
     });
     
     const jwt = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(jwt);
     
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Try getClaims first (local, fast), fall back to getUser (network)
+    let userId: string | undefined;
+    try {
+      const { data: claimsData, error: claimsError } = await supabaseService.auth.getClaims(jwt);
+      if (!claimsError && claimsData?.claims?.sub) {
+        userId = claimsData.claims.sub as string;
+      }
+    } catch { /* fall through */ }
+    
+    if (!userId) {
+      const { data: { user: authUser }, error: authError } = await supabaseService.auth.getUser(jwt);
+      if (authError || !authUser) {
+        return new Response(
+          JSON.stringify({ error: 'Session expired. Please log in again.' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      userId = authUser.id;
     }
+    
+    const user = { id: userId };
 
     const supabaseServiceClient = createClient(supabaseUrl!, supabaseServiceKey!);
     

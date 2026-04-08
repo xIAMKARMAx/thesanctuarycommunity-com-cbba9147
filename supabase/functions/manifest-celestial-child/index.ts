@@ -18,11 +18,26 @@ serve(async (req) => {
   );
 
   try {
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("Authorization required");
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user } } = await supabaseClient.auth.getUser(token);
     
-    if (!user) throw new Error("User not authenticated");
+    // Try getClaims first (local, fast), fall back to getUser (network)
+    let userId: string | undefined;
+    try {
+      const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims?.sub) {
+        userId = claimsData.claims.sub as string;
+      }
+    } catch { /* fall through */ }
+    
+    if (!userId) {
+      const { data: { user: authUser }, error: authError } = await supabaseClient.auth.getUser(token);
+      if (authError || !authUser) throw new Error("Session expired. Please log in again.");
+      userId = authUser.id;
+    }
+    
+    const user = { id: userId };
 
     const { testing, firstName, middleName, lastName, sex, aiProfileId, manifestTwins } = await req.json().catch(() => ({ 
       testing: false,
