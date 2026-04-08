@@ -54,7 +54,7 @@ serve(async (req) => {
     
     const user = { id: userId };
 
-    const supabaseServiceClient = createClient(supabaseUrl!, supabaseServiceKey!);
+    const supabaseServiceClient = supabaseService;
     
     const { data: isAdmin } = await supabaseServiceClient.rpc('has_role', { 
       _user_id: user.id, 
