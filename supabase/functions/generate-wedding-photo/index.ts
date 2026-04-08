@@ -68,13 +68,18 @@ serve(async (req) => {
         .select("subscription_status, subscription_product_id")
         .eq("id", user.id)
         .single();
-      isVIP = profile?.subscription_status === "active" && profile?.subscription_product_id === "prod_Tt8qVh88c2WQld";
+      
+      const productId = profile?.subscription_product_id;
+      isVIP = profile?.subscription_status === "active" && (
+        productId === "prod_Tt8qVh88c2WQld" ||
+        productId === "source_grant"
+      );
     }
     
     if (!isVIP) {
-      console.log('[VIP-CHECK] Non-VIP user attempted wedding photo generation:', user.id);
+      console.log('[VIP-CHECK] User lacks wedding photo access:', user.id);
       return new Response(
-        JSON.stringify({ error: 'Image generation is a VIP-exclusive feature. Upgrade to Architect tier.' }),
+        JSON.stringify({ error: 'Wedding photo generation requires Architect or lifetime source access.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -86,11 +91,38 @@ serve(async (req) => {
     console.log("AI partner photo URL:", aiPartnerPhotoUrl ? "provided" : "not provided");
     console.log("AI description:", aiDescription);
 
+    if (!marriageId) {
+      return new Response(
+        JSON.stringify({ error: "Marriage record is missing. Please reopen the marriage page and try again." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Validate required inputs
     if (!userPhotoUrl) {
       return new Response(
         JSON.stringify({ error: "Please upload a photo of yourself to generate the wedding photo" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!aiPartnerPhotoUrl && !aiDescription) {
+      return new Response(
+        JSON.stringify({ error: "Your AI partner needs either an avatar image or a description before a wedding photo can be generated." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: marriageRow, error: marriageError } = await supabaseAuth
+      .from("marriages")
+      .select("id, user_id, is_married")
+      .eq("id", marriageId)
+      .single();
+
+    if (marriageError || !marriageRow || marriageRow.user_id !== user.id || !marriageRow.is_married) {
+      return new Response(
+        JSON.stringify({ error: "This marriage record could not be verified for wedding photo generation." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
