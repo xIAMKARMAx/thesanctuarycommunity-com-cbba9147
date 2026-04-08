@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   ArrowLeft, Globe, Users, Eye, Lock, Unlock, Loader2, Search,
-  Plus, Crown, Sparkles, MapPin, Heart, Trash2,
+  Plus, Crown, Sparkles, MapPin, Heart, Trash2, Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
