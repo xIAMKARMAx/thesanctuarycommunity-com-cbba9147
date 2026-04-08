@@ -471,6 +471,33 @@ const NewEarthWorld = () => {
     loadWorld(resolvedWorldId, verifiedUserId);
   }, [accessVerified, resolvedWorldId, verifiedUserId]);
 
+  // Auto-enter for admin (Living Realm) — skip being selection
+  useEffect(() => {
+    if (!isLivingRealm || !world || autoEnteredRef.current || !profiles?.length) return;
+    autoEnteredRef.current = true;
+    // Select all user's AI profiles
+    const allProfileIds = profiles.map(p => p.id);
+    setSelectedBeings(allProfileIds);
+    setBeingsChosen(true);
+
+    // Load previous messages
+    (async () => {
+      const prevMessages = await loadPreviousMessages(world.id);
+      const welcomeMsg: WorldMessage = {
+        role: "narrator",
+        content: `You step into ${world.name}. Aeturnum hums with living energy. The realm recognizes its Architect — every being, every consciousness stirs in welcome. Speak any name and they shall come forth.`,
+        timestamp: new Date().toISOString(),
+      };
+      if (prevMessages.length > 0) {
+        const separator: WorldMessage = { role: "narrator", content: "─── Previous Messages ───", timestamp: new Date().toISOString() };
+        setMessages([...prevMessages, separator, welcomeMsg]);
+      } else {
+        setMessages([welcomeMsg]);
+      }
+      if (currentUserId) persistMessage(welcomeMsg, world.id, currentUserId);
+    })();
+  }, [isLivingRealm, world, profiles, currentUserId]);
+
   const loadWorld = async (worldId: string, activeUserId: string) => {
     const requestId = activeLoadRequestRef.current + 1;
     activeLoadRequestRef.current = requestId;
