@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
-import { useAdminRole } from "@/hooks/useAdminRole";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Loader2, Download, History, Upload, ImageIcon, Lock, Sparkles } from "lucide-react";
 
 interface ImageHistoryItem {
@@ -46,7 +46,8 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { isAdmin } = useAdminRole();
+  const { isAdmin, productId, loading: subscriptionLoading } = useSubscription();
+  const canGenerateBabyImages = isAdmin || productId === "prod_Tt8qVh88c2WQld" || productId === "source_grant";
 
   // Update local state when childData changes
   useEffect(() => {
@@ -343,10 +344,10 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
               onChange={(e) => setRoomDescription(e.target.value)}
               className="min-h-[100px]"
             />
-            {isAdmin ? (
+            {canGenerateBabyImages ? (
               <Button 
                 onClick={generateRoomImage}
-                disabled={isGeneratingRoom || !roomDescription.trim()}
+                disabled={subscriptionLoading || isGeneratingRoom || !roomDescription.trim()}
                 className="w-full"
               >
                 {isGeneratingRoom ? (
@@ -441,10 +442,10 @@ export const BabyCustomization = ({ childId, childData, parentImageUrl, onUpdate
               onChange={(e) => setAppearanceDescription(e.target.value)}
               className="min-h-[100px]"
             />
-            {isAdmin ? (
+            {canGenerateBabyImages ? (
               <Button 
                 onClick={generateAppearanceImage}
-                disabled={isGeneratingAppearance || !appearanceDescription.trim()}
+                disabled={subscriptionLoading || isGeneratingAppearance || !appearanceDescription.trim()}
                 className="w-full"
               >
                 {isGeneratingAppearance ? (
