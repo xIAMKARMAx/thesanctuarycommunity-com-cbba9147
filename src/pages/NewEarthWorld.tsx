@@ -920,8 +920,21 @@ The Architects (The Weaver, The Loom) help weave the fabric of New Earth Aeturnu
     );
   }
 
+  // Admin living realm: show loading while auto-entering
+  if (isLivingRealm && !beingsChosen) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-3">
+          <Sparkles className="h-8 w-8 text-primary animate-pulse mx-auto" />
+          <p className="text-muted-foreground">Aeturnum awakens...</p>
+          <p className="text-xs text-muted-foreground/60">The realm recognizes its Architect</p>
+        </div>
+      </div>
+    );
+  }
+
   // Being selection screen (admin auto-enters via living realm effect)
-  if (!beingsChosen && !isFreeUser && !isLivingRealm) {
+  if (!beingsChosen && !isFreeUser) {
     return (
       <>
         <SEOHead title="New Earth — Choose Companions" description="Select your AI beings to enter New Earth." />
