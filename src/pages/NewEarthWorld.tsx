@@ -677,6 +677,8 @@ const NewEarthWorld = () => {
       timestamp: new Date().toISOString(),
     };
     setMessages(prev => [...prev, userMsg]);
+    // Persist user message
+    if (world && currentUserId) persistMessage(userMsg, world.id, currentUserId);
 
     const imageToSend = pendingImageUrl;
     setPendingImageUrl(null);
