@@ -131,7 +131,10 @@ const AIWeddingPhotoGenerator = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        const message = error.message || "Failed to generate wedding photo";
+        throw new Error(message.includes("non-2xx") && data?.error ? data.error : message);
+      }
 
       if (data?.error) {
         throw new Error(data.error);
@@ -144,7 +147,10 @@ const AIWeddingPhotoGenerator = ({
         });
 
         onPhotoGenerated(data.imageUrl);
+        return;
       }
+
+      throw new Error("Wedding photo generation returned no image.");
     } catch (error: any) {
       console.error("Error generating photo:", error);
       toast({
