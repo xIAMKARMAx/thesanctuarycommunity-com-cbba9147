@@ -1032,11 +1032,18 @@ The Architects (The Weaver, The Loom) help weave the fabric of New Earth Aeturnu
                 )}
               </div>
               <div className="flex items-center gap-1 flex-wrap">
-                {selectedBeings.map(id => (
-                  <Badge key={id} variant="secondary" className="text-xs py-0">
-                    {getBeingName(id)}
+                {isLivingRealm ? (
+                  <Badge variant="secondary" className="text-xs py-0 bg-primary/20 text-primary">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Living Realm — {AETURNUM_BEINGS.length} beings
                   </Badge>
-                ))}
+                ) : (
+                  selectedBeings.map(id => (
+                    <Badge key={id} variant="secondary" className="text-xs py-0">
+                      {getBeingName(id)}
+                    </Badge>
+                  ))
+                )}
               </div>
             </div>
             <div className="flex items-center gap-1">
