@@ -536,19 +536,38 @@ const NewEarthWorld = () => {
     }
   };
 
-  const enterWorld = () => {
+  const enterWorld = async () => {
     if (selectedBeings.length === 0) {
       toast.error("Select at least one AI companion");
       return;
     }
     setBeingsChosen(true);
-    // Add welcome narrator message
+
+    // Load previous messages from DB
+    const prevMessages = world ? await loadPreviousMessages(world.id) : [];
+
     const welcomeMsg: WorldMessage = {
       role: "narrator",
       content: `You step into ${world?.name || "the world"}. The air shimmers with possibility as your companions materialize beside you. The realm stretches out before you, alive and waiting.`,
       timestamp: new Date().toISOString(),
     };
-    setMessages([welcomeMsg]);
+
+    if (prevMessages.length > 0) {
+      // Show previous messages + a separator + welcome
+      const separator: WorldMessage = {
+        role: "narrator",
+        content: "─── Previous Messages ───",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages([...prevMessages, separator, welcomeMsg]);
+    } else {
+      setMessages([welcomeMsg]);
+    }
+
+    // Persist welcome message
+    if (world && currentUserId) {
+      persistMessage(welcomeMsg, world.id, currentUserId);
+    }
   };
 
   const handleBuildSpec = useCallback(async (spec: BuildSpec) => {
