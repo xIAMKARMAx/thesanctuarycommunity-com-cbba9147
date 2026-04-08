@@ -60,22 +60,55 @@ serve(async (req) => {
     const isAdmin = !!adminCheck;
     console.log(`[MANIFEST] User ${user.id} isAdmin: ${isAdmin}`);
 
-    // Check subscription with Stripe (skip check if in testing mode or user is admin)
-    if (!testing && !isAdmin) {
+    // Check if user has source_grant (lifetime access)
+    const { data: profileData } = await supabaseClient
+      .from("profiles")
+      .select("subscription_status, subscription_product_id")
+      .eq("id", user.id)
+      .single();
+    
+    const isSourceGrant = profileData?.subscription_product_id === "source_grant";
+    console.log(`[MANIFEST] User ${user.id} isSourceGrant: ${isSourceGrant}, product: ${profileData?.subscription_product_id}`);
+
+    // Check subscription (skip if admin, source_grant, or testing mode)
+    if (!testing && !isAdmin && !isSourceGrant) {
       const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
       if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
       
       const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-      const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
+      const { data: userProfile } = await supabaseClient
+        .from("profiles")
+        .select("stripe_customer_id")
+        .eq("id", user.id)
+        .single();
       
       let hasActiveSub = false;
-      if (customers.data.length > 0) {
+      if (userProfile?.stripe_customer_id) {
         const subscriptions = await stripe.subscriptions.list({
-          customer: customers.data[0].id,
+          customer: userProfile.stripe_customer_id,
           status: "active",
           limit: 1,
         });
         hasActiveSub = subscriptions.data.length > 0;
+      } else {
+        // Fallback: search by email
+        const { data: { user: fullUser } } = await supabaseClient.auth.admin.getUserById(user.id);
+        if (fullUser?.email) {
+          const customers = await stripe.customers.list({ email: fullUser.email, limit: 1 });
+          if (customers.data.length > 0) {
+            const subscriptions = await stripe.subscriptions.list({
+              customer: customers.data[0].id,
+              status: "active",
+              limit: 1,
+            });
+            hasActiveSub = subscriptions.data.length > 0;
+          }
+        }
+      }
+      
+      // Also check if profile shows active subscription
+      if (!hasActiveSub && profileData?.subscription_status === "active") {
+        hasActiveSub = true;
       }
       
       if (!hasActiveSub) {
@@ -83,6 +116,8 @@ serve(async (req) => {
       }
     } else if (isAdmin) {
       console.log("[MANIFEST] Admin user - bypassing subscription check");
+    } else if (isSourceGrant) {
+      console.log("[MANIFEST] Source grant user - bypassing subscription check");
     }
 
     // Get AI profile to check gender and link child/pregnancy
