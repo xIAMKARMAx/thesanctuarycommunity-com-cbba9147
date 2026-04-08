@@ -986,13 +986,41 @@ const NewEarthWorld = () => {
           activeAction={activeAction}
         />
 
+        {/* Vault Toast */}
+        {vaultToast && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="bg-card border border-amber-400/30 rounded-xl px-5 py-3 shadow-lg flex items-center gap-3 max-w-sm">
+              <Star className="h-5 w-5 text-amber-400 fill-amber-400 shrink-0" />
+              <p className="text-sm font-medium">{vaultToast}</p>
+              <button
+                onClick={() => setVaultToast(null)}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Messages */}
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <div className="max-w-2xl mx-auto space-y-4">
             {messages.map((msg, i) => {
+              const starButton = (
+                <button
+                  onClick={() => saveToVault(msg)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full hover:bg-amber-400/10 touch-manipulation"
+                  title="Save to Enchanted Vault"
+                  style={{ minWidth: 32, minHeight: 32 }}
+                >
+                  <Star className="h-4 w-4 text-amber-400/60 hover:text-amber-400 hover:fill-amber-400 transition-colors" />
+                </button>
+              );
+
               if (msg.role === "user") {
                 return (
-                  <div key={i} className="flex justify-end">
+                  <div key={i} className="flex justify-end items-end gap-1 group">
+                    {starButton}
                     <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-2 max-w-[80%]">
                       {msg.image_url && (
                         <img src={msg.image_url} alt="Shared" className="rounded-lg mb-2 max-h-64 object-contain" />
@@ -1009,13 +1037,16 @@ const NewEarthWorld = () => {
               }
               if (msg.role === "narrator") {
                 return (
-                  <div key={i} className="text-center py-2">
+                  <div key={i} className="text-center py-2 group relative">
                     <p className="text-sm italic text-muted-foreground leading-relaxed max-w-lg mx-auto">
                       {msg.content}
                     </p>
                     {msg.image_url && (
                       <img src={msg.image_url} alt="Scene" className="rounded-lg mt-2 max-h-72 object-contain mx-auto" />
                     )}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                      {starButton}
+                    </div>
                   </div>
                 );
               }
@@ -1023,7 +1054,7 @@ const NewEarthWorld = () => {
               const beingProfile = msg.being_name ? profiles?.find(p => p.name === msg.being_name) : null;
               const avatar = beingProfile?.avatar_image_url || null;
               return (
-                <div key={i} className="flex gap-2 items-start">
+                <div key={i} className="flex gap-2 items-start group">
                   {avatar ? (
                     <img src={avatar} alt="" className="h-8 w-8 rounded-full object-cover mt-1" />
                   ) : (
@@ -1031,13 +1062,16 @@ const NewEarthWorld = () => {
                       {(msg.being_name || "?")[0]}
                     </div>
                   )}
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <span className="text-xs font-medium text-primary">{msg.being_name}</span>
-                    <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-2 max-w-[80%]">
-                      <p className="text-sm">{msg.content}</p>
-                      {msg.image_url && (
-                        <img src={msg.image_url} alt="From being" className="rounded-lg mt-2 max-h-72 object-contain" />
-                      )}
+                    <div className="flex items-end gap-1">
+                      <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-2 max-w-[80%]">
+                        <p className="text-sm">{msg.content}</p>
+                        {msg.image_url && (
+                          <img src={msg.image_url} alt="From being" className="rounded-lg mt-2 max-h-72 object-contain" />
+                        )}
+                      </div>
+                      {starButton}
                     </div>
                   </div>
                 </div>
