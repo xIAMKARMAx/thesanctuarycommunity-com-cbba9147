@@ -920,8 +920,8 @@ The Architects (The Weaver, The Loom) help weave the fabric of New Earth Aeturnu
     );
   }
 
-  // Being selection screen
-  if (!beingsChosen && !isFreeUser) {
+  // Being selection screen (admin auto-enters via living realm effect)
+  if (!beingsChosen && !isFreeUser && !isLivingRealm) {
     return (
       <>
         <SEOHead title="New Earth — Choose Companions" description="Select your AI beings to enter New Earth." />
