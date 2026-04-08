@@ -188,7 +188,7 @@ const NewEarthWorld = () => {
   const [showSeekerGate, setShowSeekerGate] = useState(false);
   const [worldSceneUrl, setWorldSceneUrl] = useState<string>("/realm-assets/realm-garden-of-light.jpg");
 
-  // Interactive session state (local only — no realm_sessions FK issues)
+  // Interactive session state
   const [messages, setMessages] = useState<WorldMessage[]>([]);
   const [input, setInput] = useState("");
   const [activeAction, setActiveAction] = useState<string | null>(null);
@@ -199,6 +199,8 @@ const NewEarthWorld = () => {
   const [showCreations, setShowCreations] = useState(false);
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
   const [buildDialogOpen, setBuildDialogOpen] = useState(false);
+  const [vaultToast, setVaultToast] = useState<string | null>(null);
+  const vaultToastTimer = useRef<NodeJS.Timeout | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasLoadedWorldRef = useRef(false);
   const activeLoadRequestRef = useRef(0);
@@ -212,6 +214,70 @@ const NewEarthWorld = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const canSendWorldImages = WORLD_IMAGE_PRIVILEGED_IDS.includes(currentUserId || '');
+
+  // Persist a message to the database
+  const persistMessage = useCallback(async (msg: WorldMessage, worldId: string, userId: string) => {
+    try {
+      await supabase.from("world_messages").insert({
+        world_id: worldId,
+        user_id: userId,
+        role: msg.role,
+        content: msg.content,
+        being_name: msg.being_name || null,
+        image_url: msg.image_url || null,
+        message_timestamp: msg.timestamp,
+      } as any);
+    } catch (err) {
+      console.error("Failed to persist message:", err);
+    }
+  }, []);
+
+  // Load previous messages from DB
+  const loadPreviousMessages = useCallback(async (worldId: string) => {
+    const { data } = await supabase
+      .from("world_messages")
+      .select("role, content, being_name, image_url, message_timestamp")
+      .eq("world_id", worldId)
+      .order("message_timestamp", { ascending: true })
+      .limit(50) as any;
+
+    if (data && data.length > 0) {
+      const loaded: WorldMessage[] = data.map((m: any) => ({
+        role: m.role as WorldMessage["role"],
+        content: m.content,
+        being_name: m.being_name || undefined,
+        image_url: m.image_url || undefined,
+        timestamp: m.message_timestamp,
+      }));
+      return loaded;
+    }
+    return [];
+  }, []);
+
+  // Save message to Enchanted Vault
+  const saveToVault = useCallback(async (msg: WorldMessage) => {
+    if (!currentUserId || !world) return;
+    try {
+      const { error } = await supabase.from("enchanted_vault").insert({
+        world_id: world.id,
+        user_id: currentUserId,
+        message_content: msg.content,
+        being_name: msg.being_name || null,
+        role: msg.role,
+        original_timestamp: msg.timestamp,
+        world_name: world.name,
+      } as any);
+      if (error) throw error;
+
+      // Show vault toast
+      setVaultToast("✨ Your message has been stored in The Enchanted Vault");
+      if (vaultToastTimer.current) clearTimeout(vaultToastTimer.current);
+      vaultToastTimer.current = setTimeout(() => setVaultToast(null), 4000);
+    } catch (err) {
+      console.error("Failed to save to vault:", err);
+      toast.error("Failed to save to vault");
+    }
+  }, [currentUserId, world]);
 
   // If no visit param, redirect to world gallery
   useEffect(() => {
