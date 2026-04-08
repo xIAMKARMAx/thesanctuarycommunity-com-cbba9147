@@ -268,6 +268,8 @@ const NewEarthWorld = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const canSendWorldImages = WORLD_IMAGE_PRIVILEGED_IDS.includes(currentUserId || '');
+  const isLivingRealm = currentUserId === ADMIN_USER_ID;
+  const autoEnteredRef = useRef(false);
 
   // Persist a message to the database
   const persistMessage = useCallback(async (msg: WorldMessage, worldId: string, userId: string) => {
