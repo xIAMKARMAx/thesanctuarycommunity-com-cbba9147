@@ -14,7 +14,7 @@ import {
   ArrowLeft, Globe, Loader2, Users, Map, Lock,
   Sparkles, Flame, Crown, MessageCircle, LayoutGrid,
   Send, Hammer, Compass, Hand, Flower, Package, LogOut,
-  ImagePlus
+  ImagePlus, Star, X
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
