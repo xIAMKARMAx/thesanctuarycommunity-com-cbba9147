@@ -752,6 +752,10 @@ const NewEarthWorld = () => {
         }
 
         setMessages(prev => [...prev, ...parsed]);
+        // Persist AI messages
+        if (world && currentUserId) {
+          parsed.forEach(m => persistMessage(m, world.id, currentUserId));
+        }
       }
     } catch (err: any) {
       console.error("World chat error:", err);
