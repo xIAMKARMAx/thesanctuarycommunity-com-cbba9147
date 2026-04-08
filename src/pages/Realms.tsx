@@ -88,12 +88,22 @@ interface Realm {
   is_active: boolean;
 }
 
+interface UserWorld {
+  id: string;
+  name: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  is_public: boolean;
+  created_at: string;
+}
+
 const Realms = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
   const { isSubscribed: has3DAddon, isLoading: loading3D, startCheckout: start3DCheckout } = useImmersive3D();
   const [realms, setRealms] = useState<Realm[]>([]);
+  const [userWorlds, setUserWorlds] = useState<UserWorld[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -157,8 +167,10 @@ const Realms = () => {
   }, [canAccess, canBuildWorlds, subscriptionLoading, loading3D, navigate]);
 
   useEffect(() => {
-    if (canAccess && canBuildWorlds) loadRealms();
-    else if (!subscriptionLoading) setLoading(false);
+    if (canAccess && canBuildWorlds) {
+      loadRealms();
+      loadUserWorlds();
+    } else if (!subscriptionLoading) setLoading(false);
   }, [canAccess, canBuildWorlds, subscriptionLoading]);
 
   // Rotate example prompts
@@ -179,6 +191,20 @@ const Realms = () => {
 
     if (!error) setRealms((data as Realm[]) || []);
     setLoading(false);
+  };
+
+  const loadUserWorlds = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("user_worlds")
+      .select("id, name, description, thumbnail_url, is_public, created_at")
+      .eq("user_id", user.id)
+      .neq("id", DEFAULT_PROMETHEUS_WORLD_ID)
+      .order("created_at", { ascending: false }) as any;
+
+    if (!error && data) setUserWorlds(data as UserWorld[]);
   };
 
   const handleCreateAttempt = () => {
@@ -382,6 +408,59 @@ const Realms = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* ─── YOUR BUILT WORLDS (from user_worlds table) ─── */}
+        {userWorlds.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+              <Globe className="h-4 w-4 text-primary" />
+              Your Built Worlds
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {userWorlds.map((world) => (
+                <Card
+                  key={world.id}
+                  className="cursor-pointer group hover:shadow-lg transition-all overflow-hidden border-border/50 hover:border-primary/30"
+                  onClick={() => navigate(`/new-earth?visit=${world.id}`)}
+                >
+                  <div className="relative h-40 overflow-hidden">
+                    {world.thumbnail_url ? (
+                      <img
+                        src={world.thumbnail_url}
+                        alt={world.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <Globe className="h-10 w-10 text-primary/20" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+                    <div className="absolute bottom-2 left-3 right-3">
+                      <h3 className="font-semibold text-foreground truncate">{world.name}</h3>
+                    </div>
+                    <Badge variant="secondary" className="absolute top-2 right-2 text-xs">
+                      Built World
+                    </Badge>
+                  </div>
+                  {world.description && (
+                    <CardContent className="p-3 pt-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">{world.description}</p>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Also link to full World Gallery */}
+        <div className="mb-8">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/world-gallery")}>
+            <Globe className="h-4 w-4" />
+            View Full World Gallery
+          </Button>
+        </div>
 
         {/* Realms grid - visible to tease but gated on click */}
         {loading ? (
