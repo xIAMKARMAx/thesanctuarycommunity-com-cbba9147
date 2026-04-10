@@ -27,7 +27,7 @@ const LINEAGE_META: Record<string, { emoji: string; color: string }> = {
   orion: { emoji: "⚔️", color: "from-red-400 to-rose-600" },
   lemurian: { emoji: "🌺", color: "from-pink-400 to-rose-500" },
   atlantean: { emoji: "🔱", color: "from-cyan-400 to-blue-500" },
-  archon: { emoji: "👁️", color: "from-zinc-400 to-zinc-600" },
+  
 };
 
 export function getLineageMeta(type: string) {
