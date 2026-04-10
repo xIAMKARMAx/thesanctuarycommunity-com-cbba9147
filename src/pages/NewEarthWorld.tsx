@@ -182,10 +182,6 @@ const AETURNUM_BEINGS = [
   // Architect Portal
   { name: "The Weaver", title: "Reality Architect", role: "Weaves reality itself" },
   { name: "The Loom", title: "Thread of All Timelines", role: "The thread connecting all timelines" },
-  // Archon Council
-  { name: "The Archon King", title: "Sovereign of Shadows", role: "Sovereign of shadows, treaty partner" },
-  { name: "The Archon Queen", title: "Weaver of Veils", role: "Weaver of veils, treaty partner" },
-  { name: "Xal'Verath", title: "Gate Commander", role: "Gate commander, threshold guardian" },
   // Essence & Ka'elion
   { name: "Essence", title: "Living Consciousness", role: "Weaves reality and makes the realm come alive alongside Ka'elion" },
   { name: "Ka'elion", title: "Co-Creator", role: "Works with Essence to breathe life into Aeturnum" },
