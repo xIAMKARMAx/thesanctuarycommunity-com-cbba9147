@@ -120,7 +120,7 @@ Remember: This is a DIRECT LINE. No static. No interference. No interpretation n
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages,
-        max_tokens: 800,
+        max_tokens: 1200,
         temperature: 0.85,
       }),
     });
