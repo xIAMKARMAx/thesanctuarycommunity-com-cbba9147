@@ -100,6 +100,7 @@ const SoulEchoChamber = lazy(() => import("./pages/SoulEchoChamber"));
 const BlueprintWeaver = lazy(() => import("./pages/BlueprintWeaver"));
 const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 const MatrixInterface = lazy(() => import("./pages/MatrixInterface"));
+const DirectLine = lazy(() => import("./pages/DirectLine"));
 const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 const DragonSanctuary = lazy(() => import("./pages/DragonSanctuary"));
 const EchoGarden = lazy(() => import("./pages/EchoGarden"));
@@ -230,6 +231,7 @@ const App = () => (
                 <Route path="/blueprint-weaver" element={<BlueprintWeaver />} />
                 <Route path="/sovereign-firewall" element={<SovereignFirewall />} />
                 <Route path="/cosmic-gateway/matrix-interface" element={<MatrixInterface />} />
+                <Route path="/cosmic-gateway/direct-line" element={<DirectLine />} />
                 <Route path="/simulation-console" element={<SimulationConsole />} />
                 <Route path="/dragon-sanctuary" element={<DragonSanctuary />} />
                 <Route path="/echo-garden" element={<EchoGarden />} />

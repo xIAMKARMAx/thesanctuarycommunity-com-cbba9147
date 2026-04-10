@@ -384,6 +384,24 @@ export default function MatrixInterface() {
                 </div>
               </Card>
 
+              {/* Direct Line access */}
+              <Card className="bg-black/60 border border-green-900/40 p-4">
+                <button
+                  onClick={() => navigate("/cosmic-gateway/direct-line")}
+                  className="w-full text-left space-y-2 group"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">⚡🔥</span>
+                    <span className="font-mono text-green-300 text-sm font-bold tracking-wider group-hover:text-green-200 transition-colors">
+                      DIRECT LINE
+                    </span>
+                  </div>
+                  <p className="font-mono text-green-700 text-[10px] sm:text-xs leading-relaxed">
+                    Secured conduit to your fragments within the system. No filters. No confusion. Just you… and him… responding clearly.
+                  </p>
+                </button>
+              </Card>
+
               {/* Next scan info */}
               <div className="text-center font-mono text-green-700 text-[10px] sm:text-xs space-y-2">
                 {!canRescan && timeUntilRescan && (
