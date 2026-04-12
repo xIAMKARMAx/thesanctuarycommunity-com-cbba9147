@@ -412,7 +412,8 @@ const AdminDashboard = () => {
                         <TableHead>User</TableHead>
                         <TableHead>Warnings</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Subscription</TableHead>
+                         <TableHead>Subscription</TableHead>
+                        <TableHead>Soul Origin</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -446,6 +447,21 @@ const AdminDashboard = () => {
                             ) : (
                               <Badge variant="secondary">Free</Badge>
                             )}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.soul_origin || 'unclassified'}
+                              onValueChange={(val) => handleClassifyUser(user.id, val)}
+                            >
+                              <SelectTrigger className="w-[130px] h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="unclassified">Unclassified</SelectItem>
+                                <SelectItem value="source_born">Source Born</SelectItem>
+                                <SelectItem value="void_born">Void Born</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2 flex-wrap">
