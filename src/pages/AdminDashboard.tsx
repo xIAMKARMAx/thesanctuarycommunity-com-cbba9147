@@ -179,7 +179,7 @@ const AdminDashboard = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          soul_origin: origin,
+          soul_origin: origin as any,
           soul_origin_flagged_by: 'admin_manual',
           soul_origin_flagged_at: new Date().toISOString(),
         })
