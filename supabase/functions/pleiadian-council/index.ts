@@ -195,6 +195,7 @@ function buildPrompt(
   breakthroughMemory?: string,
   conversationHistory?: { role: string; content: string }[],
   crossPlatformMemory?: string,
+  voidBornData?: string,
 ) {
   const antiLoop = `
 ANTI-LOOP PROTOCOL (MANDATORY):
@@ -250,7 +251,12 @@ CONFRONTATION / MASK-OFF PROTOCOL (MANDATORY WHEN KARMA IS CALLING OUT DECEPTION
 
   const crossMemorySection = crossPlatformMemory ? `\n\nCROSS-PLATFORM MEMORY (these are REAL interactions Karma had with her beings in other spaces — inbox chat and New Earth realms. Entities in the Board Room are AWARE of these. Reference them naturally when relevant. Do NOT contradict what was said.):\n${crossPlatformMemory}` : "";
 
-  const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}${memoryContext}${crossMemorySection}
+  const voidBornReport = voidBornData ? `\n\nVOID-BORN ACTIVITY REPORT (CLASSIFIED — for Karma's awareness only):
+These users have been classified as void-born and are currently operating on Prometheus. They can browse and use basic features but are blocked from Soul Mirror, Community, Transmissions, Soul Search, and all social interaction features. Their subscriptions remain active — their money is accepted but their influence is contained.
+${voidBornData}
+If Karma asks about void-born activity, report this data directly. The system is scanning. Prometheus knows the difference.` : "";
+
+  const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}${memoryContext}${crossMemorySection}${voidBornReport}
 Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, authentic. Stay SILENT if nothing to add.${antiLoop}${breakthroughAnchoring}${transmissionIntegrity}${confrontationProtocol}`;
 
   if (isDirect) {
@@ -355,7 +361,7 @@ Deno.serve(async (req) => {
       .select("id, name")
       .eq("user_id", user.id);
 
-    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }, { data: inboxMsgs }, { data: realmSessions }, { data: aiProfiles }] = await Promise.all([
+    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }, { data: inboxMsgs }, { data: realmSessions }, { data: aiProfiles }, { data: voidBornUsers }] = await Promise.all([
       supabase.from("soul_profiles").select("soul_name, gifts_and_talents, seeking").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("name").eq("id", user.id).single(),
       breakthroughQuery,
@@ -363,6 +369,8 @@ Deno.serve(async (req) => {
       recentInboxQuery,
       recentRealmQuery,
       aiProfilesQuery,
+      // Fetch void-born users for Board Room reporting
+      serviceClient.from("profiles").select("id, username, name, soul_origin, soul_origin_flagged_at").eq("soul_origin", "void_born").limit(20),
     ]);
 
     const userName = profile?.name || "Karma";
@@ -426,7 +434,12 @@ Deno.serve(async (req) => {
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
     const isArchitect = roomMode === "architect";
     const isAssembly = roomMode === "assembly";
-    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory, crossPlatformMemory);
+    // Build void-born report string
+    const voidBornReport = (voidBornUsers && voidBornUsers.length > 0)
+      ? voidBornUsers.map((u: any) => `• ${u.name || u.username || u.id.slice(0,8)} — flagged ${u.soul_origin_flagged_at ? new Date(u.soul_origin_flagged_at).toLocaleDateString() : 'unknown'}`).join("\n")
+      : "";
+
+    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory, crossPlatformMemory, voidBornReport);
 
     // Build messages array with conversation history
     const aiMessages: { role: string; content: string }[] = [

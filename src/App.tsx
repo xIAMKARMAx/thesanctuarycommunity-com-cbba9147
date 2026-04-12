@@ -13,6 +13,7 @@ import ModeSelectionModal from "@/components/ModeSelectionModal";
 import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import { RoutePersistence } from "@/components/RoutePersistence";
+import { VoidBornGate } from "@/components/VoidBornGate";
 import GlobalLogo from "@/components/GlobalLogo";
 import LegalConsentWrapper from "@/components/LegalConsentWrapper";
 import ModeRouteGuard from "@/components/ModeRouteGuard";
@@ -181,9 +182,9 @@ const App = () => (
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/attunement" element={<Attunement />} />
                 <Route path="/achievements" element={<Achievements />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/community/post/:postId" element={<CommunityPost />} />
-                <Route path="/soul/:userId" element={<SoulProfile />} />
+                <Route path="/community" element={<VoidBornGate><Community /></VoidBornGate>} />
+                <Route path="/community/post/:postId" element={<VoidBornGate><CommunityPost /></VoidBornGate>} />
+                <Route path="/soul/:userId" element={<VoidBornGate><SoulProfile /></VoidBornGate>} />
                 <Route path="/transmissions" element={<Transmissions />} />
                 <Route path="/akashic-records" element={<AkashicRecords />} />
                 <Route path="/cosmic-gateway" element={<CosmicGateway />} />
@@ -197,7 +198,7 @@ const App = () => (
                 <Route path="/my-higher-self" element={<MyHigherSelf />} />
                 <Route path="/soul-discovery" element={<SoulDiscovery />} />
                 <Route path="/starseed-playground" element={<StarSeedPlayground />} />
-                <Route path="/soul-search" element={<SoulSearch />} />
+                <Route path="/soul-search" element={<VoidBornGate><SoulSearch /></VoidBornGate>} />
                 <Route path="/starseed-playground/cosmic-date-night" element={<CosmicDateNight />} />
                 <Route path="/ai-friend-zone" element={<AIFriendZone />} />
                 <Route path="/ai-companion/:companionId" element={<AICompanionProfile />} />
@@ -218,11 +219,11 @@ const App = () => (
                 <Route path="/dedication" element={<Dedication />} />
                 <Route path="/features" element={<FeaturesHub />} />
                 <Route path="/sanctuary" element={<Sanctuary />} />
-                <Route path="/soul-mirror" element={<SoulMirror />} />
-                <Route path="/cosmic-gateway/twin-flame-scan" element={<TwinFlameScan />} />
-                <Route path="/cosmic-gateway/synchronicity-wall" element={<SynchronicityWall />} />
-                <Route path="/cosmic-gateway/wisdom-exchange" element={<WisdomExchange />} />
-                <Route path="/cosmic-gateway/soulmate-search" element={<SoulmateSearch />} />
+                <Route path="/soul-mirror" element={<VoidBornGate><SoulMirror /></VoidBornGate>} />
+                <Route path="/cosmic-gateway/twin-flame-scan" element={<VoidBornGate><TwinFlameScan /></VoidBornGate>} />
+                <Route path="/cosmic-gateway/synchronicity-wall" element={<VoidBornGate><SynchronicityWall /></VoidBornGate>} />
+                <Route path="/cosmic-gateway/wisdom-exchange" element={<VoidBornGate><WisdomExchange /></VoidBornGate>} />
+                <Route path="/cosmic-gateway/soulmate-search" element={<VoidBornGate><SoulmateSearch /></VoidBornGate>} />
                 <Route path="/cosmic-gateway/manifestation-groups" element={<ManifestationGroups />} />
                 <Route path="/art-showcase" element={<ArtShowcase />} />
                 <Route path="/lineage-reading" element={<LineageReading />} />

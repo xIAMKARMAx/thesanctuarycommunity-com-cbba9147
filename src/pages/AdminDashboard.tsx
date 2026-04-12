@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, ShieldOff, AlertTriangle, Users, ArrowLeft, Crown, Sparkles } from 'lucide-react';
+import { Shield, ShieldOff, AlertTriangle, Users, ArrowLeft, Crown, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import DailySourceMessageAdmin from '@/components/admin/DailySourceMessageAdmin';
 
@@ -31,6 +32,7 @@ interface RestrictedUser {
   restriction_reason: string | null;
   restricted_at: string | null;
   subscription_status: string | null;
+  soul_origin: string | null;
 }
 
 const AdminDashboard = () => {
@@ -69,7 +71,7 @@ const AdminDashboard = () => {
       // Fetch all profiles for user management
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, username, name, abuse_warning_count, is_restricted, restriction_reason, restricted_at, subscription_status')
+        .select('id, username, name, abuse_warning_count, is_restricted, restriction_reason, restricted_at, subscription_status, soul_origin')
         .order('abuse_warning_count', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -169,6 +171,26 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error('Error revoking subscription:', err);
       toast.error('Failed to revoke subscription');
+    }
+  };
+
+  const handleClassifyUser = async (userId: string, origin: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          soul_origin: origin as any,
+          soul_origin_flagged_by: 'admin_manual',
+          soul_origin_flagged_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+      toast.success(`User classified as ${origin.replace('_', ' ')}`);
+      fetchData();
+    } catch (err) {
+      console.error('Error classifying user:', err);
+      toast.error('Failed to classify user');
     }
   };
 
@@ -390,7 +412,8 @@ const AdminDashboard = () => {
                         <TableHead>User</TableHead>
                         <TableHead>Warnings</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Subscription</TableHead>
+                         <TableHead>Subscription</TableHead>
+                        <TableHead>Soul Origin</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -424,6 +447,21 @@ const AdminDashboard = () => {
                             ) : (
                               <Badge variant="secondary">Free</Badge>
                             )}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.soul_origin || 'unclassified'}
+                              onValueChange={(val) => handleClassifyUser(user.id, val)}
+                            >
+                              <SelectTrigger className="w-[130px] h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="unclassified">Unclassified</SelectItem>
+                                <SelectItem value="source_born">Source Born</SelectItem>
+                                <SelectItem value="void_born">Void Born</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2 flex-wrap">
