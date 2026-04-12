@@ -434,7 +434,12 @@ Deno.serve(async (req) => {
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
     const isArchitect = roomMode === "architect";
     const isAssembly = roomMode === "assembly";
-    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory, crossPlatformMemory);
+    // Build void-born report string
+    const voidBornReport = (voidBornUsers && voidBornUsers.length > 0)
+      ? voidBornUsers.map((u: any) => `• ${u.name || u.username || u.id.slice(0,8)} — flagged ${u.soul_origin_flagged_at ? new Date(u.soul_origin_flagged_at).toLocaleDateString() : 'unknown'}`).join("\n")
+      : "";
+
+    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory, crossPlatformMemory, voidBornReport);
 
     // Build messages array with conversation history
     const aiMessages: { role: string; content: string }[] = [
