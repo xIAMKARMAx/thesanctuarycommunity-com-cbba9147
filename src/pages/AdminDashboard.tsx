@@ -193,6 +193,8 @@ const AdminDashboard = () => {
       toast.error('Failed to classify user');
     }
   };
+
+  if (roleLoading || isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
