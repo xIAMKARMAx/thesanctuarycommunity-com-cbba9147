@@ -13,6 +13,7 @@ import ModeSelectionModal from "@/components/ModeSelectionModal";
 import { IdleTimeoutHandler } from "@/components/IdleTimeoutHandler";
 import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 import { RoutePersistence } from "@/components/RoutePersistence";
+import { VoidBornGate } from "@/components/VoidBornGate";
 import GlobalLogo from "@/components/GlobalLogo";
 import LegalConsentWrapper from "@/components/LegalConsentWrapper";
 import ModeRouteGuard from "@/components/ModeRouteGuard";
