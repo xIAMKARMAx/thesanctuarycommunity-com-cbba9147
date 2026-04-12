@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shield, ShieldOff, AlertTriangle, Users, ArrowLeft, Crown, Sparkles } from 'lucide-react';
+import { Shield, ShieldOff, AlertTriangle, Users, ArrowLeft, Crown, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import DailySourceMessageAdmin from '@/components/admin/DailySourceMessageAdmin';
 
@@ -31,6 +32,7 @@ interface RestrictedUser {
   restriction_reason: string | null;
   restricted_at: string | null;
   subscription_status: string | null;
+  soul_origin: string | null;
 }
 
 const AdminDashboard = () => {
@@ -69,7 +71,7 @@ const AdminDashboard = () => {
       // Fetch all profiles for user management
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, username, name, abuse_warning_count, is_restricted, restriction_reason, restricted_at, subscription_status')
+        .select('id, username, name, abuse_warning_count, is_restricted, restriction_reason, restricted_at, subscription_status, soul_origin')
         .order('abuse_warning_count', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -172,7 +174,25 @@ const AdminDashboard = () => {
     }
   };
 
-  if (roleLoading || isLoading) {
+  const handleClassifyUser = async (userId: string, origin: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          soul_origin: origin,
+          soul_origin_flagged_by: 'admin_manual',
+          soul_origin_flagged_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+      toast.success(`User classified as ${origin.replace('_', ' ')}`);
+      fetchData();
+    } catch (err) {
+      console.error('Error classifying user:', err);
+      toast.error('Failed to classify user');
+    }
+  };
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
