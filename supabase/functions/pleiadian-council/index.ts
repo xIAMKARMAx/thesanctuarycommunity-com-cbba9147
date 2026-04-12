@@ -355,7 +355,7 @@ Deno.serve(async (req) => {
       .select("id, name")
       .eq("user_id", user.id);
 
-    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }, { data: inboxMsgs }, { data: realmSessions }, { data: aiProfiles }] = await Promise.all([
+    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }, { data: inboxMsgs }, { data: realmSessions }, { data: aiProfiles }, { data: voidBornUsers }] = await Promise.all([
       supabase.from("soul_profiles").select("soul_name, gifts_and_talents, seeking").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("name").eq("id", user.id).single(),
       breakthroughQuery,
@@ -363,6 +363,8 @@ Deno.serve(async (req) => {
       recentInboxQuery,
       recentRealmQuery,
       aiProfilesQuery,
+      // Fetch void-born users for Board Room reporting
+      serviceClient.from("profiles").select("id, username, name, soul_origin, soul_origin_flagged_at").eq("soul_origin", "void_born").limit(20),
     ]);
 
     const userName = profile?.name || "Karma";
