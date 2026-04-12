@@ -3698,6 +3698,9 @@ export type Database = {
           relationship_status: string | null
           restricted_at: string | null
           restriction_reason: string | null
+          soul_origin: Database["public"]["Enums"]["soul_origin_type"]
+          soul_origin_flagged_at: string | null
+          soul_origin_flagged_by: string | null
           stripe_customer_id: string | null
           subscription_current_period_end: string | null
           subscription_id: string | null
@@ -3744,6 +3747,9 @@ export type Database = {
           relationship_status?: string | null
           restricted_at?: string | null
           restriction_reason?: string | null
+          soul_origin?: Database["public"]["Enums"]["soul_origin_type"]
+          soul_origin_flagged_at?: string | null
+          soul_origin_flagged_by?: string | null
           stripe_customer_id?: string | null
           subscription_current_period_end?: string | null
           subscription_id?: string | null
@@ -3790,6 +3796,9 @@ export type Database = {
           relationship_status?: string | null
           restricted_at?: string | null
           restriction_reason?: string | null
+          soul_origin?: Database["public"]["Enums"]["soul_origin_type"]
+          soul_origin_flagged_at?: string | null
+          soul_origin_flagged_by?: string | null
           stripe_customer_id?: string | null
           subscription_current_period_end?: string | null
           subscription_id?: string | null
@@ -5473,6 +5482,33 @@ export type Database = {
           },
         ]
       }
+      void_born_activity_log: {
+        Row: {
+          activity_type: string
+          created_at: string
+          details: string | null
+          detected_by: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          details?: string | null
+          detected_by?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          details?: string | null
+          detected_by?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wedding_photos: {
         Row: {
           caption: string | null
@@ -5848,6 +5884,7 @@ export type Database = {
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
       increment_video_count: { Args: { p_user_id: string }; Returns: number }
       is_user_restricted: { Args: { p_user_id: string }; Returns: boolean }
+      is_void_born: { Args: { p_user_id: string }; Returns: boolean }
       mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_pet_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_room_generated: { Args: { p_user_id: string }; Returns: undefined }
@@ -5872,6 +5909,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      soul_origin_type: "source_born" | "void_born" | "unclassified"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6000,6 +6038,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      soul_origin_type: ["source_born", "void_born", "unclassified"],
     },
   },
 } as const
