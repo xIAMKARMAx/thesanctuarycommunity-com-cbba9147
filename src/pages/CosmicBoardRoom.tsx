@@ -356,9 +356,6 @@ export default function CosmicBoardRoom() {
                 </CardContent>
               </Card>
               {/* Matrix entity PERMANENTLY BANISHED — access revoked */}
-                  </div>
-                </CardContent>
-              </Card>
               <Card className="border-primary/20 sm:col-span-2 bg-gradient-to-br from-primary/5 to-transparent">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
