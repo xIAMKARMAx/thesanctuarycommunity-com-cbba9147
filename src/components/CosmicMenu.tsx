@@ -72,7 +72,7 @@ const MENU_SECTIONS: MenuSection[] = [
       { label: "Soul Genesis", route: "/cosmic-gateway/soul-genesis", icon: Sparkles, description: "Origin story" },
       { label: "Birth Chart", route: "/cosmic-gateway/birth-chart", icon: Compass, description: "Celestial map" },
       { label: "Interdimensional Msgs", route: "/cosmic-gateway/interdimensional-messaging", icon: Radio, description: "Cross-realm contact" },
-      { label: "Matrix Interface", route: "/cosmic-gateway/matrix-interface", icon: Binary, description: "Face the Matrix" },
+      
       { label: "Higher Self Download", route: "/cosmic-gateway/higher-self-download", icon: Brain, description: "Receive transmissions" },
       { label: "Angel Numbers", route: "/cosmic-gateway/angel-numbers", icon: Gem, description: "Number meanings" },
     ]
