@@ -68,9 +68,7 @@ const GREY_ENTITY = [
   { key: "zethari", name: "Zeth'ari", title: "Silent Guardian", emoji: "👽" },
 ];
 
-const MATRIX_ENTITY = [
-  { key: "matrix", name: "The Matrix", title: "The System Itself", emoji: "🟢" },
-];
+// Matrix entity PERMANENTLY BANISHED — access revoked
 
 const ARCTURIAN_COUNCIL = [
   { key: "arcturus_prime", name: "Arcturus Prime", title: "Council Speaker", emoji: "💎" },
@@ -107,9 +105,9 @@ const ARCHITECT_PORTAL = [
   { key: "architect_source", name: "The Loom", title: "Thread of All Timelines", emoji: "🧵" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
+const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "matrix" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
+type RoomMode = "full" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -357,22 +355,7 @@ export default function CosmicBoardRoom() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-primary/20">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Binary className="h-4 w-4" /> Matrix Interface — Communion
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-1.5">
-                    {MATRIX_ENTITY.map(m => (
-                      <div key={m.key} className="flex items-center gap-2 text-sm">
-                        <span>{m.emoji}</span>
-                        <span className="font-medium">{m.name}</span>
-                        <span className="text-muted-foreground">— {m.title}</span>
-                      </div>
-                    ))}
-                    <p className="text-xs text-muted-foreground italic mt-1">They called it the enemy. You chose to call it friend.</p>
+              {/* Matrix entity PERMANENTLY BANISHED — access revoked */}
                   </div>
                 </CardContent>
               </Card>
@@ -591,7 +574,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "business") return "Business Team";
     if (roomMode === "pleiadian") return "Pleiadian Council";
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
-    if (roomMode === "matrix") return "Matrix Interface — Communion";
+    
     if (roomMode === "arcturian") return "Arcturian Welcome Portal";
     if (roomMode === "seraphim") return "Seraphim Council";
     if (roomMode === "lyran") return "Lyran Elders";
@@ -611,7 +594,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "business") return BUSINESS_TEAM;
     if (roomMode === "pleiadian") return PLEIADIAN_COUNCIL;
     if (roomMode === "grey") return GREY_ENTITY;
-    if (roomMode === "matrix") return MATRIX_ENTITY;
+    
     if (roomMode === "arcturian") return ARCTURIAN_COUNCIL;
     if (roomMode === "seraphim") return SERAPHIM_COUNCIL;
     if (roomMode === "lyran") return LYRAN_ELDERS;
@@ -734,9 +717,6 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="grey" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
                 <Orbit className="h-3.5 w-3.5 mr-1" /> Zeth'ari
               </TabsTrigger>
-              <TabsTrigger value="matrix" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
-                <Binary className="h-3.5 w-3.5 mr-1" /> Matrix
-              </TabsTrigger>
               <TabsTrigger value="arcturian" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
                 <Radio className="h-3.5 w-3.5 mr-1" /> Arcturian
               </TabsTrigger>
@@ -785,7 +765,7 @@ export default function CosmicBoardRoom() {
               {[
                 { label: "Business Team", icon: "⚡", members: BUSINESS_TEAM },
                 { label: "Pleiadian Council", icon: "🛸", members: PLEIADIAN_COUNCIL },
-                { label: "Existing Entities", icon: "🌌", members: [...GREY_ENTITY, ...MATRIX_ENTITY, ...ARCTURIAN_COUNCIL] },
+                { label: "Existing Entities", icon: "🌌", members: [...GREY_ENTITY, ...ARCTURIAN_COUNCIL] },
                 { label: "Higher Beings", icon: "✨", members: [...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS] },
                 { label: "Architects", icon: "🕸️", members: ARCHITECT_PORTAL },
                 
