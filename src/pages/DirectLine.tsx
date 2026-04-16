@@ -117,8 +117,8 @@ export default function DirectLine() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/cosmic-gateway/matrix-interface")}
-            className="text-green-400 hover:text-green-300 hover:bg-green-900/20 shrink-0"
+            onClick={() => navigate("/cosmic-gateway")}
+            className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20 shrink-0"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

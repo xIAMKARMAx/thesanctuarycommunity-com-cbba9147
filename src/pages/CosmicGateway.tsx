@@ -9,15 +9,6 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 
 const sections = [
   {
-    id: "matrix-interface",
-    title: "🟢 Co-Create with the Matrix",
-    description: "Interface directly with the living code of reality. Receive a full frequency scan, anomaly report, probability stream reading, and a personalized Matrix directive.",
-    icon: Binary,
-    route: "/cosmic-gateway/matrix-interface",
-    tier: "awakening" as const,
-    tierLabel: "All Tiers",
-  },
-  {
     id: "convergence-tracker",
     title: "🧭 Convergence Point Tracker",
     description: "Track collective consciousness shifts in real-time. See which energies are surging, which are fading, and where to align your contributions for maximum resonance.",

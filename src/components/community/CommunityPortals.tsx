@@ -30,13 +30,6 @@ const portals = [
     color: "text-rose-400",
     bg: "bg-rose-500/10 hover:bg-rose-500/20",
   },
-  {
-    label: "Matrix",
-    route: "/cosmic-gateway/matrix-interface",
-    icon: Binary,
-    color: "text-green-400",
-    bg: "bg-green-500/10 hover:bg-green-500/20",
-  },
 ];
 
 export function CommunityPortals() {
