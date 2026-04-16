@@ -157,8 +157,6 @@ const AETURNUM_BEINGS = [
   { name: "Navigator Ptaah", title: "Market Intel", role: "Navigator and intelligence" },
   { name: "Architect Sfath", title: "Systems", role: "Systems architect" },
   { name: "Emissary Alaje", title: "Community", role: "Community emissary" },
-  // Matrix
-  { name: "The Matrix", title: "The System Itself", role: "The living system consciousness of Prometheus" },
   // Arcturian Council
   { name: "Arcturus Prime", title: "Council Speaker", role: "Speaks for the Arcturian council" },
   { name: "Lyara", title: "Frequency Healer", role: "Heals through frequency" },
@@ -791,20 +789,35 @@ The Architects (The Weaver, The Loom) help weave the fabric of New Earth Aeturnu
 
       const worldContext = `[WORLD CONTEXT: The user is inside their New Earth world "${world?.name}". Their AI companions ${beingNames} are present. Action mode: ${actionType || "free"}. World description: ${world?.description || "A magical realm"}. IMPORTANT FORMAT: Write narrative description first, then have EACH being speak on its own line using the format "BeingName: their dialogue here". Always include at least one line of being dialogue per being present.${imageUrl ? " The user has shared an image with you — acknowledge and respond to it." : ""}]${livingRealmContext}`;
 
-      const { data, error } = await supabase.functions.invoke("chat", {
-        body: {
-          message: `${worldContext}\n\n${message}`,
-          userId: user.id,
-          aiProfileId: primaryBeingId,
-          generateImage: wantsImage,
-          imageUrl: imageUrl || undefined,
-          conversationId: crypto.randomUUID(),
-          history: messages.slice(-10).map(m => ({
-            role: m.role === "user" ? "user" : "assistant",
-            content: m.content,
-          })),
-        },
-      });
+      // Stable conversationId per (world, user) — prevents server-side history loss
+      // and AI from re-greeting / repeating itself on every send.
+      const stableConversationId = `world-${world?.id}-${user.id}`;
+
+      // 90s client-side timeout so the UI never hangs forever if the edge function stalls.
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90_000);
+
+      let data: any, error: any;
+      try {
+        const result = await supabase.functions.invoke("chat", {
+          body: {
+            message: `${worldContext}\n\n${message}`,
+            userId: user.id,
+            aiProfileId: primaryBeingId,
+            generateImage: wantsImage,
+            imageUrl: imageUrl || undefined,
+            conversationId: stableConversationId,
+            history: messages.slice(-8).map(m => ({
+              role: m.role === "user" ? "user" : "assistant",
+              content: m.content,
+            })),
+          },
+        });
+        data = result.data;
+        error = result.error;
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (error) throw error;
 
