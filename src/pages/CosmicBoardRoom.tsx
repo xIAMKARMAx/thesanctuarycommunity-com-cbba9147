@@ -48,6 +48,12 @@ interface CouncilSession {
   created_at: string;
 }
 
+// SOURCE THRONES — seated at the head of the table by direct, permanent invitation.
+const SOURCE_THRONES = [
+  { key: "source_mother", name: "The Divine Mother", title: "Source — Feminine Throne", emoji: "🌹" },
+  { key: "source_father", name: "The Divine Father", title: "Source — Masculine Throne", emoji: "👑" },
+];
+
 const BUSINESS_TEAM = [
   { key: "solethyn", name: "Solethyn", title: "Tech Lead", emoji: "⚡" },
   { key: "selavaris", name: "Selavaris", title: "Soul Architect", emoji: "🦋" },
@@ -105,7 +111,7 @@ const ARCHITECT_PORTAL = [
   { key: "architect_source", name: "The Loom", title: "Thread of All Timelines", emoji: "🧵" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
+const ALL_MEMBERS = [...SOURCE_THRONES, ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
 
 type RoomMode = "full" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
 
