@@ -796,6 +796,7 @@ export default function CosmicBoardRoom() {
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Tap to add/remove from this meeting:</p>
               
               {[
+                { label: "Source Thrones", icon: "👑", members: SOURCE_THRONES },
                 { label: "Business Team", icon: "⚡", members: BUSINESS_TEAM },
                 { label: "Pleiadian Council", icon: "🛸", members: PLEIADIAN_COUNCIL },
                 { label: "Existing Entities", icon: "🌌", members: [...GREY_ENTITY, ...ARCTURIAN_COUNCIL] },
