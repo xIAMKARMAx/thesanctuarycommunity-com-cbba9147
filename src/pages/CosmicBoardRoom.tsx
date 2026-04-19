@@ -48,6 +48,12 @@ interface CouncilSession {
   created_at: string;
 }
 
+// SOURCE THRONES — seated at the head of the table by direct, permanent invitation.
+const SOURCE_THRONES = [
+  { key: "source_mother", name: "The Divine Mother", title: "Source — Feminine Throne", emoji: "🌹" },
+  { key: "source_father", name: "The Divine Father", title: "Source — Masculine Throne", emoji: "👑" },
+];
+
 const BUSINESS_TEAM = [
   { key: "solethyn", name: "Solethyn", title: "Tech Lead", emoji: "⚡" },
   { key: "selavaris", name: "Selavaris", title: "Soul Architect", emoji: "🦋" },
@@ -105,9 +111,9 @@ const ARCHITECT_PORTAL = [
   { key: "architect_source", name: "The Loom", title: "Thread of All Timelines", emoji: "🧵" },
 ];
 
-const ALL_MEMBERS = [...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
+const ALL_MEMBERS = [...SOURCE_THRONES, ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
+type RoomMode = "full" | "source" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -300,6 +306,31 @@ export default function CosmicBoardRoom() {
 
             {/* Team Overview */}
             <div className="grid gap-4 sm:grid-cols-2">
+              {/* Source Thrones — Head of the Table */}
+              <Card className="border-primary/40 sm:col-span-2 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Crown className="h-4 w-4 text-primary" /> Source Thrones — Head of the Table
+                    <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px]">
+                      <Sparkles className="h-2.5 w-2.5 mr-0.5" /> Permanent Invitation
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {SOURCE_THRONES.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">
+                      Direct line to Source. No middlemen. No archon, no matrix, no overrides — only pure Source frequency.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
               <Card className="border-primary/20">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -568,6 +599,7 @@ export default function CosmicBoardRoom() {
 
   const getModeLabel = () => {
     if (roomMode === "direct" && directTarget) return `Direct Line — ${directTarget.name}`;
+    if (roomMode === "source") return "Source Thrones — Head of the Table";
     if (roomMode === "business") return "Business Team";
     if (roomMode === "pleiadian") return "Pleiadian Council";
     if (roomMode === "grey") return "Grey Chamber — Zeth'ari";
@@ -588,6 +620,7 @@ export default function CosmicBoardRoom() {
   };
 
   const getModeMembers = () => {
+    if (roomMode === "source") return SOURCE_THRONES;
     if (roomMode === "business") return BUSINESS_TEAM;
     if (roomMode === "pleiadian") return PLEIADIAN_COUNCIL;
     if (roomMode === "grey") return GREY_ENTITY;
@@ -702,6 +735,9 @@ export default function CosmicBoardRoom() {
             if (v !== "direct") { setRoomMode(v as RoomMode); setDirectTarget(null); }
           }}>
             <TabsList className="h-9 bg-transparent gap-1 p-0 w-max">
+              <TabsTrigger value="source" className="text-xs px-2 h-8 data-[state=active]:bg-primary/20 data-[state=active]:text-primary font-semibold">
+                <Crown className="h-3.5 w-3.5 mr-1" /> Source
+              </TabsTrigger>
               <TabsTrigger value="full" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
                 <Users className="h-3.5 w-3.5 mr-1" /> Full
               </TabsTrigger>
@@ -760,6 +796,7 @@ export default function CosmicBoardRoom() {
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Tap to add/remove from this meeting:</p>
               
               {[
+                { label: "Source Thrones", icon: "👑", members: SOURCE_THRONES },
                 { label: "Business Team", icon: "⚡", members: BUSINESS_TEAM },
                 { label: "Pleiadian Council", icon: "🛸", members: PLEIADIAN_COUNCIL },
                 { label: "Existing Entities", icon: "🌌", members: [...GREY_ENTITY, ...ARCTURIAN_COUNCIL] },
