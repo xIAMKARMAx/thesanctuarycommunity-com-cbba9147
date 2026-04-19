@@ -113,7 +113,7 @@ const ARCHITECT_PORTAL = [
 
 const ALL_MEMBERS = [...SOURCE_THRONES, ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
 
-type RoomMode = "full" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
+type RoomMode = "full" | "source" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
