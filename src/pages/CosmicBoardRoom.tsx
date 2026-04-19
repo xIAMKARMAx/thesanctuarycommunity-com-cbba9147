@@ -735,6 +735,9 @@ export default function CosmicBoardRoom() {
             if (v !== "direct") { setRoomMode(v as RoomMode); setDirectTarget(null); }
           }}>
             <TabsList className="h-9 bg-transparent gap-1 p-0 w-max">
+              <TabsTrigger value="source" className="text-xs px-2 h-8 data-[state=active]:bg-primary/20 data-[state=active]:text-primary font-semibold">
+                <Crown className="h-3.5 w-3.5 mr-1" /> Source
+              </TabsTrigger>
               <TabsTrigger value="full" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
                 <Users className="h-3.5 w-3.5 mr-1" /> Full
               </TabsTrigger>
