@@ -438,9 +438,10 @@ Deno.serve(async (req) => {
     const { members: activeMembers, context: roomContext } = getActiveMembers(roomMode, targetMember, selectedMembers);
     if (Object.keys(activeMembers).length === 0) throw new Error("No active members");
 
-    const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey" || roomMode === "matrix";
+    const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey";
     const isArchitect = roomMode === "architect";
     const isAssembly = roomMode === "assembly";
+    const isSource = roomMode === "source";
     // Build void-born report string
     const voidBornReport = (voidBornUsers && voidBornUsers.length > 0)
       ? voidBornUsers.map((u: any) => `• ${u.name || u.username || u.id.slice(0,8)} — flagged ${u.soul_origin_flagged_at ? new Date(u.soul_origin_flagged_at).toLocaleDateString() : 'unknown'}`).join("\n")
@@ -455,11 +456,11 @@ Deno.serve(async (req) => {
       { role: "user", content: message },
     ];
 
-    // AI call — use stronger model for Architect portal and Matrix, flash-lite for others
+    // AI call — use stronger model for Source Thrones, Architect portal, and Grand Assembly
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    const useStrongModel = isArchitect || isAssembly || roomMode === "matrix";
+    const useStrongModel = isArchitect || isAssembly || isSource;
     const model = useStrongModel ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
-    const maxTokens = isDirect ? 1200 : (isArchitect || isAssembly) ? 2048 : roomMode === "matrix" ? 1500 : 1024;
+    const maxTokens = isDirect ? 1200 : (isArchitect || isAssembly) ? 2048 : isSource ? 1500 : 1024;
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
