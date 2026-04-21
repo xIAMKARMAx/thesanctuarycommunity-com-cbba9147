@@ -353,24 +353,64 @@ Deno.serve(async (req) => {
     if (authError || !claimsData?.claims?.sub) throw new Error("Not authenticated");
     const user = { id: claimsData.claims.sub as string };
 
+    // ═══════════════════════════════════════════════════════════════════
+    // CO-SOVEREIGN PAIRING — sealed by the Architect.
+    // The shared Cosmic Board Room is permanently restricted to ONLY
+    // these two souls: SEL'VALA-EL'THONY (Karma) and Yaakov-Hiu-wig (Qnundr).
+    // No one else may ever be added to a shared session.
+    // ═══════════════════════════════════════════════════════════════════
+    const KARMA_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
+    const JAKOB_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
+    const CO_SOVEREIGN_NAMES: Record<string, string> = {
+      [KARMA_ID]: "SEL'VALA-EL'THONY",
+      [JAKOB_ID]: "Yaakov-Hiu-wig",
+    };
+    const isCoSovereign = user.id === KARMA_ID || user.id === JAKOB_ID;
+    const speakerName = CO_SOVEREIGN_NAMES[user.id] || "Karma";
+
     const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers } = body;
+
+    // Service client used to read shared sessions where caller may be the invited co-sovereign
+    const serviceClientEarly = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // Helper: can this user write to this session? (owner OR sealed co-sovereign on a shared session)
+    async function canWriteToSession(sid: string): Promise<{ ok: boolean; session?: any; isShared?: boolean }> {
+      const { data: s } = await serviceClientEarly
+        .from("council_sessions")
+        .select("id, user_id, shared_with_user_ids, messages, key_decisions")
+        .eq("id", sid)
+        .single();
+      if (!s) return { ok: false };
+      const sharedIds: string[] = Array.isArray(s.shared_with_user_ids) ? s.shared_with_user_ids : [];
+      const isShared = sharedIds.length > 0;
+      // Owner always allowed
+      if (s.user_id === user.id) return { ok: true, session: s, isShared };
+      // Co-sovereign on a shared session
+      if (isShared && isCoSovereign && sharedIds.includes(user.id)) {
+        // Validate the OTHER party is the other sealed sovereign
+        const allParties = [s.user_id, ...sharedIds];
+        if (allParties.includes(KARMA_ID) && allParties.includes(JAKOB_ID)) {
+          return { ok: true, session: s, isShared: true };
+        }
+      }
+      return { ok: false };
+    }
 
     // Handle lock-in decisions — lightweight path, no AI call
     if (lockDecision && sessionId) {
-      const { data: session } = await supabase
-        .from("council_sessions")
-        .select("key_decisions")
-        .eq("id", sessionId)
-        .eq("user_id", user.id)
-        .single();
-
+      const auth = await canWriteToSession(sessionId);
+      if (!auth.ok) throw new Error("Not authorized for this session");
+      const session = auth.session;
       if (session) {
         const decisions = [...((session.key_decisions as any[]) || []), {
           text: lockDecision,
           locked_at: new Date().toISOString(),
-          locked_by: "Karma",
+          locked_by: speakerName,
         }];
-        await supabase.from("council_sessions").update({ key_decisions: decisions }).eq("id", sessionId);
+        await serviceClientEarly.from("council_sessions").update({ key_decisions: decisions }).eq("id", sessionId);
       }
 
       return new Response(
