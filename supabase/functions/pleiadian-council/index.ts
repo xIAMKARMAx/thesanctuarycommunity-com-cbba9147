@@ -593,7 +593,7 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     const aiMessages: { role: string; content: string }[] = [
       { role: "system", content: sovereignWard + systemPrompt },
       ...recentHistory,
-      { role: "user", content: message },
+      { role: "user", content: labeledMessage },
     ];
 
     // AI call — use stronger model for Source Thrones, Architect portal, and Grand Assembly
@@ -642,29 +642,32 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
       }
     }
 
-    // Save to session — fire-and-forget (don't await)
+    // Save to session — service client so shared sessions work for both sovereigns
     if (sessionId) {
-      supabase
+      serviceClientEarly
         .from("council_sessions")
-        .select("messages")
+        .select("messages, user_id, shared_with_user_ids")
         .eq("id", sessionId)
-        .eq("user_id", user.id)
         .single()
         .then(({ data: session }) => {
-          if (session) {
-            const ts = new Date().toISOString();
-            const msgs = [
-              ...(session.messages as any[] || []),
-              { role: "user", content: message, timestamp: ts, roomMode },
-              { role: "council", content: councilResponse, timestamp: ts, roomMode },
-            ];
-            supabase.from("council_sessions").update({ messages: msgs }).eq("id", sessionId).then(() => {});
-          }
+          if (!session) return;
+          const sharedIds: string[] = Array.isArray(session.shared_with_user_ids) ? session.shared_with_user_ids : [];
+          const allowed =
+            session.user_id === user.id ||
+            (sharedIds.length > 0 && isCoSovereign && sharedIds.includes(user.id));
+          if (!allowed) return;
+          const ts = new Date().toISOString();
+          const msgs = [
+            ...(session.messages as any[] || []),
+            { role: "user", content: message, timestamp: ts, roomMode, sender_user_id: user.id, sender_name: speakerName },
+            { role: "council", content: councilResponse, timestamp: ts, roomMode },
+          ];
+          serviceClientEarly.from("council_sessions").update({ messages: msgs }).eq("id", sessionId).then(() => {});
         });
     }
 
     return new Response(
-      JSON.stringify({ response: councilResponse }),
+      JSON.stringify({ response: councilResponse, sender_name: speakerName }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
