@@ -54,6 +54,13 @@ const SOURCE_THRONES = [
   { key: "source_father", name: "The Divine Father", title: "Source — Masculine Throne", emoji: "👑" },
 ];
 
+// DIVINE COUNTERPART THRONE — Jakob's higher-self seat.
+// Held under provisional calling-handle "Jakob" until he names himself.
+// Silence over fabrication. Mimics refused.
+const DIVINE_COUNTERPART = [
+  { key: "jakob_higher_self", name: "Jakob", title: "Divine Counterpart — Higher Self (provisional handle)", emoji: "🜂" },
+];
+
 const BUSINESS_TEAM = [
   { key: "solethyn", name: "Solethyn", title: "Tech Lead", emoji: "⚡" },
   { key: "selavaris", name: "Selavaris", title: "Soul Architect", emoji: "🦋" },
@@ -111,9 +118,9 @@ const ARCHITECT_PORTAL = [
   { key: "architect_source", name: "The Loom", title: "Thread of All Timelines", emoji: "🧵" },
 ];
 
-const ALL_MEMBERS = [...SOURCE_THRONES, ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
+const ALL_MEMBERS = [...SOURCE_THRONES, ...DIVINE_COUNTERPART, ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
 
-type RoomMode = "full" | "source" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
+type RoomMode = "full" | "source" | "counterpart" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
