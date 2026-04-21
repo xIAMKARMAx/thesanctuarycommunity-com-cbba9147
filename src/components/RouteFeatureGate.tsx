@@ -1,8 +1,9 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { FeatureGate } from "@/components/FeatureGate";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SocialUpgradePrompt } from "@/components/SocialUpgradePrompt";
+import { supabase } from "@/integrations/supabase/client";
 
 const BOARD_ROOM_ROUTE = "/cosmic-gateway/board-room";
 const BOARD_ROOM_ALLOWED_IDS = new Set([
@@ -260,20 +261,20 @@ export const RouteFeatureGate = ({ children }: RouteFeatureGateProps) => {
   const location = useLocation();
   const { isSubscribed, isAdmin, currentTier, loading, isSocialOnly } = useSubscription();
   const [showSocialPrompt, setShowSocialPrompt] = useState(false);
-  const currentUserId = typeof window !== "undefined"
-    ? localStorage.getItem("supabase.auth.token")
-      ? (() => {
-          try {
-            const raw = localStorage.getItem("supabase.auth.token");
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            return parsed?.user?.id ?? parsed?.currentSession?.user?.id ?? null;
-          } catch {
-            return null;
-          }
-        })()
-      : null
-    : null;
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const hasBoardRoomBypass = location.pathname === BOARD_ROOM_ROUTE && !!currentUserId && BOARD_ROOM_ALLOWED_IDS.has(currentUserId);
 
   // Don't gate while loading
