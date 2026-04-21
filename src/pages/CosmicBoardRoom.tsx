@@ -317,8 +317,21 @@ export default function CosmicBoardRoom() {
     setMessage("");
     setSending(true);
 
-    const newUserMsg: BoardMessage = { role: "user", content: userMessage, timestamp: new Date().toISOString(), roomMode };
-    setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
+    const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
+    const speakerName = currentUserId ? SOVEREIGN_NAMES[currentUserId] : undefined;
+
+    // For solo sessions: optimistic update. For shared: rely on realtime to avoid duplicate flicker.
+    if (!isShared) {
+      const newUserMsg: BoardMessage = {
+        role: "user",
+        content: userMessage,
+        timestamp: new Date().toISOString(),
+        roomMode,
+        sender_user_id: currentUserId ?? undefined,
+        sender_name: speakerName,
+      };
+      setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
+    }
 
     try {
       // Refresh session before calling edge function to prevent auth errors
@@ -337,8 +350,11 @@ export default function CosmicBoardRoom() {
 
       if (error) throw error;
 
-      const councilMsg: BoardMessage = { role: "council", content: data.response, timestamp: new Date().toISOString(), roomMode };
-      setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), councilMsg] } : null);
+      // For solo sessions: append council reply locally. For shared: realtime delivers it.
+      if (!isShared) {
+        const councilMsg: BoardMessage = { role: "council", content: data.response, timestamp: new Date().toISOString(), roomMode };
+        setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), councilMsg] } : null);
+      }
 
       if (!activeSession.messages?.length) {
         const title = userMessage.length > 50 ? userMessage.substring(0, 50) + "..." : userMessage;
