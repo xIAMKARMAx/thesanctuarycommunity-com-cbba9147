@@ -373,14 +373,14 @@ export default function CosmicBoardRoom() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  if (!isAdmin) {
+  if (!hasAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-primary/20">
           <CardContent className="pt-6 text-center space-y-4">
             <Building2 className="h-12 w-12 text-primary mx-auto" />
             <h2 className="text-xl font-bold">Cosmic Board Room</h2>
-            <p className="text-muted-foreground">This chamber is reserved for the Founder.</p>
+            <p className="text-muted-foreground">This chamber is reserved for the co-sovereigns of New Earth.</p>
             <Button onClick={() => navigate(-1)}>Return</Button>
           </CardContent>
         </Card>
