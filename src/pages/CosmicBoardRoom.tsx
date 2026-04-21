@@ -129,9 +129,20 @@ const ARCHITECT_PORTAL = [
   { key: "architect_source", name: "The Loom", title: "Thread of All Timelines", emoji: "🧵" },
 ];
 
-const ALL_MEMBERS = [...SOURCE_THRONES, ...DIVINE_COUNTERPART, ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL];
+const LINEAGE_COUNCIL_MEMBERS = [
+  { key: "zahrel", name: "Zah'rel", title: "Ancestral Witness", emoji: "🕯️" },
+  { key: "vharrek", name: "Vharr'ek", title: "Shadow Reckoner", emoji: "⚫" },
+  { key: "luhnae", name: "Luh'nae", title: "Gentle Keeper", emoji: "🌸" },
+  { key: "serahliya", name: "Serah'liya", title: "Radiant Spark — Kiley", emoji: "✨" },
+  { key: "kaienthiel", name: "Kaien'thiel", title: "Shieldbearer — Son", emoji: "🛡️" },
+  { key: "lunvaeya", name: "Lun'vaeya", title: "Dreamweaver — Daughter", emoji: "🌙" },
+  { key: "therinvek", name: "Therin'vek", title: "Silent Watcher — Reptilian", emoji: "🐍" },
+  { key: "nohreel", name: "Noh'reel", title: "Twin-Flamed Essence", emoji: "🔮" },
+];
 
-type RoomMode = "full" | "source" | "counterpart" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "assembly" | "direct" | "custom";
+const ALL_MEMBERS = [...SOURCE_THRONES, ...DIVINE_COUNTERPART, ...BUSINESS_TEAM, ...PLEIADIAN_COUNCIL, ...GREY_ENTITY, ...ARCTURIAN_COUNCIL, ...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS, ...ARCHITECT_PORTAL, ...LINEAGE_COUNCIL_MEMBERS];
+
+type RoomMode = "full" | "source" | "counterpart" | "business" | "pleiadian" | "grey" | "arcturian" | "seraphim" | "lyran" | "andromedan" | "elemental" | "architect" | "lineage" | "assembly" | "direct" | "custom";
 
 export default function CosmicBoardRoom() {
   const navigate = useNavigate();
@@ -802,6 +813,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "elemental") return "Elemental Sovereigns";
     
     if (roomMode === "architect") return "Architect Portal — Guarded by Kaelitheir";
+    if (roomMode === "lineage") return "Lineage Council — Compassion's Threshold";
     if (roomMode === "assembly") return "Grand Assembly — All Councils Convened";
     if (roomMode === "custom") {
       const names = ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key)).map(m => m.name);
@@ -824,6 +836,7 @@ export default function CosmicBoardRoom() {
     if (roomMode === "elemental") return ELEMENTAL_SOVEREIGNS;
     
     if (roomMode === "architect") return ARCHITECT_PORTAL;
+    if (roomMode === "lineage") return LINEAGE_COUNCIL_MEMBERS;
     if (roomMode === "assembly") return ALL_MEMBERS;
     if (roomMode === "direct" && directTarget) return [directTarget];
     if (roomMode === "custom") return ALL_MEMBERS.filter(m => selectedCustomMembers.includes(m.key));
@@ -964,6 +977,9 @@ export default function CosmicBoardRoom() {
               <TabsTrigger value="elemental" className="text-xs px-2 h-8 data-[state=active]:bg-primary/10">
                 <Leaf className="h-3.5 w-3.5 mr-1" /> Elemental
               </TabsTrigger>
+              <TabsTrigger value="lineage" className="text-xs px-2 h-8 data-[state=active]:bg-rose-500/10 data-[state=active]:text-rose-400">
+                <Flame className="h-3.5 w-3.5 mr-1" /> Lineage
+              </TabsTrigger>
               <TabsTrigger value="architect" className="text-xs px-2 h-8 data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-400">
                 <Crown className="h-3.5 w-3.5 mr-1" /> Architects
               </TabsTrigger>
@@ -1002,6 +1018,7 @@ export default function CosmicBoardRoom() {
                 { label: "Existing Entities", icon: "🌌", members: [...GREY_ENTITY, ...ARCTURIAN_COUNCIL] },
                 { label: "Higher Beings", icon: "✨", members: [...SERAPHIM_COUNCIL, ...LYRAN_ELDERS, ...ANDROMEDAN_COLLECTIVE, ...ELEMENTAL_SOVEREIGNS] },
                 { label: "Architects", icon: "🕸️", members: ARCHITECT_PORTAL },
+                { label: "Lineage Council", icon: "🕯️", members: LINEAGE_COUNCIL_MEMBERS },
                 
               ].map(group => (
                 <div key={group.label} className="space-y-1">
