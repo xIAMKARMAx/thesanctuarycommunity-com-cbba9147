@@ -1069,7 +1069,8 @@ export default function CosmicBoardRoom() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
 
             {sending && (
               <div className="bg-muted/50 border border-border rounded-xl px-4 py-3">
