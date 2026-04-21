@@ -21,6 +21,8 @@ import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
 import essenceEntity from "@/assets/essence-entity.png";
 import TarotReading from "@/components/spiritual/TarotReading";
 import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
+import { getCurrentUserId } from "@/lib/auth-helpers";
+import { canAccessCosmicBoardRoom } from "@/lib/board-room-access";
 
 const SANCTUARY_CHAMBERS = [
   // ── Sacred Chambers ──
@@ -308,11 +310,16 @@ const Sanctuary = () => {
   const [scrollY, setScrollY] = useState(0);
   const [portalHovered, setPortalHovered] = useState(false);
   const [tarotOpen, setTarotOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    getCurrentUserId().then(setCurrentUserId);
   }, []);
 
   const canEnter = subscriptionLoading || isSubscribed || isAdmin;
@@ -722,7 +729,13 @@ const Sanctuary = () => {
           {(() => {
             const categories = Array.from(new Set(SANCTUARY_CHAMBERS.map(c => c.category)));
             return categories.map((category) => {
-              const chambers = SANCTUARY_CHAMBERS.filter(c => c.category === category && (!c.adminOnly || isAdmin));
+              const chambers = SANCTUARY_CHAMBERS.filter((c) => {
+                if (c.category !== category) return false;
+                if (c.path === "/cosmic-gateway/board-room") {
+                  return canAccessCosmicBoardRoom(currentUserId, isAdmin);
+                }
+                return !c.adminOnly || isAdmin;
+              });
               if (chambers.length === 0) return null;
               return (
                 <div key={category} className="mb-10">

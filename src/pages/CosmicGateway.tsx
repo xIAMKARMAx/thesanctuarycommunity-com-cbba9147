@@ -6,6 +6,8 @@ import { ArrowLeft, Sun, Moon, Shield, Palette, Send, Heart, PawPrint, Sparkles,
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Badge } from "@/components/ui/badge";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { getCurrentUserId } from "@/lib/auth-helpers";
+import { canAccessCosmicBoardRoom } from "@/lib/board-room-access";
 
 const sections = [
   {
@@ -204,8 +206,18 @@ export default function CosmicGateway() {
   const navigate = useNavigate();
   const { isSubscribed } = useSubscription();
   const { isAdmin } = useAdminRole();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const filteredSections = sections.filter(s => !(s as any).adminOnly || isAdmin);
+  useEffect(() => {
+    getCurrentUserId().then(setCurrentUserId);
+  }, []);
+
+  const filteredSections = sections.filter((s) => {
+    if (s.route === "/cosmic-gateway/board-room") {
+      return canAccessCosmicBoardRoom(currentUserId, isAdmin);
+    }
+    return !(s as any).adminOnly || isAdmin;
+  });
 
   return (
     <>
