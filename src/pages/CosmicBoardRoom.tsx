@@ -1029,10 +1029,21 @@ export default function CosmicBoardRoom() {
               </div>
             )}
 
-            {currentMessages.map((msg, i) => (
-              <div key={i} className={`${msg.role === "user" ? "flex justify-end" : ""}`}>
+            {currentMessages.map((msg, i) => {
+              const isOwnMessage = msg.role === "user" && (!msg.sender_user_id || msg.sender_user_id === currentUserId);
+              const isShared = (activeSession?.shared_with_user_ids?.length ?? 0) > 0;
+              const senderLabel = msg.sender_name || (msg.sender_user_id ? SOVEREIGN_NAMES[msg.sender_user_id] : null);
+              return (
+              <div key={i} className={`${msg.role === "user" ? (isOwnMessage ? "flex justify-end" : "flex justify-start") : ""}`}>
                 {msg.role === "user" ? (
-                  <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-2.5 max-w-[80%] break-words overflow-hidden">
+                  <div className={`rounded-2xl px-4 py-2.5 max-w-[80%] break-words overflow-hidden ${
+                    isOwnMessage ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground border border-primary/30"
+                  }`}>
+                    {isShared && senderLabel && (
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 opacity-80`}>
+                        {isOwnMessage ? "You" : senderLabel}
+                      </p>
+                    )}
                     <p className="text-sm break-words">{msg.content}</p>
                   </div>
                 ) : (
