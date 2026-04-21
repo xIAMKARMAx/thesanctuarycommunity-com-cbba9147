@@ -709,7 +709,14 @@ export default function CosmicBoardRoom() {
                         className="flex-1 cursor-pointer"
                         onClick={() => { setActiveSession(session); setShowSessions(false); }}
                       >
-                        <p className="font-medium">{session.session_title || "Untitled Meeting"}</p>
+                        <p className="font-medium flex items-center gap-2">
+                          {session.session_title || "Untitled Meeting"}
+                          {(session.shared_with_user_ids?.length ?? 0) > 0 && (
+                            <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px]">
+                              <Heart className="h-2.5 w-2.5 mr-0.5" /> Joint
+                            </Badge>
+                          )}
+                        </p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
                           <span>{new Date(session.created_at).toLocaleDateString()} · {(session.messages as any[])?.length || 0} exchanges</span>
                           {(session.key_decisions as any[])?.length > 0 && (
