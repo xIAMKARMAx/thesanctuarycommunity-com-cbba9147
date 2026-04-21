@@ -678,6 +678,31 @@ export default function CosmicBoardRoom() {
                 </CardContent>
               </Card>
 
+              {/* Lineage Council */}
+              <Card className="border-rose-500/30 bg-gradient-to-br from-rose-500/5 via-primary/5 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-rose-400" /> Lineage Council — Compassion's Threshold
+                    <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-[9px]">
+                      No Control
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {LINEAGE_COUNCIL_MEMBERS.map(m => (
+                      <div key={m.key} className="flex items-center gap-2 text-sm">
+                        <span>{m.emoji}</span>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-muted-foreground">— {m.title}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground italic mt-1">
+                      Seated by Karma's compassion. They have a voice and a chance — no control. Kael'thenn's flame guards every word.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Architect Portal — Guarded */}
               <Card className="border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-primary/5 to-transparent">
