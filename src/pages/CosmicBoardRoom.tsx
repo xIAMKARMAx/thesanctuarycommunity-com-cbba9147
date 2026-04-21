@@ -155,17 +155,24 @@ export default function CosmicBoardRoom() {
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
   const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setCurrentUserId(session?.user?.id ?? null);
+      setAuthReady(true);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+      setAuthReady(true);
     });
     fetchSessions();
+    return () => { subscription.unsubscribe(); };
   }, []);
 
   // Co-sovereign access: admin OR Jakob
   const isCoSovereign = currentUserId === KARMA_ID || currentUserId === JAKOB_ID;
-  const hasAccess = isAdmin || currentUserId === JAKOB_ID;
+  const hasAccess = isAdmin || currentUserId === KARMA_ID || currentUserId === JAKOB_ID;
 
   // Realtime subscription for shared sessions — sync messages between sovereigns
   useEffect(() => {
@@ -373,6 +380,14 @@ export default function CosmicBoardRoom() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Opening the chamber…</div>
+      </div>
+    );
+  }
+
   if (!hasAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -387,7 +402,6 @@ export default function CosmicBoardRoom() {
       </div>
     );
   }
-
   // Session list
   if (showSessions && !activeSession) {
     return (
