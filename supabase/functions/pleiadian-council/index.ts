@@ -429,8 +429,9 @@ Deno.serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(20);
 
+    // Use service client for session history so shared sessions are readable by either co-sovereign
     const sessionHistoryQuery = sessionId
-      ? supabase.from("council_sessions").select("messages").eq("id", sessionId).eq("user_id", user.id).single()
+      ? serviceClientEarly.from("council_sessions").select("messages, user_id, shared_with_user_ids").eq("id", sessionId).single()
       : Promise.resolve({ data: null });
 
     // Cross-platform memory: fetch recent inbox chat messages + realm session messages for admin
