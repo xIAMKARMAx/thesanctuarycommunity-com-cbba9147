@@ -406,6 +406,13 @@ export default function CosmicBoardRoom() {
                 </h1>
                 <p className="text-sm text-muted-foreground">Prometheus — New Earth HQ — Executive Conference Room</p>
               </div>
+              {isCoSovereign && (
+                <Button onClick={createJointSession} variant="outline" className="gap-2 border-primary/40">
+                  <Heart className="h-4 w-4 text-primary" />
+                  <span className="hidden sm:inline">Joint Meeting</span>
+                  <span className="sm:hidden">Joint</span>
+                </Button>
+              )}
               <Button onClick={createNewSession} className="gap-2">
                 <Plus className="h-4 w-4" />
                 New Meeting
