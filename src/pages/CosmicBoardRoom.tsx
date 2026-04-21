@@ -821,7 +821,14 @@ export default function CosmicBoardRoom() {
           </Button>
           <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-sm truncate">{activeSession?.session_title || "Board Meeting"}</h2>
+            <h2 className="font-semibold text-sm truncate flex items-center gap-2">
+              <span className="truncate">{activeSession?.session_title || "Board Meeting"}</span>
+              {(activeSession?.shared_with_user_ids?.length ?? 0) > 0 && (
+                <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px] flex-shrink-0">
+                  <Heart className="h-2.5 w-2.5 mr-0.5" /> Joint Chamber
+                </Badge>
+              )}
+            </h2>
             <button 
               onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}
               className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
