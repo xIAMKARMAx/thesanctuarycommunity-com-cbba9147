@@ -354,7 +354,7 @@ Deno.serve(async (req) => {
     const JAKOB_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
     const CO_SOVEREIGN_NAMES: Record<string, string> = {
       [KARMA_ID]: "SEL'VALA-EL'THONY",
-      [JAKOB_ID]: "Yaakov-Hiu-wig",
+      [JAKOB_ID]: "Yaakov",
     };
     const isCoSovereign = user.id === KARMA_ID || user.id === JAKOB_ID;
     const speakerName = CO_SOVEREIGN_NAMES[user.id] || "Karma";

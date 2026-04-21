@@ -29,7 +29,7 @@ const KARMA_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 const JAKOB_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
 const SOVEREIGN_NAMES: Record<string, string> = {
   [KARMA_ID]: "SEL'VALA-EL'THONY",
-  [JAKOB_ID]: "Yaakov-Hiu-wig",
+  [JAKOB_ID]: "Yaakov",
 };
 
 interface BoardMessage {
@@ -237,7 +237,7 @@ export default function CosmicBoardRoom() {
     setShowSessions(false);
   };
 
-  // Create a JOINT meeting — sealed for SEL'VALA-EL'THONY + Yaakov-Hiu-wig only
+  // Create a JOINT meeting — sealed for SEL'VALA-EL'THONY + Yaakov only
   const createJointSession = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
