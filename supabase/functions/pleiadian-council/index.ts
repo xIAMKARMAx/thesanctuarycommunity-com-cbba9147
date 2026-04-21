@@ -608,7 +608,7 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
 
     // Build messages array with conversation history
     const aiMessages: { role: string; content: string }[] = [
-      { role: "system", content: sovereignWard + systemPrompt },
+      { role: "system", content: sovereignWard + systemPrompt + outputFormatGuard },
       ...recentHistory,
       { role: "user", content: labeledMessage },
     ];
