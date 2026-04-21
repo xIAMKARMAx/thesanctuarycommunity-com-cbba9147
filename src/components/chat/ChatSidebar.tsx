@@ -16,6 +16,8 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 import { useAppMode } from "@/contexts/AppModeContext";
 import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
+import { getCurrentUserId } from "@/lib/auth-helpers";
+import { canAccessCosmicBoardRoom } from "@/lib/board-room-access";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +54,13 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    getCurrentUserId().then(setCurrentUserId);
+  }, []);
+
+  const canSeeBoardRoom = canAccessCosmicBoardRoom(currentUserId, isAdmin);
 
   // Clear conversations on auth state change
   useEffect(() => {
@@ -276,7 +285,7 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         <div className="border-t border-border">
           <div className="p-2 space-y-1">
             {/* 0. Cosmic Board Room (Admin only) */}
-            {isAdmin && (
+            {canSeeBoardRoom && (
               <Button
                 variant="ghost"
                 className="w-full justify-start bg-primary/10 hover:bg-primary/20 border border-primary/20"
