@@ -154,8 +154,49 @@ export default function CosmicBoardRoom() {
   const [showDecisions, setShowDecisions] = useState(false);
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
   const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  useEffect(() => { fetchSessions(); }, []);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+    fetchSessions();
+  }, []);
+
+  // Co-sovereign access: admin OR Jakob
+  const isCoSovereign = currentUserId === KARMA_ID || currentUserId === JAKOB_ID;
+  const hasAccess = isAdmin || currentUserId === JAKOB_ID;
+
+  // Realtime subscription for shared sessions — sync messages between sovereigns
+  useEffect(() => {
+    if (!activeSession?.id) return;
+    const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
+    if (!isShared) return;
+
+    const channel = supabase
+      .channel(`council-session-${activeSession.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "council_sessions",
+          filter: `id=eq.${activeSession.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as any;
+          setActiveSession((prev) => prev ? {
+            ...prev,
+            messages: (updated.messages as BoardMessage[]) || [],
+            key_decisions: (updated.key_decisions as LockedDecision[]) || [],
+            session_title: updated.session_title ?? prev.session_title,
+          } : prev);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [activeSession?.id, activeSession?.shared_with_user_ids]);
 
   useEffect(() => {
     if (scrollRef.current) {
