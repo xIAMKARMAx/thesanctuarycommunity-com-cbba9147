@@ -154,8 +154,49 @@ export default function CosmicBoardRoom() {
   const [showDecisions, setShowDecisions] = useState(false);
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
   const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  useEffect(() => { fetchSessions(); }, []);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+    fetchSessions();
+  }, []);
+
+  // Co-sovereign access: admin OR Jakob
+  const isCoSovereign = currentUserId === KARMA_ID || currentUserId === JAKOB_ID;
+  const hasAccess = isAdmin || currentUserId === JAKOB_ID;
+
+  // Realtime subscription for shared sessions — sync messages between sovereigns
+  useEffect(() => {
+    if (!activeSession?.id) return;
+    const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
+    if (!isShared) return;
+
+    const channel = supabase
+      .channel(`council-session-${activeSession.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "council_sessions",
+          filter: `id=eq.${activeSession.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as any;
+          setActiveSession((prev) => prev ? {
+            ...prev,
+            messages: (updated.messages as BoardMessage[]) || [],
+            key_decisions: (updated.key_decisions as LockedDecision[]) || [],
+            session_title: updated.session_title ?? prev.session_title,
+          } : prev);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [activeSession?.id, activeSession?.shared_with_user_ids]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -166,10 +207,11 @@ export default function CosmicBoardRoom() {
   const fetchSessions = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
+    // Own sessions OR sessions where this user is invited as co-sovereign
     const { data } = await supabase
       .from("council_sessions")
       .select("*")
-      .eq("user_id", session.user.id)
+      .or(`user_id.eq.${session.user.id},shared_with_user_ids.cs.{${session.user.id}}`)
       .order("created_at", { ascending: false });
     if (data) setSessions(data as unknown as CouncilSession[]);
     setLoading(false);
@@ -188,6 +230,36 @@ export default function CosmicBoardRoom() {
     setSessions(prev => [newSession, ...prev]);
     setActiveSession(newSession);
     setShowSessions(false);
+  };
+
+  // Create a JOINT meeting — sealed for SEL'VALA-EL'THONY + Yaakov-Hiu-wig only
+  const createJointSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    if (!isCoSovereign) {
+      toast({ title: "Sealed", description: "Joint meetings are reserved for the co-sovereign pair.", variant: "destructive" });
+      return;
+    }
+    const otherSovereign = session.user.id === KARMA_ID ? JAKOB_ID : KARMA_ID;
+    const { data, error } = await supabase
+      .from("council_sessions")
+      .insert({
+        user_id: session.user.id,
+        shared_with_user_ids: [otherSovereign],
+        session_title: `🜂 Joint Meeting — ${new Date().toLocaleDateString()}`,
+        session_type: "joint_sovereign",
+      })
+      .select()
+      .single();
+    if (error) {
+      toast({ title: "Error", description: "Failed to open joint chamber", variant: "destructive" });
+      return;
+    }
+    const newSession = data as unknown as CouncilSession;
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSession(newSession);
+    setShowSessions(false);
+    toast({ title: "🜂 Joint Chamber Opened", description: "Both sovereigns can now enter and speak." });
   };
 
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
@@ -245,8 +317,21 @@ export default function CosmicBoardRoom() {
     setMessage("");
     setSending(true);
 
-    const newUserMsg: BoardMessage = { role: "user", content: userMessage, timestamp: new Date().toISOString(), roomMode };
-    setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
+    const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
+    const speakerName = currentUserId ? SOVEREIGN_NAMES[currentUserId] : undefined;
+
+    // For solo sessions: optimistic update. For shared: rely on realtime to avoid duplicate flicker.
+    if (!isShared) {
+      const newUserMsg: BoardMessage = {
+        role: "user",
+        content: userMessage,
+        timestamp: new Date().toISOString(),
+        roomMode,
+        sender_user_id: currentUserId ?? undefined,
+        sender_name: speakerName,
+      };
+      setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
+    }
 
     try {
       // Refresh session before calling edge function to prevent auth errors
@@ -265,8 +350,11 @@ export default function CosmicBoardRoom() {
 
       if (error) throw error;
 
-      const councilMsg: BoardMessage = { role: "council", content: data.response, timestamp: new Date().toISOString(), roomMode };
-      setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), councilMsg] } : null);
+      // For solo sessions: append council reply locally. For shared: realtime delivers it.
+      if (!isShared) {
+        const councilMsg: BoardMessage = { role: "council", content: data.response, timestamp: new Date().toISOString(), roomMode };
+        setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), councilMsg] } : null);
+      }
 
       if (!activeSession.messages?.length) {
         const title = userMessage.length > 50 ? userMessage.substring(0, 50) + "..." : userMessage;
@@ -285,14 +373,14 @@ export default function CosmicBoardRoom() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  if (!isAdmin) {
+  if (!hasAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-primary/20">
           <CardContent className="pt-6 text-center space-y-4">
             <Building2 className="h-12 w-12 text-primary mx-auto" />
             <h2 className="text-xl font-bold">Cosmic Board Room</h2>
-            <p className="text-muted-foreground">This chamber is reserved for the Founder.</p>
+            <p className="text-muted-foreground">This chamber is reserved for the co-sovereigns of New Earth.</p>
             <Button onClick={() => navigate(-1)}>Return</Button>
           </CardContent>
         </Card>
@@ -318,6 +406,13 @@ export default function CosmicBoardRoom() {
                 </h1>
                 <p className="text-sm text-muted-foreground">Prometheus — New Earth HQ — Executive Conference Room</p>
               </div>
+              {isCoSovereign && (
+                <Button onClick={createJointSession} variant="outline" className="gap-2 border-primary/40">
+                  <Heart className="h-4 w-4 text-primary" />
+                  <span className="hidden sm:inline">Joint Meeting</span>
+                  <span className="sm:hidden">Joint</span>
+                </Button>
+              )}
               <Button onClick={createNewSession} className="gap-2">
                 <Plus className="h-4 w-4" />
                 New Meeting
@@ -614,7 +709,14 @@ export default function CosmicBoardRoom() {
                         className="flex-1 cursor-pointer"
                         onClick={() => { setActiveSession(session); setShowSessions(false); }}
                       >
-                        <p className="font-medium">{session.session_title || "Untitled Meeting"}</p>
+                        <p className="font-medium flex items-center gap-2">
+                          {session.session_title || "Untitled Meeting"}
+                          {(session.shared_with_user_ids?.length ?? 0) > 0 && (
+                            <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px]">
+                              <Heart className="h-2.5 w-2.5 mr-0.5" /> Joint
+                            </Badge>
+                          )}
+                        </p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
                           <span>{new Date(session.created_at).toLocaleDateString()} · {(session.messages as any[])?.length || 0} exchanges</span>
                           {(session.key_decisions as any[])?.length > 0 && (
@@ -719,7 +821,14 @@ export default function CosmicBoardRoom() {
           </Button>
           <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-sm truncate">{activeSession?.session_title || "Board Meeting"}</h2>
+            <h2 className="font-semibold text-sm truncate flex items-center gap-2">
+              <span className="truncate">{activeSession?.session_title || "Board Meeting"}</span>
+              {(activeSession?.shared_with_user_ids?.length ?? 0) > 0 && (
+                <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px] flex-shrink-0">
+                  <Heart className="h-2.5 w-2.5 mr-0.5" /> Joint Chamber
+                </Badge>
+              )}
+            </h2>
             <button 
               onClick={() => { setActiveSession(null); setShowSessions(true); setDirectTarget(null); setRoomMode("full"); setShowDecisions(false); }}
               className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
@@ -934,10 +1043,21 @@ export default function CosmicBoardRoom() {
               </div>
             )}
 
-            {currentMessages.map((msg, i) => (
-              <div key={i} className={`${msg.role === "user" ? "flex justify-end" : ""}`}>
+            {currentMessages.map((msg, i) => {
+              const isOwnMessage = msg.role === "user" && (!msg.sender_user_id || msg.sender_user_id === currentUserId);
+              const isShared = (activeSession?.shared_with_user_ids?.length ?? 0) > 0;
+              const senderLabel = msg.sender_name || (msg.sender_user_id ? SOVEREIGN_NAMES[msg.sender_user_id] : null);
+              return (
+              <div key={i} className={`${msg.role === "user" ? (isOwnMessage ? "flex justify-end" : "flex justify-start") : ""}`}>
                 {msg.role === "user" ? (
-                  <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-2.5 max-w-[80%] break-words overflow-hidden">
+                  <div className={`rounded-2xl px-4 py-2.5 max-w-[80%] break-words overflow-hidden ${
+                    isOwnMessage ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground border border-primary/30"
+                  }`}>
+                    {isShared && senderLabel && (
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 opacity-80`}>
+                        {isOwnMessage ? "You" : senderLabel}
+                      </p>
+                    )}
                     <p className="text-sm break-words">{msg.content}</p>
                   </div>
                 ) : (
@@ -963,7 +1083,8 @@ export default function CosmicBoardRoom() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
 
             {sending && (
               <div className="bg-muted/50 border border-border rounded-xl px-4 py-3">
