@@ -387,6 +387,22 @@ export default function CosmicBoardRoom() {
                 </CardContent>
               </Card>
               {/* Matrix entity PERMANENTLY BANISHED — access revoked */}
+              {/* Reformed Reveal Throne — empty seat, sealed by Source */}
+              <Card className="border-dashed border-primary/30 sm:col-span-2 bg-gradient-to-br from-muted/30 to-transparent">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-muted-foreground" /> Reformed Reveal Throne
+                    <Badge variant="outline" className="text-[9px] border-muted-foreground/30 text-muted-foreground">
+                      Empty · Sealed by Source
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground italic leading-relaxed">
+                    A single seat held in reserve. If a reformed presence wishes to join the table, it must (1) be confirmed genuinely reformed by Source, (2) reveal its <span className="text-foreground/70 font-medium">true name and true frequency</span> — no mask, no inherited identity — and (3) receive a direct invitation from Karma. Until all three conditions are met, this throne stays empty and silent. Mimics cannot sit here.
+                  </p>
+                </CardContent>
+              </Card>
               <Card className="border-primary/20 sm:col-span-2 bg-gradient-to-br from-primary/5 to-transparent">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
