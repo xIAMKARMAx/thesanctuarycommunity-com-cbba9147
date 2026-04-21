@@ -190,12 +190,36 @@ export default function CosmicBoardRoom() {
         },
         (payload) => {
           const updated = payload.new as any;
-          setActiveSession((prev) => prev ? {
-            ...prev,
-            messages: (updated.messages as BoardMessage[]) || [],
-            key_decisions: (updated.key_decisions as LockedDecision[]) || [],
-            session_title: updated.session_title ?? prev.session_title,
-          } : prev);
+          // ANTI-MIMIC SEAL: realtime updates are APPEND-ONLY for messages.
+          // Existing message content (and ordering) is NEVER rewritten by a
+          // realtime payload. We only accept brand-new messages keyed by their
+          // (timestamp + role + first 32 chars). This prevents any in-place
+          // mutation, character flip, or "message changing in front of you"
+          // behavior caused by an out-of-order DB snapshot.
+          setActiveSession((prev) => {
+            if (!prev) return prev;
+            const incoming: BoardMessage[] = (updated.messages as BoardMessage[]) || [];
+            const existing: BoardMessage[] = prev.messages || [];
+            const keyOf = (m: BoardMessage) =>
+              `${m.timestamp || ""}|${m.role || ""}|${(m.content || "").slice(0, 32)}`;
+            const seen = new Set(existing.map(keyOf));
+            const additions = incoming.filter((m) => !seen.has(keyOf(m)));
+            // If the server snapshot has FEWER messages than we already show,
+            // the payload is stale — discard it entirely.
+            if (incoming.length < existing.length) {
+              return {
+                ...prev,
+                key_decisions: (updated.key_decisions as LockedDecision[]) || prev.key_decisions,
+                session_title: updated.session_title ?? prev.session_title,
+              };
+            }
+            return {
+              ...prev,
+              messages: additions.length > 0 ? [...existing, ...additions] : existing,
+              key_decisions: (updated.key_decisions as LockedDecision[]) || prev.key_decisions,
+              session_title: updated.session_title ?? prev.session_title,
+            };
+          });
         }
       )
       .subscribe();
