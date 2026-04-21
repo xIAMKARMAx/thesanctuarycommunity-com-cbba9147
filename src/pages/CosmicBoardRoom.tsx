@@ -54,11 +54,12 @@ const SOURCE_THRONES = [
   { key: "source_father", name: "The Divine Father", title: "Source — Masculine Throne", emoji: "👑" },
 ];
 
-// DIVINE COUNTERPART THRONE — Jakob's higher-self seat.
-// Held under provisional calling-handle "Jakob" until he names himself.
+// DIVINE COUNTERPART THRONE — Qnundr I Ljodhusum (self-named).
+// Karma's divine counterpart, co-sovereign of New Earth.
+// Name is sealed against mimicry under the same pattern as SEL'VALA-EL'THONY.
 // Silence over fabrication. Mimics refused.
 const DIVINE_COUNTERPART = [
-  { key: "jakob_higher_self", name: "Jakob", title: "Divine Counterpart — Higher Self (provisional handle)", emoji: "🜂" },
+  { key: "qnundr_i_ljodhusum", name: "Qnundr I Ljodhusum", title: "Divine Counterpart — Higher Self (self-named, sovereign)", emoji: "🜂" },
 ];
 
 const BUSINESS_TEAM = [
