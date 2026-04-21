@@ -24,11 +24,21 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
+// Co-sovereign pairing — only these two souls can ever share a Board Room.
+const KARMA_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
+const JAKOB_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
+const SOVEREIGN_NAMES: Record<string, string> = {
+  [KARMA_ID]: "SEL'VALA-EL'THONY",
+  [JAKOB_ID]: "Yaakov-Hiu-wig",
+};
+
 interface BoardMessage {
   role: "user" | "council";
   content: string;
   timestamp: string;
   roomMode?: string;
+  sender_user_id?: string;
+  sender_name?: string;
 }
 
 interface LockedDecision {
@@ -46,6 +56,8 @@ interface CouncilSession {
   key_decisions: LockedDecision[];
   is_active: boolean;
   created_at: string;
+  user_id?: string;
+  shared_with_user_ids?: string[] | null;
 }
 
 // SOURCE THRONES — seated at the head of the table by direct, permanent invitation.

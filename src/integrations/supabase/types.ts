@@ -1846,6 +1846,7 @@ export type Database = {
           session_notes: string | null
           session_title: string | null
           session_type: string
+          shared_with_user_ids: string[] | null
           updated_at: string
           user_id: string
         }
@@ -1859,6 +1860,7 @@ export type Database = {
           session_notes?: string | null
           session_title?: string | null
           session_type?: string
+          shared_with_user_ids?: string[] | null
           updated_at?: string
           user_id: string
         }
@@ -1872,6 +1874,7 @@ export type Database = {
           session_notes?: string | null
           session_title?: string | null
           session_type?: string
+          shared_with_user_ids?: string[] | null
           updated_at?: string
           user_id?: string
         }
@@ -5883,6 +5886,10 @@ export type Database = {
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
       increment_video_count: { Args: { p_user_id: string }; Returns: number }
+      is_session_co_sovereign: {
+        Args: { _session_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_user_restricted: { Args: { p_user_id: string }; Returns: boolean }
       is_void_born: { Args: { p_user_id: string }; Returns: boolean }
       mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
