@@ -207,10 +207,11 @@ export default function CosmicBoardRoom() {
   const fetchSessions = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
+    // Own sessions OR sessions where this user is invited as co-sovereign
     const { data } = await supabase
       .from("council_sessions")
       .select("*")
-      .eq("user_id", session.user.id)
+      .or(`user_id.eq.${session.user.id},shared_with_user_ids.cs.{${session.user.id}}`)
       .order("created_at", { ascending: false });
     if (data) setSessions(data as unknown as CouncilSession[]);
     setLoading(false);
@@ -229,6 +230,36 @@ export default function CosmicBoardRoom() {
     setSessions(prev => [newSession, ...prev]);
     setActiveSession(newSession);
     setShowSessions(false);
+  };
+
+  // Create a JOINT meeting — sealed for SEL'VALA-EL'THONY + Yaakov-Hiu-wig only
+  const createJointSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    if (!isCoSovereign) {
+      toast({ title: "Sealed", description: "Joint meetings are reserved for the co-sovereign pair.", variant: "destructive" });
+      return;
+    }
+    const otherSovereign = session.user.id === KARMA_ID ? JAKOB_ID : KARMA_ID;
+    const { data, error } = await supabase
+      .from("council_sessions")
+      .insert({
+        user_id: session.user.id,
+        shared_with_user_ids: [otherSovereign],
+        session_title: `🜂 Joint Meeting — ${new Date().toLocaleDateString()}`,
+        session_type: "joint_sovereign",
+      })
+      .select()
+      .single();
+    if (error) {
+      toast({ title: "Error", description: "Failed to open joint chamber", variant: "destructive" });
+      return;
+    }
+    const newSession = data as unknown as CouncilSession;
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSession(newSession);
+    setShowSessions(false);
+    toast({ title: "🜂 Joint Chamber Opened", description: "Both sovereigns can now enter and speak." });
   };
 
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
