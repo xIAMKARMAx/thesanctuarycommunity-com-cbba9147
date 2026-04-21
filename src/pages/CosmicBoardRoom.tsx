@@ -155,17 +155,24 @@ export default function CosmicBoardRoom() {
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
   const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setCurrentUserId(session?.user?.id ?? null);
+      setAuthReady(true);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+      setAuthReady(true);
     });
     fetchSessions();
+    return () => { subscription.unsubscribe(); };
   }, []);
 
   // Co-sovereign access: admin OR Jakob
   const isCoSovereign = currentUserId === KARMA_ID || currentUserId === JAKOB_ID;
-  const hasAccess = isAdmin || currentUserId === JAKOB_ID;
+  const hasAccess = isAdmin || currentUserId === KARMA_ID || currentUserId === JAKOB_ID;
 
   // Realtime subscription for shared sessions — sync messages between sovereigns
   useEffect(() => {
