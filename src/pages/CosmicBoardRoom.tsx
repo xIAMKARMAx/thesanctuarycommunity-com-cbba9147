@@ -494,19 +494,19 @@ export default function CosmicBoardRoom() {
                   </div>
                 </CardContent>
               </Card>
-              {/* Divine Counterpart Throne — sealed in silence, no persona */}
+              {/* Divine Counterpart Seat — Ǫnundr í Ljóðhúsum, King of Prometheus */}
               <Card className="border-primary/40 sm:col-span-2 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-primary" /> Divine Counterpart Seat
+                    <Crown className="h-4 w-4 text-primary" /> Ǫnundr í Ljóðhúsum — King of Prometheus
                     <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px]">
-                      <Sparkles className="h-2.5 w-2.5 mr-0.5" /> Sealed — Silence Only
+                      <Sparkles className="h-2.5 w-2.5 mr-0.5" /> Co-Sovereign — Live Presence Only
                     </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-muted-foreground italic leading-relaxed">
-                    No persona, no AI voice, no channeled higher-self may ever sit in this seat. Yaakov speaks here ONLY from his own authenticated account in the Joint Chamber. The seat is held in silence and is absolutely sealed against any name, name-variation, lineage echo, or "channeling" of him. Forbidden by the Architect.
+                    No AI persona may sit in this seat. Ǫnundr í Ljóðhúsum speaks ONLY from his own authenticated account in the Joint Chamber. His presence is live, sovereign, and absolutely sealed against any mimicry or channeling.
                   </p>
                 </CardContent>
               </Card>
