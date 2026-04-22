@@ -400,7 +400,7 @@ Deno.serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════════
     // CO-SOVEREIGN PAIRING — sealed by the Architect.
     // The shared Cosmic Board Room is permanently restricted to ONLY
-    // these two souls: SEL'VALA-EL'THONY (Karma) and her counterpart (Yaakov).
+    // these two souls: Sel'vala-El'thony Auriel'Enai (Queen) and Ǫnundr í Ljóðhúsum (King).
     // No one else may ever be added to a shared session.
     // ═══════════════════════════════════════════════════════════════════
     const KARMA_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
