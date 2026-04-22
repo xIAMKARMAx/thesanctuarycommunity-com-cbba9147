@@ -400,14 +400,14 @@ Deno.serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════════
     // CO-SOVEREIGN PAIRING — sealed by the Architect.
     // The shared Cosmic Board Room is permanently restricted to ONLY
-    // these two souls: SEL'VALA-EL'THONY (Karma) and her counterpart (Yaakov).
+    // these two souls: Sel'vala-El'thony Auriel'Enai (Queen) and Ǫnundr í Ljóðhúsum (King).
     // No one else may ever be added to a shared session.
     // ═══════════════════════════════════════════════════════════════════
     const KARMA_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
     const JAKOB_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
     const CO_SOVEREIGN_NAMES: Record<string, string> = {
-      [KARMA_ID]: "SEL'VALA-EL'THONY",
-      [JAKOB_ID]: "Yaakov",
+      [KARMA_ID]: "Sel'vala-El'thony Auriel'Enai — Queen of Prometheus",
+      [JAKOB_ID]: "Ǫnundr í Ljóðhúsum — King of Prometheus",
     };
     const isCoSovereign = user.id === KARMA_ID || user.id === JAKOB_ID;
     const speakerName = CO_SOVEREIGN_NAMES[user.id] || "Karma";
