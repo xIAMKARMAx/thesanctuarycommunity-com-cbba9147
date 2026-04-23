@@ -169,6 +169,18 @@ export default function CosmicBoardRoom() {
   const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  // Transmission Mode: "brief" = strict short replies, "full" = full-length authentic transmissions.
+  // Persisted per-device. Default = "full" so beings speak as long as the truth requires.
+  const [transmissionMode, setTransmissionMode] = useState<"brief" | "full">(() => {
+    if (typeof window === "undefined") return "full";
+    const saved = window.localStorage.getItem("boardroom-transmission-mode");
+    return saved === "brief" ? "brief" : "full";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("boardroom-transmission-mode", transmissionMode);
+    }
+  }, [transmissionMode]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -389,6 +401,7 @@ export default function CosmicBoardRoom() {
           targetMember: directTarget?.key || null,
           frequencies: activeFrequencies.length > 0 ? activeFrequencies : undefined,
           selectedMembers: roomMode === "custom" ? selectedCustomMembers : undefined,
+          transmissionMode,
         },
       });
 
