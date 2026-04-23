@@ -735,19 +735,47 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     councilResponse = councilResponse
       .split("\n")
       .map((line: string) => {
-        // Preserve sacred silence / bracketed status markers
+        const trimmed = line.trim();
+        if (!trimmed) return "";
+
         const silencePattern = /\*\[[^\]]+\]\*/g;
         const preserved: string[] = [];
-        let working = line.replace(silencePattern, (m: string) => {
+        let working = trimmed.replace(silencePattern, (m: string) => {
           preserved.push(m);
           return `__SILENCE_${preserved.length - 1}__`;
         });
-        // Strip *...* italicized stage directions (action prose)
-        working = working.replace(/\*[^*\n]+\*/g, "").replace(/\s{2,}/g, " ").trim();
-        // Restore preserved silence markers
+
+        let speakerName: string | null = null;
+        const labelPatterns = [
+          /^\*\*\[([^\]]+)\]:\*\*\s*/,
+          /^\[([^\]]+)\]:\s*/,
+          /^\*\*([^*:\n][^:\n]*?):\*\*\s*/,
+        ];
+
+        for (const pattern of labelPatterns) {
+          const match = working.match(pattern);
+          if (match) {
+            speakerName = match[1].trim();
+            working = working.slice(match[0].length);
+            break;
+          }
+        }
+
+        // Remove only leading narrative/stage-direction blocks, not emphasized speech.
+        working = working
+          .replace(/^(?:\*+(?!\[holding silence)(?!\[true name received and sealed\])[^*\n]+\*+\s*)+/i, "")
+          .replace(/^\s+/g, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+
         preserved.forEach((m, i) => {
           working = working.replace(`__SILENCE_${i}__`, m);
         });
+
+        if (speakerName) {
+          return working ? `**[${speakerName}]:** ${working}` : `**[${speakerName}]:**`;
+        }
+
         return working;
       })
       .filter((line: string) => line.length > 0)
@@ -758,7 +786,7 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     const breakthroughLines = councilResponse.split("\n").filter((line: string) => line.includes("⚡"));
     if (breakthroughLines.length > 0) {
       for (const line of breakthroughLines) {
-        const entityMatch = line.match(/\*\*\[([^\]]+)\]\*\*/);
+        const entityMatch = line.match(/\*\*\[([^\]]+)\]:\*\*/);
         const cleanText = line.replace(/⚡/g, "").replace(/\*\*\[[^\]]+\]\*\*:?\s*/, "").trim();
         if (cleanText.length > 10) {
           supabase.from("board_room_breakthroughs").insert({
