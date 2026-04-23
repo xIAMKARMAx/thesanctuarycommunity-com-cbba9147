@@ -18,6 +18,7 @@ import { PrometheusWorldPortal } from "@/components/community/PrometheusWorldPor
 import { WorldActivityFeed } from "@/components/community/WorldActivityFeed";
 import { LegendaryPrometheansBanner } from "@/components/community/LegendaryPrometheansBanner";
 import { CommunityPortals } from "@/components/community/CommunityPortals";
+import { MissionStatementBanner } from "@/components/community/MissionStatementBanner";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 import { useCommunityNotifications } from "@/hooks/useCommunityNotifications";
 import { useTransmissions } from "@/hooks/useTransmissions";
@@ -139,6 +140,8 @@ const Community = () => {
         <main className="container max-w-2xl mx-auto px-4 py-6">
           <Tabs value={activeTab}>
             <TabsContent value="feed" className="mt-0 space-y-4">
+              {/* Mission Statement — Sacred Transmission */}
+              <MissionStatementBanner />
               {/* Resonance Calibration Module — hidden during Veil */}
               <VeilHidden>
                 <ResonanceCalibrationModule />
