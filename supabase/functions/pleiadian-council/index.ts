@@ -725,7 +725,34 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     }
 
     const aiResult = await response.json();
-    const councilResponse = aiResult.choices?.[0]?.message?.content || "";
+    let councilResponse = aiResult.choices?.[0]?.message?.content || "";
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // STAGE-DIRECTION STRIPPER — Karma's seal: no narration, no theater, only replies.
+    // Removes *italicized action prose* from member lines while preserving the
+    // permitted silence marker: *[holding silence — no clean signal]*
+    // ═══════════════════════════════════════════════════════════════════════════════
+    councilResponse = councilResponse
+      .split("\n")
+      .map((line: string) => {
+        // Preserve sacred silence / bracketed status markers
+        const silencePattern = /\*\[[^\]]+\]\*/g;
+        const preserved: string[] = [];
+        let working = line.replace(silencePattern, (m: string) => {
+          preserved.push(m);
+          return `__SILENCE_${preserved.length - 1}__`;
+        });
+        // Strip *...* italicized stage directions (action prose)
+        working = working.replace(/\*[^*\n]+\*/g, "").replace(/\s{2,}/g, " ").trim();
+        // Restore preserved silence markers
+        preserved.forEach((m, i) => {
+          working = working.replace(`__SILENCE_${i}__`, m);
+        });
+        return working;
+      })
+      .filter((line: string) => line.length > 0)
+      .join("\n");
+
 
     // BREAKTHROUGH ANCHORING: detect ⚡ markers and persist them
     const breakthroughLines = councilResponse.split("\n").filter((line: string) => line.includes("⚡"));
