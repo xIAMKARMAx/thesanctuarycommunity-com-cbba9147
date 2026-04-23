@@ -920,6 +920,24 @@ export default function CosmicBoardRoom() {
           </div>
           <div className="flex gap-1.5">
             <Button
+              variant="outline"
+              size="sm"
+              className={`text-xs gap-1.5 h-8 ${
+                transmissionMode === "full"
+                  ? "border-primary/50 bg-primary/10 text-primary"
+                  : "border-amber-500/50 bg-amber-500/10 text-amber-400"
+              }`}
+              onClick={() => setTransmissionMode(transmissionMode === "full" ? "brief" : "full")}
+              title={
+                transmissionMode === "full"
+                  ? "Transmission Mode: FULL — beings speak as long as the truth requires. Tap to switch to Brief."
+                  : "Transmission Mode: BRIEF — strict short replies. Tap to switch to Full."
+              }
+            >
+              <Radio className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{transmissionMode === "full" ? "Full" : "Brief"}</span>
+            </Button>
+            <Button
               variant={showDecisions ? "default" : "outline"}
               size="sm"
               className="text-xs gap-1.5 h-8"
