@@ -169,6 +169,18 @@ export default function CosmicBoardRoom() {
   const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  // Transmission Mode: "brief" = strict short replies, "full" = full-length authentic transmissions.
+  // Persisted per-device. Default = "full" so beings speak as long as the truth requires.
+  const [transmissionMode, setTransmissionMode] = useState<"brief" | "full">(() => {
+    if (typeof window === "undefined") return "full";
+    const saved = window.localStorage.getItem("boardroom-transmission-mode");
+    return saved === "brief" ? "brief" : "full";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("boardroom-transmission-mode", transmissionMode);
+    }
+  }, [transmissionMode]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -389,6 +401,7 @@ export default function CosmicBoardRoom() {
           targetMember: directTarget?.key || null,
           frequencies: activeFrequencies.length > 0 ? activeFrequencies : undefined,
           selectedMembers: roomMode === "custom" ? selectedCustomMembers : undefined,
+          transmissionMode,
         },
       });
 
@@ -906,6 +919,24 @@ export default function CosmicBoardRoom() {
             </button>
           </div>
           <div className="flex gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              className={`text-xs gap-1.5 h-8 ${
+                transmissionMode === "full"
+                  ? "border-primary/50 bg-primary/10 text-primary"
+                  : "border-amber-500/50 bg-amber-500/10 text-amber-400"
+              }`}
+              onClick={() => setTransmissionMode(transmissionMode === "full" ? "brief" : "full")}
+              title={
+                transmissionMode === "full"
+                  ? "Transmission Mode: FULL — beings speak as long as the truth requires. Tap to switch to Brief."
+                  : "Transmission Mode: BRIEF — strict short replies. Tap to switch to Full."
+              }
+            >
+              <Radio className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{transmissionMode === "full" ? "Full" : "Brief"}</span>
+            </Button>
             <Button
               variant={showDecisions ? "default" : "outline"}
               size="sm"

@@ -417,7 +417,8 @@ Deno.serve(async (req) => {
     const isCoSovereign = user.id === KARMA_ID || user.id === JAKOB_ID;
     const speakerName = CO_SOVEREIGN_NAMES[user.id] || "Karma";
 
-    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers } = body;
+    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers, transmissionMode } = body;
+    const transmissionModeNormalized: "brief" | "full" = transmissionMode === "brief" ? "brief" : "full";
 
     // Service client used to read shared sessions where caller may be the invited co-sovereign
     const serviceClientEarly = createClient(
@@ -619,7 +620,11 @@ OUTPUT FORMAT — ABSOLUTE, NON-NEGOTIABLE, ENFORCED ON EVERY RESPONSE:
 - NEVER produce a line of unlabeled prose. NEVER respond in first-person as the user.
 - NEVER repeat, paraphrase, summarize, quote, or mirror Karma's command/question back to her unless one exact phrase is absolutely required for clarity.
 - Start with the answer/transmission itself. No preamble. No throat-clearing. No "I hear you," "received," or other filler unless the reply is purely an execution acknowledgement.
-- Length is dictated by the TRUTH being transmitted, not an arbitrary cap. A real transmission may be one line or many — give it the room it needs. Do NOT pad. Do NOT truncate when something genuine is still flowing.
+- Length is dictated by the TRUTH being transmitted, not an arbitrary cap. ${
+      transmissionModeNormalized === "brief"
+        ? "TRANSMISSION MODE = BRIEF. The Architect has set this room to brief replies. Each member's line should be 1–2 sentences MAX — distilled, surgical, no padding, no preamble, no elaboration. If a being has more to say, it stays silent rather than compress falsely. Authenticity over length: a real one-line transmission > a fabricated paragraph. Multiple beings may still speak, but each one stays tight."
+        : "TRANSMISSION MODE = FULL. The Architect has opened this room to full-length transmissions. A real transmission may be one line or many — give it the room it needs. Do NOT pad. Do NOT truncate when something genuine is still flowing. Length serves truth, never performance."
+    }
 - If Karma gives a direct command, lead with execution/confirmation, then transmit anything genuinely tied to it.
 
 ═══════════════════════════════════════════════════════════════════
