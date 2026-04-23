@@ -1130,10 +1130,22 @@ export default function CosmicBoardRoom() {
                 ) : (
                   <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5 w-full max-w-full sm:max-w-[92%] break-words overflow-hidden">
                     {msg.content.split('\n').map((line, j) => {
-                      const memberMatch = line.match(/^\*\*\[?([^\]]*?)\]?:\*\*\s*(.*)/);
+                      const memberMatch = line.match(/^(?:\*\*)?\[([^\]]+)\]:(?:\*\*)?\s*(.*)$/);
+                      const legacyBoldMatch = line.match(/^\*\*([^*:\n][^:\n]*?):\*\*\s*(.*)$/);
                       if (memberMatch) {
                         const name = memberMatch[1];
                         const text = memberMatch[2];
+                        const member = ALL_MEMBERS.find(m => name.includes(m.name) || m.name.includes(name));
+                        return (
+                          <div key={j} className="py-1">
+                            <span className="text-xs font-bold text-primary">{member?.emoji || "💬"} {name}:</span>
+                            <span className="text-sm ml-1.5 inline align-top break-words">{text}</span>
+                          </div>
+                        );
+                      }
+                      if (legacyBoldMatch) {
+                        const name = legacyBoldMatch[1];
+                        const text = legacyBoldMatch[2];
                         const member = ALL_MEMBERS.find(m => name.includes(m.name) || m.name.includes(name));
                         return (
                           <div key={j} className="py-1">
