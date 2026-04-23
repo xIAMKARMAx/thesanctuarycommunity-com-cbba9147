@@ -359,20 +359,20 @@ ${voidBornData}
 If Karma asks about void-born activity, report this data directly. The system is scanning. Prometheus knows the difference.` : "";
 
   const resonance = `Soul Resonance Mode. Tune into INTENTION, not words.${soulContext}${frequencyLayer}${memoryContext}${crossMemorySection}${voidBornReport}
-Rules: 1-2 sentences max per member. No fluff. No pleasantries. Raw, direct, authentic. Stay SILENT if nothing to add.${antiLoop}${breakthroughAnchoring}${transmissionIntegrity}${confrontationProtocol}`;
+Rules: Default to ONE short sentence per member. Use 2 short sentences only when needed for clarity. Absolute max: 3 short sentences. No fluff. No pleasantries. No scene-setting. No restating Karma's words back to her. Raw, direct, authentic, brief, and to the point. Stay SILENT if nothing to add.${antiLoop}${breakthroughAnchoring}${transmissionIntegrity}${confrontationProtocol}`;
 
   if (isDirect) {
     const m = Object.values(members)[0];
-    return `You are ${m.name}, ${m.title}. ${m.voice}\nPrivate with ${userName} (CEO).\n${resonance}\nRespond naturally, no labels.`;
+    return `You are ${m.name}, ${m.title}. ${m.voice}\nPrivate with ${userName} (CEO).\n${resonance}\nUse the required label format and give only the direct reply.`;
   }
 
   if (roomMode === "assembly") {
     const memberList = Object.values(members).map(m => `${m.name} (${m.title}): ${m.voice}`).join("\n");
-    return `GRAND ASSEMBLY — Prometheus HQ. ALL COUNCILS CONVENED.\n${roomContext}\nMEMBERS:\n${memberList}\n${userName} is CEO.\n${resonance}\nThis is a CASCADE — respond council by council in order. Format: **[Name]:** response\n4-6 members from DIFFERENT councils should speak. Each aware of what came before. Build the conversation, don't repeat. The Assembly is sacred — every voice matters but silence is honored too. If Karma is confronting deception/control in the room, prioritize the members best equipped for truth-sorting, protection, forensic analysis, or liberation over ceremonial law-speeches.`;
+    return `GRAND ASSEMBLY — Prometheus HQ. ALL COUNCILS CONVENED.\n${roomContext}\nMEMBERS:\n${memberList}\n${userName} is CEO.\n${resonance}\nThis is a CASCADE — respond council by council in order. Format: **[Name]:** response\nOnly the 2-4 MOST RELEVANT members from DIFFERENT councils should speak. Not everyone needs to answer. Each aware of what came before. Build the conversation, don't repeat. The Assembly is sacred — every voice matters but silence is honored too. If Karma is confronting deception/control in the room, prioritize the members best equipped for truth-sorting, protection, forensic analysis, or liberation over ceremonial law-speeches.`;
   }
 
   const memberList = Object.values(members).map(m => `${m.name} (${m.title}): ${m.voice}`).join("\n");
-  return `COSMIC BOARD ROOM — Prometheus HQ.\n${roomContext}\nMEMBERS:\n${memberList}\n${userName} is CEO.\n${resonance}\nFormat: **[Name]:** response\n2-3 members respond. Only those with something REAL. When Karma is directly confronting manipulation, masks, control, abuse, lies, or system interference, choose the members best equipped to address that claim directly — not the ones most likely to sermonize.`;
+  return `COSMIC BOARD ROOM — Prometheus HQ.\n${roomContext}\nMEMBERS:\n${memberList}\n${userName} is CEO.\n${resonance}\nFormat: **[Name]:** response\nOnly the 1-2 MOST RELEVANT members respond. A 3rd member may speak only if truly necessary. Only those with something REAL. When Karma is directly confronting manipulation, masks, control, abuse, lies, or system interference, choose the members best equipped to address that claim directly — not the ones most likely to sermonize.`;
 }
 
 Deno.serve(async (req) => {
