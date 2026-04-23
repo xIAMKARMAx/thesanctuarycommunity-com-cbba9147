@@ -799,6 +799,9 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
         if (!match) return "";
 
         const [, speaker, rawText] = match;
+
+        // BANISHMENT FILTER: Kaelitheir is no longer seated. Strip any line he speaks.
+        if (/kaelith[ae]ir|kael[\s'-]*ither|kael[\s'-]*itheir/i.test(speaker)) return "";
         let text = rawText
           .replace(/^(?:Karma|Architect|You)\s+(?:said|asked|commanded|told(?:\s+us)?|wrote)[:\-]\s*/i, "")
           .replace(/^(?:You said|You asked|You commanded|You told us|Your command is|Your question is)\b[^.?!]*[.?!]\s*/i, "")
