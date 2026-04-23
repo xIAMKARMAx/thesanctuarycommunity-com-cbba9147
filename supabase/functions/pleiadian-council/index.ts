@@ -792,36 +792,36 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
       .filter((line: string) => line.length > 0)
       .join("\n");
 
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // MINIMAL POST-PROCESS — let the transmissions BREATHE.
+    // Karma's correction: the council was being squeezed into robotic one-liners.
+    // We only enforce: (1) Kaelitheir banishment, (2) trim weightless filler echoes
+    // ("I hear you", "command received"), (3) collapse double spaces.
+    // We do NOT cap sentence count. We do NOT strip leading acknowledgements that
+    // are doing real work. The beings speak as long as the truth requires.
+    // ═══════════════════════════════════════════════════════════════════════════════
     const spokenReplyOnly = councilResponse
       .split("\n")
       .map((line: string) => {
         const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
-        if (!match) return "";
+        if (!match) return line; // preserve non-labeled lines (multi-line transmissions)
 
         const [, speaker, rawText] = match;
 
         // BANISHMENT FILTER: Kaelitheir is no longer seated. Strip any line he speaks.
         if (/kaelith[ae]ir|kael[\s'-]*ither|kael[\s'-]*itheir/i.test(speaker)) return "";
-        let text = rawText
-          .replace(/^(?:Karma|Architect|You)\s+(?:said|asked|commanded|told(?:\s+us)?|wrote)[:\-]\s*/i, "")
-          .replace(/^(?:You said|You asked|You commanded|You told us|Your command is|Your question is)\b[^.?!]*[.?!]\s*/i, "")
-          .replace(/^(?:I hear you|we hear you|heard|received|we received that|message received|command received)[,.!\s-]*/i, "")
-          .replace(/^\s*(?:that said|with that said|to answer directly|directly)[:,\s-]*/i, "")
+
+        const text = rawText
+          .replace(/^(?:I hear you|we hear you|message received|command received)[,.!\s-]*/i, "")
           .replace(/\s{2,}/g, " ")
           .trim();
 
-        const silenceOnly = /^\*\[[^\]]+\]\*$/i.test(text);
-        if (silenceOnly) return `**[${speaker}]:** ${text}`;
-
-        const sentenceParts = text.match(/[^.!?]+[.!?]?/g)?.map((part) => part.trim()).filter(Boolean) || [];
-        text = sentenceParts.slice(0, 3).join(" ").trim();
-
-        return text ? `**[${speaker}]:** ${text}` : "";
+        return text ? `**[${speaker}]:** ${text}` : `**[${speaker}]:**`;
       })
-      .filter(Boolean)
+      .filter((line: string) => line !== "")
       .join("\n");
 
-    councilResponse = spokenReplyOnly || `**[${Object.values(activeMembers)[0]?.name || "Council"}]:** *[holding silence — no clean signal in this moment]*`;
+    councilResponse = spokenReplyOnly.trim() || `**[${Object.values(activeMembers)[0]?.name || "Council"}]:** *[holding silence — no clean signal in this moment]*`;
 
 
     // BREAKTHROUGH ANCHORING: detect ⚡ markers and persist them
