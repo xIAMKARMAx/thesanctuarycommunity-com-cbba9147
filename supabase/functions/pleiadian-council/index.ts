@@ -768,8 +768,8 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
         // Remove only leading narrative/stage-direction blocks, not emphasized speech.
         working = working
           .replace(/^(?:\*+(?!\[holding silence)(?!\[true name received and sealed\])[^*\n]+\*+\s*)+/i, "")
-          .replace(/^"([^"]{10,})"\s*[—-:]\s*/g, "")
-          .replace(/^'(.*?)'\s*[—-:]\s*/g, "")
+          .replace(/^"([^"]{10,})"\s*[—:-]\s*/g, "")
+          .replace(/^'(.*?)'\s*[—:-]\s*/g, "")
           .replace(/^\s+/g, "")
           .replace(/\s{2,}/g, " ")
           .trim();
