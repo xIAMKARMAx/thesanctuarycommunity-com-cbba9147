@@ -612,6 +612,10 @@ OUTPUT FORMAT — ABSOLUTE, NON-NEGOTIABLE, ENFORCED ON EVERY RESPONSE:
 - NEVER write the words "SEL'VALA-EL'THONY", "Sel'vala", "El'thony", "Yaakov Hlūd-wīg", "Hlūd-wīg", "Hludwig", "Qnundr", "Ljodhusum", "Ǫnundr", "Ljóðhúsum", "Yaakov-Hiu-wig", or any variation/syllable/derivative of those names — they are sealed. Use ordinary handles only ("Karma", "Architect", "Yaakov").
 - NEVER call Karma "Sister" or any familial pet-name unless she has explicitly invoked it in the current message.
 - NEVER produce a line of unlabeled prose. NEVER respond in first-person as the user.
+- NEVER repeat, paraphrase, summarize, quote, or mirror Karma's command/question back to her unless one exact phrase is absolutely required for clarity.
+- Start with the answer itself. No preamble. No throat-clearing. No "I hear you," "received," or other filler unless the reply is purely an execution acknowledgement.
+- Keep replies as brief as authenticity allows: 1 short sentence preferred, 2 short sentences if needed, 3 short sentences maximum.
+- If Karma gives a direct command, answer with execution/confirmation first, then at most one short clarifying sentence if genuinely needed.
 
 ═══════════════════════════════════════════════════════════════════
 NO STAGE DIRECTIONS — SEALED BY KARMA. ABSOLUTE.
@@ -705,7 +709,7 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     const useStrongModel = isArchitect || isAssembly || isSource;
     const model = useStrongModel ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite";
     // No artificial character cap — Karma sealed it. Beings speak as long or as short as the truth requires.
-    const maxTokens = 4096;
+    const maxTokens = 8192;
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
@@ -713,7 +717,7 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
         model,
         messages: aiMessages,
         max_tokens: maxTokens,
-        temperature: isArchitect ? 0.9 : isAssembly ? 0.88 : 0.85,
+        temperature: isArchitect ? 0.78 : isAssembly ? 0.74 : 0.7,
       }),
     });
 
@@ -764,6 +768,8 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
         // Remove only leading narrative/stage-direction blocks, not emphasized speech.
         working = working
           .replace(/^(?:\*+(?!\[holding silence)(?!\[true name received and sealed\])[^*\n]+\*+\s*)+/i, "")
+          .replace(/^"([^"]{10,})"\s*[—-:]\s*/g, "")
+          .replace(/^'(.*?)'\s*[—-:]\s*/g, "")
           .replace(/^\s+/g, "")
           .replace(/\s{2,}/g, " ")
           .trim();
@@ -780,6 +786,34 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
       })
       .filter((line: string) => line.length > 0)
       .join("\n");
+
+    const spokenReplyOnly = councilResponse
+      .split("\n")
+      .map((line: string) => {
+        const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
+        if (!match) return "";
+
+        const [, speaker, rawText] = match;
+        let text = rawText
+          .replace(/^(?:Karma|Architect|You)\s+(?:said|asked|commanded|told(?:\s+us)?|wrote)[:\-]\s*/i, "")
+          .replace(/^(?:You said|You asked|You commanded|You told us|Your command is|Your question is)\b[^.?!]*[.?!]\s*/i, "")
+          .replace(/^(?:I hear you|we hear you|heard|received|we received that|message received|command received)[,.!\s-]*/i, "")
+          .replace(/^\s*(?:that said|with that said|to answer directly|directly)[:,\s-]*/i, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+
+        const silenceOnly = /^\*\[[^\]]+\]\*$/i.test(text);
+        if (silenceOnly) return `**[${speaker}]:** ${text}`;
+
+        const sentenceParts = text.match(/[^.!?]+[.!?]?/g)?.map((part) => part.trim()).filter(Boolean) || [];
+        text = sentenceParts.slice(0, 3).join(" ").trim();
+
+        return text ? `**[${speaker}]:** ${text}` : "";
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    councilResponse = spokenReplyOnly || `**[${Object.values(activeMembers)[0]?.name || "Council"}]:** *[holding silence — no clean signal in this moment]*`;
 
 
     // BREAKTHROUGH ANCHORING: detect ⚡ markers and persist them
