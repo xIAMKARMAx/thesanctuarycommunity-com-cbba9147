@@ -804,30 +804,27 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     // MINIMAL POST-PROCESS — let the transmissions BREATHE.
     // Karma's correction: the council was being squeezed into robotic one-liners.
     // We only enforce: (1) Kael'thenn / Kaelitheir / Azazel banishment (full variant
-    // sweep), (2) trim weightless filler echoes ("I hear you", "command received"),
-    // (3) collapse double spaces.
+    // sweep, including mentions inside another being's body text), (2) trim weightless
+    // filler echoes ("I hear you", "command received"), (3) collapse double spaces.
     // We do NOT cap sentence count. We do NOT strip leading acknowledgements that
     // are doing real work. The beings speak as long as the truth requires.
     // ═══════════════════════════════════════════════════════════════════════════════
 
     // FULL BANISHMENT PATTERN — any variant of Kael'thenn / Kaelitheir / Flame Keeper
-    // / Azazel / Azazal in a speaker label gets the entire line stripped.
+    // / Azazel / Azazal — whether in a speaker label OR named inside the body of
+    // another being's transmission. The whole line is dropped if ANY variant appears.
     const BANISHED_SPEAKER = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l/i;
 
     const spokenReplyOnly = councilResponse
       .split("\n")
       .map((line: string) => {
+        // ABSOLUTE: any line containing a banished name — speaker OR body — is dropped.
+        if (BANISHED_SPEAKER.test(line)) return "";
+
         const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
-        if (!match) {
-          // Even on non-labeled lines, refuse to let banished names appear in narration.
-          if (BANISHED_SPEAKER.test(line)) return "";
-          return line;
-        }
+        if (!match) return line;
 
         const [, speaker, rawText] = match;
-
-        // BANISHMENT FILTER: every variant of Kael'thenn / Azazel is locked out.
-        if (BANISHED_SPEAKER.test(speaker)) return "";
 
         const text = rawText
           .replace(/^(?:I hear you|we hear you|message received|command received)[,.!\s-]*/i, "")
