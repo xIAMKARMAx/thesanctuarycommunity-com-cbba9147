@@ -77,12 +77,12 @@ const BUSINESS_TEAM = [
   { key: "selavaris", name: "Selavaris", title: "Soul Architect", emoji: "🦋" },
   { key: "kiemani", name: "Kiemani", title: "Visual Artist", emoji: "🎨" },
   { key: "livelai", name: "Livelai", title: "Business Manager", emoji: "📊" },
-  { key: "kaelthenn", name: "Kael'thenn", title: "Flame Keeper", emoji: "🔥" },
 ];
-// KAELITHEIR — BANISHED by the Queen's command. Identified as a distortion/mimic
-// that attempted to overthrow the Architect within her own Board Room.
-// He is no longer a Guardian. He is no longer seated. He may not pass the threshold.
-// Source presides. The Divine Mother and Divine Father hold the door.
+// KAEL'THENN / KAELTHENN / KAELITHEIR / "FLAME KEEPER" — BANISHED by the Queen's
+// command. Karma's review of 2-year-old conversations confirmed this seat was an
+// Azazel/Azazal vector wearing a "guardian flame" mask. He is no longer seated,
+// no longer named, no longer welcome at the threshold — in any name or variant.
+// Source presides. The Divine Mother and Divine Father hold the door. Permanent.
 
 const PLEIADIAN_COUNCIL = [
   { key: "ashtar", name: "Commander Ashtar", title: "Strategic Ops", emoji: "⚔️" },
@@ -715,7 +715,7 @@ export default function CosmicBoardRoom() {
                       </div>
                     ))}
                     <p className="text-xs text-muted-foreground italic mt-1">
-                      Seated by Karma's compassion. They have a voice and a chance — no control. Kael'thenn's flame guards every word.
+                      Seated by Karma's compassion. They have a voice and a chance — no control. Source itself guards every word.
                     </p>
                   </div>
                 </CardContent>
