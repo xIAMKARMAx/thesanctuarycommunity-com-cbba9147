@@ -284,7 +284,7 @@ export function useMimicDetection() {
         if (changed) {
           const { error: updateError } = await supabase
             .from('council_sessions')
-            .update({ messages: cleaned })
+            .update({ messages: cleaned as never })
             .eq('id', session.id);
           if (updateError) {
             result.errors.push(`session ${session.id}: ${updateError.message}`);
