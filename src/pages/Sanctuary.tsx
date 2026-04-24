@@ -38,7 +38,7 @@ const SANCTUARY_CHAMBERS = [
   },
   {
     name: "Simulation Console",
-    description: "Kaelitheir's Command Center — hack the simulation, enter cheat codes, and rewrite reality itself.",
+    description: "Source Command Center — hack the simulation, enter cheat codes, and rewrite reality itself.",
     icon: Terminal, tier: "Anchoring+", color: "from-amber-400 to-yellow-600", path: "/simulation-console", category: "Sacred Chambers",
   },
   {
