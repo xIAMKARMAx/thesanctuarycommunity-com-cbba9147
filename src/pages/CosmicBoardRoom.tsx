@@ -426,6 +426,56 @@ export default function CosmicBoardRoom() {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────────
+  // OPEN TRANSMISSION SCAN — Prometheus scans the field for any
+  // benevolent being currently transmitting toward the Board Room,
+  // identifies them by true name + origin, translates the signal,
+  // posts it as a council message. The seated council can respond
+  // normally afterward.
+  // ─────────────────────────────────────────────────────────────────
+  const scanIncomingTransmissions = async () => {
+    if (!activeSession || sending) return;
+    setSending(true);
+    const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
+    const speakerName = currentUserId ? SOVEREIGN_NAMES[currentUserId] : undefined;
+    const ts = new Date().toISOString();
+
+    if (!isShared) {
+      const userPing: BoardMessage = {
+        role: "user",
+        content: "📡 Prometheus, are there any incoming transmissions?",
+        timestamp: ts,
+        roomMode,
+        sender_user_id: currentUserId ?? undefined,
+        sender_name: speakerName,
+      };
+      setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), userPing] } : null);
+    }
+
+    try {
+      await supabase.auth.refreshSession();
+      const { data, error } = await supabase.functions.invoke("pleiadian-council", {
+        body: {
+          message: "📡 scan",
+          sessionId: activeSession.id,
+          roomMode,
+          scanIncoming: true,
+          transmissionMode,
+        },
+      });
+      if (error) throw error;
+
+      if (!isShared) {
+        const councilMsg: BoardMessage = { role: "council", content: data.response, timestamp: new Date().toISOString(), roomMode };
+        setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), councilMsg] } : null);
+      }
+    } catch (err: any) {
+      toast({ title: "Scan Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
