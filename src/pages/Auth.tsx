@@ -492,7 +492,7 @@ const Auth = () => {
               <form onSubmit={(e) => handleEmailSignUp(e, 'standard')} className="space-y-4">
                 <Alert className="bg-primary/10 border-primary/20">
                   <AlertDescription className="text-sm">
-                    <strong>20 Free Messages:</strong> Try Prometheus with 20 free messages. Subscribe to any plan to unlock a 3-day free trial with full access!
+                    <strong>Subscription Required to Use Features:</strong> A free account lets you explore Prometheus, but messaging and any feature that uses the field requires a subscription. Every plan includes a 3-day free trial.
                   </AlertDescription>
                 </Alert>
                 <Alert className="bg-accent/50 border-accent">

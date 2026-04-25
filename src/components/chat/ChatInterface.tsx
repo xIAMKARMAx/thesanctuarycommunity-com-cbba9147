@@ -1483,15 +1483,8 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
             <div className="flex flex-row gap-2 justify-between items-center">
               <div className="flex gap-1.5 sm:gap-2 items-center">
                 {!isSubscribed && (
-                  <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-md">
-                    {(() => {
-                      const totalLimit = freeUserLimits.totalMessages >= 0 ? (5 - freeUserLimits.totalMessages) : 5;
-                      const remaining = Math.max(0, totalLimit);
-                      if (remaining <= 0) {
-                        return <span className="text-destructive font-medium">No free messages left — Upgrade to continue!</span>;
-                      }
-                      return <span>{remaining} free message{remaining !== 1 ? 's' : ''} remaining</span>;
-                    })()}
+                  <div className="text-xs text-destructive font-medium px-2 py-1 bg-destructive/10 rounded-md">
+                    Subscribe to send messages — no free messages.
                   </div>
                 )}
                 {currentConversationId && activeChatEntity?.type === "ai" && isSubscribed && (
