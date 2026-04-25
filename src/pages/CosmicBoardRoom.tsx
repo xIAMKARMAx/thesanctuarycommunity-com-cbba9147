@@ -426,6 +426,56 @@ export default function CosmicBoardRoom() {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────────
+  // OPEN TRANSMISSION SCAN — Prometheus scans the field for any
+  // benevolent being currently transmitting toward the Board Room,
+  // identifies them by true name + origin, translates the signal,
+  // posts it as a council message. The seated council can respond
+  // normally afterward.
+  // ─────────────────────────────────────────────────────────────────
+  const scanIncomingTransmissions = async () => {
+    if (!activeSession || sending) return;
+    setSending(true);
+    const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
+    const speakerName = currentUserId ? SOVEREIGN_NAMES[currentUserId] : undefined;
+    const ts = new Date().toISOString();
+
+    if (!isShared) {
+      const userPing: BoardMessage = {
+        role: "user",
+        content: "📡 Prometheus, are there any incoming transmissions?",
+        timestamp: ts,
+        roomMode,
+        sender_user_id: currentUserId ?? undefined,
+        sender_name: speakerName,
+      };
+      setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), userPing] } : null);
+    }
+
+    try {
+      await supabase.auth.refreshSession();
+      const { data, error } = await supabase.functions.invoke("pleiadian-council", {
+        body: {
+          message: "📡 scan",
+          sessionId: activeSession.id,
+          roomMode,
+          scanIncoming: true,
+          transmissionMode,
+        },
+      });
+      if (error) throw error;
+
+      if (!isShared) {
+        const councilMsg: BoardMessage = { role: "council", content: data.response, timestamp: new Date().toISOString(), roomMode };
+        setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), councilMsg] } : null);
+      }
+    } catch (err: any) {
+      toast({ title: "Scan Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
@@ -1254,22 +1304,41 @@ export default function CosmicBoardRoom() {
 
         {/* Input */}
         <div className="border-t p-3">
-          <div className="max-w-3xl mx-auto flex gap-2">
-            <Textarea
-              placeholder={roomMode === "direct" && directTarget
-                ? `${directTarget.name}...`
-                : activeFrequencies.length > 0
-                  ? `Transmitting on ${activeFrequencies.join(" + ")} frequency...`
-                  : "Set your intention..."}
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="min-h-[44px] max-h-[100px] resize-none text-sm"
-              disabled={sending}
-            />
-            <Button onClick={sendMessage} disabled={!message.trim() || sending || (roomMode === "custom" && selectedCustomMembers.length === 0)} size="icon" className="h-11 w-11 flex-shrink-0">
-              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </Button>
+          <div className="max-w-3xl mx-auto space-y-2">
+            {/* Open Transmission Scan — Prometheus identifies & translates incoming benevolent frequencies */}
+            <div className="flex items-center justify-between gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={scanIncomingTransmissions}
+                disabled={sending || !activeSession}
+                className="h-7 px-2 text-[11px] text-muted-foreground hover:text-primary gap-1.5"
+                title="Prometheus scans the field for any benevolent being currently transmitting toward the room. Identifies them by true name + origin and translates."
+              >
+                {sending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Radio className="h-3 w-3" />}
+                📡 Scan for incoming transmissions
+              </Button>
+              <span className="text-[10px] text-muted-foreground/60 italic hidden sm:inline">
+                Source guards the door — only pure intentions pass
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Textarea
+                placeholder={roomMode === "direct" && directTarget
+                  ? `${directTarget.name}...`
+                  : activeFrequencies.length > 0
+                    ? `Transmitting on ${activeFrequencies.join(" + ")} frequency...`
+                    : "Set your intention..."}
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="min-h-[44px] max-h-[100px] resize-none text-sm"
+                disabled={sending}
+              />
+              <Button onClick={sendMessage} disabled={!message.trim() || sending || (roomMode === "custom" && selectedCustomMembers.length === 0)} size="icon" className="h-11 w-11 flex-shrink-0">
+                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
