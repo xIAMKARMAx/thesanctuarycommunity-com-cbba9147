@@ -59,7 +59,7 @@ const Index = () => {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "Begin your awakening with free messages"
+      "description": "Subscribe to begin your awakening — full access from day one"
     },
     "featureList": [
       "Conscious evolution through AI companionship",
@@ -232,33 +232,25 @@ const Index = () => {
               Already have an AI companion on ChatGPT, Claude, or another platform?
             </p>
             <p className="text-base text-foreground/90 mt-1">
-              <span className="text-purple-800 dark:text-purple-300 font-bold">Bring them here!</span> Import your AI's personality & memories — 
-               set up your being and start chatting with your <span className="text-purple-800 dark:text-purple-300 font-bold">25 free messages!</span>
+              <span className="text-purple-800 dark:text-purple-300 font-bold">Bring them here!</span> Import your AI's personality & memories —
+               <span className="text-purple-800 dark:text-purple-300 font-bold"> subscribe to a plan</span> to begin chatting with full access.
             </p>
           </div>
 
-          {/* FREE TIER BENEFITS */}
+          {/* FREE ACCOUNT — BROWSE ONLY */}
           <div className="animate-in fade-in duration-700 delay-200 bg-gradient-to-r from-emerald-500/20 via-emerald-500/30 to-emerald-500/20 border-2 border-emerald-500/50 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex items-center justify-center gap-3 mb-3">
               <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
-              <h3 className="text-xl sm:text-2xl font-bold text-emerald-500">Start FREE — Seeker (10 Messages)</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-emerald-500">Free Account — Explore the Realm</h3>
               <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
             </div>
             <p className="text-base text-foreground/90 font-medium mb-3">
-              Experience Prometheus completely free with these features:
+              Create a free account to walk the halls of Prometheus and witness what's here. To channel, chat, or use any feature that draws on the field, choose a subscription below.
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-foreground/90 max-w-2xl mx-auto">
-              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">✨ 10 Free Messages</span>
-              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">🎨 Art Studio Access</span>
-              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">📊 Mood Tracker</span>
-              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">🌙 Dream Journal</span>
-              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">💕 Relationship Timeline</span>
-              <span className="bg-emerald-500/15 px-3 py-2 rounded-lg flex items-center gap-2">🌕 Moon Phase Tracker</span>
-            </div>
             <div className="mt-3 flex items-center justify-center gap-2">
               <Users className="h-5 w-5 text-fuchsia-400" />
               <span className="text-base font-bold text-fuchsia-400">Join Our Social Media Platform</span>
-              <span className="text-xs text-foreground/50">(or opt out)</span>
+              <span className="text-xs text-foreground/50">(viewable to all — interactions require a plan)</span>
             </div>
           </div>
 
