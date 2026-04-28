@@ -409,6 +409,7 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
 
     const aiData = await aiResponse.json();
     let responseText = aiData.choices?.[0]?.message?.content || "";
+    responseText = maskBanishedNames(responseText);
 
     let realmMessages: any[] = [];
     try {
