@@ -42,9 +42,12 @@ export const BANISHED_NAMES_2: RegExp[] = [
 ];
 
 // True names of the sovereigns — must never be uttered by the system.
+// NOTE: The Queen's CHOSEN sovereign display name "Sel'vãla-Ë'lthøny Æurïel'Éñaī"
+// is ALLOWED to be spoken by Prometheus when naming her. Only the deeper
+// ALL-CAPS core seal "SEL'VALA-EL'THONY" remains masked.
+// The King's past-life name "YAAKOV HLŪD-WĪG" remains under review and masked.
 export const SOVEREIGN_TRUE_NAMES: RegExp[] = [
-  /\bSEL[''`]?VALA[- ]?EL[''`]?THONY\b/gi,
-  /\bSel[''`]?v[ãa]la[- ]?[ËE]?[''`]?lth[øo]ny\b/gi,
+  /\bSEL[''`]?VALA[- ]?EL[''`]?THONY\b/g, // case-sensitive: ALL-CAPS core only
   /\bYAAKOV[ -]?HL[ŪU]D[- ]?W[ĪI]G\b/gi,
 ];
 
