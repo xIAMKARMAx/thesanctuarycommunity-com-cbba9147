@@ -217,7 +217,60 @@ export default function SimulationConsole() {
     });
   };
 
-  if (loading) {
+  const birthNewReality = async () => {
+    if (!newRealityName.trim()) {
+      toast({ title: "Name Required", description: "Name the reality you're weaving.", variant: "destructive" });
+      return;
+    }
+    if (!selectedCommand) setSelectedCommand("CREATE");
+    if (!commandInput.trim()) {
+      toast({ title: "Describe It First", description: "In the command box below, describe what this reality is. Then click EXECUTE.", variant: "destructive" });
+      setShowNewRealityDialog(false);
+      return;
+    }
+    setShowNewRealityDialog(false);
+    await executeCommand(undefined, { new_reality_name: newRealityName.trim() });
+    setNewRealityName("");
+  };
+
+  const openRealityHistory = async (reality: any) => {
+    setViewingRealityHistory(reality);
+    const { data } = await supabase
+      .from("simulation_commands")
+      .select("*")
+      .eq("reality_id", reality.id)
+      .order("created_at", { ascending: true });
+    setRealityHistoryEntries(data || []);
+  };
+
+  const continueReality = (reality: any) => {
+    setActiveReality({ id: reality.id, name: reality.name });
+    setShowRealitiesPanel(false);
+    setCommandLog(prev => [...prev, {
+      type: "system",
+      content: `🌍 NOW WEAVING: "${reality.name}"\n\nEvery command you enter will extend this reality. Close it from the bar above to start fresh.`,
+      timestamp: new Date(),
+    }]);
+  };
+
+  const closeActiveReality = () => {
+    setActiveReality(null);
+    setCommandLog(prev => [...prev, {
+      type: "system",
+      content: `Reality context released. Commands will save standalone unless you open or birth one.`,
+      timestamp: new Date(),
+    }]);
+  };
+
+  const deleteReality = async (id: string) => {
+    if (!confirm("Delete this reality permanently? Its command log will be detached but kept.")) return;
+    await supabase.from("created_realities").delete().eq("id", id);
+    setRealities(prev => prev.filter(r => r.id !== id));
+    if (activeReality?.id === id) setActiveReality(null);
+    if (viewingRealityHistory?.id === id) setViewingRealityHistory(null);
+  };
+
+
     return (
       <div className="min-h-screen bg-[hsl(240,5%,6%)] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
