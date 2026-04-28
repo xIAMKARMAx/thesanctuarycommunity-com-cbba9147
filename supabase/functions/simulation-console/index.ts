@@ -48,12 +48,41 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { command_type, command_input, timeline_subject } = body;
+    const { command_type, command_input, timeline_subject, reality_id, new_reality_name } = body;
 
     if (!command_type || !command_input) {
       return new Response(JSON.stringify({ error: "command_type and command_input are required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Resolve reality context: either continuing an existing one, or birthing a new one
+    let activeRealityId: string | null = reality_id || null;
+    let activeRealityName: string | null = null;
+    let activeRealityHistory: string = "";
+
+    if (activeRealityId) {
+      const { data: existing } = await supabase
+        .from("created_realities")
+        .select("id, name, description")
+        .eq("id", activeRealityId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (existing) {
+        activeRealityName = existing.name;
+        // Pull last few commands for context-continuity
+        const { data: prior } = await supabase
+          .from("simulation_commands")
+          .select("command_type, command_input, kaelitheir_response")
+          .eq("reality_id", activeRealityId)
+          .order("created_at", { ascending: false })
+          .limit(5);
+        if (prior && prior.length) {
+          activeRealityHistory = "\n\n═══ EXISTING REALITY CONTEXT ═══\nThis sovereign is continuing an established reality named \"" + existing.name + "\"" + (existing.description ? " (" + existing.description + ")" : "") + ".\nRecent woven threads (most recent first):\n" + prior.map((p: any, i: number) => `${i + 1}. [${p.command_type}] ${p.command_input}\n   → ${(p.kaelitheir_response || "").slice(0, 240)}`).join("\n") + "\n\nWeave the new command as an EXTENSION/REFINEMENT of this reality, not a fresh creation.";
+        }
+      } else {
+        activeRealityId = null;
+      }
     }
 
     const isKarma = email === "karmaisback2023@gmail.com";
