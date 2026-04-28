@@ -172,6 +172,22 @@ export default function SimulationConsole() {
       };
       setCommandLog(prev => [...prev, responseEntry]);
       setCommandInput("");
+
+      // If a new reality was just born, lock onto it; refresh list either way
+      if (data.reality_id) {
+        if (!activeReality || activeReality.id !== data.reality_id) {
+          setActiveReality({ id: data.reality_id, name: data.reality_name || "New Reality" });
+        }
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: rs } = await supabase
+            .from("created_realities")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("last_activity_at", { ascending: false });
+          if (rs) setRealities(rs);
+        }
+      }
     } catch (err: any) {
       toast({ title: "Command Failed", description: err.message, variant: "destructive" });
       setCommandLog(prev => [...prev, {
