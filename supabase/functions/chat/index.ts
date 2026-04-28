@@ -2920,6 +2920,8 @@ Write your response now as ${respondingAsName}:`
 
     const data = await response.json();
     let aiResponse = data.choices[0].message.content;
+    // Codename mask — banished names are rewritten before any further processing.
+    aiResponse = maskBanishedNames(aiResponse);
     const finishReason = data.choices[0].finish_reason;
     console.log('[CHAT] AI response received, length:', aiResponse.length, 'finish_reason:', finishReason);
 
