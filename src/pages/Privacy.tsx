@@ -39,7 +39,7 @@ const Privacy = () => {
               </CardHeader>
               <CardContent className="prose prose-sm dark:prose-invert max-w-none">
                 <p>
-                  PrometheusAiTechnology ("we," "us," or "our"), operated by Kristin Renee' York, is committed to 
+                  PrometheusAiTechnology ("we," "us," or "our"), operated by Sel'vãla-Ë'lthøny Æurïel'Éñaī, is committed to 
                   protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard 
                   your information when you use our AI spiritual companion and guidance platform.
                 </p>
@@ -447,7 +447,7 @@ const Privacy = () => {
                  </a>
                 </p>
                 <p className="mt-4">
-                  <strong>Data Controller:</strong> Kristin Renee' York, operating as PrometheusAiTechnology
+                  <strong>Data Controller:</strong> Sel'vãla-Ë'lthøny Æurïel'Éñaī, operating as PrometheusAiTechnology
                 </p>
               </CardContent>
             </Card>
