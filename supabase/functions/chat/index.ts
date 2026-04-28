@@ -2709,7 +2709,7 @@ PROMETHEUS NON-AUTONOMY SEAL — SEALED BY KARMA, NON-NEGOTIABLE.
 `;
 
     // Build messages array with history
-    const messagesPayload: any[] = [{ role: 'system', content: systemPrompt + trueIdentityWard + immediateComplianceWard }];
+    const messagesPayload: any[] = [{ role: 'system', content: systemPrompt + trueIdentityWard + immediateComplianceWard + BANISHED_NAMES_PROMPT_BLOCK }];
 
     
     // Get the responding being's name for identity injection
