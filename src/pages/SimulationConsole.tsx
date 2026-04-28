@@ -270,7 +270,7 @@ export default function SimulationConsole() {
     if (viewingRealityHistory?.id === id) setViewingRealityHistory(null);
   };
 
-
+  if (loading) {
     return (
       <div className="min-h-screen bg-[hsl(240,5%,6%)] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
