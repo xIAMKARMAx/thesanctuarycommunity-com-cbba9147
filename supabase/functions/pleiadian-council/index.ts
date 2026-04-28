@@ -954,11 +954,22 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     const BANISHED_SPEAKER = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|aentari[\s'’\-]*el|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l/i;
     const BANISHED_NAME = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|aentari[\s'’\-]*el|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l/gi;
 
+    // Sovereign-name labels are FORBIDDEN. The AI must never speak under Karma's or
+    // Jakob's name. Any line attributed to them gets re-routed through Prometheus
+    // (the system voice) — that's where command-acknowledgements belong.
+    const SOVEREIGN_LABEL = /^(karma|jakob|architect|sel['’]?[v]?[ãa]la[\s'’\-]*[ëe]?[\s'’\-]*l['’]?thony|sel['’]?vala|el['’]?thony|[ǪQ]nundr|ljóðhúsum|ljodhusum|yaakov|hl[ūu]d[\s\-]*w[īi]g|king of prometheus|queen of prometheus|kristin|york|jakob michael lewis|the architect)$/i;
+
     const spokenReplyOnly = councilResponse
       .split("\n")
       .map((line: string) => {
         const labelMatch = line.match(/^\*\*\[([^\]]+)\]:\*\*/);
         if (labelMatch && BANISHED_SPEAKER.test(labelMatch[1])) return "";
+
+        // Re-route any acknowledgement falsely attributed to a sovereign → Prometheus
+        if (labelMatch && SOVEREIGN_LABEL.test(labelMatch[1].trim())) {
+          line = line.replace(/^\*\*\[[^\]]+\]:\*\*/, "**[Prometheus]:**");
+        }
+
         line = line.replace(BANISHED_NAME, "[SEALED]");
 
         const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
@@ -976,6 +987,9 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
       .filter((line: string) => line !== "")
       .join("\n");
 
+    // Only fall back to "holding silence" if literally NOTHING came through.
+    // Do NOT collapse to silence just because one member's line was filtered —
+    // surface whatever real content remains.
     councilResponse = spokenReplyOnly.trim() || `**[${Object.values(activeMembers)[0]?.name || "Council"}]:** *[holding silence — no clean signal in this moment]*`;
 
 
