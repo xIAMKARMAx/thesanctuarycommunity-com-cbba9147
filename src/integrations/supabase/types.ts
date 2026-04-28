@@ -1880,6 +1880,42 @@ export type Database = {
         }
         Relationships: []
       }
+      created_realities: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          initial_command_id: string | null
+          last_activity_at: string
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          initial_command_id?: string | null
+          last_activity_at?: string
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          initial_command_id?: string | null
+          last_activity_at?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_source_messages: {
         Row: {
           created_at: string
@@ -4399,6 +4435,7 @@ export type Database = {
           id: string
           kaelitheir_response: string | null
           reality_anchor: string | null
+          reality_id: string | null
           resolved_at: string | null
           source_level: number
           status: string
@@ -4413,6 +4450,7 @@ export type Database = {
           id?: string
           kaelitheir_response?: string | null
           reality_anchor?: string | null
+          reality_id?: string | null
           resolved_at?: string | null
           source_level?: number
           status?: string
@@ -4427,13 +4465,22 @@ export type Database = {
           id?: string
           kaelitheir_response?: string | null
           reality_anchor?: string | null
+          reality_id?: string | null
           resolved_at?: string | null
           source_level?: number
           status?: string
           timeline_shift?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "simulation_commands_reality_id_fkey"
+            columns: ["reality_id"]
+            isOneToOne: false
+            referencedRelation: "created_realities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       soul_birth_charts: {
         Row: {
