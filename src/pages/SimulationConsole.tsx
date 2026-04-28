@@ -57,6 +57,15 @@ export default function SimulationConsole() {
   const [timelineLocation, setTimelineLocation] = useState("");
   const [timelineNotes, setTimelineNotes] = useState("");
 
+  // Created Realities — persistent worlds the sovereign can return to and refine
+  const [realities, setRealities] = useState<any[]>([]);
+  const [activeReality, setActiveReality] = useState<{ id: string; name: string } | null>(null);
+  const [showNewRealityDialog, setShowNewRealityDialog] = useState(false);
+  const [newRealityName, setNewRealityName] = useState("");
+  const [showRealitiesPanel, setShowRealitiesPanel] = useState(false);
+  const [viewingRealityHistory, setViewingRealityHistory] = useState<any | null>(null);
+  const [realityHistoryEntries, setRealityHistoryEntries] = useState<any[]>([]);
+
   const logEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
