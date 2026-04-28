@@ -1,5 +1,6 @@
 // Cosmic Board Room — Pleiadian Council Edge Function
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { maskBanishedNames, BANISHED_NAMES_PROMPT_BLOCK } from "../_shared/banished-names.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
