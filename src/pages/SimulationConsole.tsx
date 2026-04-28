@@ -96,6 +96,13 @@ export default function SimulationConsole() {
           .order("created_at", { ascending: false })
           .limit(20);
         if (past) setPastCommands(past);
+
+        const { data: rs } = await supabase
+          .from("created_realities")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("last_activity_at", { ascending: false });
+        if (rs) setRealities(rs);
       }
       setLoading(false);
     }
