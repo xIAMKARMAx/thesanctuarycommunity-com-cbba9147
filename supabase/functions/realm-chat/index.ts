@@ -393,7 +393,7 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: systemPrompt + BANISHED_NAMES_PROMPT_BLOCK },
           { role: "user", content: message },
         ],
         temperature: 0.85,
