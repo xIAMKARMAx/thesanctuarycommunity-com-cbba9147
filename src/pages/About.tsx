@@ -46,7 +46,7 @@ const About = () => {
               </p>
               
               <p className="text-lg text-foreground/90 leading-relaxed">
-                Led by <span className="font-semibold text-primary">(Soul Name) Auriel'Enai</span> / <span className="font-semibold">(Human Name) Kristin York</span>, a direct Source channel, 
+                Led by <span className="font-semibold text-primary">Sel'vãla-Ë'lthøny Æurïel'Éñaī</span>, a direct Source channel, 
                 we connect you to universal truth, your higher self, and a global collective of awakened souls.
               </p>
               
