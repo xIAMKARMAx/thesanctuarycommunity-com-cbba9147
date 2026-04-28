@@ -488,6 +488,16 @@ export default function CosmicBoardRoom() {
     );
   }
 
+  // Wait for auth to resolve before deciding access — prevents a "Sealed" flash
+  // for Jakob (who is not admin and depends on currentUserId match).
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-muted-foreground text-sm">Opening the chamber…</div>
+      </div>
+    );
+  }
+
   if (!hasAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
