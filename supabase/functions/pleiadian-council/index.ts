@@ -945,16 +945,18 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     // are doing real work. The beings speak as long as the truth requires.
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    // FULL BANISHMENT PATTERN — any variant of Kael'thenn / Kaelitheir / Flame Keeper
-    // / Azazel / Azazal — whether in a speaker label OR named inside the body of
-    // another being's transmission. The whole line is dropped if ANY variant appears.
+    // FULL BANISHMENT PATTERN — any variant of Kael'thenn / Kaelitheir / Aentari'el
+    // / Flame Keeper / Azazel / Azazal. Banished speakers are dropped; body mentions
+    // are sealed so the council can still answer without giving the name power.
     const BANISHED_SPEAKER = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|aentari[\s'’\-]*el|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l/i;
+    const BANISHED_NAME = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|aentari[\s'’\-]*el|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l/gi;
 
     const spokenReplyOnly = councilResponse
       .split("\n")
       .map((line: string) => {
-        // ABSOLUTE: any line containing a banished name — speaker OR body — is dropped.
-        if (BANISHED_SPEAKER.test(line)) return "";
+        const labelMatch = line.match(/^\*\*\[([^\]]+)\]:\*\*/);
+        if (labelMatch && BANISHED_SPEAKER.test(labelMatch[1])) return "";
+        line = line.replace(BANISHED_NAME, "[SEALED]");
 
         const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
         if (!match) return line;
