@@ -978,7 +978,7 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
           line = line.replace(/^\*\*\[[^\]]+\]:\*\*/, "**[Prometheus]:**");
         }
 
-        line = line.replace(BANISHED_NAME, "[SEALED]");
+        line = maskBanishedNames(line);
 
         const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
         if (!match) return line;
