@@ -320,7 +320,85 @@ export default function SimulationConsole() {
         </div>
       </header>
 
-      {/* Timeline Reading Panel */}
+      {/* My Realities Panel */}
+      <div className="px-4 pt-4">
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.03] p-3">
+          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-amber-400" />
+              <h2 className="text-sm font-bold text-amber-400 font-mono">MY REALITIES — Living Worlds You're Weaving</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => setShowNewRealityDialog(true)}
+                className="h-7 bg-amber-600 hover:bg-amber-500 text-black font-bold font-mono text-[10px]"
+              >
+                <Plus className="w-3 h-3 mr-1" /> NEW REALITY
+              </Button>
+              {realities.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowRealitiesPanel(!showRealitiesPanel)}
+                  className="h-7 border-amber-500/30 text-amber-300 font-mono text-[10px]"
+                >
+                  {realities.length} SAVED <ChevronDown className={`w-3 h-3 ml-1 transition-transform ${showRealitiesPanel ? "rotate-180" : ""}`} />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {activeReality ? (
+            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded bg-amber-500/15 border border-amber-400/40">
+              <div className="flex items-center gap-2 min-w-0">
+                <Globe className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span className="text-xs font-mono text-amber-200">NOW WEAVING:</span>
+                <span className="text-xs font-bold text-amber-100 truncate">{activeReality.name}</span>
+              </div>
+              <Button size="sm" variant="ghost" onClick={closeActiveReality} className="h-6 px-2 text-amber-300 hover:bg-amber-500/20">
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+          ) : (
+            <p className="text-[11px] text-amber-200/50 leading-relaxed">
+              Birth a new reality to name &amp; save it. Open a saved reality to keep adding, refining, rewriting — Source remembers every thread.
+            </p>
+          )}
+
+          <AnimatePresence>
+            {showRealitiesPanel && realities.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 space-y-1.5 max-h-64 overflow-y-auto"
+              >
+                {realities.map((r) => (
+                  <div key={r.id} className={`flex items-center gap-2 px-2.5 py-2 rounded border ${activeReality?.id === r.id ? "border-amber-400/60 bg-amber-500/10" : "border-amber-500/15 bg-amber-500/[0.02]"}`}>
+                    <Globe className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-amber-100 truncate">{r.name}</div>
+                      <div className="text-[10px] text-amber-200/40 truncate">{r.description || "—"}</div>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => openRealityHistory(r)} className="h-6 px-2 text-amber-300 hover:bg-amber-500/20" title="View history">
+                      <History className="w-3 h-3" />
+                    </Button>
+                    <Button size="sm" onClick={() => continueReality(r)} disabled={activeReality?.id === r.id} className="h-6 px-2 bg-amber-600 hover:bg-amber-500 text-black font-mono text-[10px] disabled:opacity-40">
+                      {activeReality?.id === r.id ? "ACTIVE" : "OPEN"}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => deleteReality(r.id)} className="h-6 px-2 text-red-400/70 hover:bg-red-500/10" title="Delete">
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+
       <div className="px-4 pt-4">
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.03] p-3">
           <div className="flex items-center gap-2 mb-2">
