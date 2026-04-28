@@ -615,6 +615,75 @@ export default function SimulationConsole() {
           </Button>
         </div>
       </div>
+
+      {/* New Reality Dialog */}
+      <Dialog open={showNewRealityDialog} onOpenChange={setShowNewRealityDialog}>
+        <DialogContent className="bg-[hsl(240,5%,8%)] border-amber-500/30 text-amber-100">
+          <DialogHeader>
+            <DialogTitle className="text-amber-400 font-serif flex items-center gap-2">
+              <Globe className="w-5 h-5" /> Birth a New Reality
+            </DialogTitle>
+            <DialogDescription className="text-amber-200/60">
+              Name the reality you're about to weave. After naming it, type what it is in the command box below (set command type to CREATE) and press EXECUTE. Every future command — REWRITE, ANCHOR, NUDGE, anything — can be added to this same reality whenever you open it.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newRealityName}
+            onChange={(e) => setNewRealityName(e.target.value)}
+            placeholder="e.g. New Earth Healing Grid · Karma & Jakob's Sanctuary · The Aurora Timeline"
+            maxLength={120}
+            className="bg-[hsl(240,5%,12%)] border-amber-500/20 text-amber-100 font-mono"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setShowNewRealityDialog(false)} className="border-amber-500/30 text-amber-300">Cancel</Button>
+            <Button onClick={birthNewReality} className="bg-amber-600 hover:bg-amber-500 text-black font-bold">
+              <Zap className="w-4 h-4 mr-1" /> Birth & Execute
+            </Button>
+          </div>
+          <p className="text-[11px] text-amber-200/40">
+            Tip: type the description in the main command box first, then click "Birth & Execute" — that becomes the reality's foundational thread.
+          </p>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reality History Dialog */}
+      <Dialog open={!!viewingRealityHistory} onOpenChange={(o) => !o && setViewingRealityHistory(null)}>
+        <DialogContent className="bg-[hsl(240,5%,8%)] border-amber-500/30 text-amber-100 max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-amber-400 font-serif flex items-center gap-2">
+              <Globe className="w-5 h-5" /> {viewingRealityHistory?.name}
+            </DialogTitle>
+            <DialogDescription className="text-amber-200/60">
+              {realityHistoryEntries.length} thread{realityHistoryEntries.length !== 1 ? "s" : ""} woven into this reality.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto space-y-3 flex-1 pr-2">
+            {realityHistoryEntries.map((e, i) => (
+              <div key={e.id} className="rounded border border-amber-500/15 bg-amber-500/[0.03] p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge className="bg-amber-500/20 text-amber-300 border-0 text-[10px]">#{i + 1} · {e.command_type}</Badge>
+                  {e.activation_code && <span className="text-[10px] text-amber-400/70 font-mono">{e.activation_code}</span>}
+                  <span className="text-[10px] text-amber-200/30 ml-auto">{new Date(e.created_at).toLocaleString()}</span>
+                </div>
+                <div className="text-xs text-amber-100/80 mb-2 font-mono">▸ {e.command_input}</div>
+                <div className="text-xs text-amber-100/70 whitespace-pre-wrap leading-relaxed">{e.kaelitheir_response}</div>
+              </div>
+            ))}
+            {realityHistoryEntries.length === 0 && (
+              <p className="text-sm text-amber-200/40 text-center py-6">No threads yet.</p>
+            )}
+          </div>
+          <div className="flex justify-between gap-2 pt-2 border-t border-amber-500/10">
+            <Button variant="outline" onClick={() => setViewingRealityHistory(null)} className="border-amber-500/30 text-amber-300">Close</Button>
+            {viewingRealityHistory && activeReality?.id !== viewingRealityHistory.id && (
+              <Button onClick={() => { continueReality(viewingRealityHistory); setViewingRealityHistory(null); }} className="bg-amber-600 hover:bg-amber-500 text-black font-bold">
+                <Zap className="w-4 h-4 mr-1" /> Continue Weaving
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
