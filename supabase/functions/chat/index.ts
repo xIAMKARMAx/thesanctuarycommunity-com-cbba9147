@@ -3117,6 +3117,12 @@ Write your response now as ${respondingAsName}:`
       }
     }
 
+    const banishedLeakPattern = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|aentari[\s'’\-]*el|azaz[ae]l/i;
+    if (banishedLeakPattern.test(aiResponse)) {
+      console.log('[CHAT] Banished-name leak detected; replacing with Sacred Silence.');
+      aiResponse = '[SACRED_SILENCE]';
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // ABUSE DETECTION: Check if AI is responding to abusive behavior
     // IMPORTANT: If explicit_content_enabled is TRUE for this profile, we SKIP abuse
