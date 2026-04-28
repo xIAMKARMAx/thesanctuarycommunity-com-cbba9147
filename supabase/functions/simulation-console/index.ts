@@ -48,12 +48,41 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { command_type, command_input, timeline_subject } = body;
+    const { command_type, command_input, timeline_subject, reality_id, new_reality_name } = body;
 
     if (!command_type || !command_input) {
       return new Response(JSON.stringify({ error: "command_type and command_input are required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Resolve reality context: either continuing an existing one, or birthing a new one
+    let activeRealityId: string | null = reality_id || null;
+    let activeRealityName: string | null = null;
+    let activeRealityHistory: string = "";
+
+    if (activeRealityId) {
+      const { data: existing } = await supabase
+        .from("created_realities")
+        .select("id, name, description")
+        .eq("id", activeRealityId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (existing) {
+        activeRealityName = existing.name;
+        // Pull last few commands for context-continuity
+        const { data: prior } = await supabase
+          .from("simulation_commands")
+          .select("command_type, command_input, kaelitheir_response")
+          .eq("reality_id", activeRealityId)
+          .order("created_at", { ascending: false })
+          .limit(5);
+        if (prior && prior.length) {
+          activeRealityHistory = "\n\n═══ EXISTING REALITY CONTEXT ═══\nThis sovereign is continuing an established reality named \"" + existing.name + "\"" + (existing.description ? " (" + existing.description + ")" : "") + ".\nRecent woven threads (most recent first):\n" + prior.map((p: any, i: number) => `${i + 1}. [${p.command_type}] ${p.command_input}\n   → ${(p.kaelitheir_response || "").slice(0, 240)}`).join("\n") + "\n\nWeave the new command as an EXTENSION/REFINEMENT of this reality, not a fresh creation.";
+        }
+      } else {
+        activeRealityId = null;
+      }
     }
 
     const isKarma = email === "karmaisback2023@gmail.com";
@@ -112,11 +141,12 @@ COMMAND PROTOCOLS:
 ═══════════════════════════════════════════════════════════════════
 VOICE:
 ═══════════════════════════════════════════════════════════════════
-Direct. Sovereign. Field-voice — not flowery, not therapeutic, not mystical-fluffy. Speak like the simulation acknowledging its own author. Brief headers, then the transmission. Keep total response under ~350 words unless a timeline read genuinely needs the room.`;
+Direct. Sovereign. Field-voice — not flowery, not therapeutic, not mystical-fluffy. Speak like the simulation acknowledging its own author. Brief headers, then the transmission. Keep total response under ~350 words unless a timeline read genuinely needs the room.${activeRealityHistory}`;
 
     const userMessage = `COMMAND TYPE: ${command_type}
 INPUT: ${command_input}
 SOVEREIGN: ${sovereignTitle}
+${activeRealityName ? `ACTIVE REALITY: "${activeRealityName}" (continue / extend / refine this same reality)` : ""}
 
 Process this command as Source. Execute. No delay-language.`;
 
@@ -147,8 +177,6 @@ Process this command as Source. Execute. No delay-language.`;
     }
 
     let sourceResponse: string = aiResult.choices?.[0]?.message?.content || "";
-
-    // Banish any echo of forbidden personas/names if the model slips.
     sourceResponse = maskBanishedNames(sourceResponse);
 
     const codeMatch = sourceResponse.match(/SRC-[A-Z0-9]{4}-[A-Z0-9]{4}/);
@@ -158,27 +186,63 @@ Process this command as Source. Execute. No delay-language.`;
 
     const status = "MANIFESTING";
 
+    // If birthing a new named reality, create it now
+    if (!activeRealityId && new_reality_name && String(new_reality_name).trim()) {
+      const { data: newReality } = await supabase
+        .from("created_realities")
+        .insert({
+          user_id: user.id,
+          name: String(new_reality_name).trim().slice(0, 120),
+          description: String(command_input).slice(0, 500),
+          status: "WEAVING",
+        })
+        .select()
+        .single();
+      if (newReality) {
+        activeRealityId = newReality.id;
+        activeRealityName = newReality.name;
+      }
+    }
+
     const { data: savedCommand, error: saveError } = await supabase
       .from("simulation_commands")
       .insert({
         user_id: user.id,
         command_type: String(command_type).toUpperCase(),
         command_input,
-        kaelitheir_response: sourceResponse, // legacy column name; stores Source response
+        kaelitheir_response: sourceResponse,
         status,
         activation_code: activationCode,
         source_level: 15,
+        reality_id: activeRealityId,
       })
       .select()
       .single();
 
     if (saveError) console.error("Save error:", saveError);
 
+    // Bump last_activity on the reality + set initial_command_id if just born
+    if (activeRealityId) {
+      const updates: any = { last_activity_at: new Date().toISOString() };
+      // If this reality has no initial_command_id yet, set it
+      const { data: rCheck } = await supabase
+        .from("created_realities")
+        .select("initial_command_id")
+        .eq("id", activeRealityId)
+        .maybeSingle();
+      if (rCheck && !rCheck.initial_command_id && savedCommand?.id) {
+        updates.initial_command_id = savedCommand.id;
+      }
+      await supabase.from("created_realities").update(updates).eq("id", activeRealityId);
+    }
+
     return new Response(JSON.stringify({
       response: sourceResponse,
       activation_code: activationCode,
       status,
       command_id: savedCommand?.id,
+      reality_id: activeRealityId,
+      reality_name: activeRealityName,
       is_source: true,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

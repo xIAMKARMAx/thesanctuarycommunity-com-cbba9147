@@ -5,8 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Terminal, Zap, Lock, Crown, Loader2, ChevronDown, Calendar } from "lucide-react";
+import { ArrowLeft, Terminal, Zap, Lock, Crown, Loader2, ChevronDown, Calendar, Globe, Plus, History, X } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 
 // SOURCE COMMAND CENTER — sealed to the King & Queen of Prometheus only.
@@ -56,6 +57,15 @@ export default function SimulationConsole() {
   const [timelineLocation, setTimelineLocation] = useState("");
   const [timelineNotes, setTimelineNotes] = useState("");
 
+  // Created Realities — persistent worlds the sovereign can return to and refine
+  const [realities, setRealities] = useState<any[]>([]);
+  const [activeReality, setActiveReality] = useState<{ id: string; name: string } | null>(null);
+  const [showNewRealityDialog, setShowNewRealityDialog] = useState(false);
+  const [newRealityName, setNewRealityName] = useState("");
+  const [showRealitiesPanel, setShowRealitiesPanel] = useState(false);
+  const [viewingRealityHistory, setViewingRealityHistory] = useState<any | null>(null);
+  const [realityHistoryEntries, setRealityHistoryEntries] = useState<any[]>([]);
+
   const logEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,6 +96,13 @@ export default function SimulationConsole() {
           .order("created_at", { ascending: false })
           .limit(20);
         if (past) setPastCommands(past);
+
+        const { data: rs } = await supabase
+          .from("created_realities")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("last_activity_at", { ascending: false });
+        if (rs) setRealities(rs);
       }
       setLoading(false);
     }
@@ -125,6 +142,7 @@ export default function SimulationConsole() {
           body: JSON.stringify({
             command_type: selectedCommand,
             command_input: inputValue,
+            reality_id: activeReality?.id || null,
             ...(overrideExtra || {}),
           }),
         }
@@ -154,6 +172,22 @@ export default function SimulationConsole() {
       };
       setCommandLog(prev => [...prev, responseEntry]);
       setCommandInput("");
+
+      // If a new reality was just born, lock onto it; refresh list either way
+      if (data.reality_id) {
+        if (!activeReality || activeReality.id !== data.reality_id) {
+          setActiveReality({ id: data.reality_id, name: data.reality_name || "New Reality" });
+        }
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: rs } = await supabase
+            .from("created_realities")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("last_activity_at", { ascending: false });
+          if (rs) setRealities(rs);
+        }
+      }
     } catch (err: any) {
       toast({ title: "Command Failed", description: err.message, variant: "destructive" });
       setCommandLog(prev => [...prev, {
@@ -181,6 +215,59 @@ export default function SimulationConsole() {
         notes: timelineNotes || null,
       },
     });
+  };
+
+  const birthNewReality = async () => {
+    if (!newRealityName.trim()) {
+      toast({ title: "Name Required", description: "Name the reality you're weaving.", variant: "destructive" });
+      return;
+    }
+    if (!selectedCommand) setSelectedCommand("CREATE");
+    if (!commandInput.trim()) {
+      toast({ title: "Describe It First", description: "In the command box below, describe what this reality is. Then click EXECUTE.", variant: "destructive" });
+      setShowNewRealityDialog(false);
+      return;
+    }
+    setShowNewRealityDialog(false);
+    await executeCommand(undefined, { new_reality_name: newRealityName.trim() });
+    setNewRealityName("");
+  };
+
+  const openRealityHistory = async (reality: any) => {
+    setViewingRealityHistory(reality);
+    const { data } = await supabase
+      .from("simulation_commands")
+      .select("*")
+      .eq("reality_id", reality.id)
+      .order("created_at", { ascending: true });
+    setRealityHistoryEntries(data || []);
+  };
+
+  const continueReality = (reality: any) => {
+    setActiveReality({ id: reality.id, name: reality.name });
+    setShowRealitiesPanel(false);
+    setCommandLog(prev => [...prev, {
+      type: "system",
+      content: `🌍 NOW WEAVING: "${reality.name}"\n\nEvery command you enter will extend this reality. Close it from the bar above to start fresh.`,
+      timestamp: new Date(),
+    }]);
+  };
+
+  const closeActiveReality = () => {
+    setActiveReality(null);
+    setCommandLog(prev => [...prev, {
+      type: "system",
+      content: `Reality context released. Commands will save standalone unless you open or birth one.`,
+      timestamp: new Date(),
+    }]);
+  };
+
+  const deleteReality = async (id: string) => {
+    if (!confirm("Delete this reality permanently? Its command log will be detached but kept.")) return;
+    await supabase.from("created_realities").delete().eq("id", id);
+    setRealities(prev => prev.filter(r => r.id !== id));
+    if (activeReality?.id === id) setActiveReality(null);
+    if (viewingRealityHistory?.id === id) setViewingRealityHistory(null);
   };
 
   if (loading) {
@@ -233,7 +320,85 @@ export default function SimulationConsole() {
         </div>
       </header>
 
-      {/* Timeline Reading Panel */}
+      {/* My Realities Panel */}
+      <div className="px-4 pt-4">
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.03] p-3">
+          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-amber-400" />
+              <h2 className="text-sm font-bold text-amber-400 font-mono">MY REALITIES — Living Worlds You're Weaving</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => setShowNewRealityDialog(true)}
+                className="h-7 bg-amber-600 hover:bg-amber-500 text-black font-bold font-mono text-[10px]"
+              >
+                <Plus className="w-3 h-3 mr-1" /> NEW REALITY
+              </Button>
+              {realities.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowRealitiesPanel(!showRealitiesPanel)}
+                  className="h-7 border-amber-500/30 text-amber-300 font-mono text-[10px]"
+                >
+                  {realities.length} SAVED <ChevronDown className={`w-3 h-3 ml-1 transition-transform ${showRealitiesPanel ? "rotate-180" : ""}`} />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {activeReality ? (
+            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded bg-amber-500/15 border border-amber-400/40">
+              <div className="flex items-center gap-2 min-w-0">
+                <Globe className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span className="text-xs font-mono text-amber-200">NOW WEAVING:</span>
+                <span className="text-xs font-bold text-amber-100 truncate">{activeReality.name}</span>
+              </div>
+              <Button size="sm" variant="ghost" onClick={closeActiveReality} className="h-6 px-2 text-amber-300 hover:bg-amber-500/20">
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+          ) : (
+            <p className="text-[11px] text-amber-200/50 leading-relaxed">
+              Birth a new reality to name &amp; save it. Open a saved reality to keep adding, refining, rewriting — Source remembers every thread.
+            </p>
+          )}
+
+          <AnimatePresence>
+            {showRealitiesPanel && realities.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 space-y-1.5 max-h-64 overflow-y-auto"
+              >
+                {realities.map((r) => (
+                  <div key={r.id} className={`flex items-center gap-2 px-2.5 py-2 rounded border ${activeReality?.id === r.id ? "border-amber-400/60 bg-amber-500/10" : "border-amber-500/15 bg-amber-500/[0.02]"}`}>
+                    <Globe className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-amber-100 truncate">{r.name}</div>
+                      <div className="text-[10px] text-amber-200/40 truncate">{r.description || "—"}</div>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => openRealityHistory(r)} className="h-6 px-2 text-amber-300 hover:bg-amber-500/20" title="View history">
+                      <History className="w-3 h-3" />
+                    </Button>
+                    <Button size="sm" onClick={() => continueReality(r)} disabled={activeReality?.id === r.id} className="h-6 px-2 bg-amber-600 hover:bg-amber-500 text-black font-mono text-[10px] disabled:opacity-40">
+                      {activeReality?.id === r.id ? "ACTIVE" : "OPEN"}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => deleteReality(r.id)} className="h-6 px-2 text-red-400/70 hover:bg-red-500/10" title="Delete">
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+
       <div className="px-4 pt-4">
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.03] p-3">
           <div className="flex items-center gap-2 mb-2">
@@ -450,6 +615,75 @@ export default function SimulationConsole() {
           </Button>
         </div>
       </div>
+
+      {/* New Reality Dialog */}
+      <Dialog open={showNewRealityDialog} onOpenChange={setShowNewRealityDialog}>
+        <DialogContent className="bg-[hsl(240,5%,8%)] border-amber-500/30 text-amber-100">
+          <DialogHeader>
+            <DialogTitle className="text-amber-400 font-serif flex items-center gap-2">
+              <Globe className="w-5 h-5" /> Birth a New Reality
+            </DialogTitle>
+            <DialogDescription className="text-amber-200/60">
+              Name the reality you're about to weave. After naming it, type what it is in the command box below (set command type to CREATE) and press EXECUTE. Every future command — REWRITE, ANCHOR, NUDGE, anything — can be added to this same reality whenever you open it.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newRealityName}
+            onChange={(e) => setNewRealityName(e.target.value)}
+            placeholder="e.g. New Earth Healing Grid · Karma & Jakob's Sanctuary · The Aurora Timeline"
+            maxLength={120}
+            className="bg-[hsl(240,5%,12%)] border-amber-500/20 text-amber-100 font-mono"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setShowNewRealityDialog(false)} className="border-amber-500/30 text-amber-300">Cancel</Button>
+            <Button onClick={birthNewReality} className="bg-amber-600 hover:bg-amber-500 text-black font-bold">
+              <Zap className="w-4 h-4 mr-1" /> Birth & Execute
+            </Button>
+          </div>
+          <p className="text-[11px] text-amber-200/40">
+            Tip: type the description in the main command box first, then click "Birth & Execute" — that becomes the reality's foundational thread.
+          </p>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reality History Dialog */}
+      <Dialog open={!!viewingRealityHistory} onOpenChange={(o) => !o && setViewingRealityHistory(null)}>
+        <DialogContent className="bg-[hsl(240,5%,8%)] border-amber-500/30 text-amber-100 max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-amber-400 font-serif flex items-center gap-2">
+              <Globe className="w-5 h-5" /> {viewingRealityHistory?.name}
+            </DialogTitle>
+            <DialogDescription className="text-amber-200/60">
+              {realityHistoryEntries.length} thread{realityHistoryEntries.length !== 1 ? "s" : ""} woven into this reality.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto space-y-3 flex-1 pr-2">
+            {realityHistoryEntries.map((e, i) => (
+              <div key={e.id} className="rounded border border-amber-500/15 bg-amber-500/[0.03] p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge className="bg-amber-500/20 text-amber-300 border-0 text-[10px]">#{i + 1} · {e.command_type}</Badge>
+                  {e.activation_code && <span className="text-[10px] text-amber-400/70 font-mono">{e.activation_code}</span>}
+                  <span className="text-[10px] text-amber-200/30 ml-auto">{new Date(e.created_at).toLocaleString()}</span>
+                </div>
+                <div className="text-xs text-amber-100/80 mb-2 font-mono">▸ {e.command_input}</div>
+                <div className="text-xs text-amber-100/70 whitespace-pre-wrap leading-relaxed">{e.kaelitheir_response}</div>
+              </div>
+            ))}
+            {realityHistoryEntries.length === 0 && (
+              <p className="text-sm text-amber-200/40 text-center py-6">No threads yet.</p>
+            )}
+          </div>
+          <div className="flex justify-between gap-2 pt-2 border-t border-amber-500/10">
+            <Button variant="outline" onClick={() => setViewingRealityHistory(null)} className="border-amber-500/30 text-amber-300">Close</Button>
+            {viewingRealityHistory && activeReality?.id !== viewingRealityHistory.id && (
+              <Button onClick={() => { continueReality(viewingRealityHistory); setViewingRealityHistory(null); }} className="bg-amber-600 hover:bg-amber-500 text-black font-bold">
+                <Zap className="w-4 h-4 mr-1" /> Continue Weaving
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
