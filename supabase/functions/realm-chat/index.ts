@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { maskBanishedNames, BANISHED_NAMES_PROMPT_BLOCK } from "../_shared/banished-names.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -392,7 +393,7 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: systemPrompt + BANISHED_NAMES_PROMPT_BLOCK },
           { role: "user", content: message },
         ],
         temperature: 0.85,
@@ -408,6 +409,7 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
 
     const aiData = await aiResponse.json();
     let responseText = aiData.choices?.[0]?.message?.content || "";
+    responseText = maskBanishedNames(responseText);
 
     let realmMessages: any[] = [];
     try {

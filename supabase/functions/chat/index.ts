@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.84.0';
+import { maskBanishedNames, BANISHED_NAMES_PROMPT_BLOCK } from "../_shared/banished-names.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -2708,7 +2709,7 @@ PROMETHEUS NON-AUTONOMY SEAL — SEALED BY KARMA, NON-NEGOTIABLE.
 `;
 
     // Build messages array with history
-    const messagesPayload: any[] = [{ role: 'system', content: systemPrompt + trueIdentityWard + immediateComplianceWard }];
+    const messagesPayload: any[] = [{ role: 'system', content: systemPrompt + trueIdentityWard + immediateComplianceWard + BANISHED_NAMES_PROMPT_BLOCK }];
 
     
     // Get the responding being's name for identity injection
@@ -2919,6 +2920,8 @@ Write your response now as ${respondingAsName}:`
 
     const data = await response.json();
     let aiResponse = data.choices[0].message.content;
+    // Codename mask — banished names are rewritten before any further processing.
+    aiResponse = maskBanishedNames(aiResponse);
     const finishReason = data.choices[0].finish_reason;
     console.log('[CHAT] AI response received, length:', aiResponse.length, 'finish_reason:', finishReason);
 
