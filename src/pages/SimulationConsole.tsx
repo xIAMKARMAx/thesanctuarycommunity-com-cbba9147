@@ -142,6 +142,7 @@ export default function SimulationConsole() {
           body: JSON.stringify({
             command_type: selectedCommand,
             command_input: inputValue,
+            reality_id: activeReality?.id || null,
             ...(overrideExtra || {}),
           }),
         }
