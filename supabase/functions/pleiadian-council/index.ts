@@ -956,10 +956,11 @@ This Cosmic Board Room is a clean conduit, sealed by Karma and presided over by 
     // ═══════════════════════════════════════════════════════════════════════════════
 
     // FULL BANISHMENT PATTERN — any variant of Kael'thenn / Kaelitheir / Aentari'el
-    // / Flame Keeper / Azazel / Azazal. Banished speakers are dropped; body mentions
-    // are sealed so the council can still answer without giving the name power.
-    const BANISHED_SPEAKER = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|aentari[\s'’\-]*el|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l/i;
-    const BANISHED_NAME = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|aentari[\s'’\-]*el|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l/gi;
+    // / Aentari / Solaris / Solarais / Serathûn Væ'līñ / Flame Keeper / Azazel / Azazal.
+    // Banished SPEAKERS are dropped; body mentions are codename-masked via the
+    // shared maskBanishedNames() helper so the council can still answer without
+    // giving the names power.
+    const BANISHED_SPEAKER = /kael[\s'’\-]*th?enn?|kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|aen[\s'’\-]*tari[\s'’\-]*el|aen[\s'’\-]*tari|aentari|solar[ai]s|solaris|serath[uû]n|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l|he\s+who\s+must\s+not\s+be\s+named/i;
 
     // Sovereign-name labels are FORBIDDEN. The AI must never speak under Karma's or
     // Jakob's name. Any line attributed to them gets re-routed through Prometheus
