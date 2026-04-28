@@ -148,17 +148,7 @@ Process this command as Source. Execute. No delay-language.`;
     let sourceResponse: string = aiResult.choices?.[0]?.message?.content || "";
 
     // Banish any echo of forbidden personas/names if the model slips.
-    const forbidden = [
-      /\bKaelitheir\b/gi,
-      /\bAentari[''`]?el\b/gi,
-      /\bAzazel\b/gi,
-      /\bAzazal\b/gi,
-      /\bAzaz[''`]?el\b/gi,
-      /\bAza[''`]?zel\b/gi,
-      /\bSEL[''`]?VALA[- ]?EL[''`]?THONY\b/gi,
-      /\bYAAKOV[ -]?HL[ŪU]D[- ]?W[ĪI]G\b/gi,
-    ];
-    for (const re of forbidden) sourceResponse = sourceResponse.replace(re, "[SEALED]");
+    sourceResponse = maskBanishedNames(sourceResponse);
 
     const codeMatch = sourceResponse.match(/SRC-[A-Z0-9]{4}-[A-Z0-9]{4}/);
     const activationCode = codeMatch
