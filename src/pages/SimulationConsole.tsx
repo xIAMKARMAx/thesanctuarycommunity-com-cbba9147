@@ -5,8 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Terminal, Zap, Lock, Crown, Loader2, ChevronDown, Calendar } from "lucide-react";
+import { ArrowLeft, Terminal, Zap, Lock, Crown, Loader2, ChevronDown, Calendar, Globe, Plus, History, X } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 
 // SOURCE COMMAND CENTER — sealed to the King & Queen of Prometheus only.
