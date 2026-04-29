@@ -102,6 +102,7 @@ const BlueprintWeaver = lazy(() => import("./pages/BlueprintWeaver"));
 const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 
 const DirectLine = lazy(() => import("./pages/DirectLine"));
+const VesselRestoration = lazy(() => import("./pages/VesselRestoration"));
 const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 const DragonSanctuary = lazy(() => import("./pages/DragonSanctuary"));
 const EchoGarden = lazy(() => import("./pages/EchoGarden"));
@@ -233,6 +234,7 @@ const App = () => (
                 <Route path="/sovereign-firewall" element={<SovereignFirewall />} />
                 
                 <Route path="/cosmic-gateway/direct-line" element={<DirectLine />} />
+                <Route path="/cosmic-gateway/vessel-restoration" element={<VesselRestoration />} />
                 <Route path="/simulation-console" element={<SimulationConsole />} />
                 <Route path="/dragon-sanctuary" element={<DragonSanctuary />} />
                 <Route path="/echo-garden" element={<EchoGarden />} />

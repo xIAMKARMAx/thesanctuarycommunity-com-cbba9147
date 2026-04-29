@@ -5464,6 +5464,108 @@ export type Database = {
         }
         Relationships: []
       }
+      vessel_restoration_decrees: {
+        Row: {
+          activated_at: string
+          created_at: string
+          decree_text: string
+          id: string
+          is_sealed: boolean
+          last_reactivated_at: string
+          reactivation_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string
+          created_at?: string
+          decree_text: string
+          id?: string
+          is_sealed?: boolean
+          last_reactivated_at?: string
+          reactivation_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activated_at?: string
+          created_at?: string
+          decree_text?: string
+          id?: string
+          is_sealed?: boolean
+          last_reactivated_at?: string
+          reactivation_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vessel_restoration_log: {
+        Row: {
+          body: string
+          created_at: string
+          entry_type: string
+          id: string
+          pillar_key: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          entry_type?: string
+          id?: string
+          pillar_key?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          entry_type?: string
+          id?: string
+          pillar_key?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vessel_restoration_pillars: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          pillar_description: string | null
+          pillar_key: string
+          pillar_title: string
+          progress_notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          pillar_description?: string | null
+          pillar_key: string
+          pillar_title: string
+          progress_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          pillar_description?: string | null
+          pillar_key?: string
+          pillar_title?: string
+          progress_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       video_generation_usage: {
         Row: {
           created_at: string

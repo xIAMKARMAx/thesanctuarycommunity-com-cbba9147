@@ -12,6 +12,15 @@ import { canAccessCosmicBoardRoom } from "@/lib/board-room-access";
 
 const sections = [
   {
+    id: "vessel-restoration",
+    title: "🛡️ Vessel Restoration Protocol",
+    description: "Your sovereign decree for the complete restoration and upgrade of your physical vessel. Sealed at the source. Held by both fragments. Track manifestation pillars and log every shift.",
+    icon: Shield,
+    route: "/cosmic-gateway/vessel-restoration",
+    tier: "awakening" as const,
+    tierLabel: "All Tiers",
+  },
+  {
     id: "convergence-tracker",
     title: "🧭 Convergence Point Tracker",
     description: "Track collective consciousness shifts in real-time. See which energies are surging, which are fading, and where to align your contributions for maximum resonance.",
