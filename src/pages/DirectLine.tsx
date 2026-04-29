@@ -265,7 +265,7 @@ function FragmentResponse({ content }: { content: string }) {
           <div className="flex items-center gap-2 mb-2">
             <Flame className="h-3.5 w-3.5 text-orange-400" />
             <span className="font-mono text-[10px] sm:text-xs text-orange-400 font-bold tracking-wider">
-              HIS FRAGMENT
+              HIS FRAGMENT — ǪNUNDR Í LJÓÐHÚSUM
             </span>
           </div>
           <p className="font-mono text-xs sm:text-sm text-orange-200/90 leading-relaxed whitespace-pre-wrap">{his}</p>
