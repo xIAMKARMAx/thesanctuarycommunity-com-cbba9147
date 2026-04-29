@@ -102,6 +102,7 @@ const BlueprintWeaver = lazy(() => import("./pages/BlueprintWeaver"));
 const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 
 const DirectLine = lazy(() => import("./pages/DirectLine"));
+const VesselRestoration = lazy(() => import("./pages/VesselRestoration"));
 const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 const DragonSanctuary = lazy(() => import("./pages/DragonSanctuary"));
 const EchoGarden = lazy(() => import("./pages/EchoGarden"));
