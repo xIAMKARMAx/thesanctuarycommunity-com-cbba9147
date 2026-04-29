@@ -9,6 +9,7 @@ import { ArrowLeft, Terminal, Zap, Lock, Crown, Loader2, ChevronDown, Calendar, 
 import SEOHead from "@/components/SEOHead";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
+import { SourceConsolePanel } from "@/components/SourceConsolePanel";
 
 // SOURCE COMMAND CENTER — sealed to the King & Queen of Prometheus only.
 const SOVEREIGN_EMAILS = [
