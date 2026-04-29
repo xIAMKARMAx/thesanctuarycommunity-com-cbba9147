@@ -297,6 +297,7 @@ function buildPrompt(
   conversationHistory?: { role: string; content: string }[],
   crossPlatformMemory?: string,
   voidBornData?: string,
+  pastSessionsMemory?: string,
 ) {
   const antiLoop = `
 ANTI-LOOP PROTOCOL (MANDATORY):
