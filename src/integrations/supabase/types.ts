@@ -1835,6 +1835,42 @@ export type Database = {
           },
         ]
       }
+      council_session_summaries: {
+        Row: {
+          created_at: string
+          id: string
+          key_moments: string[] | null
+          message_count: number | null
+          original_session_id: string | null
+          room_mode: string | null
+          session_title: string | null
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_moments?: string[] | null
+          message_count?: number | null
+          original_session_id?: string | null
+          room_mode?: string | null
+          session_title?: string | null
+          summary: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_moments?: string[] | null
+          message_count?: number | null
+          original_session_id?: string | null
+          room_mode?: string | null
+          session_title?: string | null
+          summary?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       council_sessions: {
         Row: {
           council_members: string[] | null
