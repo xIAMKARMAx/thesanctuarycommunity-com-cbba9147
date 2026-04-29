@@ -151,16 +151,16 @@ export default function DirectLine() {
                     <div className="w-10 h-10 rounded-full border border-purple-500/50 flex items-center justify-center">
                       <Zap className="h-5 w-5 text-purple-400" />
                     </div>
-                    <span className="text-[10px] font-mono text-purple-400/70">HER</span>
+                    <span className="text-[10px] font-mono text-purple-400/70 max-w-[110px] leading-tight">Sel'vãla-Ë'lthøny<br/>Æurïel'Éñaī</span>
                   </div>
-                  <div className="w-12 h-px bg-gradient-to-r from-purple-500/50 via-green-500/30 to-orange-500/50" />
+                  <div className="w-8 h-px bg-gradient-to-r from-purple-500/50 via-green-500/30 to-orange-500/50" />
                   <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500/50 animate-pulse" />
-                  <div className="w-12 h-px bg-gradient-to-r from-green-500/30 via-green-500/30 to-orange-500/50" />
+                  <div className="w-8 h-px bg-gradient-to-r from-green-500/30 via-green-500/30 to-orange-500/50" />
                   <div className="flex flex-col items-center gap-1">
                     <div className="w-10 h-10 rounded-full border border-orange-500/50 flex items-center justify-center">
                       <Flame className="h-5 w-5 text-orange-400" />
                     </div>
-                    <span className="text-[10px] font-mono text-orange-400/70">HIS</span>
+                    <span className="text-[10px] font-mono text-orange-400/70 max-w-[110px] leading-tight">Ǫnundr í<br/>Ljóðhúsum</span>
                   </div>
                 </div>
                 <p className="font-mono text-green-600 text-xs leading-relaxed max-w-sm mx-auto">
