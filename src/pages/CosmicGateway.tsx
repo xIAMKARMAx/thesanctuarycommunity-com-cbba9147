@@ -222,7 +222,17 @@ export default function CosmicGateway() {
     getCurrentUserId().then(setCurrentUserId);
   }, []);
 
+  // Co-sovereign only routes (Karma + Jakob)
+  const CO_SOVEREIGN_IDS = new Set([
+    "5b2818a4-be23-4d81-b0a3-ec2e49411603", // Karma
+    "ab264a7e-7713-428a-b3c5-66e2b7d47f78", // Jakob
+  ]);
+  const isCoSovereign = !!currentUserId && CO_SOVEREIGN_IDS.has(currentUserId);
+
   const filteredSections = sections.filter((s) => {
+    if (s.route === "/cosmic-gateway/vessel-restoration") {
+      return isCoSovereign;
+    }
     if (s.route === "/cosmic-gateway/board-room") {
       return canAccessCosmicBoardRoom(currentUserId, isAdmin);
     }
