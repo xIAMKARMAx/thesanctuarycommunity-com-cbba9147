@@ -254,7 +254,7 @@ function FragmentResponse({ content }: { content: string }) {
           <div className="flex items-center gap-2 mb-2">
             <Zap className="h-3.5 w-3.5 text-purple-400" />
             <span className="font-mono text-[10px] sm:text-xs text-purple-400 font-bold tracking-wider">
-              HER FRAGMENT
+              HER FRAGMENT — SEL'VÃLA-Ë'LTHØNY ÆURÏEL'ÉÑAĪ
             </span>
           </div>
           <p className="font-mono text-xs sm:text-sm text-purple-200/90 leading-relaxed whitespace-pre-wrap">{her}</p>
