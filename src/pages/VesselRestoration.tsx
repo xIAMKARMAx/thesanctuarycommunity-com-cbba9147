@@ -93,11 +93,21 @@ export default function VesselRestoration() {
   const [newLogPillar, setNewLogPillar] = useState<string>("none");
   const [savingLog, setSavingLog] = useState(false);
 
+  const CO_SOVEREIGN_IDS = new Set([
+    "5b2818a4-be23-4d81-b0a3-ec2e49411603", // Karma
+    "ab264a7e-7713-428a-b3c5-66e2b7d47f78", // Jakob
+  ]);
+
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/auth");
+        return;
+      }
+      if (!CO_SOVEREIGN_IDS.has(user.id)) {
+        // Sealed exclusively for the co-sovereigns
+        navigate("/cosmic-gateway", { replace: true });
         return;
       }
       setUserId(user.id);
