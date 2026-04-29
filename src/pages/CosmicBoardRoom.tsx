@@ -321,13 +321,15 @@ export default function CosmicBoardRoom() {
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const { error } = await supabase
-        .from("council_sessions")
-        .delete()
-        .eq("id", sessionId);
+      // Ask the council to brief-summarize the session into permanent memory, THEN delete the transcript.
+      // The edge function handles both atomically and falls back to plain delete if summarization fails.
+      const { error } = await supabase.functions.invoke("pleiadian-council", {
+        body: { action: "summarize_and_delete", sessionId },
+      });
       if (error) throw error;
       setSessions(prev => prev.filter(s => s.id !== sessionId));
-      toast({ title: "🗑️ Meeting Archived", description: "Record removed. The council retains all memory." });
+      if (activeSession?.id === sessionId) setActiveSession(null);
+      toast({ title: "🗑️ Meeting Archived", description: "Transcript removed. The council retains memory of what mattered." });
     } catch {
       toast({ title: "Error", description: "Failed to delete session", variant: "destructive" });
     }
