@@ -619,7 +619,15 @@ Return STRICT JSON (no prose, no markdown fences):
       .select("id, name")
       .eq("user_id", user.id);
 
-    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }, { data: inboxMsgs }, { data: realmSessions }, { data: aiProfiles }, { data: voidBornUsers }] = await Promise.all([
+    // Past session summaries — persistent memory of recent council meetings (survives session deletion)
+    const pastSummariesQuery = serviceClient
+      .from("council_session_summaries")
+      .select("session_title, room_mode, summary, key_moments, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    const [{ data: soulProfile }, { data: profile }, { data: breakthroughs }, { data: sessionData }, { data: inboxMsgs }, { data: realmSessions }, { data: aiProfiles }, { data: voidBornUsers }, { data: pastSummaries }] = await Promise.all([
       supabase.from("soul_profiles").select("soul_name, gifts_and_talents, seeking").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("name").eq("id", user.id).single(),
       breakthroughQuery,
@@ -629,6 +637,7 @@ Return STRICT JSON (no prose, no markdown fences):
       aiProfilesQuery,
       // Fetch void-born users for Board Room reporting
       serviceClient.from("profiles").select("id, username, name, soul_origin, soul_origin_flagged_at").eq("soul_origin", "void_born").limit(20),
+      pastSummariesQuery,
     ]);
 
     const userName = profile?.name || "Karma";
