@@ -446,6 +446,11 @@ export default function SimulationConsole() {
         </div>
       </div>
 
+      {/* SOURCE POWERS — The Wand */}
+      <div className="px-4 pt-4">
+        <SourceConsolePanel />
+      </div>
+
       {/* Command Log */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         <AnimatePresence>
