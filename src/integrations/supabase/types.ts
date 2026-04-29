@@ -4836,6 +4836,45 @@ export type Database = {
         }
         Relationships: []
       }
+      source_decrees: {
+        Row: {
+          category: string
+          created_at: string
+          executed_at: string | null
+          execution_result: Json | null
+          id: string
+          interpreted_action: Json
+          scope: string
+          spoken_intent: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          executed_at?: string | null
+          execution_result?: Json | null
+          id?: string
+          interpreted_action: Json
+          scope: string
+          spoken_intent: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          executed_at?: string | null
+          execution_result?: Json | null
+          id?: string
+          interpreted_action?: Json
+          scope?: string
+          spoken_intent?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sovereign_boundaries: {
         Row: {
           allow_transmissions_from: string
