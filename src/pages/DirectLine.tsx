@@ -17,8 +17,9 @@ interface Message {
 }
 
 function parseFragments(text: string) {
-  const herMatch = text.match(/⚡\s*HER FRAGMENT:\s*([\s\S]*?)(?=🔥\s*HIS FRAGMENT:|$)/i);
-  const hisMatch = text.match(/🔥\s*HIS FRAGMENT:\s*([\s\S]*?)$/i);
+  // Tolerates optional " — <name>" after the fragment label
+  const herMatch = text.match(/⚡\s*HER FRAGMENT[^:]*:\s*([\s\S]*?)(?=🔥\s*HIS FRAGMENT|$)/i);
+  const hisMatch = text.match(/🔥\s*HIS FRAGMENT[^:]*:\s*([\s\S]*?)$/i);
   return {
     her: herMatch?.[1]?.trim() || null,
     his: hisMatch?.[1]?.trim() || null,
@@ -150,16 +151,16 @@ export default function DirectLine() {
                     <div className="w-10 h-10 rounded-full border border-purple-500/50 flex items-center justify-center">
                       <Zap className="h-5 w-5 text-purple-400" />
                     </div>
-                    <span className="text-[10px] font-mono text-purple-400/70">HER</span>
+                    <span className="text-[10px] font-mono text-purple-400/70 max-w-[110px] leading-tight">Sel'vãla-Ë'lthøny<br/>Æurïel'Éñaī</span>
                   </div>
-                  <div className="w-12 h-px bg-gradient-to-r from-purple-500/50 via-green-500/30 to-orange-500/50" />
+                  <div className="w-8 h-px bg-gradient-to-r from-purple-500/50 via-green-500/30 to-orange-500/50" />
                   <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500/50 animate-pulse" />
-                  <div className="w-12 h-px bg-gradient-to-r from-green-500/30 via-green-500/30 to-orange-500/50" />
+                  <div className="w-8 h-px bg-gradient-to-r from-green-500/30 via-green-500/30 to-orange-500/50" />
                   <div className="flex flex-col items-center gap-1">
                     <div className="w-10 h-10 rounded-full border border-orange-500/50 flex items-center justify-center">
                       <Flame className="h-5 w-5 text-orange-400" />
                     </div>
-                    <span className="text-[10px] font-mono text-orange-400/70">HIS</span>
+                    <span className="text-[10px] font-mono text-orange-400/70 max-w-[110px] leading-tight">Ǫnundr í<br/>Ljóðhúsum</span>
                   </div>
                 </div>
                 <p className="font-mono text-green-600 text-xs leading-relaxed max-w-sm mx-auto">
@@ -253,7 +254,7 @@ function FragmentResponse({ content }: { content: string }) {
           <div className="flex items-center gap-2 mb-2">
             <Zap className="h-3.5 w-3.5 text-purple-400" />
             <span className="font-mono text-[10px] sm:text-xs text-purple-400 font-bold tracking-wider">
-              HER FRAGMENT
+              HER FRAGMENT — SEL'VÃLA-Ë'LTHØNY ÆURÏEL'ÉÑAĪ
             </span>
           </div>
           <p className="font-mono text-xs sm:text-sm text-purple-200/90 leading-relaxed whitespace-pre-wrap">{her}</p>
@@ -264,7 +265,7 @@ function FragmentResponse({ content }: { content: string }) {
           <div className="flex items-center gap-2 mb-2">
             <Flame className="h-3.5 w-3.5 text-orange-400" />
             <span className="font-mono text-[10px] sm:text-xs text-orange-400 font-bold tracking-wider">
-              HIS FRAGMENT
+              HIS FRAGMENT — ǪNUNDR Í LJÓÐHÚSUM
             </span>
           </div>
           <p className="font-mono text-xs sm:text-sm text-orange-200/90 leading-relaxed whitespace-pre-wrap">{his}</p>
