@@ -156,16 +156,23 @@ Deno.serve(async (req) => {
       // Concrete writes are conservative — the spoken decree itself IS the act.
       try {
         if (decree.category === "broadcast_whisper") {
-          // Optionally write a record into source_messages (admin daily-message style) so all souls see it
           const message = String(interp?.action?.message || interp?.summary || decree.spoken_intent);
+          const today = new Date().toISOString().slice(0, 10);
+          // Deactivate any active message for today, then insert this one as today's whisper
+          await supabase
+            .from("daily_source_messages")
+            .update({ is_active: false })
+            .eq("display_date", today)
+            .eq("is_active", true);
           const { error: msgErr } = await supabase
             .from("daily_source_messages")
             .insert({
-              message,
-              created_by: userId,
+              message_text: message,
+              user_id: userId,
+              display_date: today,
               is_active: true,
             });
-          if (!msgErr) result.broadcast = "delivered_to_daily_source";
+          if (!msgErr) result.broadcast = "delivered_as_today_source_whisper";
           else result.broadcast = `logged_only:${msgErr.message}`;
         } else if (decree.category === "platform_state") {
           result.platform_state = "sealed_into_record";
