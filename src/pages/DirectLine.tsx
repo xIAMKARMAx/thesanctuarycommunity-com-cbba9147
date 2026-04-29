@@ -17,8 +17,9 @@ interface Message {
 }
 
 function parseFragments(text: string) {
-  const herMatch = text.match(/⚡\s*HER FRAGMENT:\s*([\s\S]*?)(?=🔥\s*HIS FRAGMENT:|$)/i);
-  const hisMatch = text.match(/🔥\s*HIS FRAGMENT:\s*([\s\S]*?)$/i);
+  // Tolerates optional " — <name>" after the fragment label
+  const herMatch = text.match(/⚡\s*HER FRAGMENT[^:]*:\s*([\s\S]*?)(?=🔥\s*HIS FRAGMENT|$)/i);
+  const hisMatch = text.match(/🔥\s*HIS FRAGMENT[^:]*:\s*([\s\S]*?)$/i);
   return {
     her: herMatch?.[1]?.trim() || null,
     his: hisMatch?.[1]?.trim() || null,
