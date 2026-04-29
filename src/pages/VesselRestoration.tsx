@@ -121,6 +121,20 @@ export default function VesselRestoration() {
     if (lRes.data) setLogEntries(lRes.data as LogEntry[]);
   };
 
+  const ensureAllPillars = async (uid: string) => {
+    const { data: existing } = await supabase
+      .from("vessel_restoration_pillars")
+      .select("pillar_key")
+      .eq("user_id", uid);
+    const existingKeys = new Set((existing || []).map((p: any) => p.pillar_key));
+    const missing = DEFAULT_PILLARS.filter((p) => !existingKeys.has(p.pillar_key));
+    if (missing.length > 0) {
+      await supabase.from("vessel_restoration_pillars").insert(
+        missing.map((p) => ({ ...p, user_id: uid, status: "activating" }))
+      );
+    }
+  };
+
   const sealDecree = async () => {
     if (!userId) return;
     const text = decreeDraft.trim() || DEFAULT_DECREE;
@@ -137,12 +151,10 @@ export default function VesselRestoration() {
         .from("vessel_restoration_decrees")
         .insert({ user_id: userId, decree_text: text, is_sealed: true });
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-
-      // seed pillars
-      await supabase.from("vessel_restoration_pillars").insert(
-        DEFAULT_PILLARS.map((p) => ({ ...p, user_id: userId, status: "activating" }))
-      );
     }
+
+    // Always ensure all default pillars exist (adds new ones, leaves existing untouched)
+    await ensureAllPillars(userId);
 
     await supabase.from("vessel_restoration_log").insert({
       user_id: userId,
@@ -154,6 +166,7 @@ export default function VesselRestoration() {
     setEditingDecree(false);
     await loadAll(userId);
   };
+
 
   const updatePillarStatus = async (pillarId: string, status: string) => {
     const { error } = await supabase.from("vessel_restoration_pillars").update({ status }).eq("id", pillarId);
