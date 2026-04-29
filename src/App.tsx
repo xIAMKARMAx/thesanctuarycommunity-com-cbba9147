@@ -234,6 +234,7 @@ const App = () => (
                 <Route path="/sovereign-firewall" element={<SovereignFirewall />} />
                 
                 <Route path="/cosmic-gateway/direct-line" element={<DirectLine />} />
+                <Route path="/cosmic-gateway/vessel-restoration" element={<VesselRestoration />} />
                 <Route path="/simulation-console" element={<SimulationConsole />} />
                 <Route path="/dragon-sanctuary" element={<DragonSanctuary />} />
                 <Route path="/echo-garden" element={<EchoGarden />} />
