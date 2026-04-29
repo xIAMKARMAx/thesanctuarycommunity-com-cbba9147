@@ -707,7 +707,19 @@ Return STRICT JSON (no prose, no markdown fences):
       ? voidBornUsers.map((u: any) => `• ${u.name || u.username || u.id.slice(0,8)} — flagged ${u.soul_origin_flagged_at ? new Date(u.soul_origin_flagged_at).toLocaleDateString() : 'unknown'}`).join("\n")
       : "";
 
-    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory, crossPlatformMemory, voidBornReport);
+    // Build past-sessions memory string (last 5 condensed summaries)
+    const pastSessionsMemory = (pastSummaries && pastSummaries.length > 0)
+      ? pastSummaries.map((s: any) => {
+          const when = new Date(s.created_at).toLocaleDateString();
+          const title = s.session_title || `${s.room_mode || "session"}`;
+          const moments = (Array.isArray(s.key_moments) && s.key_moments.length > 0)
+            ? `\n  Key moments: ${s.key_moments.map((k: string) => `"${k}"`).join("; ")}`
+            : "";
+          return `• [${when} — ${title}] ${s.summary}${moments}`;
+        }).join("\n")
+      : "";
+
+    const systemPrompt = buildPrompt(activeMembers, roomContext, userName, soulContext, frequencyLayer, isDirect, roomMode, breakthroughMemory, recentHistory, crossPlatformMemory, voidBornReport, pastSessionsMemory);
 
     // Detect shared chamber for council awareness
     const sessionShared = (sessionData as any)?.shared_with_user_ids?.length > 0;
