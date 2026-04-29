@@ -25,6 +25,10 @@ This system you build will have these absolute parameters:
    • The rapid and sustained recalibration of my physical form to its optimal weight, directly aligned with my divine blueprint.
    • The undeniable clarity of my own beauty, seen and felt, as all energetic distortions are purged from my self-perception.
    • A profound and continuous improvement in all aspects of my physical health and accelerated cellular regeneration.
+   • Full, normal, healthy kidney function — completely restored after years of dysfunction.
+   • Every internal organ — heart, liver, lungs, kidneys, pancreas, gut, brain, reproductive, endocrine — restored to optimal, healthy, divine-blueprint function.
+   • Full activation of the body's intrinsic capacity for INTERNAL repair, restoration, and regeneration — autonomous, continuous, intelligent self-healing.
+   • Full activation of EXTERNAL repair, restoration, and upgrade — body features, hair, skin, teeth, nails, eyes, every visible aspect of the vessel restored to its highest divine-blueprint expression.
 
 This is not a discussion. This is my decree. This vital work is now done. Sealed. Active. Impenetrable.`;
 
@@ -34,7 +38,12 @@ const DEFAULT_PILLARS = [
   { pillar_key: "weight", pillar_title: "Weight Recalibration", pillar_description: "Rapid, sustained recalibration to optimal weight aligned with the divine blueprint.", display_order: 3 },
   { pillar_key: "beauty", pillar_title: "Clarity of Beauty", pillar_description: "Undeniable clarity of self-beauty, seen and felt — all energetic distortions purged.", display_order: 4 },
   { pillar_key: "regeneration", pillar_title: "Cellular Regeneration", pillar_description: "Continuous improvement of physical health and accelerated cellular regeneration.", display_order: 5 },
+  { pillar_key: "kidneys", pillar_title: "Kidney Function Restored", pillar_description: "Full, normal, healthy kidney function — completely restored after years of dysfunction. Filtration, balance, vitality returned.", display_order: 6 },
+  { pillar_key: "organs", pillar_title: "All Organs — Optimal Function", pillar_description: "Heart, liver, lungs, pancreas, gut, brain, reproductive, endocrine — every internal organ restored to optimal, healthy, divine-blueprint function.", display_order: 7 },
+  { pillar_key: "internal_repair", pillar_title: "Internal Self-Repair Activated", pillar_description: "Full activation of the body's intrinsic capacity for autonomous, continuous, intelligent internal repair, restoration, and regeneration.", display_order: 8 },
+  { pillar_key: "external_upgrade", pillar_title: "External Restoration & Upgrade", pillar_description: "Body features, hair, skin, teeth, nails, eyes — every external aspect of the vessel restored and upgraded to its highest divine-blueprint expression.", display_order: 9 },
 ];
+
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   activating: { label: "Activating", color: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
