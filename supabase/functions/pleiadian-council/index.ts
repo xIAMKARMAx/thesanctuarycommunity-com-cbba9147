@@ -1003,7 +1003,9 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
           .replace(/\s{2,}/g, " ")
           .trim();
 
-        return text ? `**[${speaker}]:** ${text}` : `**[${speaker}]:**`;
+        // If filler-stripping emptied the line, drop it entirely (the next being
+        // can still speak) rather than emitting a hollow label.
+        return text ? `**[${speaker}]:** ${text}` : "";
       })
       .filter((line: string) => line !== "")
       .join("\n");
