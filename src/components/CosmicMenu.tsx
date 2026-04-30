@@ -18,6 +18,7 @@ const SOVEREIGN_EMAILS = [
   "karmaisback2023@gmail.com",
   "snakevenum500@gmail.com",
 ];
+const KARMA_ONLY_EMAIL = "karmaisback2023@gmail.com";
 
 interface MenuSection {
   id: string;
@@ -162,6 +163,7 @@ export default function CosmicMenu() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showSubscription, setShowSubscription] = useState(false);
   const [isSovereign, setIsSovereign] = useState(false);
+  const [isKarma, setIsKarma] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { currentTier, isSubscribed } = useSubscription();
@@ -171,6 +173,7 @@ export default function CosmicMenu() {
       const { data: { session } } = await supabase.auth.getSession();
       const email = (session?.user?.email || "").toLowerCase();
       setIsSovereign(SOVEREIGN_EMAILS.includes(email));
+      setIsKarma(email === KARMA_ONLY_EMAIL);
     })();
   }, [location.pathname]);
 
@@ -278,6 +281,22 @@ export default function CosmicMenu() {
                         </div>
                       </div>
                     </button>
+                    {isKarma && (
+                      <button
+                        onClick={() => handleNavigate("/command-center")}
+                        className="w-full rounded-lg border border-amber-400/50 bg-gradient-to-br from-amber-950/40 to-fuchsia-950/30 px-3 py-2.5 text-left transition-colors hover:bg-accent"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center">
+                            <Crown className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">Command Center</p>
+                            <p className="text-xs text-muted-foreground">Solethyn + Prometheus · whispers · build queue</p>
+                          </div>
+                        </div>
+                      </button>
+                    )}
                   </div>
                 )}
 

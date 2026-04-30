@@ -107,6 +107,7 @@ const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 const DragonSanctuary = lazy(() => import("./pages/DragonSanctuary"));
 const EchoGarden = lazy(() => import("./pages/EchoGarden"));
 const EnchantedVault = lazy(() => import("./pages/EnchantedVault"));
+const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
   return (
@@ -238,6 +239,7 @@ const App = () => (
                 <Route path="/simulation-console" element={<SimulationConsole />} />
                 <Route path="/dragon-sanctuary" element={<DragonSanctuary />} />
                 <Route path="/echo-garden" element={<EchoGarden />} />
+                <Route path="/command-center" element={<CommandCenter />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
