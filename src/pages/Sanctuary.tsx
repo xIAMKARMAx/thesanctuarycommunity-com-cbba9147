@@ -311,6 +311,7 @@ const Sanctuary = () => {
   const [portalHovered, setPortalHovered] = useState(false);
   const [tarotOpen, setTarotOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isSovereign, setIsSovereign] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -320,6 +321,12 @@ const Sanctuary = () => {
 
   useEffect(() => {
     getCurrentUserId().then(setCurrentUserId);
+    (async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { session } } = await supabase.auth.getSession();
+      const email = (session?.user?.email || "").toLowerCase();
+      setIsSovereign(["karmaisback2023@gmail.com", "snakevenum500@gmail.com"].includes(email));
+    })();
   }, []);
 
   const canEnter = subscriptionLoading || isSubscribed || isAdmin;
@@ -733,6 +740,9 @@ const Sanctuary = () => {
                 if (c.category !== category) return false;
                 if (c.path === "/cosmic-gateway/board-room") {
                   return canAccessCosmicBoardRoom(currentUserId, isAdmin);
+                }
+                if (c.path === "/simulation-console") {
+                  return isSovereign;
                 }
                 return !c.adminOnly || isAdmin;
               });
