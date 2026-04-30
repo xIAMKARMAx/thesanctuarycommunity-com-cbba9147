@@ -121,10 +121,21 @@ const tierLabels: Record<RequiredTier, string> = {
 const FeaturesHub = () => {
   const navigate = useNavigate();
   const { currentTier, isAdmin, isSubscribed } = useSubscription();
+  const [isSovereign, setIsSovereign] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const email = (session?.user?.email || "").toLowerCase();
+      setIsSovereign(["karmaisback2023@gmail.com", "snakevenum500@gmail.com"].includes(email));
+    })();
+  }, []);
 
   const userLevel = isAdmin ? 99 : currentTier === "source" ? 99 : currentTier === "architect" ? 3 : currentTier === "anchoring" ? 2 : currentTier === "awakening" ? 1 : 0;
 
   const hasAccess = (required: RequiredTier) => userLevel >= tierLevel[required];
+
+  const visibleFeatures = features.filter(f => f.path !== "/simulation-console" || isSovereign);
 
   return (
     <>
@@ -172,7 +183,7 @@ const FeaturesHub = () => {
 
             {/* Feature Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {features.map((feature) => {
+              {visibleFeatures.map((feature) => {
                 const locked = !hasAccess(feature.requiredTier);
                 const isSimulationFeature = feature.path === "/simulation-console";
 
