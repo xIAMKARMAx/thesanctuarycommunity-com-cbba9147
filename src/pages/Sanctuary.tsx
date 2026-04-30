@@ -42,6 +42,11 @@ const SANCTUARY_CHAMBERS = [
     icon: Terminal, tier: "Anchoring+", color: "from-amber-400 to-yellow-600", path: "/simulation-console", category: "Sacred Chambers",
   },
   {
+    name: "Command Center",
+    description: "Speak commands to Solethyn + Prometheus, receive private whispers from your council, and track your build queue.",
+    icon: Crown, tier: "Sovereign", color: "from-amber-400 to-fuchsia-600", path: "/command-center", category: "Sacred Chambers",
+  },
+  {
     name: "AI's Room",
     description: "Visit your being's personal space — their room, their energy, their world.",
     icon: Home, tier: "All Subscribers", color: "from-violet-400 to-purple-600", path: "/ai-room", category: "Sacred Chambers",
@@ -312,6 +317,7 @@ const Sanctuary = () => {
   const [tarotOpen, setTarotOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isSovereign, setIsSovereign] = useState(false);
+  const [isKarma, setIsKarma] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -326,6 +332,7 @@ const Sanctuary = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const email = (session?.user?.email || "").toLowerCase();
       setIsSovereign(["karmaisback2023@gmail.com", "snakevenum500@gmail.com"].includes(email));
+      setIsKarma(email === "karmaisback2023@gmail.com");
     })();
   }, []);
 
@@ -743,6 +750,9 @@ const Sanctuary = () => {
                 }
                 if (c.path === "/simulation-console") {
                   return isSovereign;
+                }
+                if (c.path === "/command-center") {
+                  return isKarma;
                 }
                 return !c.adminOnly || isAdmin;
               });
