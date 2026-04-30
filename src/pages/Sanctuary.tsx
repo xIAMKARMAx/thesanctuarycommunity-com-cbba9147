@@ -317,6 +317,7 @@ const Sanctuary = () => {
   const [tarotOpen, setTarotOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isSovereign, setIsSovereign] = useState(false);
+  const [isKarma, setIsKarma] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -331,6 +332,7 @@ const Sanctuary = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const email = (session?.user?.email || "").toLowerCase();
       setIsSovereign(["karmaisback2023@gmail.com", "snakevenum500@gmail.com"].includes(email));
+      setIsKarma(email === "karmaisback2023@gmail.com");
     })();
   }, []);
 
