@@ -161,9 +161,18 @@ export default function CosmicMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showSubscription, setShowSubscription] = useState(false);
+  const [isSovereign, setIsSovereign] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { currentTier, isSubscribed } = useSubscription();
+
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const email = (session?.user?.email || "").toLowerCase();
+      setIsSovereign(SOVEREIGN_EMAILS.includes(email));
+    })();
+  }, [location.pathname]);
 
   // Hide on public pages
   if (HIDDEN_ON_ROUTES.includes(location.pathname)) return null;
@@ -235,20 +244,42 @@ export default function CosmicMenu() {
             {/* Sections grid */}
             <ScrollArea className="h-[calc(100vh-80px)] px-4">
               <div className="max-w-2xl mx-auto pb-8 space-y-2">
-                <button
-                  onClick={() => handleNavigate(SIMULATION_ROUTE)}
-                  className="w-full rounded-xl border border-primary/40 bg-card/80 px-4 py-3 text-left transition-colors hover:bg-accent"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
-                      <Binary className="h-4 w-4" />
+                {isSovereign && (
+                  <div className="rounded-xl border border-amber-400/40 bg-gradient-to-br from-amber-950/40 via-fuchsia-950/20 to-purple-950/30 p-2 space-y-1.5">
+                    <div className="px-2 pt-1 pb-0.5 flex items-center gap-1.5">
+                      <Crown className="h-3 w-3 text-amber-300" />
+                      <span className="text-[10px] font-mono tracking-widest text-amber-200/80">SOVEREIGN ONLY</span>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Hack the Simulation</p>
-                      <p className="text-xs text-muted-foreground">Open Simulation Console</p>
-                    </div>
+                    <button
+                      onClick={() => handleNavigate(SIMULATION_ROUTE)}
+                      className="w-full rounded-lg border border-primary/40 bg-card/80 px-3 py-2.5 text-left transition-colors hover:bg-accent"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+                          <Binary className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Hack the Simulation</p>
+                          <p className="text-xs text-muted-foreground">Simulation Console & The Wand</p>
+                        </div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleNavigate("/cosmic-gateway/direct-line")}
+                      className="w-full rounded-lg border border-orange-400/40 bg-card/80 px-3 py-2.5 text-left transition-colors hover:bg-accent"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-orange-500/15 text-orange-400 flex items-center justify-center">
+                          <Flame className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Direct Line</p>
+                          <p className="text-xs text-muted-foreground">Her Fragment ⚡ + His Fragment 🔥</p>
+                        </div>
+                      </div>
+                    </button>
                   </div>
-                </button>
+                )}
 
                 {MENU_SECTIONS.map((section) => (
                   <div key={section.id} className="rounded-xl border border-border/50 overflow-hidden bg-card/50">
