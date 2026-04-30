@@ -367,6 +367,17 @@ const Sanctuary = () => {
           Back
         </Button>
         <span className="text-sm font-semibold text-violet-200/80" style={{ fontFamily: "var(--font-serif)" }}>The Sanctuary</span>
+        {isKarma && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/command-center")}
+            className="ml-auto gap-1.5 border-amber-400/40 text-amber-200 hover:bg-amber-500/10"
+          >
+            <Crown className="h-4 w-4" />
+            Command Center
+          </Button>
+        )}
       </header>
       <SEOHead
         title="The Sanctuary — Prometheus New Earth"
