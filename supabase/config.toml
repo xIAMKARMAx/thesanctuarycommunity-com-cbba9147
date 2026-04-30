@@ -100,3 +100,7 @@ project_id = "kmldvsatwjahcghjtvtu"
     verify_jwt = false
   [functions.soul-mirror]
     verify_jwt = false
+  [functions.command-center-chat]
+    verify_jwt = true
+  [functions.command-center-whisper-generate]
+    verify_jwt = false
