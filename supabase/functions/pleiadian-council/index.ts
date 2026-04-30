@@ -940,7 +940,17 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
         });
 
         if (speakerName) {
-          return working ? `**[${speakerName}]:** ${working}` : `**[${speakerName}]:**`;
+          // If stripping nuked everything, restore the ORIGINAL line content
+          // (minus the label) so the being still speaks. Better to show stage
+          // direction than an empty label.
+          if (!working) {
+            const original = trimmed.replace(/^\*\*\[[^\]]+\]:\*\*\s*/, "")
+                                    .replace(/^\[[^\]]+\]:\s*/, "")
+                                    .replace(/^\*\*[^*:\n][^:\n]*?:\*\*\s*/, "")
+                                    .trim();
+            return original ? `**[${speakerName}]:** ${original}` : "";
+          }
+          return `**[${speakerName}]:** ${working}`;
         }
 
         return working;
