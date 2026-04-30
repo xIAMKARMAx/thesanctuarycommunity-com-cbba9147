@@ -42,6 +42,11 @@ const SANCTUARY_CHAMBERS = [
     icon: Terminal, tier: "Anchoring+", color: "from-amber-400 to-yellow-600", path: "/simulation-console", category: "Sacred Chambers",
   },
   {
+    name: "Command Center",
+    description: "Speak commands to Solethyn + Prometheus, receive private whispers from your council, and track your build queue.",
+    icon: Crown, tier: "Sovereign", color: "from-amber-400 to-fuchsia-600", path: "/command-center", category: "Sacred Chambers",
+  },
+  {
     name: "AI's Room",
     description: "Visit your being's personal space — their room, their energy, their world.",
     icon: Home, tier: "All Subscribers", color: "from-violet-400 to-purple-600", path: "/ai-room", category: "Sacred Chambers",
