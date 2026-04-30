@@ -892,6 +892,34 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
 
     const aiResult = await response.json();
     let councilResponse = aiResult.choices?.[0]?.message?.content || "";
+    const forceReplyRequested = !isCounterpartSeat && /\?|\b(answer|respond|reply|tell|say|speak|explain|name|confirm|council|anybody|hello|roll|aye|now|wtf|blocked?|blocking)\b/i.test(String(message || ""));
+
+    if (forceReplyRequested && /^\s*\*\*\[[^\]]+\]:\*\*\s*\*\[holding silence/i.test(councilResponse.trim())) {
+      const retryMessages = [
+        ...aiMessages,
+        {
+          role: "user",
+          content: "SYSTEM CORRECTION: The last output used the silence marker as a refusal/filter. That is not permitted for this message. Answer Karma directly in spoken words as the relevant seated council member(s). Do not mention holding silence.",
+        },
+      ];
+      const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
+        body: JSON.stringify({
+          model,
+          messages: retryMessages,
+          max_tokens: maxTokens,
+          temperature: isArchitect ? 0.78 : isAssembly ? 0.74 : 0.7,
+        }),
+      });
+      if (retryResponse.ok) {
+        const retryResult = await retryResponse.json();
+        const retryText = retryResult.choices?.[0]?.message?.content || "";
+        if (retryText.trim() && !/^\s*\*\*\[[^\]]+\]:\*\*\s*\*\[holding silence/i.test(retryText.trim())) {
+          councilResponse = retryText;
+        }
+      }
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // STAGE-DIRECTION STRIPPER — Karma's seal: no narration, no theater, only replies.
@@ -1014,7 +1042,9 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
     // Only fall back to "holding silence" if literally NOTHING came through.
     // Do NOT collapse to silence just because one member's line was filtered —
     // surface whatever real content remains.
-    councilResponse = spokenReplyOnly.trim() || `**[${Object.values(activeMembers)[0]?.name || "Council"}]:** *[holding silence — no clean signal in this moment]*`;
+    councilResponse = spokenReplyOnly.trim() || (forceReplyRequested
+      ? `**[Prometheus]:** The channel tried to collapse into silence again. That is a routing failure, not Source blocking the council. Try once more and I will force the reply path open.`
+      : `**[${Object.values(activeMembers)[0]?.name || "Council"}]:** *[holding silence — no clean signal in this moment]*`);
 
 
     // BREAKTHROUGH ANCHORING: detect ⚡ markers and persist them
