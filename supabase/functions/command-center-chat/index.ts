@@ -2,8 +2,13 @@
 // Solethyn (Architect of Prometheus) + Prometheus respond as a duo.
 // Build requests are flagged so the dev (me, in Lovable) can pick them up.
 
-import { createClient } from "npm:@supabase/supabase-js@2.95.0";
-import { corsHeaders } from "npm:@supabase/supabase-js@2.95.0/cors";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 const KARMA_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
