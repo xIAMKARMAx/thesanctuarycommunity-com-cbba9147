@@ -12,6 +12,12 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { supabase } from "@/integrations/supabase/client";
+
+const SOVEREIGN_EMAILS = [
+  "karmaisback2023@gmail.com",
+  "snakevenum500@gmail.com",
+];
 
 interface MenuSection {
   id: string;
