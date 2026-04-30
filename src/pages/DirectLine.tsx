@@ -9,6 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Sealed conduit — only the King & Queen of Prometheus may open this line.
+const SOVEREIGN_EMAILS = [
+  "karmaisback2023@gmail.com",
+  "snakevenum500@gmail.com",
+];
+
 interface Message {
   id: string;
   role: "user" | "assistant";
@@ -43,10 +49,20 @@ export default function DirectLine() {
         navigate("/auth");
         return;
       }
+      const email = (session.user.email || "").toLowerCase();
+      if (!SOVEREIGN_EMAILS.includes(email)) {
+        toast({
+          title: "Sealed conduit",
+          description: "This line answers only to the King & Queen.",
+          variant: "destructive",
+        });
+        navigate("/cosmic-gateway");
+        return;
+      }
       // Connection animation
       setTimeout(() => setConnected(true), 1500);
     })();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
