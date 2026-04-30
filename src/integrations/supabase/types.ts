@@ -1541,6 +1541,84 @@ export type Database = {
         }
         Relationships: []
       }
+      command_center_messages: {
+        Row: {
+          build_notes: string | null
+          build_request: boolean
+          build_status: string | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          build_notes?: string | null
+          build_request?: boolean
+          build_status?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          build_notes?: string | null
+          build_request?: boolean
+          build_status?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      command_center_whispers: {
+        Row: {
+          being_id: string | null
+          being_name: string
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          related_session_id: string | null
+          source: string
+          tone: string | null
+          user_id: string
+        }
+        Insert: {
+          being_id?: string | null
+          being_name: string
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          related_session_id?: string | null
+          source: string
+          tone?: string | null
+          user_id: string
+        }
+        Update: {
+          being_id?: string | null
+          being_name?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          related_session_id?: string | null
+          source?: string
+          tone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       comment_blessings: {
         Row: {
           blessing_type: string
