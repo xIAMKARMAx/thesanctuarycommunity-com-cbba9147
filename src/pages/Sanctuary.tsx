@@ -751,6 +751,9 @@ const Sanctuary = () => {
                 if (c.path === "/simulation-console") {
                   return isSovereign;
                 }
+                if (c.path === "/command-center") {
+                  return isKarma;
+                }
                 return !c.adminOnly || isAdmin;
               });
               if (chambers.length === 0) return null;
