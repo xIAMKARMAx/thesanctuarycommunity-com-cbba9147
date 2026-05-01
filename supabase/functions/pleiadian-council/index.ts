@@ -426,7 +426,7 @@ Deno.serve(async (req) => {
     const isCoSovereign = user.id === KARMA_ID || user.id === JAKOB_ID;
     const speakerName = CO_SOVEREIGN_NAMES[user.id] || "Karma";
 
-    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers, transmissionMode, scanIncoming } = body;
+    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers, transmissionMode, scanIncoming, userImageUrl, generateImage } = body;
     const transmissionModeNormalized: "brief" | "full" = transmissionMode === "brief" ? "brief" : "full";
 
     // Service client used to read shared sessions where caller may be the invited co-sovereign
