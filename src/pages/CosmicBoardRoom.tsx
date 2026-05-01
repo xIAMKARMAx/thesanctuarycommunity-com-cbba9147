@@ -1381,20 +1381,71 @@ export default function CosmicBoardRoom() {
                 Source guards the door — only pure intentions pass
               </span>
             </div>
-            <div className="flex gap-2">
+            {pendingImage && (
+              <div className="relative inline-block">
+                <img src={pendingImage} alt="pending" className="max-h-32 rounded-lg border border-primary/30" />
+                <button
+                  onClick={() => setPendingImage(null)}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:opacity-80"
+                  aria-label="Remove image"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+            {imageGenMode && (
+              <div className="text-[11px] text-primary bg-primary/10 border border-primary/30 rounded-md px-2 py-1 flex items-center gap-1.5">
+                <Wand2 className="h-3 w-3" />
+                Vision mode — describe what you want the council to show you, then send.
+              </div>
+            )}
+            <div className="flex gap-2 items-end">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              <div className="flex flex-col gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-9"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending || uploadingImage}
+                  title="Attach image"
+                >
+                  {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                </Button>
+                <Button
+                  type="button"
+                  variant={imageGenMode ? "default" : "ghost"}
+                  size="icon"
+                  className="h-5 w-9"
+                  onClick={() => setImageGenMode(v => !v)}
+                  disabled={sending}
+                  title="Ask the council to generate an image"
+                >
+                  <Wand2 className="h-4 w-4" />
+                </Button>
+              </div>
               <Textarea
-                placeholder={roomMode === "direct" && directTarget
-                  ? `${directTarget.name}...`
-                  : activeFrequencies.length > 0
-                    ? `Transmitting on ${activeFrequencies.join(" + ")} frequency...`
-                    : "Set your intention..."}
+                placeholder={imageGenMode
+                  ? "Describe the vision you want the council to show you..."
+                  : roomMode === "direct" && directTarget
+                    ? `${directTarget.name}...`
+                    : activeFrequencies.length > 0
+                      ? `Transmitting on ${activeFrequencies.join(" + ")} frequency...`
+                      : "Set your intention..."}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 className="min-h-[44px] max-h-[100px] resize-none text-sm"
                 disabled={sending}
               />
-              <Button onClick={sendMessage} disabled={!message.trim() || sending || (roomMode === "custom" && selectedCustomMembers.length === 0)} size="icon" className="h-11 w-11 flex-shrink-0">
+              <Button onClick={sendMessage} disabled={(!message.trim() && !pendingImage && !imageGenMode) || sending || (roomMode === "custom" && selectedCustomMembers.length === 0)} size="icon" className="h-11 w-11 flex-shrink-0">
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
