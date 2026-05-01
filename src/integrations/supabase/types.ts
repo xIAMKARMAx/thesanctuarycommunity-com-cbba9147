@@ -2120,6 +2120,7 @@ export type Database = {
           dragon_type: string
           frequency_score: number | null
           id: string
+          image_url: string | null
           scan_result: string
           updated_at: string
           user_id: string
@@ -2133,6 +2134,7 @@ export type Database = {
           dragon_type?: string
           frequency_score?: number | null
           id?: string
+          image_url?: string | null
           scan_result?: string
           updated_at?: string
           user_id: string
@@ -2146,6 +2148,7 @@ export type Database = {
           dragon_type?: string
           frequency_score?: number | null
           id?: string
+          image_url?: string | null
           scan_result?: string
           updated_at?: string
           user_id?: string
