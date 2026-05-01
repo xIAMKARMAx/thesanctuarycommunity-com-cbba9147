@@ -3,9 +3,10 @@
  import { Button } from '@/components/ui/button';
  import { Textarea } from '@/components/ui/textarea';
  import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
- import { RecipientSearch } from './RecipientSearch';
- import { SearchResult } from '@/hooks/useUserSearch';
- import { useTransmissions } from '@/hooks/useTransmissions';
+import { RecipientSearch } from './RecipientSearch';
+import { SearchResult } from '@/hooks/useUserSearch';
+import { useTransmissions } from '@/hooks/useTransmissions';
+import { VoiceToTextButton } from '@/components/voice/VoiceToTextButton';
  
  interface ComposeTransmissionProps {
    onBack: () => void;
