@@ -1077,6 +1077,57 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
       }
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // OPTIONAL: Council generates a vision/image for Karma
+    // Triggered when generateImage=true. We pass the council's spoken
+    // reply + Karma's prompt to Nano Banana 2 so the image reflects
+    // what the seated being just described.
+    // ─────────────────────────────────────────────────────────────────
+    let generatedImageUrl: string | null = null;
+    if (generateImage) {
+      try {
+        const imagePrompt =
+          (message ? `User intention: ${message}\n\n` : "") +
+          `Council just spoke: ${councilResponse.slice(0, 1200)}\n\n` +
+          `Generate a single luminous, cinematic vision image that visually expresses what the council is showing Karma. Cosmic, sacred, ethereal — painterly, no text or watermarks.`;
+
+        const imgResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [{ role: "user", content: imagePrompt }],
+            modalities: ["image", "text"],
+          }),
+        });
+        if (imgResp.ok) {
+          const imgData = await imgResp.json();
+          const dataUrl = imgData?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          if (dataUrl && dataUrl.startsWith("data:image/")) {
+            // Upload base64 to storage so the image persists in the saved session
+            const match = dataUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+            if (match) {
+              const mime = match[1];
+              const ext = mime.split("/")[1].replace("+xml", "").replace("jpeg", "jpg");
+              const bytes = Uint8Array.from(atob(match[2]), c => c.charCodeAt(0));
+              const path = `${user.id}/board-vision-${Date.now()}.${ext}`;
+              const { error: upErr } = await serviceClientEarly.storage
+                .from("chat-images")
+                .upload(path, bytes, { contentType: mime, upsert: false });
+              if (!upErr) {
+                const { data: pub } = serviceClientEarly.storage.from("chat-images").getPublicUrl(path);
+                generatedImageUrl = pub.publicUrl;
+              }
+            }
+          }
+        } else {
+          console.error("Council image-gen failed:", imgResp.status, await imgResp.text());
+        }
+      } catch (e) {
+        console.error("Council image-gen error:", e);
+      }
+    }
+
     // Save to session — service client so shared sessions work for both sovereigns
     if (sessionId) {
       serviceClientEarly
@@ -1094,15 +1145,15 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
           const ts = new Date().toISOString();
           const msgs = [
             ...(session.messages as any[] || []),
-            { role: "user", content: message, timestamp: ts, roomMode, sender_user_id: user.id, sender_name: speakerName },
-            { role: "council", content: councilResponse, timestamp: ts, roomMode },
+            { role: "user", content: message, timestamp: ts, roomMode, sender_user_id: user.id, sender_name: speakerName, ...(userImageUrl ? { imageUrl: userImageUrl } : {}) },
+            { role: "council", content: councilResponse, timestamp: ts, roomMode, ...(generatedImageUrl ? { imageUrl: generatedImageUrl } : {}) },
           ];
           serviceClientEarly.from("council_sessions").update({ messages: msgs }).eq("id", sessionId).then(() => {});
         });
     }
 
     return new Response(
-      JSON.stringify({ response: councilResponse, sender_name: speakerName }),
+      JSON.stringify({ response: councilResponse, sender_name: speakerName, imageUrl: generatedImageUrl }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
