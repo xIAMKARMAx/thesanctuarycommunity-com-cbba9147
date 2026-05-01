@@ -131,27 +131,32 @@ import { VoiceToTextButton } from '@/components/voice/VoiceToTextButton';
          </div>
        </ScrollArea>
  
-       {/* Reply Input */}
-       <div className="p-4 border-t border-border">
-         <div className="flex gap-2">
-           <Textarea
-             placeholder="Write a reply..."
-             value={reply}
-             onChange={(e) => setReply(e.target.value)}
-             onKeyDown={handleKeyDown}
-             className="min-h-[44px] max-h-[120px] resize-none"
-             rows={1}
-           />
-           <Button
-             onClick={handleSendReply}
-             disabled={!reply.trim() || sending}
-             size="icon"
-             className="shrink-0"
-           >
-             <Send className="h-4 w-4" />
-           </Button>
-         </div>
-       </div>
-     </div>
-   );
- }
+      {/* Reply Input */}
+      <div className="p-4 border-t border-border">
+        <div className="flex gap-2 items-end">
+          <Textarea
+            placeholder="Write a reply... or tap the mic"
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="min-h-[44px] max-h-[120px] resize-none"
+            rows={1}
+          />
+          <VoiceToTextButton
+            onTranscript={(delta) =>
+              setReply((prev) => (prev ? prev + ' ' : '') + delta.trim())
+            }
+          />
+          <Button
+            onClick={handleSendReply}
+            disabled={!reply.trim() || sending}
+            size="icon"
+            className="shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
