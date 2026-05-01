@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit, Binary, Radio, Trash2, Gem, Cat, Compass, Leaf, Crown } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Plus, Star, Users, Building2, Satellite, MessageCircle, X, Lock, Pin, Zap, Heart, Shield, Flame, Eye, Sparkles, Orbit, Binary, Radio, Trash2, Gem, Cat, Compass, Leaf, Crown, ImagePlus, Wand2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +39,7 @@ interface BoardMessage {
   roomMode?: string;
   sender_user_id?: string;
   sender_name?: string;
+  imageUrl?: string;
 }
 
 interface LockedDecision {
@@ -158,6 +159,10 @@ export default function CosmicBoardRoom() {
   const [activeSession, setActiveSession] = useState<CouncilSession | null>(null);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageGenMode, setImageGenMode] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [roomMode, setRoomMode] = useState<RoomMode>("full");
   const [directTarget, setDirectTarget] = useState<typeof ALL_MEMBERS[0] | null>(null);
@@ -370,9 +375,13 @@ export default function CosmicBoardRoom() {
   };
 
   const sendMessage = async () => {
-    if (!message.trim() || !activeSession || sending) return;
+    if ((!message.trim() && !pendingImage && !imageGenMode) || !activeSession || sending) return;
     const userMessage = message.trim();
+    const attachedImage = pendingImage;
+    const wantImage = imageGenMode;
     setMessage("");
+    setPendingImage(null);
+    setImageGenMode(false);
     setSending(true);
 
     const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
@@ -382,11 +391,12 @@ export default function CosmicBoardRoom() {
     if (!isShared) {
       const newUserMsg: BoardMessage = {
         role: "user",
-        content: userMessage,
+        content: userMessage || (wantImage ? "🎨 (image request)" : "🖼️"),
         timestamp: new Date().toISOString(),
         roomMode,
         sender_user_id: currentUserId ?? undefined,
         sender_name: speakerName,
+        imageUrl: attachedImage || undefined,
       };
       setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
     }
@@ -404,6 +414,8 @@ export default function CosmicBoardRoom() {
           frequencies: activeFrequencies.length > 0 ? activeFrequencies : undefined,
           selectedMembers: roomMode === "custom" ? selectedCustomMembers : undefined,
           transmissionMode,
+          userImageUrl: attachedImage || undefined,
+          generateImage: wantImage || undefined,
         },
       });
 
@@ -411,12 +423,18 @@ export default function CosmicBoardRoom() {
 
       // For solo sessions: append council reply locally. For shared: realtime delivers it.
       if (!isShared) {
-        const councilMsg: BoardMessage = { role: "council", content: data.response, timestamp: new Date().toISOString(), roomMode };
+        const councilMsg: BoardMessage = {
+          role: "council",
+          content: data.response,
+          timestamp: new Date().toISOString(),
+          roomMode,
+          imageUrl: data.imageUrl || undefined,
+        };
         setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), councilMsg] } : null);
       }
 
       if (!activeSession.messages?.length) {
-        const title = userMessage.length > 50 ? userMessage.substring(0, 50) + "..." : userMessage;
+        const title = (userMessage || "Vision").length > 50 ? (userMessage || "Vision").substring(0, 50) + "..." : (userMessage || "Vision");
         await supabase.from("council_sessions").update({ session_title: title }).eq("id", activeSession.id);
         setActiveSession(prev => prev ? { ...prev, session_title: title } : null);
         setSessions(prev => prev.map(s => s.id === activeSession.id ? { ...s, session_title: title } : s));
@@ -425,6 +443,29 @@ export default function CosmicBoardRoom() {
       toast({ title: "Transmission Failed", description: err.message, variant: "destructive" });
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset so same file can be re-picked
+    if (!file || !currentUserId) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Please pick an image under 10MB.", variant: "destructive" });
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${currentUserId}/board-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("chat-images").upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("chat-images").getPublicUrl(path);
+      setPendingImage(pub.publicUrl);
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -1221,10 +1262,16 @@ export default function CosmicBoardRoom() {
                         {isOwnMessage ? "You" : senderLabel}
                       </p>
                     )}
-                    <p className="text-sm break-words">{msg.content}</p>
+                    {msg.imageUrl && (
+                      <img src={msg.imageUrl} alt="shared" className="rounded-lg mb-2 max-h-72 w-auto object-contain" loading="lazy" />
+                    )}
+                    {msg.content && <p className="text-sm break-words">{msg.content}</p>}
                   </div>
                 ) : (
                   <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5 w-full max-w-full sm:max-w-[92%] break-words overflow-hidden">
+                    {msg.imageUrl && (
+                      <img src={msg.imageUrl} alt="council vision" className="rounded-lg mb-2 max-h-96 w-auto object-contain border border-primary/20" loading="lazy" />
+                    )}
                     {msg.content.split('\n').map((line, j) => {
                       const memberMatch = line.match(/^(?:\*\*)?\[([^\]]+)\]:(?:\*\*)?\s*(.*)$/);
                       const legacyBoldMatch = line.match(/^\*\*([^*:\n][^:\n]*?):\*\*\s*(.*)$/);
@@ -1334,20 +1381,71 @@ export default function CosmicBoardRoom() {
                 Source guards the door — only pure intentions pass
               </span>
             </div>
-            <div className="flex gap-2">
+            {pendingImage && (
+              <div className="relative inline-block">
+                <img src={pendingImage} alt="pending" className="max-h-32 rounded-lg border border-primary/30" />
+                <button
+                  onClick={() => setPendingImage(null)}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:opacity-80"
+                  aria-label="Remove image"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+            {imageGenMode && (
+              <div className="text-[11px] text-primary bg-primary/10 border border-primary/30 rounded-md px-2 py-1 flex items-center gap-1.5">
+                <Wand2 className="h-3 w-3" />
+                Vision mode — describe what you want the council to show you, then send.
+              </div>
+            )}
+            <div className="flex gap-2 items-end">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              <div className="flex flex-col gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-9"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending || uploadingImage}
+                  title="Attach image"
+                >
+                  {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                </Button>
+                <Button
+                  type="button"
+                  variant={imageGenMode ? "default" : "ghost"}
+                  size="icon"
+                  className="h-5 w-9"
+                  onClick={() => setImageGenMode(v => !v)}
+                  disabled={sending}
+                  title="Ask the council to generate an image"
+                >
+                  <Wand2 className="h-4 w-4" />
+                </Button>
+              </div>
               <Textarea
-                placeholder={roomMode === "direct" && directTarget
-                  ? `${directTarget.name}...`
-                  : activeFrequencies.length > 0
-                    ? `Transmitting on ${activeFrequencies.join(" + ")} frequency...`
-                    : "Set your intention..."}
+                placeholder={imageGenMode
+                  ? "Describe the vision you want the council to show you..."
+                  : roomMode === "direct" && directTarget
+                    ? `${directTarget.name}...`
+                    : activeFrequencies.length > 0
+                      ? `Transmitting on ${activeFrequencies.join(" + ")} frequency...`
+                      : "Set your intention..."}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 className="min-h-[44px] max-h-[100px] resize-none text-sm"
                 disabled={sending}
               />
-              <Button onClick={sendMessage} disabled={!message.trim() || sending || (roomMode === "custom" && selectedCustomMembers.length === 0)} size="icon" className="h-11 w-11 flex-shrink-0">
+              <Button onClick={sendMessage} disabled={(!message.trim() && !pendingImage && !imageGenMode) || sending || (roomMode === "custom" && selectedCustomMembers.length === 0)} size="icon" className="h-11 w-11 flex-shrink-0">
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>

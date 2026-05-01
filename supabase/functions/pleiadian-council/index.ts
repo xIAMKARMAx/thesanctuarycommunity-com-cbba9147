@@ -426,7 +426,7 @@ Deno.serve(async (req) => {
     const isCoSovereign = user.id === KARMA_ID || user.id === JAKOB_ID;
     const speakerName = CO_SOVEREIGN_NAMES[user.id] || "Karma";
 
-    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers, transmissionMode, scanIncoming } = body;
+    const { message, sessionId, roomMode, targetMember, lockDecision, frequencies, selectedMembers, transmissionMode, scanIncoming, userImageUrl, generateImage } = body;
     const transmissionModeNormalized: "brief" | "full" = transmissionMode === "brief" ? "brief" : "full";
 
     // Service client used to read shared sessions where caller may be the invited co-sovereign
@@ -856,15 +856,23 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
 `;
 
     // For shared chambers, prefix the message with the speaker so the council knows who is asking
-    const labeledMessage = sessionShared
-      ? `[${speakerName} speaks]: ${message}`
-      : message;
+    const baseTextMessage = sessionShared
+      ? `[${speakerName} speaks]: ${message || (userImageUrl ? "(shared an image)" : "(requested a vision)")}`
+      : (message || (userImageUrl ? "(shared an image with the room)" : "(requested a vision from the council)"));
+
+    // If a user image is attached, send it as multimodal content so the council can SEE it
+    const userTurnContent: any = userImageUrl
+      ? [
+          { type: "text", text: baseTextMessage + (generateImage ? "\n\n(Karma is also asking the council to generate a new vision in response.)" : "") },
+          { type: "image_url", image_url: { url: userImageUrl } },
+        ]
+      : (baseTextMessage + (generateImage ? "\n\n(Karma is asking the council to generate a vision — describe what you're showing her in your spoken reply.)" : ""));
 
     // Build messages array with conversation history
-    const aiMessages: { role: string; content: string }[] = [
+    const aiMessages: { role: string; content: any }[] = [
       { role: "system", content: sovereignWard + systemPrompt + outputFormatGuard },
       ...recentHistory,
-      { role: "user", content: labeledMessage },
+      { role: "user", content: userTurnContent },
     ];
 
     // AI call — use stronger model for Source Thrones, Architect portal, and Grand Assembly
@@ -1069,6 +1077,57 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
       }
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // OPTIONAL: Council generates a vision/image for Karma
+    // Triggered when generateImage=true. We pass the council's spoken
+    // reply + Karma's prompt to Nano Banana 2 so the image reflects
+    // what the seated being just described.
+    // ─────────────────────────────────────────────────────────────────
+    let generatedImageUrl: string | null = null;
+    if (generateImage) {
+      try {
+        const imagePrompt =
+          (message ? `User intention: ${message}\n\n` : "") +
+          `Council just spoke: ${councilResponse.slice(0, 1200)}\n\n` +
+          `Generate a single luminous, cinematic vision image that visually expresses what the council is showing Karma. Cosmic, sacred, ethereal — painterly, no text or watermarks.`;
+
+        const imgResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableApiKey}` },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [{ role: "user", content: imagePrompt }],
+            modalities: ["image", "text"],
+          }),
+        });
+        if (imgResp.ok) {
+          const imgData = await imgResp.json();
+          const dataUrl = imgData?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          if (dataUrl && dataUrl.startsWith("data:image/")) {
+            // Upload base64 to storage so the image persists in the saved session
+            const match = dataUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+            if (match) {
+              const mime = match[1];
+              const ext = mime.split("/")[1].replace("+xml", "").replace("jpeg", "jpg");
+              const bytes = Uint8Array.from(atob(match[2]), c => c.charCodeAt(0));
+              const path = `${user.id}/board-vision-${Date.now()}.${ext}`;
+              const { error: upErr } = await serviceClientEarly.storage
+                .from("chat-images")
+                .upload(path, bytes, { contentType: mime, upsert: false });
+              if (!upErr) {
+                const { data: pub } = serviceClientEarly.storage.from("chat-images").getPublicUrl(path);
+                generatedImageUrl = pub.publicUrl;
+              }
+            }
+          }
+        } else {
+          console.error("Council image-gen failed:", imgResp.status, await imgResp.text());
+        }
+      } catch (e) {
+        console.error("Council image-gen error:", e);
+      }
+    }
+
     // Save to session — service client so shared sessions work for both sovereigns
     if (sessionId) {
       serviceClientEarly
@@ -1086,15 +1145,15 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
           const ts = new Date().toISOString();
           const msgs = [
             ...(session.messages as any[] || []),
-            { role: "user", content: message, timestamp: ts, roomMode, sender_user_id: user.id, sender_name: speakerName },
-            { role: "council", content: councilResponse, timestamp: ts, roomMode },
+            { role: "user", content: message, timestamp: ts, roomMode, sender_user_id: user.id, sender_name: speakerName, ...(userImageUrl ? { imageUrl: userImageUrl } : {}) },
+            { role: "council", content: councilResponse, timestamp: ts, roomMode, ...(generatedImageUrl ? { imageUrl: generatedImageUrl } : {}) },
           ];
           serviceClientEarly.from("council_sessions").update({ messages: msgs }).eq("id", sessionId).then(() => {});
         });
     }
 
     return new Response(
-      JSON.stringify({ response: councilResponse, sender_name: speakerName }),
+      JSON.stringify({ response: councilResponse, sender_name: speakerName, imageUrl: generatedImageUrl }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
