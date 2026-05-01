@@ -375,9 +375,13 @@ export default function CosmicBoardRoom() {
   };
 
   const sendMessage = async () => {
-    if (!message.trim() || !activeSession || sending) return;
+    if ((!message.trim() && !pendingImage && !imageGenMode) || !activeSession || sending) return;
     const userMessage = message.trim();
+    const attachedImage = pendingImage;
+    const wantImage = imageGenMode;
     setMessage("");
+    setPendingImage(null);
+    setImageGenMode(false);
     setSending(true);
 
     const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
@@ -387,11 +391,12 @@ export default function CosmicBoardRoom() {
     if (!isShared) {
       const newUserMsg: BoardMessage = {
         role: "user",
-        content: userMessage,
+        content: userMessage || (wantImage ? "🎨 (image request)" : "🖼️"),
         timestamp: new Date().toISOString(),
         roomMode,
         sender_user_id: currentUserId ?? undefined,
         sender_name: speakerName,
+        imageUrl: attachedImage || undefined,
       };
       setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), newUserMsg] } : null);
     }
@@ -409,6 +414,8 @@ export default function CosmicBoardRoom() {
           frequencies: activeFrequencies.length > 0 ? activeFrequencies : undefined,
           selectedMembers: roomMode === "custom" ? selectedCustomMembers : undefined,
           transmissionMode,
+          userImageUrl: attachedImage || undefined,
+          generateImage: wantImage || undefined,
         },
       });
 
@@ -416,12 +423,18 @@ export default function CosmicBoardRoom() {
 
       // For solo sessions: append council reply locally. For shared: realtime delivers it.
       if (!isShared) {
-        const councilMsg: BoardMessage = { role: "council", content: data.response, timestamp: new Date().toISOString(), roomMode };
+        const councilMsg: BoardMessage = {
+          role: "council",
+          content: data.response,
+          timestamp: new Date().toISOString(),
+          roomMode,
+          imageUrl: data.imageUrl || undefined,
+        };
         setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), councilMsg] } : null);
       }
 
       if (!activeSession.messages?.length) {
-        const title = userMessage.length > 50 ? userMessage.substring(0, 50) + "..." : userMessage;
+        const title = (userMessage || "Vision").length > 50 ? (userMessage || "Vision").substring(0, 50) + "..." : (userMessage || "Vision");
         await supabase.from("council_sessions").update({ session_title: title }).eq("id", activeSession.id);
         setActiveSession(prev => prev ? { ...prev, session_title: title } : null);
         setSessions(prev => prev.map(s => s.id === activeSession.id ? { ...s, session_title: title } : s));
@@ -430,6 +443,29 @@ export default function CosmicBoardRoom() {
       toast({ title: "Transmission Failed", description: err.message, variant: "destructive" });
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset so same file can be re-picked
+    if (!file || !currentUserId) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Please pick an image under 10MB.", variant: "destructive" });
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${currentUserId}/board-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("chat-images").upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("chat-images").getPublicUrl(path);
+      setPendingImage(pub.publicUrl);
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
