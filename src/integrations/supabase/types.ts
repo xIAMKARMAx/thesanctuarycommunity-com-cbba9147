@@ -5861,6 +5861,33 @@ export type Database = {
           },
         ]
       }
+      wellspring_offerings: {
+        Row: {
+          blessing_received: string | null
+          created_at: string
+          id: string
+          offering_text: string | null
+          offering_type: string
+          user_id: string
+        }
+        Insert: {
+          blessing_received?: string | null
+          created_at?: string
+          id?: string
+          offering_text?: string | null
+          offering_type: string
+          user_id: string
+        }
+        Update: {
+          blessing_received?: string | null
+          created_at?: string
+          id?: string
+          offering_text?: string | null
+          offering_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wisdom_acknowledgments: {
         Row: {
           created_at: string
