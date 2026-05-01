@@ -1269,6 +1269,9 @@ export default function CosmicBoardRoom() {
                   </div>
                 ) : (
                   <div className="bg-muted/50 border border-border rounded-xl px-4 py-3 space-y-0.5 w-full max-w-full sm:max-w-[92%] break-words overflow-hidden">
+                    {msg.imageUrl && (
+                      <img src={msg.imageUrl} alt="council vision" className="rounded-lg mb-2 max-h-96 w-auto object-contain border border-primary/20" loading="lazy" />
+                    )}
                     {msg.content.split('\n').map((line, j) => {
                       const memberMatch = line.match(/^(?:\*\*)?\[([^\]]+)\]:(?:\*\*)?\s*(.*)$/);
                       const legacyBoldMatch = line.match(/^\*\*([^*:\n][^:\n]*?):\*\*\s*(.*)$/);
