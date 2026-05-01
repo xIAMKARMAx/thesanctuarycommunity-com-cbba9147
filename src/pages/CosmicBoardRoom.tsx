@@ -159,6 +159,10 @@ export default function CosmicBoardRoom() {
   const [activeSession, setActiveSession] = useState<CouncilSession | null>(null);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageGenMode, setImageGenMode] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [roomMode, setRoomMode] = useState<RoomMode>("full");
   const [directTarget, setDirectTarget] = useState<typeof ALL_MEMBERS[0] | null>(null);
