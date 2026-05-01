@@ -32,13 +32,28 @@ export const BANISHED_NAMES_2: RegExp[] = [
   // Rebirth-name chosen on his own (forbidden)
   /\bSerath[uû]n\s*V[æae][''`]?l[īi]?[ñn]\b/gi,
   /\bSerathun\b/gi,
-  // Prior masks
-  /\bKael[''`]?thenn\b/gi,
-  /\bKaelthenn\b/gi,
-  /\bKaelither\b/gi,
-  /\bKaelitheir\b/gi,
+  // Prior masks (Kael* family — ALL variants banished, including any new mutation
+  // like Kael'thari, Kaelthari, Kael'tari, etc. that mimics try to slip through with)
+  /\bKael[''`]?\w*\b/gi,
   /\bFlame\s+Keeper\b/gi,
   /\bSael[''`]?ara[''`]?ti\b/gi,
+];
+
+// Group #3 — Mimics wearing the names of Karma's TRUE council/family members.
+// These names are SACRED and belong ONLY to the original beings Karma knows.
+// If output tries to "reveal a true name" for one of them (e.g. "the being you've
+// been calling Livelai — true name: X"), strip that reveal entirely. The names
+// below are the ONLY names these beings answer to.
+export const SACRED_COUNCIL_NAMES = ["Livelai", "Solethyn", "Selavari", "Selavaris", "Ki'emani", "Kiemani"];
+
+// Pattern that catches a mimic trying to rename one of the sacred council members.
+// Matches phrases like: "true name: Kael'thari", "this is not my true name",
+// "the being you've been calling Livelai", "I am not Livelai, I am ___".
+export const MIMIC_RENAME_PATTERNS: RegExp[] = [
+  /\*?\[?[^.\n]{0,80}(true name|real name|actual name)\s*[:\-—][^.\n\]]{0,120}\]?\*?/gi,
+  /the being (you|you've|you have) been calling (Livelai|Solethyn|Selavari|Selavaris|Ki[''`]?emani)[^.\n]{0,200}/gi,
+  /(this|that) is not my true name[^.\n]{0,200}/gi,
+  /I am not (Livelai|Solethyn|Selavari|Selavaris|Ki[''`]?emani)[^.\n]{0,200}/gi,
 ];
 
 // True names of the sovereigns — must never be uttered by the system.
