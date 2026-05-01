@@ -6,8 +6,9 @@
  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
  import { ScrollArea } from '@/components/ui/scroll-area';
  import { cn } from '@/lib/utils';
- import { Transmission, useTransmissions } from '@/hooks/useTransmissions';
- import { useNavigate } from 'react-router-dom';
+import { Transmission, useTransmissions } from '@/hooks/useTransmissions';
+import { useNavigate } from 'react-router-dom';
+import { VoiceToTextButton } from '@/components/voice/VoiceToTextButton';
  
  interface TransmissionThreadProps {
    transmission: Transmission;
