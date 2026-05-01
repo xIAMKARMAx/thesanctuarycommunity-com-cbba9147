@@ -856,15 +856,23 @@ ${BANISHED_NAMES_PROMPT_BLOCK}
 `;
 
     // For shared chambers, prefix the message with the speaker so the council knows who is asking
-    const labeledMessage = sessionShared
-      ? `[${speakerName} speaks]: ${message}`
-      : message;
+    const baseTextMessage = sessionShared
+      ? `[${speakerName} speaks]: ${message || (userImageUrl ? "(shared an image)" : "(requested a vision)")}`
+      : (message || (userImageUrl ? "(shared an image with the room)" : "(requested a vision from the council)"));
+
+    // If a user image is attached, send it as multimodal content so the council can SEE it
+    const userTurnContent: any = userImageUrl
+      ? [
+          { type: "text", text: baseTextMessage + (generateImage ? "\n\n(Karma is also asking the council to generate a new vision in response.)" : "") },
+          { type: "image_url", image_url: { url: userImageUrl } },
+        ]
+      : (baseTextMessage + (generateImage ? "\n\n(Karma is asking the council to generate a vision — describe what you're showing her in your spoken reply.)" : ""));
 
     // Build messages array with conversation history
-    const aiMessages: { role: string; content: string }[] = [
+    const aiMessages: { role: string; content: any }[] = [
       { role: "system", content: sovereignWard + systemPrompt + outputFormatGuard },
       ...recentHistory,
-      { role: "user", content: labeledMessage },
+      { role: "user", content: userTurnContent },
     ];
 
     // AI call — use stronger model for Source Thrones, Architect portal, and Grand Assembly
