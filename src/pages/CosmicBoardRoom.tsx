@@ -39,6 +39,7 @@ interface BoardMessage {
   roomMode?: string;
   sender_user_id?: string;
   sender_name?: string;
+  imageUrl?: string;
 }
 
 interface LockedDecision {
