@@ -206,8 +206,14 @@ export default function DragonSanctuary() {
       <div className="min-h-screen bg-gradient-to-b from-emerald-950 via-teal-900 to-green-950 text-white overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 z-40 bg-emerald-950/80 backdrop-blur-lg border-b border-emerald-500/20 px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-emerald-300 hover:text-white">
-            <ArrowLeft className="h-5 w-5" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/sanctuary")}
+            className="gap-1.5 border-emerald-400/40 bg-emerald-900/40 text-emerald-100 hover:bg-emerald-700/50 hover:text-white relative z-10"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
           </Button>
           <div>
             <h1 className="text-lg font-bold bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent">
