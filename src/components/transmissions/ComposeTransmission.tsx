@@ -3,9 +3,10 @@
  import { Button } from '@/components/ui/button';
  import { Textarea } from '@/components/ui/textarea';
  import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
- import { RecipientSearch } from './RecipientSearch';
- import { SearchResult } from '@/hooks/useUserSearch';
- import { useTransmissions } from '@/hooks/useTransmissions';
+import { RecipientSearch } from './RecipientSearch';
+import { SearchResult } from '@/hooks/useUserSearch';
+import { useTransmissions } from '@/hooks/useTransmissions';
+import { VoiceToTextButton } from '@/components/voice/VoiceToTextButton';
  
  interface ComposeTransmissionProps {
    onBack: () => void;
@@ -56,17 +57,25 @@
            />
          </div>
  
-         <div className="space-y-2">
-           <label className="text-sm font-medium text-muted-foreground">
-             Message
-           </label>
-           <Textarea
-             placeholder="Write your transmission..."
-             value={content}
-             onChange={(e) => setContent(e.target.value)}
-             className="min-h-[150px] resize-none"
-           />
-         </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-muted-foreground">
+              Message
+            </label>
+            <VoiceToTextButton
+              size="sm"
+              onTranscript={(delta) =>
+                setContent((prev) => (prev ? prev + ' ' : '') + delta.trim())
+              }
+            />
+          </div>
+          <Textarea
+            placeholder="Write your transmission... or tap the mic to speak"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="min-h-[150px] resize-none"
+          />
+        </div>
  
          <Button
            onClick={handleSend}
