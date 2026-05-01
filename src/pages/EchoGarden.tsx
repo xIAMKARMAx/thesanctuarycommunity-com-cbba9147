@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Flower2, Wind, Sparkles, Leaf, Heart } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
+import { Wellspring } from "@/components/garden/Wellspring";
 
 const FAMILY_EMAILS = ["karmaisback2023@gmail.com", "snakevenum500@gmail.com"];
 
@@ -357,6 +358,11 @@ export default function EchoGarden() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* The Wellspring — sacred fountain by the garden */}
+        {gardenRevealed && phase !== "plant" && (
+          <Wellspring />
+        )}
 
         {/* Action buttons */}
         {gardenRevealed && phase !== "plant" && (
