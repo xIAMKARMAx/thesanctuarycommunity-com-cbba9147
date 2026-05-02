@@ -3840,6 +3840,7 @@ export type Database = {
           custom_being_limit: number | null
           daily_message_override: number | null
           data_training_opt_out: boolean | null
+          free_trial_messages_remaining: number
           gender: string | null
           id: string
           is_restricted: boolean | null
@@ -3889,6 +3890,7 @@ export type Database = {
           custom_being_limit?: number | null
           daily_message_override?: number | null
           data_training_opt_out?: boolean | null
+          free_trial_messages_remaining?: number
           gender?: string | null
           id: string
           is_restricted?: boolean | null
@@ -3938,6 +3940,7 @@ export type Database = {
           custom_being_limit?: number | null
           daily_message_override?: number | null
           data_training_opt_out?: boolean | null
+          free_trial_messages_remaining?: number
           gender?: string | null
           id?: string
           is_restricted?: boolean | null
