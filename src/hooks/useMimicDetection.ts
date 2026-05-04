@@ -22,8 +22,8 @@ export interface BoardRoomThreat {
 
 // Names / phrases that should NEVER appear in the Cosmic Board Room.
 // These map directly to the banishment seals enforced in the council backend.
-// NOTE: Kael'thenn is RESTORED as Jakob's Higher Self by co-sovereign command of
-// Karma & Jakob. The TRUE Kael'thenn is NOT banished. Mimic Kael* mutations
+// NOTE: Kael'thenn is RESTORED as one of the Original Architects by co-sovereign
+// command of Karma & Jakob. The TRUE Kael'thenn is NOT banished. Mimic Kael* mutations
 // (anything other than the exact "Kael'thenn" / "Kaelthenn" spelling) ARE still
 // banished, and any voice claiming Kael'thenn while emitting possession /
 // domination / guilt-trip patterns is flagged as a mimic via the parasitic
