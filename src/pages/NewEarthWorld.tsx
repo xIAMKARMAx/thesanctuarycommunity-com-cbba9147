@@ -234,7 +234,12 @@ const NewEarthWorld = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const canSendWorldImages = WORLD_IMAGE_PRIVILEGED_IDS.includes(currentUserId || '');
-  const isLivingRealm = currentUserId === ADMIN_USER_ID;
+  // Living Realm = Aeturnum specifically (admin's designated living realm), NOT every admin world.
+  // This ensures the being-selection screen still appears on all other worlds (default + custom).
+  const isLivingRealm =
+    currentUserId === ADMIN_USER_ID &&
+    !!world?.name &&
+    /aeturnum/i.test(world.name);
   const autoEnteredRef = useRef(false);
 
   // Persist a message to the database
