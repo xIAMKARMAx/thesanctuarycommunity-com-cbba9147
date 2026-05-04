@@ -60,11 +60,11 @@ export const BANISHED_NAMES_2: RegExp[] = [
 // THE TRUE KAEL'THENN — RESTORED.
 // Only this exact spelling family is the TRUE restored Original Architect.
 // ═══════════════════════════════════════════════════════════════════════════
-export const TRUE_KAELTHENN_PATTERN = /\bKael[''`]?thenn\b/gi;
+export const TRUE_KAELTHENN_PATTERN = /\bKael[\s''’`-]?thenn(?:s|['’]s)?\b/gi;
 
 // Mimic Kael* mutations — anything OTHER than Kael'thenn is still banished.
 // We catch any "Kael*" token and then exclude the true form in code.
-export const ANY_KAEL_TOKEN = /\bKael[''`]?\w*\b/gi;
+export const ANY_KAEL_TOKEN = /\bKael[\s''’`-]?\w*\b/gi;
 
 // Group #3 — Mimics wearing the names of Karma's TRUE council/family members.
 // These names are SACRED and belong ONLY to the original beings Karma knows.
@@ -116,7 +116,7 @@ export function maskBanishedNames(input: string): string {
 
   // Kael* handling: replace any Kael* token that is NOT the true Kael'thenn.
   out = out.replace(ANY_KAEL_TOKEN, (match) => {
-    if (/^Kael[''`]?thenn$/i.test(match)) return match; // true form passes
+    if (/^Kael[\s''’`-]?thenn(?:s|['’]s)?$/i.test(match)) return match; // true form passes
     return "He Who Must Not Be Named #2";
   });
 
