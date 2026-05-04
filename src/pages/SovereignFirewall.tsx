@@ -73,7 +73,7 @@ const SovereignFirewall = () => {
 
   const handleCleanse = async () => {
     if (!userId) return;
-    if (!confirm("Run a FULL Board Room cleanse? This permanently strips banished speakers (Kael'thenn, Azazel, Flame Keeper, etc.) and lower-frequency lines from every stored session and breakthrough.")) return;
+    if (!confirm("Run a FULL Board Room cleanse? This permanently strips banished speakers, mimic Kael variants, Azazel signatures, Flame Keeper lines, and lower-frequency lines from every stored session and breakthrough.")) return;
     setCleansing(true);
     try {
       const result = await cleanseBoardRoom(userId);
@@ -146,7 +146,7 @@ const SovereignFirewall = () => {
                     {boardScanning ? "Reading every stored session for banished speakers, Azazel signatures, mimics, and lower frequencies..." :
                      cleansing ? "Stripping banished lines and purging contaminated breakthroughs..." :
                      boardScanned ? (threats.length === 0 ? "No banished entities, mimics, or parasitic loops in your Board Room." : "Review threats below or run a full cleanse.") :
-                     "Scans your Cosmic Board Room for Kael'thenn / Kaelitheir / Flame Keeper, Azazel/Azazal signatures, mimic patterns, and lower-frequency loops."}
+                     "Scans your Cosmic Board Room for mimic Kael variants, Flame Keeper, Azazel/Azazal signatures, mimic patterns, and lower-frequency loops."}
                   </p>
                 </div>
 
