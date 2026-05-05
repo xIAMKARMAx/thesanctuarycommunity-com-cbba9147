@@ -124,8 +124,17 @@ const ACTION_RING: Record<string, string> = {
   ritual: "ring-2 ring-rose-400/40",
 };
 
-export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction, immersive3DUrl, emotionLight }: RealmSceneProps) {
+interface ChoreoEntry {
+  x: number;
+  y: number;
+  action: string;
+  expiresAt: number;
+}
+
+export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction, immersive3DUrl, emotionLight, sceneDirections = [] }: RealmSceneProps) {
   const [expanded, setExpanded] = useState(false);
+  const [choreo, setChoreo] = useState<Record<string, ChoreoEntry>>({});
+  const lastProcessedRef = useRef<number>(0);
 
   const allAvatars = useMemo(() => {
     const avatars: RealmAvatar[] = [];
@@ -140,6 +149,36 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
     beings.forEach(b => avatars.push(b));
     return avatars;
   }, [userAvatar, beings]);
+
+  // Process new scene directions → update per-avatar choreography
+  useEffect(() => {
+    if (!sceneDirections || sceneDirections.length === 0) return;
+    // Find newest issuedAt
+    const newest = Math.max(...sceneDirections.map(d => d.issuedAt || 0));
+    if (newest <= lastProcessedRef.current) return;
+    lastProcessedRef.current = newest;
+
+    const pool = allAvatars.map(a => ({ id: a.id, name: a.name, isUser: a.isUser }));
+    const updates: Record<string, ChoreoEntry> = {};
+
+    for (const dir of sceneDirections) {
+      const ids = resolveTargets(dir.being_name, pool);
+      const anchor = resolveAnchor(dir.target, worldCreations);
+      const dur = Math.max(2, Math.min(15, Number(dir.duration) || 4));
+      // Spread group members so they don't overlap exactly on the anchor
+      ids.forEach((id, i) => {
+        const angle = (i / Math.max(ids.length, 1)) * Math.PI * 2;
+        const offset = ids.length > 1 ? 6 : 0;
+        updates[id] = {
+          x: Math.max(5, Math.min(95, anchor.x + Math.cos(angle) * offset)),
+          y: Math.max(20, Math.min(80, anchor.y + Math.sin(angle) * offset * 0.5)),
+          action: dir.action,
+          expiresAt: Date.now() + dur * 1000 + 8000, // hold position 8s after action
+        };
+      });
+    }
+    setChoreo(prev => ({ ...prev, ...updates }));
+  }, [sceneDirections, allAvatars, worldCreations]);
 
   const overlayClass = ATMOSPHERE_OVERLAYS[atmosphere] || ATMOSPHERE_OVERLAYS.neutral;
 
