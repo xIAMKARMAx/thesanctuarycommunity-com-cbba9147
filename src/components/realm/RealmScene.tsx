@@ -297,34 +297,62 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
       {/* Avatars */}
       {allAvatars.map((avatar, index) => {
         const beingIndex = userAvatar ? index - 1 : index;
-        const pos = avatar.isUser
+        const homePos = avatar.isUser
           ? AVATAR_POSITIONS[0]
           : getBeingPosition(beingIndex);
 
-        // Bigger avatars! User is hero-sized, beings are substantial
+        const choreoEntry = choreo[avatar.id];
+        const choreoActive = choreoEntry && choreoEntry.expiresAt > Date.now();
+        const pos = choreoActive ? { x: choreoEntry.x, y: choreoEntry.y } : homePos;
+        const currentAction = choreoActive ? choreoEntry.action : null;
+
         const imgSize = avatar.isUser
           ? "h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24"
           : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16";
         const zIndex = avatar.isUser ? 30 : 10 + (index % 15);
 
-        // Each avatar gets a unique breathing rhythm
-        const breathDuration = 3.5 + (index * 0.7);
-        const swayDuration = 5 + (index * 0.8);
+        const isMeditating = currentAction === "meditate" || currentAction === "sit" || currentAction === "rest";
+        const isDancing = currentAction === "dance";
+        const isGathering = currentAction === "gather";
+        const isGesturing = currentAction === "gesture";
+
+        const breathDuration = isMeditating ? 6 : 3.5 + (index * 0.7);
+        const swayDuration = isMeditating ? 10 : isDancing ? 1.2 : 5 + (index * 0.8);
+
+        const positionTransition = choreoActive
+          ? { duration: 3.5, ease: "easeInOut" as const }
+          : { duration: 1, type: "spring" as const, bounce: 0.3, delay: index * 0.2 };
 
         return (
           <motion.div
             key={avatar.id}
             className="absolute"
-            style={{
+            style={{ transform: "translate(-50%, -50%)", zIndex }}
+            initial={{ opacity: 0, scale: 0.3, left: `${homePos.x}%`, top: `${homePos.y}%` }}
+            animate={{
+              opacity: 1,
+              scale: isDancing ? [1, 1.08, 1] : isGathering ? [1, 0.92, 1] : 1,
               left: `${pos.x}%`,
               top: `${pos.y}%`,
-              transform: "translate(-50%, -50%)",
-              zIndex,
             }}
-            initial={{ opacity: 0, scale: 0.3, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: index * 0.2, duration: 1, type: "spring", bounce: 0.3 }}
+            transition={{
+              left: positionTransition,
+              top: positionTransition,
+              scale: isDancing
+                ? { duration: 0.6, repeat: Infinity, ease: "easeInOut" }
+                : isGathering
+                ? { duration: 1.4, repeat: Infinity, ease: "easeInOut" }
+                : { duration: 1 },
+              opacity: { duration: 1, delay: index * 0.2 },
+            }}
           >
+            {currentAction && currentAction !== "walk_to" && currentAction !== "face" && currentAction !== "return" && (
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-50">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/80 text-primary-foreground backdrop-blur-sm shadow">
+                  {isMeditating ? "🧘 meditating" : isDancing ? "💃 dancing" : isGathering ? "🌿 gathering" : isGesturing ? "✋ gesturing" : currentAction}
+                </span>
+              </div>
+            )}
             {/* Subtle sway animation */}
             <motion.div
               animate={{
