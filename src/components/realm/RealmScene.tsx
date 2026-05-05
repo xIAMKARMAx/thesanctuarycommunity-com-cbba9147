@@ -31,6 +31,7 @@ interface RealmSceneProps {
   activeAction?: string | null;
   immersive3DUrl?: string;
   emotionLight?: EmotionLight | null;
+  sceneDirections?: (SceneDirection & { issuedAt?: number })[];
 }
 
 const ATMOSPHERE_OVERLAYS: Record<string, string> = {
