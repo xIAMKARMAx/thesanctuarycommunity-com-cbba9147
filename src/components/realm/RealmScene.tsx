@@ -1,4 +1,4 @@
-import { useMemo, useState, Suspense } from "react";
+import { useMemo, useState, Suspense, useEffect, useRef } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, TreePine, Gem, Flame, Droplets, Mountain, Star, Flower } from "lucide-react";
@@ -6,6 +6,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { Immersive3DAvatar } from "./Immersive3DAvatar";
 import { AmbientRealmGlow, LightPillar, VesselAura, EmotionParticles, type EmotionLight } from "./EmotionFrequencyTranslator";
+import { resolveAnchor, resolveTargets, type SceneDirection } from "@/lib/scene-choreography";
 
 interface RealmAvatar {
   id: string;
