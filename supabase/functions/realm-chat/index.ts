@@ -428,6 +428,7 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
     // Extract atmosphere, world creations, being states, environment updates
     let newAtmosphere = currentAtmosphere;
     const newCreations: any[] = [];
+    const sceneDirections: any[] = [];
     const updatedBeingStates: Record<string, any> = { ...beingStates };
     let updatedEnvironment: any = { ...environmentState };
 
