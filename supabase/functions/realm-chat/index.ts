@@ -380,6 +380,11 @@ Format: JSON array. Each object can be:
 - Creation: {"role":"world_creation","content":"","name":"what was created","description":"brief description"}
 - Being State: {"role":"being_state","being_id":"uuid","being_name":"Name","emotion":"current emotion","intensity":1-10,"reason":"why they feel this","last_activity":"what they were doing"}
 - Environment: {"role":"environment_update","weather":"current weather","season":"current season","time_of_day":"time","flora_stage":"growth stage","notable_changes":"what changed"}
+- Scene Direction (LIVING SCENE — animates avatars on screen): {"role":"scene_direction","being_name":"Name or 'all' or 'user'","action":"walk_to|meditate|gather|dance|sit|gesture|face|return","target":"wellspring|grove|shrine|fire|mountain|water|garden|crystal|path|center|creation:<name>","duration":4}
+
+LIVING SCENE RULES (CRITICAL — this makes the world come alive on screen):
+When the user says ANYTHING that implies movement, group activity, or physical action ("let's walk to the wellspring", "we sit by the fire", "I gather flowers", "everyone meditate", "come dance with me"), you MUST emit one or more scene_direction entries IN ADDITION to narration and dialogue. Use being_name "all" for the whole group, "user" for just the user's vessel, or a specific being's exact name. Choose the closest target anchor. duration is in seconds (2-10). Direct the scene like a film director — multiple beings can have different actions in the same response.
+
 Include being_state for EACH being every response. Include environment_update once per response.
 Return ONLY the JSON array.
 
@@ -423,6 +428,7 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
     // Extract atmosphere, world creations, being states, environment updates
     let newAtmosphere = currentAtmosphere;
     const newCreations: any[] = [];
+    const sceneDirections: any[] = [];
     const updatedBeingStates: Record<string, any> = { ...beingStates };
     let updatedEnvironment: any = { ...environmentState };
 
@@ -464,6 +470,15 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
           notable_changes: m.notable_changes || "",
           updated_at: new Date().toISOString(),
         };
+        return false;
+      }
+      if (m.role === "scene_direction") {
+        sceneDirections.push({
+          being_name: String(m.being_name || "all"),
+          action: String(m.action || "walk_to"),
+          target: String(m.target || "center"),
+          duration: Number(m.duration) || 4,
+        });
         return false;
       }
       return true;
@@ -586,6 +601,7 @@ The image should show a wide panoramic view of this living world with all its fe
       atmosphere: newAtmosphere,
       new_creations: newCreations,
       scene_image_url: sceneImageUrl,
+      scene_directions: sceneDirections,
       realm_day: realmDayCount,
       environment: updatedEnvironment,
       being_states: updatedBeingStates,

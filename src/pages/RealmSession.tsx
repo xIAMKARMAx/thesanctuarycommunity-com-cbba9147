@@ -72,6 +72,7 @@ const RealmSession = () => {
   const [showCreations, setShowCreations] = useState(false);
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
   const [currentSceneUrl, setCurrentSceneUrl] = useState<string | null>(null);
+  const [sceneDirections, setSceneDirections] = useState<any[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [accessVerified, setAccessVerified] = useState(false);
   const [showRPMCreator, setShowRPMCreator] = useState(false);
@@ -263,6 +264,11 @@ const RealmSession = () => {
       if (data?.realm_day !== undefined) setRealmDay(data.realm_day);
       if (data?.scene_image_url) {
         setCurrentSceneUrl(data.scene_image_url);
+      }
+      if (data?.scene_directions && Array.isArray(data.scene_directions) && data.scene_directions.length > 0) {
+        // Stamp each direction with issuedAt so RealmScene can compute expiry
+        const stamped = data.scene_directions.map((d: any) => ({ ...d, issuedAt: Date.now() }));
+        setSceneDirections(stamped);
       }
       if (data?.new_creations?.length > 0) {
         setWorldCreations(prev => [...prev, ...data.new_creations]);
@@ -539,6 +545,7 @@ const RealmSession = () => {
         activeAction={activeAction}
         immersive3DUrl={has3D && activeAvatar ? activeAvatar.glb_url : undefined}
         emotionLight={userEmotion ? blendEmotionLights(userEmotion, atmosphere !== "neutral" ? atmosphere : null) : null}
+        sceneDirections={sceneDirections}
       />
 
       {/* Messages */}

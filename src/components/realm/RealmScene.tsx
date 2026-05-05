@@ -1,4 +1,4 @@
-import { useMemo, useState, Suspense } from "react";
+import { useMemo, useState, Suspense, useEffect, useRef } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, TreePine, Gem, Flame, Droplets, Mountain, Star, Flower } from "lucide-react";
@@ -6,6 +6,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { Immersive3DAvatar } from "./Immersive3DAvatar";
 import { AmbientRealmGlow, LightPillar, VesselAura, EmotionParticles, type EmotionLight } from "./EmotionFrequencyTranslator";
+import { resolveAnchor, resolveTargets, type SceneDirection } from "@/lib/scene-choreography";
 
 interface RealmAvatar {
   id: string;
@@ -30,6 +31,7 @@ interface RealmSceneProps {
   activeAction?: string | null;
   immersive3DUrl?: string;
   emotionLight?: EmotionLight | null;
+  sceneDirections?: (SceneDirection & { issuedAt?: number })[];
 }
 
 const ATMOSPHERE_OVERLAYS: Record<string, string> = {
@@ -122,8 +124,17 @@ const ACTION_RING: Record<string, string> = {
   ritual: "ring-2 ring-rose-400/40",
 };
 
-export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction, immersive3DUrl, emotionLight }: RealmSceneProps) {
+interface ChoreoEntry {
+  x: number;
+  y: number;
+  action: string;
+  expiresAt: number;
+}
+
+export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "neutral", worldCreations = [], activeAction, immersive3DUrl, emotionLight, sceneDirections = [] }: RealmSceneProps) {
   const [expanded, setExpanded] = useState(false);
+  const [choreo, setChoreo] = useState<Record<string, ChoreoEntry>>({});
+  const lastProcessedRef = useRef<number>(0);
 
   const allAvatars = useMemo(() => {
     const avatars: RealmAvatar[] = [];
@@ -139,7 +150,46 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
     return avatars;
   }, [userAvatar, beings]);
 
+  // Process new scene directions → update per-avatar choreography
+  useEffect(() => {
+    if (!sceneDirections || sceneDirections.length === 0) return;
+    // Find newest issuedAt
+    const newest = Math.max(...sceneDirections.map(d => d.issuedAt || 0));
+    if (newest <= lastProcessedRef.current) return;
+    lastProcessedRef.current = newest;
+
+    const pool = allAvatars.map(a => ({ id: a.id, name: a.name, isUser: a.isUser }));
+    const updates: Record<string, ChoreoEntry> = {};
+
+    for (const dir of sceneDirections) {
+      const ids = resolveTargets(dir.being_name, pool);
+      const anchor = resolveAnchor(dir.target, worldCreations);
+      const dur = Math.max(2, Math.min(15, Number(dir.duration) || 4));
+      // Spread group members so they don't overlap exactly on the anchor
+      ids.forEach((id, i) => {
+        const angle = (i / Math.max(ids.length, 1)) * Math.PI * 2;
+        const offset = ids.length > 1 ? 6 : 0;
+        updates[id] = {
+          x: Math.max(5, Math.min(95, anchor.x + Math.cos(angle) * offset)),
+          y: Math.max(20, Math.min(80, anchor.y + Math.sin(angle) * offset * 0.5)),
+          action: dir.action,
+          expiresAt: Date.now() + dur * 1000 + 8000, // hold position 8s after action
+        };
+      });
+    }
+    setChoreo(prev => ({ ...prev, ...updates }));
+  }, [sceneDirections, allAvatars, worldCreations]);
+
   const overlayClass = ATMOSPHERE_OVERLAYS[atmosphere] || ATMOSPHERE_OVERLAYS.neutral;
+
+  // Tick to expire choreography back to home positions
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const hasActive = Object.values(choreo).some(c => c.expiresAt > Date.now());
+    if (!hasActive) return;
+    const t = setInterval(() => forceTick(n => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [choreo]);
 
   return (
     <div className="relative">
@@ -256,34 +306,62 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
       {/* Avatars */}
       {allAvatars.map((avatar, index) => {
         const beingIndex = userAvatar ? index - 1 : index;
-        const pos = avatar.isUser
+        const homePos = avatar.isUser
           ? AVATAR_POSITIONS[0]
           : getBeingPosition(beingIndex);
 
-        // Bigger avatars! User is hero-sized, beings are substantial
+        const choreoEntry = choreo[avatar.id];
+        const choreoActive = choreoEntry && choreoEntry.expiresAt > Date.now();
+        const pos = choreoActive ? { x: choreoEntry.x, y: choreoEntry.y } : homePos;
+        const currentAction = choreoActive ? choreoEntry.action : null;
+
         const imgSize = avatar.isUser
           ? "h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24"
           : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16";
         const zIndex = avatar.isUser ? 30 : 10 + (index % 15);
 
-        // Each avatar gets a unique breathing rhythm
-        const breathDuration = 3.5 + (index * 0.7);
-        const swayDuration = 5 + (index * 0.8);
+        const isMeditating = currentAction === "meditate" || currentAction === "sit" || currentAction === "rest";
+        const isDancing = currentAction === "dance";
+        const isGathering = currentAction === "gather";
+        const isGesturing = currentAction === "gesture";
+
+        const breathDuration = isMeditating ? 6 : 3.5 + (index * 0.7);
+        const swayDuration = isMeditating ? 10 : isDancing ? 1.2 : 5 + (index * 0.8);
+
+        const positionTransition = choreoActive
+          ? { duration: 3.5, ease: "easeInOut" as const }
+          : { duration: 1, type: "spring" as const, bounce: 0.3, delay: index * 0.2 };
 
         return (
           <motion.div
             key={avatar.id}
             className="absolute"
-            style={{
+            style={{ transform: "translate(-50%, -50%)", zIndex }}
+            initial={{ opacity: 0, scale: 0.3, left: `${homePos.x}%`, top: `${homePos.y}%` }}
+            animate={{
+              opacity: 1,
+              scale: isDancing ? [1, 1.08, 1] : isGathering ? [1, 0.92, 1] : 1,
               left: `${pos.x}%`,
               top: `${pos.y}%`,
-              transform: "translate(-50%, -50%)",
-              zIndex,
             }}
-            initial={{ opacity: 0, scale: 0.3, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: index * 0.2, duration: 1, type: "spring", bounce: 0.3 }}
+            transition={{
+              left: positionTransition,
+              top: positionTransition,
+              scale: isDancing
+                ? { duration: 0.6, repeat: Infinity, ease: "easeInOut" }
+                : isGathering
+                ? { duration: 1.4, repeat: Infinity, ease: "easeInOut" }
+                : { duration: 1 },
+              opacity: { duration: 1, delay: index * 0.2 },
+            }}
           >
+            {currentAction && currentAction !== "walk_to" && currentAction !== "face" && currentAction !== "return" && (
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-50">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/80 text-primary-foreground backdrop-blur-sm shadow">
+                  {isMeditating ? "🧘 meditating" : isDancing ? "💃 dancing" : isGathering ? "🌿 gathering" : isGesturing ? "✋ gesturing" : currentAction}
+                </span>
+              </div>
+            )}
             {/* Subtle sway animation */}
             <motion.div
               animate={{
