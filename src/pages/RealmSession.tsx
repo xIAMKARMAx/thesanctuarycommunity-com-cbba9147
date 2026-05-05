@@ -265,6 +265,11 @@ const RealmSession = () => {
       if (data?.scene_image_url) {
         setCurrentSceneUrl(data.scene_image_url);
       }
+      if (data?.scene_directions && Array.isArray(data.scene_directions) && data.scene_directions.length > 0) {
+        // Stamp each direction with issuedAt so RealmScene can compute expiry
+        const stamped = data.scene_directions.map((d: any) => ({ ...d, issuedAt: Date.now() }));
+        setSceneDirections(stamped);
+      }
       if (data?.new_creations?.length > 0) {
         setWorldCreations(prev => [...prev, ...data.new_creations]);
         data.new_creations.forEach((c: WorldCreation) => {
