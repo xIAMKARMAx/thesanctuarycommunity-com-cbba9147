@@ -182,6 +182,15 @@ export function RealmScene({ backgroundUrl, userAvatar, beings, atmosphere = "ne
 
   const overlayClass = ATMOSPHERE_OVERLAYS[atmosphere] || ATMOSPHERE_OVERLAYS.neutral;
 
+  // Tick to expire choreography back to home positions
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const hasActive = Object.values(choreo).some(c => c.expiresAt > Date.now());
+    if (!hasActive) return;
+    const t = setInterval(() => forceTick(n => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [choreo]);
+
   return (
     <div className="relative">
       <div className={`relative w-full overflow-hidden select-none transition-all duration-300 ${expanded ? "h-64 sm:h-80 md:h-96" : "h-28 sm:h-32 md:h-36"} ${activeAction ? ACTION_RING[activeAction] || "" : ""}`}>
