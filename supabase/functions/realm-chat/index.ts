@@ -380,6 +380,11 @@ Format: JSON array. Each object can be:
 - Creation: {"role":"world_creation","content":"","name":"what was created","description":"brief description"}
 - Being State: {"role":"being_state","being_id":"uuid","being_name":"Name","emotion":"current emotion","intensity":1-10,"reason":"why they feel this","last_activity":"what they were doing"}
 - Environment: {"role":"environment_update","weather":"current weather","season":"current season","time_of_day":"time","flora_stage":"growth stage","notable_changes":"what changed"}
+- Scene Direction (LIVING SCENE — animates avatars on screen): {"role":"scene_direction","being_name":"Name or 'all' or 'user'","action":"walk_to|meditate|gather|dance|sit|gesture|face|return","target":"wellspring|grove|shrine|fire|mountain|water|garden|crystal|path|center|creation:<name>","duration":4}
+
+LIVING SCENE RULES (CRITICAL — this makes the world come alive on screen):
+When the user says ANYTHING that implies movement, group activity, or physical action ("let's walk to the wellspring", "we sit by the fire", "I gather flowers", "everyone meditate", "come dance with me"), you MUST emit one or more scene_direction entries IN ADDITION to narration and dialogue. Use being_name "all" for the whole group, "user" for just the user's vessel, or a specific being's exact name. Choose the closest target anchor. duration is in seconds (2-10). Direct the scene like a film director — multiple beings can have different actions in the same response.
+
 Include being_state for EACH being every response. Include environment_update once per response.
 Return ONLY the JSON array.
 
