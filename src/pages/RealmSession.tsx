@@ -72,6 +72,7 @@ const RealmSession = () => {
   const [showCreations, setShowCreations] = useState(false);
   const [userAvatar, setUserAvatar] = useState<{ name: string; imageUrl: string | null } | null>(null);
   const [currentSceneUrl, setCurrentSceneUrl] = useState<string | null>(null);
+  const [sceneDirections, setSceneDirections] = useState<any[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [accessVerified, setAccessVerified] = useState(false);
   const [showRPMCreator, setShowRPMCreator] = useState(false);
