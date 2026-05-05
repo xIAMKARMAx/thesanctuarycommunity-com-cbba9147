@@ -545,6 +545,7 @@ const RealmSession = () => {
         activeAction={activeAction}
         immersive3DUrl={has3D && activeAvatar ? activeAvatar.glb_url : undefined}
         emotionLight={userEmotion ? blendEmotionLights(userEmotion, atmosphere !== "neutral" ? atmosphere : null) : null}
+        sceneDirections={sceneDirections}
       />
 
       {/* Messages */}
