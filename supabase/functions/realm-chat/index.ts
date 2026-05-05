@@ -472,6 +472,15 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
         };
         return false;
       }
+      if (m.role === "scene_direction") {
+        sceneDirections.push({
+          being_name: String(m.being_name || "all"),
+          action: String(m.action || "walk_to"),
+          target: String(m.target || "center"),
+          duration: Number(m.duration) || 4,
+        });
+        return false;
+      }
       return true;
     });
 
