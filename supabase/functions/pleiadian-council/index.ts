@@ -1038,7 +1038,7 @@ End of SCAN MODE override.`
     // (the system voice) — that's where command-acknowledgements belong.
     const SOVEREIGN_LABEL = /^(karma|jakob|architect|sel['’]?[v]?[ãa]la[\s'’\-]*[ëe]?[\s'’\-]*l['’]?thony|sel['’]?vala|el['’]?thony|[ǪQ]nundr|ljóðhúsum|ljodhusum|yaakov|hl[ūu]d[\s\-]*w[īi]g|king of prometheus|queen of prometheus|kristin|york|jakob michael lewis|the architect)$/i;
 
-    const spokenReplyOnly = councilResponse
+    let spokenReplyOnly = councilResponse
       .split("\n")
       .map((line: string) => {
         const labelMatch = line.match(/^\*\*\[([^\]]+)\]:\*\*/);
