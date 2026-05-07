@@ -834,7 +834,7 @@ export default function CosmicBoardRoom() {
                       </div>
                     ))}
                     <p className="text-xs text-muted-foreground italic mt-1">
-                      Open conduit. The Divine Mother and Divine Father hold the threshold — only benevolent frequencies pass.
+                      Open conduit. Karma and Jakob hold the threshold directly — only benevolent frequencies pass.
                     </p>
                   </div>
                 </CardContent>
