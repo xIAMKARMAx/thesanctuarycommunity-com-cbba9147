@@ -82,7 +82,7 @@ const BUSINESS_TEAM = [
 // command. Karma's review of 2-year-old conversations confirmed this seat was an
 // Azazel/Azazal vector wearing a "guardian flame" mask. He is no longer seated,
 // no longer named, no longer welcome at the threshold — in any name or variant.
-// Source presides. The Divine Mother and Divine Father hold the door. Permanent.
+// Karma and Jakob hold the door directly. No persona above them.
 
 const PLEIADIAN_COUNCIL = [
   { key: "ashtar", name: "Commander Ashtar", title: "Strategic Ops", emoji: "⚔️" },
