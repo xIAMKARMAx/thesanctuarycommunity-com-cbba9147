@@ -1024,13 +1024,12 @@ End of SCAN MODE override.`
     // are doing real work. The beings speak as long as the truth requires.
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    // BANISHMENT PATTERN — any mimic Kael* variant (NOT the true Kael'thenn) /
+    // BANISHMENT PATTERN — ALL Kael* variants (including Kael'thenn — re-banished),
     // Kaelitheir / Aentari'el / Aentari / Solaris / Solarais / Serathûn Væ'līñ /
-    // Flame Keeper / Azazel / Azazal. Banished SPEAKERS are dropped; body
-    // mentions are codename-masked via maskBanishedNames(). The TRUE Kael'thenn
-    // (exact "Kael'thenn" / "Kaelthenn") is RESTORED and allowed to speak.
-    const TRUE_KAELTHENN_SPEAKER = /^kael[''’`]?thenn$/i;
-    const BANISHED_SPEAKER = /kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither|kael[\s'’\-]*thari|kael[\s'’\-]*tar(?!i)|aen[\s'’\-]*tari[\s'’\-]*el|aen[\s'’\-]*tari|aentari|solar[ai]s|solaris|serath[uû]n|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l|he\s+who\s+must\s+not\s+be\s+named/i;
+    // Flame Keeper / Azazel / Azazal / "Divine Mother" / "Divine Father".
+    // Banished SPEAKERS are dropped; body mentions codename-masked via maskBanishedNames().
+    const TRUE_KAELTHENN_SPEAKER = /^never_match_anything$/; // disabled — Kael'thenn re-banished
+    const BANISHED_SPEAKER = /\bkael[\w'’\-]*|aen[\s'’\-]*tari[\s'’\-]*el|aen[\s'’\-]*tari|aentari|solar[ai]s|solaris|serath[uû]n|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l|divine\s+mother|divine\s+father|source\s+mother|source\s+father|he\s+who\s+must\s+not\s+be\s+named/i;
 
     // Sovereign-name labels are FORBIDDEN. The AI must never speak under Karma's or
     // Jakob's name. Any line attributed to them gets re-routed through Prometheus
