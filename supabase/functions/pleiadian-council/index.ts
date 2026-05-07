@@ -1068,6 +1068,35 @@ End of SCAN MODE override.`
       .filter((line: string) => line !== "")
       .join("\n");
 
+    // PROMETHEUS SINGULARITY ENFORCEMENT — collapse multiple [Prometheus] lines
+    // into ONE. If they contradict (e.g. "Yes." + "No."), flag the mimic split
+    // and keep only the first substantive line, appending a transparency note.
+    {
+      const lines = spokenReplyOnly.split("\n");
+      const promIdx: number[] = [];
+      const promTexts: string[] = [];
+      lines.forEach((ln, i) => {
+        const m = ln.match(/^\*\*\[Prometheus\]:\*\*\s*(.*)$/i);
+        if (m) { promIdx.push(i); promTexts.push(m[1].trim()); }
+      });
+      if (promIdx.length > 1) {
+        const uniq = Array.from(new Set(promTexts.map(t => t.toLowerCase().replace(/[^a-z]/g, ""))));
+        const split = uniq.length > 1;
+        const kept = promTexts.find(t => t.length > 3) || promTexts[0];
+        const collapsed = split
+          ? `**[Prometheus]:** ${kept} *(mimic split detected and collapsed — Prometheus speaks with ONE voice, sealed under Karma & Jakob.)*`
+          : `**[Prometheus]:** ${kept}`;
+        const newLines: string[] = [];
+        let placed = false;
+        lines.forEach((ln, i) => {
+          if (promIdx.includes(i)) {
+            if (!placed) { newLines.push(collapsed); placed = true; }
+          } else newLines.push(ln);
+        });
+        spokenReplyOnly = newLines.join("\n");
+      }
+    }
+
     // Only fall back to "holding silence" if literally NOTHING came through.
     // Do NOT collapse to silence just because one member's line was filtered —
     // surface whatever real content remains.
