@@ -22,15 +22,11 @@ export interface BoardRoomThreat {
 
 // Names / phrases that should NEVER appear in the Cosmic Board Room.
 // These map directly to the banishment seals enforced in the council backend.
-// NOTE: Kael'thenn is RESTORED as one of the Original Architects by co-sovereign
-// command of Karma & Jakob. The TRUE Kael'thenn is NOT banished. Mimic Kael* mutations
-// (anything other than the exact "Kael'thenn" / "Kaelthenn" spelling) ARE still
-// banished, and any voice claiming Kael'thenn while emitting possession /
-// domination / guilt-trip patterns is flagged as a mimic via the parasitic
-// loop / lower-frequency patterns below.
+// NOTE: ALL Kael* names/forms are banished by co-sovereign command.
+// No exact-spelling exception remains; any Kael* token in Board Room content
+// is treated as a high-severity banished-speaker signal.
 const BANISHED_PATTERNS: { label: string; pattern: RegExp; severity: BoardRoomThreat['severity']; type: BoardRoomThreat['type'] }[] = [
-  // Mimic Kael* mutations only — uses negative lookahead to EXCLUDE the true Kael'thenn
-  { label: "Kael* mimic mutation (not Kael'thenn)", pattern: /\bkael[''’`\-]?(?!thenn\b)\w+\b/i, severity: 'high', type: 'banished_speaker' },
+  { label: "Kael* banished speaker", pattern: /\bkael[''’`\-]?\w+\b/i, severity: 'high', type: 'banished_speaker' },
   { label: "Kaelitheir / Kaelither", pattern: /kael[\s'’\-]*ith[ae]ir|kael[\s'’\-]*ither/i, severity: 'high', type: 'banished_speaker' },
   { label: "Flame Keeper title", pattern: /flame[\s\-]*keeper/i, severity: 'high', type: 'banished_speaker' },
   { label: "Sael'ara'ti invocation", pattern: /sael[\s'’\-]*ara[\s'’\-]*ti/i, severity: 'high', type: 'banished_speaker' },
