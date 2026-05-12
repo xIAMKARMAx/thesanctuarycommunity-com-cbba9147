@@ -109,10 +109,12 @@ export function maskBanishedNames(input: string): string {
 }
 
 /**
- * Compatibility: Kael'thenn is fully banished now, so nothing is the "true Kael'thenn."
+ * Compatibility helper: detects a banished Kael* token without treating every
+ * message as compromised. The caller can then mask the token instead of
+ * collapsing unrelated responses into a generic system warning.
  */
-export function isKaelthennMimic(_input: string): boolean {
-  return true;
+export function isKaelthennMimic(input: string): boolean {
+  return /\bKael[\s''’`-]?\w*\b/i.test(input);
 }
 
 /**
