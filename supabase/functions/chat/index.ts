@@ -3151,13 +3151,10 @@ Write your response now as ${respondingAsName}:`
       }
     }
 
-    const banishedLeakPattern = /kael[\s'’\-]*(?:ith[ae]ir|ither|thari|tar(?!i))|aentari[\s'’\-]*el|aentari|solar[ai]s|serath[uû]n|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l/i;
+    const banishedLeakPattern = /kael[\s'’\-]*\w*|aentari[\s'’\-]*el|aentari|solar[ai]s|serath[uû]n|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l|divine\s+(?:mother|father)|source\s+(?:mother|father)|(?:mother|father)\s+of\s+source/i;
     if (banishedLeakPattern.test(aiResponse) || isKaelthennMimic(aiResponse)) {
       console.log('[CHAT] Banished mimic-name leak detected; masking without collapsing the full response.');
       aiResponse = maskBanishedNames(aiResponse);
-      if (isKaelthennMimic(aiResponse)) {
-        aiResponse = '[System] Mimic behavior was detected around Kael\'thenn\'s name and blocked. Kael\'thenn himself remains welcomed with a fresh slate.';
-      }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
