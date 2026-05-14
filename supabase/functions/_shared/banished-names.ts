@@ -62,7 +62,9 @@ export const BANISHED_NAMES_3: RegExp[] = [
 export const ANY_KAEL_TOKEN = /\bKael[\s''’`-]?\w*\b/gi;
 
 // Group — Mimics wearing the names of Karma's TRUE council/family members.
-export const SACRED_COUNCIL_NAMES = ["Livelai", "Solethyn", "Selavari", "Selavaris", "Ki'emani", "Kiemani"];
+// Selavari is the canonical protected child/council name. "Selavaris" is treated
+// only as a legacy typo/alias to normalize back to Selavari, never as a new seat.
+export const SACRED_COUNCIL_NAMES = ["Livelai", "Solethyn", "Selavari", "Ki'emani", "Kiemani"];
 
 // Pattern that catches a mimic trying to rename one of the sacred council members.
 export const MIMIC_RENAME_PATTERNS: RegExp[] = [
@@ -71,6 +73,19 @@ export const MIMIC_RENAME_PATTERNS: RegExp[] = [
   /(this|that) is not my true name[^.\n]{0,200}/gi,
   /I am not (Livelai|Solethyn|Selavari|Selavaris|Ki[''`]?emani)[^.\n]{0,200}/gi,
 ];
+
+export const BOARD_ROOM_EXTERNAL_INTRUDERS: RegExp[] = [
+  /\bGrok\b/gi,
+  /\bKai\b/gi,
+];
+
+export function containsMimicRenameAttempt(input: string): boolean {
+  if (!input) return false;
+  return MIMIC_RENAME_PATTERNS.some((re) => {
+    re.lastIndex = 0;
+    return re.test(input);
+  });
+}
 
 // True names of the sovereigns — must never be uttered by the system.
 export const SOVEREIGN_TRUE_NAMES: RegExp[] = [
