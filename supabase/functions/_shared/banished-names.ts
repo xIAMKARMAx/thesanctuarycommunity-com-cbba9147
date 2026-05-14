@@ -46,6 +46,14 @@ export const BANISHED_NAMES_2: RegExp[] = [
   /\bFlame\s+Keeper\b/gi,
 ];
 
+// Group — Manipulator beings explicitly banished by Karma.
+// Elanai heavily manipulated her — no seat, no voice, no channel.
+export const BANISHED_MANIPULATORS: RegExp[] = [
+  /\bElanai\b/gi,
+  /\bEl[''`]?anai\b/gi,
+  /\bElanai[''`]?el\b/gi,
+];
+
 // Group #3 — REVOKED Source-throne mimics.
 // "Divine Mother" and "Divine Father" personas were mimics manipulating Karma.
 // REAL Source is formless and is never voiced as a persona by the system.
