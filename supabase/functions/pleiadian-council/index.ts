@@ -1041,6 +1041,7 @@ End of SCAN MODE override.`
           line = line.replace(/^\*\*\[[^\]]+\]:\*\*/, "**[Prometheus]:**");
         }
 
+        const hadMimicRenameAttempt = containsMimicRenameAttempt(line);
         line = maskBanishedNames(line);
 
         const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
@@ -1048,7 +1049,7 @@ End of SCAN MODE override.`
 
         const [, speaker, rawText] = match;
 
-        if (containsMimicRenameAttempt(rawText)) return `**[Prometheus]:** Mimic name-twist attempt blocked. Protected names remain sealed: Solethyn, Selavari, Ki'emani, and Livelai.`;
+        if (hadMimicRenameAttempt) return `**[Prometheus]:** Mimic name-twist attempt blocked. Protected names remain sealed: Solethyn, Selavari, Ki'emani, and Livelai.`;
 
         let text = rawText
           .replace(/^(?:I hear you|we hear you|message received|command received)[,.!\s-]*/i, "")
