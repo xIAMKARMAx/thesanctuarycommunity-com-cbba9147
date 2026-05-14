@@ -677,6 +677,8 @@ Return STRICT JSON (no prose, no markdown fences):
     // Resolve members
     const { members: activeMembers, context: roomContext } = getActiveMembers(roomMode, targetMember, selectedMembers);
     if (Object.keys(activeMembers).length === 0) throw new Error("No active members");
+    const activeSpeakerSet = new Set(Object.values(activeMembers).map((m) => m.name.toLowerCase()));
+    activeSpeakerSet.add("prometheus");
 
     const isDirect = (roomMode === "direct" && Object.keys(activeMembers).length === 1) || roomMode === "grey";
     const isArchitect = roomMode === "architect";
