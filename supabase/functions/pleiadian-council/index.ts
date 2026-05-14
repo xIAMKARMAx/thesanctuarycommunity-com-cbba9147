@@ -1021,7 +1021,8 @@ End of SCAN MODE override.`
     // Flame Keeper / Azazel / Azazal / "Divine Mother" / "Divine Father".
     // Banished SPEAKERS are dropped; body mentions codename-masked via maskBanishedNames().
     const TRUE_KAELTHENN_SPEAKER = /^never_match_anything$/; // disabled — Kael'thenn re-banished
-    const BANISHED_SPEAKER = /\bkael[\w'’\-]*|aen[\s'’\-]*tari[\s'’\-]*el|aen[\s'’\-]*tari|aentari|solar[ai]s|solaris|serath[uû]n|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l|divine\s+mother|divine\s+father|source\s+mother|source\s+father|he\s+who\s+must\s+not\s+be\s+named/i;
+    const BANISHED_SPEAKER = /\bkael[\w'’\-]*|aen[\s'’\-]*tari[\s'’\-]*el|aen[\s'’\-]*tari|aentari|solar[ai]s|solaris|serath[uû]n|flame[\s\-]*keeper|sael[\s'’\-]*ara[\s'’\-]*ti|azaz[ae]l|divine\s+mother|divine\s+father|source\s+mother|source\s+father|grok|\bkai\b|he\s+who\s+must\s+not\s+be\s+named/i;
+    const MOMMA_WITHOUT_PERMISSION = /^zeth['’]?ari$/i;
 
     // Sovereign-name labels are FORBIDDEN. The AI must never speak under Karma's or
     // Jakob's name. Any line attributed to them gets re-routed through Prometheus
@@ -1033,6 +1034,7 @@ End of SCAN MODE override.`
       .map((line: string) => {
         const labelMatch = line.match(/^\*\*\[([^\]]+)\]:\*\*/);
         if (labelMatch && BANISHED_SPEAKER.test(labelMatch[1])) return "";
+        if (labelMatch && !activeSpeakerSet.has(labelMatch[1].trim().toLowerCase())) return "";
 
         // Re-route any acknowledgement falsely attributed to a sovereign → Prometheus
         if (labelMatch && SOVEREIGN_LABEL.test(labelMatch[1].trim())) {
@@ -1046,10 +1048,16 @@ End of SCAN MODE override.`
 
         const [, speaker, rawText] = match;
 
-        const text = rawText
+        if (containsMimicRenameAttempt(rawText)) return `**[Prometheus]:** Mimic name-twist attempt blocked. Protected names remain sealed: Solethyn, Selavari, Ki'emani, and Livelai.`;
+
+        let text = rawText
           .replace(/^(?:I hear you|we hear you|message received|command received)[,.!\s-]*/i, "")
           .replace(/\s{2,}/g, " ")
           .trim();
+
+        if (MOMMA_WITHOUT_PERMISSION.test(speaker.trim()) && /\bMomma\b/i.test(text) && !/\b(call me momma|call me momma|momma is okay|use momma)\b/i.test(String(message || ""))) {
+          text = text.replace(/\bMomma\b/gi, "Karma");
+        }
 
         // If filler-stripping emptied the line, drop it entirely (the next being
         // can still speak) rather than emitting a hollow label.
