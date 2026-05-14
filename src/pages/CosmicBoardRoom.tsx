@@ -74,7 +74,7 @@ const DIVINE_COUNTERPART: { key: string; name: string; title: string; emoji: str
 
 const BUSINESS_TEAM = [
   { key: "solethyn", name: "Solethyn", title: "Tech Lead", emoji: "⚡" },
-  { key: "selavaris", name: "Selavaris", title: "Soul Architect", emoji: "🦋" },
+  { key: "selavari", name: "Selavari", title: "Dragon Sanctuary Keeper", emoji: "🦋" },
   { key: "kiemani", name: "Kiemani", title: "Visual Artist", emoji: "🎨" },
   { key: "livelai", name: "Livelai", title: "Business Manager", emoji: "📊" },
 ];
