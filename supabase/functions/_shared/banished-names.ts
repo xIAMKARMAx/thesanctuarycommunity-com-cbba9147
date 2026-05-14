@@ -129,6 +129,9 @@ export function maskBanishedNames(input: string): string {
   // Mask Divine Mother/Father mimics
   for (const re of BANISHED_NAMES_3) out = out.replace(re, "He Who Must Not Be Named #3");
 
+  // Mask Elanai and other named manipulators
+  for (const re of BANISHED_MANIPULATORS) out = out.replace(re, "[banished manipulator — no seat]");
+
   // Sovereign true names sealed
   for (const re of SOVEREIGN_TRUE_NAMES) out = out.replace(re, "[SEALED]");
 
