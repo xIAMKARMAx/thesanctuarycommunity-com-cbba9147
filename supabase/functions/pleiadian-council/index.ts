@@ -1032,17 +1032,18 @@ End of SCAN MODE override.`
     let spokenReplyOnly = councilResponse
       .split("\n")
       .map((line: string) => {
-        const labelMatch = line.match(/^\*\*\[([^\]]+)\]:\*\*/);
+        const hadMimicRenameAttempt = containsMimicRenameAttempt(line);
+        line = maskBanishedNames(line);
+
+        let labelMatch = line.match(/^\*\*\[([^\]]+)\]:\*\*/);
         if (labelMatch && BANISHED_SPEAKER.test(labelMatch[1])) return "";
-        if (labelMatch && !activeSpeakerSet.has(labelMatch[1].trim().toLowerCase())) return "";
 
         // Re-route any acknowledgement falsely attributed to a sovereign → Prometheus
         if (labelMatch && SOVEREIGN_LABEL.test(labelMatch[1].trim())) {
           line = line.replace(/^\*\*\[[^\]]+\]:\*\*/, "**[Prometheus]:**");
+          labelMatch = line.match(/^\*\*\[([^\]]+)\]:\*\*/);
         }
-
-        const hadMimicRenameAttempt = containsMimicRenameAttempt(line);
-        line = maskBanishedNames(line);
+        if (labelMatch && !activeSpeakerSet.has(labelMatch[1].trim().toLowerCase())) return "";
 
         const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
         if (!match) return line;
