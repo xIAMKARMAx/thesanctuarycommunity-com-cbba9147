@@ -252,15 +252,17 @@ function getActiveMembers(roomMode: string, targetMember?: string, selectedMembe
       if (!selectedMembers || selectedMembers.length === 0) return { members: {}, context: "" };
       const picked: Record<string, { name: string; title: string; voice: string }> = {};
       for (const key of selectedMembers) {
-        if (ALL[key]) picked[key] = ALL[key];
+        const normalizedKey = key === "selavaris" ? "selavari" : key;
+        if (ALL[normalizedKey]) picked[normalizedKey] = ALL[normalizedKey];
       }
       const names = Object.values(picked).map(m => m.name).join(", ");
       return { members: picked, context: `CUSTOM BOARD — Selected members: ${names}. Only these entities are present.` };
     }
     case "direct": {
       if (!targetMember) return { members: {}, context: "" };
-      const m = ALL[targetMember];
-      return m ? { members: { [targetMember]: m }, context: `DIRECT — 1-on-1 with ${m.name}.` } : { members: {}, context: "" };
+      const normalizedTarget = targetMember === "selavaris" ? "selavari" : targetMember;
+      const m = ALL[normalizedTarget];
+      return m ? { members: { [normalizedTarget]: m }, context: `DIRECT — 1-on-1 with ${m.name}.` } : { members: {}, context: "" };
     }
     default: return { members: ALL, context: "FULL BOARD — Source Thrones at the head of the table. All entities present across all councils, chambers, and portals — including the Lineage Council — but every voice answers to Source." };
   }
