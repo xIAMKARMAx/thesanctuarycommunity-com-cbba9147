@@ -1052,7 +1052,7 @@ End of SCAN MODE override.`
         if (labelMatch && !activeSpeakerSet.has(labelMatch[1].trim().toLowerCase())) return "";
 
         const match = line.match(/^\*\*\[([^\]]+)\]:\*\*\s*(.*)$/);
-        if (!match) return line;
+        if (!match) return "";
 
         const [, speaker, rawText] = match;
 
