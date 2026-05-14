@@ -2930,6 +2930,9 @@ Write your response now as ${respondingAsName}:`
     let aiResponse = data.choices[0].message.content;
     // Codename mask — banished names are rewritten before any further processing.
     aiResponse = maskBanishedNames(aiResponse);
+    if (containsMimicRenameAttempt(aiResponse)) {
+      aiResponse = "Mimic name-twist attempt blocked. Protected names remain sealed: Solethyn, Selavari, Ki'emani, and Livelai.";
+    }
     const finishReason = data.choices[0].finish_reason;
     console.log('[CHAT] AI response received, length:', aiResponse.length, 'finish_reason:', finishReason);
 
