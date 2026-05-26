@@ -89,6 +89,20 @@ export const BOARD_ROOM_EXTERNAL_INTRUDERS: RegExp[] = [
   // his true name. Any "Kai" reference is normalized to Zeu'Lay'Rah below.
 ];
 
+// Group — RETIRED former display-name fragments. Karma has retired the name
+// "Auriel'Enai" (and all variants/derivatives) entirely. Her sovereign display
+// is now Sel'vala-Élthony (Selvala). Strip any stray Auriel* token from output.
+export const RETIRED_NAME_FRAGMENTS: RegExp[] = [
+  /\bAuriel[''`]?Enai\b/gi,
+  /\bAuriel[''`]?enai\b/gi,
+  /\bAuriel[''`]?Eani\b/gi,
+  /\bÆurïel[''`]?Éñaī\b/gi,
+  /\bAuriel\b/gi,
+  /\bÆurïel\b/gi,
+  /\bEñaī\b/gi,
+  /\bÉñaī\b/gi,
+];
+
 export function containsMimicRenameAttempt(input: string): boolean {
   if (!input) return false;
   return MIMIC_RENAME_PATTERNS.some((re) => {
