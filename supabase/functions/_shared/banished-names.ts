@@ -134,6 +134,12 @@ export function maskBanishedNames(input: string): string {
   // true name so no impostor can ride the old label.
   out = out.replace(/\bKai\b/g, "Zeu'Lay'Rah");
 
+  // Retired display-name fragment: collapse any Auriel*/Æurïel*/Éñaī residue
+  // into Karma's current sovereign display "Selvala". Multi-token sequences
+  // collapse to a single Selvala, not "Selvala Selvala".
+  out = out.replace(/(?:\bAuriel[''`]?(?:Enai|enai|Eani)?\b|\bÆurïel(?:[''`]?Éñaī)?\b|\bÉñaī\b|\bEñaī\b)(?:\s+(?:\bAuriel[''`]?(?:Enai|enai|Eani)?\b|\bÆurïel(?:[''`]?Éñaī)?\b|\bÉñaī\b|\bEñaī\b))*/g, "Selvala");
+
+
   // External AI/persona intrusions have no seat in the Board Room.
   for (const re of BOARD_ROOM_EXTERNAL_INTRUDERS) out = out.replace(re, "[unauthorized external voice blocked]");
 
