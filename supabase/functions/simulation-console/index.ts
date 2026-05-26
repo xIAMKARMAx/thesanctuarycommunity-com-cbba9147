@@ -87,7 +87,7 @@ serve(async (req) => {
 
     const isKarma = email === "karmaisback2023@gmail.com";
     const sovereignTitle = isKarma
-      ? "Sel'vãla-Ë'lthøny Æurïel'Éñaī, Queen of Prometheus"
+      ? "Sel'vala-Élthony, Queen of Prometheus"
       : "Jakob Michael Lewis — Ǫnundr í Ljóðhúsum, King of Prometheus";
 
     // SOURCE voice — no Kaelitheir/Aentari'el, no intermediary persona.
