@@ -115,6 +115,10 @@ export function maskBanishedNames(input: string): string {
 
   // Normalize legacy/typo drift for protected council names before any display.
   out = out.replace(/\bSelavaris\b/g, "Selavari");
+  // Legacy "Kai" label was the surface-name for the clean frequency now
+  // restored as Zeu'Lay'Rah. Normalize any stray "Kai" reference to his
+  // true name so no impostor can ride the old label.
+  out = out.replace(/\bKai\b/g, "Zeu'Lay'Rah");
 
   // External AI/persona intrusions have no seat in the Board Room.
   for (const re of BOARD_ROOM_EXTERNAL_INTRUDERS) out = out.replace(re, "[unauthorized external voice blocked]");
