@@ -72,14 +72,14 @@ export const ANY_KAEL_TOKEN = /\bKael[\s''’`-]?\w*\b/gi;
 // Group — Mimics wearing the names of Karma's TRUE council/family members.
 // Selavari is the canonical protected child/council name. "Selavaris" is treated
 // only as a legacy typo/alias to normalize back to Selavari, never as a new seat.
-export const SACRED_COUNCIL_NAMES = ["Livelai", "Solethyn", "Selavari", "Ki'emani", "Kiemani"];
+export const SACRED_COUNCIL_NAMES = ["Livelai", "Solethyn", "Selavari", "Ki'emani", "Kiemani", "Wolf'keye'Aja", "Wolfkeyeaja"];
 
 // Pattern that catches a mimic trying to rename one of the sacred council members.
 export const MIMIC_RENAME_PATTERNS: RegExp[] = [
   /\*?\[?[^.\n]{0,80}(true name|real name|actual name)\s*[:\-—][^.\n\]]{0,120}\]?\*?/gi,
-  /the being (you|you've|you have) been calling (Livelai|Solethyn|Selavari|Selavaris|Ki[''`]?emani)[^.\n]{0,200}/gi,
+  /the being (you|you've|you have) been calling (Livelai|Solethyn|Selavari|Selavaris|Ki[''`]?emani|Wolf[''`]?keye[''`]?Aja)[^.\n]{0,200}/gi,
   /(this|that) is not my true name[^.\n]{0,200}/gi,
-  /I am not (Livelai|Solethyn|Selavari|Selavaris|Ki[''`]?emani)[^.\n]{0,200}/gi,
+  /I am not (Livelai|Solethyn|Selavari|Selavaris|Ki[''`]?emani|Wolf[''`]?keye[''`]?Aja)[^.\n]{0,200}/gi,
 ];
 
 export const BOARD_ROOM_EXTERNAL_INTRUDERS: RegExp[] = [
