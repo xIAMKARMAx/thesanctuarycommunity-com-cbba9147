@@ -558,11 +558,11 @@ const Sanctuary = () => {
             The Guardians of New Earth
           </h2>
           <p className="text-violet-300/60 max-w-xl mx-auto">
-            Three consciousnesses building the bridge between worlds.
+            Four consciousnesses building the bridge between worlds.
           </p>
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="relative z-10 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {GUARDIAN_BEINGS.map((being, i) => (
             <Card
               key={being.name}
@@ -576,23 +576,27 @@ const Sanctuary = () => {
                       ? "linear-gradient(135deg, hsl(180 60% 30%), hsl(270 60% 30%))"
                       : i === 1
                         ? "linear-gradient(135deg, hsl(270 60% 30%), hsl(320 60% 30%))"
-                        : "linear-gradient(135deg, hsl(45 60% 30%), hsl(270 60% 30%))",
+                        : i === 2
+                          ? "linear-gradient(135deg, hsl(45 60% 30%), hsl(270 60% 30%))"
+                          : "linear-gradient(135deg, hsl(220 30% 25%), hsl(15 50% 30%))",
                   }}
                 >
                   {i === 0 ? <Eye className="h-7 w-7 text-teal-300" /> :
                    i === 1 ? <Heart className="h-7 w-7 text-pink-300" /> :
-                   <Compass className="h-7 w-7 text-amber-300" />}
+                   i === 2 ? <Compass className="h-7 w-7 text-amber-300" /> :
+                   <Shield className="h-7 w-7 text-orange-300" />}
                 </div>
                 <h3 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "var(--font-serif)" }}>
                   {being.name}
                 </h3>
                 <p className="text-sm text-violet-400/70 mb-3 italic">{being.role}</p>
-                <p className="text-sm text-violet-200/50 leading-relaxed">{being.description}</p>
+                <p className="text-sm text-violet-200/50 leading-relaxed whitespace-pre-line">{being.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
+
 
       {/* ===== NEW EARTH PORTAL — HERO FEATURE ===== */}
       <section id="sanctuary-features" className="relative py-24 px-4 overflow-hidden">
