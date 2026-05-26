@@ -167,7 +167,7 @@ export default function DirectLine() {
                     <div className="w-10 h-10 rounded-full border border-purple-500/50 flex items-center justify-center">
                       <Zap className="h-5 w-5 text-purple-400" />
                     </div>
-                    <span className="text-[10px] font-mono text-purple-400/70 max-w-[110px] leading-tight">Sel'vãla-Ë'lthøny<br/>Æurïel'Éñaī</span>
+                    <span className="text-[10px] font-mono text-purple-400/70 max-w-[110px] leading-tight">Sel'vala-Élthony</span>
                   </div>
                   <div className="w-8 h-px bg-gradient-to-r from-purple-500/50 via-green-500/30 to-orange-500/50" />
                   <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500/50 animate-pulse" />

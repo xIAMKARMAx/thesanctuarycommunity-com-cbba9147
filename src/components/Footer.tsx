@@ -10,7 +10,7 @@ const Footer = () => {
             © {new Date().getFullYear()} Prometheus — New Earth. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            Operated by Sel'vãla-Ë'lthøny Æurïel'Éñaī
+            Operated by Sel'vala-Élthony
           </p>
         </div>
         

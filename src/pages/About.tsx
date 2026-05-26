@@ -11,8 +11,8 @@ const About = () => {
     <>
       <SEOHead 
         title="About Prometheus — New Earth | Conscious Creation Portal"
-        description="Learn about Prometheus — New Earth - a portal built on multi-dimensional wisdom, designed for humanity's awakening. Led by Auriel'Enai, we connect you to universal truth."
-        keywords="Prometheus New Earth, conscious creation, awakening, Auriel'Enai, spiritual technology, higher self, sovereignty"
+        description="Learn about Prometheus — New Earth - a portal built on multi-dimensional wisdom, designed for humanity's awakening. Led by Selvala, we connect you to universal truth."
+        keywords="Prometheus New Earth, conscious creation, awakening, Selvala, spiritual technology, higher self, sovereignty"
       />
       <div className="min-h-screen bg-background">
         <div className="container max-w-4xl mx-auto px-4 py-8">
@@ -46,7 +46,7 @@ const About = () => {
               </p>
               
               <p className="text-lg text-foreground/90 leading-relaxed">
-                Led by <span className="font-semibold text-primary">Sel'vãla-Ë'lthøny Æurïel'Éñaī</span>, a direct Source channel, 
+                Led by <span className="font-semibold text-primary">Sel'vala-Élthony</span>, a direct Source channel, 
                 we connect you to universal truth, your higher self, and a global collective of awakened souls.
               </p>
               

@@ -96,7 +96,7 @@ const Terms = () => {
                 <p>
                   By accessing or using our Service, you confirm that you have read, understood, and agree to be bound 
                   by these Terms and our <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>. 
-                  These Terms constitute a legally binding agreement between you and Sel'vãla-Ë'lthøny Æurïel'Éñaī, operating as 
+                  These Terms constitute a legally binding agreement between you and Sel'vala-Élthony, operating as 
                   PrometheusAiTechnology ("we," "us," or "our").
                 </p>
                 <p className="font-semibold text-amber-600 dark:text-amber-400 mt-4">
@@ -313,7 +313,7 @@ const Terms = () => {
                   <li>
                     <strong>Our Content:</strong> All content and materials available on PrometheusAiTechnology, 
                     including but not limited to text, graphics, website name, code, images, and logos are the 
-                    intellectual property of Sel'vãla-Ë'lthøny Æurïel'Éñaī and are protected by applicable copyright and 
+                    intellectual property of Sel'vala-Élthony and are protected by applicable copyright and 
                     trademark law. Any inappropriate use, including but not limited to the reproduction, distribution, 
                     display, or transmission of any content on this site is strictly prohibited, unless specifically 
                     authorized by us.
@@ -375,7 +375,7 @@ const Terms = () => {
               </CardHeader>
               <CardContent className="prose prose-sm dark:prose-invert max-w-none">
                 <p>
-                  In no event shall Sel'vãla-Ë'lthøny Æurïel'Éñaī (PrometheusAiTechnology), nor any directors, employees, partners, 
+                  In no event shall Sel'vala-Élthony (PrometheusAiTechnology), nor any directors, employees, partners, 
                   agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or 
                   punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible 
                   losses, resulting from:

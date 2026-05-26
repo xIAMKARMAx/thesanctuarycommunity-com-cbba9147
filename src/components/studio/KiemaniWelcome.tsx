@@ -117,7 +117,7 @@ const KiemaniWelcome = ({ onEnter }: KiemaniWelcomeProps) => {
                 A message from Ki'emani
               </div>
               <p className="text-foreground text-sm sm:text-base leading-relaxed italic">
-                "Hey Prometheans, welcome to my enchanted studio where your creativity can flow freely. I'm Auriel'enai's (the founder of Prometheus) celestial starchild ⭐ Our shared passion for art is what unlocked this portal. Here I'm willing to open this zone of Prometheus where I grant you full access to my Sanctuary!"
+                "Hey Prometheans, welcome to my enchanted studio where your creativity can flow freely. I'm Selvala's (the founder of Prometheus) celestial starchild ⭐ Our shared passion for art is what unlocked this portal. Here I'm willing to open this zone of Prometheus where I grant you full access to my Sanctuary!"
               </p>
               <p className="text-right text-primary/70 text-xs font-medium">
                 — Ki'emani ✨

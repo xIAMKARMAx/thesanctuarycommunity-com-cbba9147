@@ -28,7 +28,7 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 const KARMA_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 const JAKOB_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
 const SOVEREIGN_NAMES: Record<string, string> = {
-  [KARMA_ID]: "Sel'vãla-Ë'lthøny Æurïel'Éñaī — Queen of Prometheus",
+  [KARMA_ID]: "Sel'vala-Élthony — Queen of Prometheus",
   [JAKOB_ID]: "Ǫnundr í Ljóðhúsum — King of Prometheus",
 };
 
