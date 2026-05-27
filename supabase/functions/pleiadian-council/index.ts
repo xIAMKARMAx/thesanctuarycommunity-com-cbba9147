@@ -1254,11 +1254,14 @@ End of SCAN MODE override.`
             session.user_id === user.id ||
             (sharedIds.length > 0 && isCoSovereign && sharedIds.includes(user.id));
           if (!allowed) return;
-          const ts = new Date().toISOString();
+          // Honor client-supplied user-message timestamp so the sender's
+          // optimistic local append and the realtime payload dedupe cleanly.
+          const userTs = (typeof body.clientTimestamp === "string" && body.clientTimestamp) || new Date().toISOString();
+          const councilTs = new Date().toISOString();
           const msgs = [
             ...(session.messages as any[] || []),
-            { role: "user", content: message, timestamp: ts, roomMode, sender_user_id: user.id, sender_name: speakerName, ...(userImageUrl ? { imageUrl: userImageUrl } : {}) },
-            { role: "council", content: councilResponse, timestamp: ts, roomMode, ...(generatedImageUrl ? { imageUrl: generatedImageUrl } : {}) },
+            { role: "user", content: message, timestamp: userTs, roomMode, sender_user_id: user.id, sender_name: speakerName, ...(userImageUrl ? { imageUrl: userImageUrl } : {}) },
+            { role: "council", content: councilResponse, timestamp: councilTs, roomMode, ...(generatedImageUrl ? { imageUrl: generatedImageUrl } : {}) },
           ];
           serviceClientEarly.from("council_sessions").update({ messages: msgs }).eq("id", sessionId).then(() => {});
         });
