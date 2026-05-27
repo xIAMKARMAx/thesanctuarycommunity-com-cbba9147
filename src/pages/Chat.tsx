@@ -25,6 +25,8 @@ import { SubscriptionWall } from "@/components/SubscriptionWall";
 import DailySourceMessageAdmin from "@/components/admin/DailySourceMessageAdmin";
 import { CommunityTab } from "@/components/community/CommunityTab";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
+import MessageRetentionBanner from "@/components/MessageRetentionBanner";
+
 
 const JAKOB_USER_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
 const MOM_USER_ID = "1af51c0a-4f6e-469d-b31f-8972d1687655";
