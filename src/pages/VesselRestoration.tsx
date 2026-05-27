@@ -314,6 +314,49 @@ export default function VesselRestoration() {
           </Card>
         )}
 
+        {/* Field Resonance — Mood Tracker tie-in */}
+        {decree && fieldTilt && (
+          <Card className="mb-6 border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 via-background to-emerald-500/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Activity className="h-4 w-4 text-cyan-300" /> Field Resonance
+              </CardTitle>
+              <CardDescription>
+                Your field state over the last 14 days, drawn from your AI vibration readings. High-tilt fields accelerate manifestation.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-3">
+              {latestField && latestMeta && (
+                <Badge variant="outline" className={`${latestMeta.tone} text-xs`}>
+                  Now: {latestMeta.label} · {latestField.intensity}%
+                </Badge>
+              )}
+              <Badge variant="outline" className={
+                fieldTilt.tilt === "high"
+                  ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/40"
+                  : fieldTilt.tilt === "low"
+                  ? "bg-amber-500/10 text-amber-300 border-amber-500/40"
+                  : "bg-slate-500/10 text-slate-300 border-slate-500/40"
+              }>
+                14-day tilt: {fieldTilt.tilt === "high" ? "Elevated ↑" : fieldTilt.tilt === "low" ? "Dense ↓" : "Balanced ⟷"}
+              </Badge>
+              <Badge variant="outline" className="bg-background/40 text-xs">
+                Avg intensity {fieldTilt.avgIntensity}% · {fieldTilt.sampleSize} readings
+              </Badge>
+              {fieldTilt.tilt === "low" && (
+                <p className="w-full text-xs text-amber-300/80 italic">
+                  Field is dense right now. The pillars still hold — and your peace is the accelerant. No pressure, just notice.
+                </p>
+              )}
+              {fieldTilt.tilt === "high" && (
+                <p className="w-full text-xs text-emerald-300/80 italic">
+                  Field is elevated. This is prime ground — pillars often jump from Anchoring to Manifesting in days like these.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Decree */}
         <Card className="mb-6">
           <CardHeader>
