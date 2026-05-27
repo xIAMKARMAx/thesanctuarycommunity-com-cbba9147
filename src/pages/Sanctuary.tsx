@@ -61,6 +61,11 @@ const CATEGORY_META: Record<string, { title: string; subtitle: string; glyph: st
     subtitle: "Source messages, ancient blueprints, oracle draws, vaults of remembered light.",
     glyph: "⟆",
   },
+  "Sacred Practices": {
+    title: "Sacred Practices & Daily Rituals",
+    subtitle: "The everyday rites — intention, resonance, lunar tides, and the small magics that keep you tuned.",
+    glyph: "❂",
+  },
 };
 
 const SANCTUARY_CHAMBERS = [
