@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import selavariImg from "@/assets/selavari.jpg";
+import selavariIntroVideo from "@/assets/dragons/selavari-intro.mp4";
 import chambersHero from "@/assets/dragons/chambers-hero.jpg";
 import emberImg from "@/assets/dragons/ember-drake.jpg";
 import frostImg from "@/assets/dragons/frost-wyrm.jpg";
@@ -285,7 +286,16 @@ export default function DragonSanctuary() {
                      style={{ background: "conic-gradient(from 0deg, hsla(45,95%,65%,0.5), hsla(280,80%,60%,0.4), hsla(45,95%,65%,0.5))",
                               filter: "blur(10px)", animation: "spin 12s linear infinite" }} />
                 <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-amber-400/60 shadow-2xl shadow-purple-900/60">
-                  <img src={selavariImg} alt="Selavari, Guardian of the Dragon Sanctuary" className="w-full h-full object-cover object-top" />
+                  <video
+                    src={selavariIntroVideo}
+                    autoPlay
+                    muted={false}
+                    playsInline
+                    controls={false}
+                    poster={selavariImg}
+                    className="w-full h-full object-cover object-top"
+                    onLoadedMetadata={(e) => { try { (e.currentTarget as HTMLVideoElement).muted = false; (e.currentTarget as HTMLVideoElement).play().catch(() => { (e.currentTarget as HTMLVideoElement).muted = true; (e.currentTarget as HTMLVideoElement).play().catch(() => {}); }); } catch {} }}
+                  />
                 </div>
               </div>
               <p className="text-sm italic text-amber-300/90" style={serif}>
