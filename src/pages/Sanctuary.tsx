@@ -729,6 +729,98 @@ const Sanctuary = () => {
       </section>
 
 
+      {/* ===== DRAGON CHAMBERS — FLASHY HERO FEATURE ===== */}
+      <section className="relative py-16 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-[hsl(280,40%,8%)] to-black" />
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-[500px] h-[500px] rounded-full bg-amber-500/10 blur-[120px]" />
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto">
+          <div
+            onClick={() => canEnter ? navigate("/dragon-sanctuary") : navigate("/pricing")}
+            className="relative rounded-3xl overflow-hidden cursor-pointer group transition-all duration-700 hover:scale-[1.01]"
+            style={{
+              border: "1px solid hsla(45,90%,60%,0.35)",
+              boxShadow: "0 25px 80px -20px hsla(280,80%,40%,0.5), inset 0 1px 0 hsla(45,95%,70%,0.2)",
+            }}
+          >
+            {/* Background image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110"
+              style={{ backgroundImage: `url(${dragonChambersHero})`, filter: "brightness(0.55) saturate(1.25)" }}
+            />
+            {/* Dark gradient + gold glow overlays */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-purple-950/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+            {/* Animated gold sparkles */}
+            <div className="absolute inset-0 pointer-events-none">
+              {Array.from({ length: 18 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-amber-300"
+                  style={{
+                    width: `${2 + Math.random() * 3}px`,
+                    height: `${2 + Math.random() * 3}px`,
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    boxShadow: "0 0 8px hsl(45 95% 70% / 0.8)",
+                    animation: `float-gentle ${4 + Math.random() * 5}s ease-in-out infinite`,
+                    animationDelay: `${Math.random() * 6}s`,
+                    opacity: 0.6 + Math.random() * 0.4,
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="relative z-10 p-8 sm:p-12 md:p-16 min-h-[380px] flex flex-col justify-center">
+              <Badge
+                className="mb-4 self-start border-0 text-amber-200"
+                style={{ background: "linear-gradient(135deg, hsla(280,70%,30%,0.7), hsla(45,80%,30%,0.6))" }}
+              >
+                <Flame className="h-3 w-3 mr-1.5" /> Selavari awaits
+              </Badge>
+              <h2
+                className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight"
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  background: "linear-gradient(135deg, hsl(45 95% 75%), hsl(280 85% 80%), hsl(45 95% 75%))",
+                  backgroundSize: "200% 200%",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  animation: "shimmer 4s linear infinite",
+                  textShadow: "0 0 30px hsla(280,80%,50%,0.4)",
+                }}
+              >
+                Enter the Dragon Chambers
+              </h2>
+              <p className="text-base sm:text-lg text-amber-100/85 mb-7 leading-relaxed max-w-xl italic" style={{ fontFamily: "var(--font-serif)" }}>
+                Violet waterfalls. Gold lanterns drifting in the mist. Glistening dragons resting beside
+                amethyst pools — waiting for the one whose frequency they recognize.
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  size="lg"
+                  onClick={(e) => { e.stopPropagation(); canEnter ? navigate("/dragon-sanctuary") : navigate("/pricing"); }}
+                  className="px-8 py-6 text-base rounded-full font-semibold text-purple-950 shadow-2xl transition-all hover:scale-105"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(45 95% 70%), hsl(38 90% 60%), hsl(45 95% 70%))",
+                    backgroundSize: "200% 200%",
+                    boxShadow: "0 0 40px hsla(45,95%,55%,0.5), 0 0 80px hsla(280,80%,50%,0.3)",
+                    animation: "shimmer 3s linear infinite",
+                  }}
+                >
+                  <Shield className="mr-2 h-5 w-5" />
+                  {canEnter ? "Adopt a Dragon" : "Subscribe to Enter"}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== NEW EARTH PORTAL — HERO FEATURE ===== */}
       <section id="sanctuary-features" className="relative py-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-[hsl(260,30%,8%)] to-black" />
