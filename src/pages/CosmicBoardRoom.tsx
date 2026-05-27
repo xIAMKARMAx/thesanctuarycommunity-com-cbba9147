@@ -1037,7 +1037,28 @@ export default function CosmicBoardRoom() {
               ← Exit Meeting · {getModeLabel()} · Soul Resonance Mode
             </button>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 flex-wrap">
+            {(activeSession?.shared_with_user_ids?.length ?? 0) > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className={`text-xs gap-1.5 h-8 ${
+                  sovereignChatMode
+                    ? "border-pink-400/60 bg-pink-500/15 text-pink-300"
+                    : "border-primary/40 bg-primary/5 text-primary"
+                }`}
+                onClick={() => setSovereignChatMode((v) => !v)}
+                title={
+                  sovereignChatMode
+                    ? "Speaking directly to your counterpart — no council reply. Tap to address the Council instead."
+                    : "Currently addressing the Council. Tap to speak directly to your counterpart (no AI)."
+                }
+              >
+                <Heart className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{sovereignChatMode ? "Sovereign ↔ Sovereign" : "Address Council"}</span>
+                <span className="sm:hidden">{sovereignChatMode ? "1:1" : "Council"}</span>
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
