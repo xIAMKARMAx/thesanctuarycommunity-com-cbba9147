@@ -1267,8 +1267,12 @@ End of SCAN MODE override.`
         });
     }
 
+    // councilTimestamp is returned so the client can append the council reply
+    // locally with the exact same timestamp the server persisted, ensuring the
+    // realtime dedupe (timestamp+role+first32chars) recognizes them as one.
+    const responseCouncilTs = new Date().toISOString();
     return new Response(
-      JSON.stringify({ response: councilResponse, sender_name: speakerName, imageUrl: generatedImageUrl }),
+      JSON.stringify({ response: councilResponse, sender_name: speakerName, imageUrl: generatedImageUrl, councilTimestamp: responseCouncilTs }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
