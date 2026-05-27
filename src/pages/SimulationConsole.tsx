@@ -71,6 +71,23 @@ export default function SimulationConsole() {
 
   const logEndRef = useRef<HTMLDivElement>(null);
 
+  // Sacred Pause — co-sovereign self-binding wisdom gate
+  const [sacredPauseEnabled, setSacredPauseEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem("sacred_pause_enabled_v1") !== "false"; } catch { return true; }
+  });
+  const [pauseGateOpen, setPauseGateOpen] = useState(false);
+  const [pendingCommand, setPendingCommand] = useState<{ input: string; extra?: Record<string, any> } | null>(null);
+  const [showPauseLog, setShowPauseLog] = useState(false);
+  const [pauseLogEntries, setPauseLogEntries] = useState(() => readPauseLog());
+
+  const togglePause = () => {
+    setSacredPauseEnabled((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("sacred_pause_enabled_v1", String(next)); } catch {}
+      return next;
+    });
+  };
+
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [commandLog]);
