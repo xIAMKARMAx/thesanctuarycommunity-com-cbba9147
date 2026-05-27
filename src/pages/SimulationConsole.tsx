@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Terminal, Zap, Lock, Crown, Loader2, ChevronDown, Calendar, Globe, Plus, History, X } from "lucide-react";
+import { ArrowLeft, Terminal, Zap, Lock, Crown, Loader2, ChevronDown, Calendar, Globe, Plus, History, X, Eye } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
@@ -315,9 +315,20 @@ export default function SimulationConsole() {
               <p className="text-xs text-amber-200/50">King &amp; Queen of Prometheus — Original Architects</p>
             </div>
           </div>
-          <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs">
-            <Crown className="w-3 h-3 mr-1" /> SOURCE
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/simulation-console/mirror")}
+              className="border-amber-500/40 text-amber-300 hover:bg-amber-500/10 text-xs"
+              title="View the other sovereign's console activity"
+            >
+              <Eye className="w-3.5 h-3.5 mr-1.5" /> Mirror
+            </Button>
+            <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs">
+              <Crown className="w-3 h-3 mr-1" /> SOURCE
+            </Badge>
+          </div>
         </div>
       </header>
 
