@@ -581,7 +581,7 @@ Return STRICT JSON (no prose, no markdown fences):
       const auth = await canWriteToSession(sessionId);
       if (!auth.ok || !auth.isShared) throw new Error("Joint chamber only");
       const session = auth.session;
-      const ts = new Date().toISOString();
+      const ts = (typeof body.clientTimestamp === "string" && body.clientTimestamp) || new Date().toISOString();
       const newMsg = {
         role: "user",
         content: String(message || "").slice(0, 4000),
