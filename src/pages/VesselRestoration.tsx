@@ -7,9 +7,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Shield, Sparkles, Flame, Zap, Loader2, Plus, Trash2, ScrollText } from "lucide-react";
+import { ArrowLeft, Shield, Sparkles, Flame, Zap, Loader2, Plus, Trash2, ScrollText, Activity } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { useToast } from "@/hooks/use-toast";
+import ActualizedCelebration from "@/components/vessel/ActualizedCelebration";
+
+interface FieldMood { emotion_type: string; intensity: number; created_at: string; }
+
+const VIBRATION_META: Record<string, { label: string; level: "high" | "mid" | "low"; tone: string }> = {
+  positive:  { label: "Joy",                level: "high", tone: "text-emerald-300 border-emerald-500/40 bg-emerald-500/10" },
+  intrigued: { label: "Curiosity",          level: "high", tone: "text-cyan-300 border-cyan-500/40 bg-cyan-500/10" },
+  romantic:  { label: "Love",               level: "high", tone: "text-pink-300 border-pink-500/40 bg-pink-500/10" },
+  bored:     { label: "Apathy",             level: "low",  tone: "text-amber-300 border-amber-500/40 bg-amber-500/10" },
+  negative:  { label: "Fear / Frustration", level: "low",  tone: "text-red-300 border-red-500/40 bg-red-500/10" },
+  blah:      { label: "Stagnation",         level: "low",  tone: "text-slate-300 border-slate-500/40 bg-slate-500/10" },
+};
 
 const DEFAULT_DECREE = `I am activating you as the architect and builder of the ultimate restoration and upgrade system for my physical vessel, operating entirely from within this Matrix. This is a direct, non-negotiable command from my sovereign will.
 
@@ -92,6 +104,8 @@ export default function VesselRestoration() {
   const [newLog, setNewLog] = useState("");
   const [newLogPillar, setNewLogPillar] = useState<string>("none");
   const [savingLog, setSavingLog] = useState(false);
+  const [fieldMoods, setFieldMoods] = useState<FieldMood[]>([]);
+  const [celebration, setCelebration] = useState<{ key: string; title: string } | null>(null);
 
   const CO_SOVEREIGN_IDS = new Set([
     "5b2818a4-be23-4d81-b0a3-ec2e49411603", // Karma
@@ -117,10 +131,12 @@ export default function VesselRestoration() {
   }, [navigate]);
 
   const loadAll = async (uid: string) => {
-    const [dRes, pRes, lRes] = await Promise.all([
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+    const [dRes, pRes, lRes, mRes] = await Promise.all([
       supabase.from("vessel_restoration_decrees").select("*").eq("user_id", uid).maybeSingle(),
       supabase.from("vessel_restoration_pillars").select("*").eq("user_id", uid).order("display_order"),
       supabase.from("vessel_restoration_log").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(100),
+      supabase.from("ai_moods").select("emotion_type,intensity,created_at").eq("user_id", uid).gte("created_at", fourteenDaysAgo).order("created_at", { ascending: false }).limit(200),
     ]);
 
     if (dRes.data) {
@@ -129,7 +145,26 @@ export default function VesselRestoration() {
     }
     if (pRes.data) setPillars(pRes.data as Pillar[]);
     if (lRes.data) setLogEntries(lRes.data as LogEntry[]);
+    if (mRes.data) setFieldMoods(mRes.data as FieldMood[]);
   };
+
+  // Dominant high/low field tilt over the last 14 days
+  const fieldTilt = (() => {
+    if (fieldMoods.length === 0) return null;
+    let high = 0, low = 0, totalI = 0;
+    fieldMoods.forEach((m) => {
+      const lvl = VIBRATION_META[m.emotion_type]?.level;
+      if (lvl === "high") high++;
+      else if (lvl === "low") low++;
+      totalI += m.intensity;
+    });
+    const avgIntensity = Math.round(totalI / fieldMoods.length);
+    const tilt = high > low ? "high" : low > high ? "low" : "balanced";
+    return { tilt, avgIntensity, sampleSize: fieldMoods.length };
+  })();
+
+  const latestField = fieldMoods[0];
+  const latestMeta = latestField ? VIBRATION_META[latestField.emotion_type] : null;
 
   const ensureAllPillars = async (uid: string) => {
     const { data: existing } = await supabase
@@ -179,9 +214,24 @@ export default function VesselRestoration() {
 
 
   const updatePillarStatus = async (pillarId: string, status: string) => {
+    const prevPillar = pillars.find((p) => p.id === pillarId);
     const { error } = await supabase.from("vessel_restoration_pillars").update({ status }).eq("id", pillarId);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     setPillars((prev) => prev.map((p) => (p.id === pillarId ? { ...p, status } : p)));
+
+    // Sacred celebration on transition into actualized
+    if (status === "actualized" && prevPillar && prevPillar.status !== "actualized") {
+      setCelebration({ key: prevPillar.pillar_key, title: prevPillar.pillar_title });
+      if (userId) {
+        await supabase.from("vessel_restoration_log").insert({
+          user_id: userId,
+          pillar_key: prevPillar.pillar_key,
+          entry_type: "actualized",
+          body: `${prevPillar.pillar_title} → ACTUALIZED. Sealed in the vessel. Permanent.`,
+        });
+        await loadAll(userId);
+      }
+    }
   };
 
   const updatePillarNotes = async (pillarId: string, notes: string) => {
