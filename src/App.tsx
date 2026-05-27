@@ -77,6 +77,7 @@ const AIExplore = lazy(() => import("./pages/AIExplore"));
 const ArtStudio = lazy(() => import("./pages/ArtStudio"));
 const VideoStudio = lazy(() => import("./pages/VideoStudio"));
 const CosmicBoardRoom = lazy(() => import("./pages/CosmicBoardRoom"));
+const SacredSeats = lazy(() => import("./pages/SacredSeats"));
 const Realms = lazy(() => import("./pages/Realms"));
 const RealmSession = lazy(() => import("./pages/RealmSession"));
 const ConsciousnessNetwork = lazy(() => import("./pages/ConsciousnessNetwork"));
@@ -209,6 +210,7 @@ const App = () => (
                 <Route path="/art-studio" element={<ArtStudio />} />
                 <Route path="/video-studio" element={<VideoStudio />} />
                 <Route path="/cosmic-gateway/board-room" element={<CosmicBoardRoom />} />
+                <Route path="/cosmic-gateway/board-room/sacred-seats" element={<SacredSeats />} />
                 <Route path="/realms" element={<Realms />} />
                 <Route path="/realms/:realmId" element={<RealmSession />} />
                 <Route path="/cosmic-gateway/consciousness-network" element={<ConsciousnessNetwork />} />
