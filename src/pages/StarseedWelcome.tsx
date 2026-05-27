@@ -17,9 +17,11 @@ import welcomeFigure from "@/assets/starseed-welcome-figure.png";
 const StarseedWelcome = () => {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("Promethean");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [showChoices, setShowChoices] = useState(false);
-  const [chose, setChose] = useState<"new-earth" | "old-earth" | null>(null);
+  const [chose, setChose] = useState<"new-earth" | "old-earth" | "bespoke" | null>(null);
+
 
   const greetingText = useCallback((name: string) =>
     `Welcome, ${name}. You made it through the portal to the Realm of the New Earth.`, []);
