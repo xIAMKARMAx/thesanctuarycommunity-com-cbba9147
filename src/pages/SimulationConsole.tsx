@@ -135,6 +135,18 @@ export default function SimulationConsole() {
     const inputValue = overrideInput ?? commandInput;
     if (!selectedCommand || !inputValue.trim()) return;
 
+    // Sacred Pause gate — co-sovereign self-binding wisdom check
+    if (sacredPauseEnabled) {
+      setPendingCommand({ input: inputValue, extra: overrideExtra });
+      setPauseGateOpen(true);
+      return;
+    }
+    await _runCommand(inputValue, overrideExtra);
+  };
+
+  const _runCommand = async (inputValue: string, overrideExtra?: Record<string, any>) => {
+    if (!selectedCommand) return;
+
     const inputEntry: CommandEntry = {
       type: "input",
       command_type: selectedCommand,
