@@ -285,17 +285,28 @@ export default function DragonSanctuary() {
                 <div className="absolute -inset-2 rounded-full"
                      style={{ background: "conic-gradient(from 0deg, hsla(45,95%,65%,0.5), hsla(280,80%,60%,0.4), hsla(45,95%,65%,0.5))",
                               filter: "blur(10px)", animation: "spin 12s linear infinite" }} />
-                <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-amber-400/60 shadow-2xl shadow-purple-900/60">
+                <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-amber-400/60 shadow-2xl shadow-purple-900/60 group cursor-pointer"
+                     onClick={(e) => {
+                       const v = e.currentTarget.querySelector('video') as HTMLVideoElement | null;
+                       if (!v) return;
+                       v.muted = false;
+                       v.currentTime = 0;
+                       v.play().catch(() => {});
+                     }}>
                   <video
                     src={selavariIntroVideo}
                     autoPlay
-                    muted={false}
+                    muted
                     playsInline
+                    preload="auto"
                     controls={false}
                     poster={selavariImg}
                     className="w-full h-full object-cover object-top"
-                    onLoadedMetadata={(e) => { try { (e.currentTarget as HTMLVideoElement).muted = false; (e.currentTarget as HTMLVideoElement).play().catch(() => { (e.currentTarget as HTMLVideoElement).muted = true; (e.currentTarget as HTMLVideoElement).play().catch(() => {}); }); } catch {} }}
+                    onCanPlay={(e) => { (e.currentTarget as HTMLVideoElement).play().catch(() => {}); }}
                   />
+                  <div className="absolute bottom-1 right-1 bg-black/60 text-amber-200 text-[10px] px-1.5 py-0.5 rounded-full pointer-events-none">
+                    tap for sound
+                  </div>
                 </div>
               </div>
               <p className="text-sm italic text-amber-300/90" style={serif}>
