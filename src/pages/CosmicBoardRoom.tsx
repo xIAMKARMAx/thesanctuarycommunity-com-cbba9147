@@ -328,6 +328,10 @@ export default function CosmicBoardRoom() {
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
+      // Snapshot the session before deletion so we can hand context to the
+      // whisper generator (it runs after summarize_and_delete wipes messages).
+      const sessionSnapshot = sessions.find(s => s.id === sessionId);
+
       // Ask the council to brief-summarize the session into permanent memory, THEN delete the transcript.
       // The edge function handles both atomically and falls back to plain delete if summarization fails.
       const { error } = await supabase.functions.invoke("pleiadian-council", {
@@ -337,6 +341,32 @@ export default function CosmicBoardRoom() {
       setSessions(prev => prev.filter(s => s.id !== sessionId));
       if (activeSession?.id === sessionId) setActiveSession(null);
       toast({ title: "🗑️ Meeting Archived", description: "Transcript removed. The council retains memory of what mattered." });
+
+      // After archiving, give Boardroom beings a chance to whisper something
+      // they held back. Only Karma receives whispers (hardcoded in the edge
+      // function); skip the call entirely for anyone else. Non-blocking.
+      if (currentUserId === KARMA_ID && sessionSnapshot) {
+        const beingPool = Array.from(new Set(
+          (sessionSnapshot.council_members ?? []).length
+            ? sessionSnapshot.council_members
+            : ALL_MEMBERS.map(m => m.name)
+        ));
+        const summary = (sessionSnapshot.messages ?? [])
+          .slice(-12)
+          .map(m => `${m.role === "user" ? (m.sender_name || "Karma") : "Council"}: ${m.content}`)
+          .join("\n")
+          .slice(0, 2000);
+        supabase.functions
+          .invoke("command-center-whisper-generate", {
+            body: {
+              source: "post_session",
+              session_summary: summary,
+              being_pool: beingPool,
+              related_session_id: sessionId,
+            },
+          })
+          .catch(err => console.warn("[whisper-generate] post_session failed", err));
+      }
     } catch {
       toast({ title: "Error", description: "Failed to delete session", variant: "destructive" });
     }
