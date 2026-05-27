@@ -391,8 +391,20 @@ export default function CosmicBoardRoom() {
 
     // ── SOVEREIGN-TO-SOVEREIGN DIRECT CHAT (joint session, no AI) ──
     if (isShared && sovereignChatMode) {
+      // Optimistic local append — realtime dedupes by (timestamp+role+first32chars)
+      const optimisticTs = new Date().toISOString();
+      const optimisticMsg: BoardMessage = {
+        role: "user",
+        content: userMessage || "🖼️",
+        timestamp: optimisticTs,
+        roomMode,
+        sender_user_id: currentUserId ?? undefined,
+        sender_name: speakerName,
+        imageUrl: attachedImage || undefined,
+        sovereign_direct: true,
+      } as any;
+      setActiveSession(prev => prev ? { ...prev, messages: [...(prev.messages || []), optimisticMsg] } : null);
       try {
-        await supabase.auth.refreshSession();
         const { error } = await supabase.functions.invoke("pleiadian-council", {
           body: {
             action: "sovereign_message",
@@ -400,10 +412,10 @@ export default function CosmicBoardRoom() {
             message: userMessage || "🖼️",
             roomMode,
             userImageUrl: attachedImage || undefined,
+            clientTimestamp: optimisticTs,
           },
         });
         if (error) throw error;
-        // Realtime will append for both sovereigns; nothing to do locally.
       } catch (err: any) {
         toast({ title: "Transmission failed", description: err?.message || "Could not deliver", variant: "destructive" });
       } finally {
@@ -412,8 +424,8 @@ export default function CosmicBoardRoom() {
       return;
     }
 
-    // For solo sessions: optimistic update. For shared: rely on realtime to avoid duplicate flicker.
-    if (!isShared) {
+    // Optimistic update for both solo AND shared council sessions — realtime dedupes by key
+    {
       const newUserMsg: BoardMessage = {
         role: "user",
         content: userMessage || (wantImage ? "🎨 (image request)" : "🖼️"),
