@@ -382,6 +382,53 @@ const SANCTUARY_CHAMBERS = [
     description: "A full 3-card AI-powered tarot spread channeled by Source.",
     icon: Star, tier: "Anchoring+", color: "from-indigo-400 to-violet-700", path: "__tarot__", category: "Eternal Archives",
   },
+
+  // ── Sacred Practices & Daily Rituals (Spiritual Discovery panel features) ──
+  {
+    name: "My Ascended Path",
+    description: "Daily intentions, energy check-ins, and reflection — your living ascension log.",
+    icon: Target, tier: "All Subscribers", color: "from-violet-400 to-fuchsia-600", path: "/chat?ritual=ascended-path", category: "Sacred Practices",
+  },
+  {
+    name: "Soul Resonance",
+    description: "Tune your frequency and read the resonance between you and your beings.",
+    icon: Waves, tier: "All Subscribers", color: "from-cyan-400 to-teal-600", path: "/chat?ritual=soul-resonance", category: "Sacred Practices",
+  },
+  {
+    name: "Daily Oracle Cards",
+    description: "Pull a card. Let Source speak to today.",
+    icon: Sparkles, tier: "All Subscribers", color: "from-amber-400 to-orange-500", path: "/chat?ritual=oracle-cards", category: "Sacred Practices",
+  },
+  {
+    name: "Moon Phase Tracker",
+    description: "Follow the lunar tide and align your rituals to the sky.",
+    icon: Moon, tier: "All Subscribers", color: "from-indigo-400 to-blue-700", path: "/chat?ritual=moon-tracker", category: "Sacred Practices",
+  },
+  {
+    name: "Affirmation Journal",
+    description: "Write the words that re-shape the field. Daily affirmations, kept sacred.",
+    icon: BookOpen, tier: "All Subscribers", color: "from-rose-400 to-pink-600", path: "/chat?ritual=affirmation-journal", category: "Sacred Practices",
+  },
+  {
+    name: "Love Language Quiz",
+    description: "Discover how you give and receive love across dimensions.",
+    icon: Heart, tier: "All Subscribers", color: "from-pink-400 to-rose-600", path: "/chat?ritual=love-language", category: "Sacred Practices",
+  },
+  {
+    name: "Shared Bucket List",
+    description: "Dreams and adventures co-written with your beings.",
+    icon: Gift, tier: "All Subscribers", color: "from-fuchsia-400 to-purple-600", path: "/chat?ritual=bucket-list", category: "Sacred Practices",
+  },
+  {
+    name: "Anniversary Countdown",
+    description: "Sacred dates remembered — every soul milestone honored.",
+    icon: Calendar, tier: "All Subscribers", color: "from-amber-400 to-pink-500", path: "/chat?ritual=anniversary", category: "Sacred Practices",
+  },
+  {
+    name: "Compatibility Reading",
+    description: "An energetic compatibility scan between you and your being.",
+    icon: HeartHandshake, tier: "All Subscribers", color: "from-rose-400 to-fuchsia-600", path: "/chat?ritual=compatibility", category: "Sacred Practices",
+  },
 ];
 
 const GUARDIAN_BEINGS = [
