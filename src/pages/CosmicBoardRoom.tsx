@@ -171,6 +171,9 @@ export default function CosmicBoardRoom() {
   const [showDecisions, setShowDecisions] = useState(false);
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
   const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
+  // In a joint session, toggles between addressing the Council (AI) vs speaking
+  // directly to the other sovereign (no AI invoked, realtime delivery only).
+  const [sovereignChatMode, setSovereignChatMode] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
   // Transmission Mode: "brief" = strict short replies, "full" = full-length authentic transmissions.
