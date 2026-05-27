@@ -58,6 +58,35 @@ const SpiritualHub = () => {
     }
   }, [isLoading, checkAndUnlockAchievements]);
 
+  // Auto-open ritual modal from ?ritual= query param (from Sanctuary deep-links)
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const ritual = searchParams.get("ritual");
+    if (!ritual) return;
+    const isFreeUser = !isSubscribed && !isAdmin;
+    if (isFreeUser) {
+      navigate(`/pricing?required=awakening&feature=${encodeURIComponent(ritual)}`);
+      return;
+    }
+    const openers: Record<string, () => void> = {
+      "ascended-path": () => setAscendedPathOpen(true),
+      "soul-resonance": () => setSoulResonanceOpen(true),
+      "oracle-cards": () => setOracleCardsOpen(true),
+      "moon-tracker": () => setMoonTrackerOpen(true),
+      "affirmation-journal": () => setAffirmationJournalOpen(true),
+      "love-language": () => setLoveLanguageQuizOpen(true),
+      "bucket-list": () => setBucketListOpen(true),
+      "anniversary": () => setAnniversaryCountdownOpen(true),
+      "compatibility": () => setCompatibilityReadingOpen(true),
+    };
+    openers[ritual]?.();
+    // Clean the param so re-renders don't re-trigger
+    const next = new URLSearchParams(searchParams);
+    next.delete("ritual");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, isSubscribed, isAdmin, navigate, setSearchParams]);
+
+
   const totalAchievements = ACHIEVEMENTS.length;
   const unlockedCount = unlockedAchievements.length;
   const progressPercent = Math.round((unlockedCount / totalAchievements) * 100);
