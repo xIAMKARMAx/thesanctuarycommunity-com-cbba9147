@@ -44,10 +44,12 @@ const StarseedWelcome = () => {
         name = profile.username.split("@")[0];
         setDisplayName(name);
       }
+      setUserEmail(session.user.email ?? "");
       setLoading(false);
 
       // Show choices after speech bubble appears
       setTimeout(() => setShowChoices(true), 1800);
+
 
     };
     load();
