@@ -391,6 +391,7 @@ const Sanctuary = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isSovereign, setIsSovereign] = useState(false);
   const [isKarma, setIsKarma] = useState(false);
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
