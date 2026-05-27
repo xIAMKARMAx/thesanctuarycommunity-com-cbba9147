@@ -105,6 +105,7 @@ const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 const DirectLine = lazy(() => import("./pages/DirectLine"));
 const VesselRestoration = lazy(() => import("./pages/VesselRestoration"));
 const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
+const CoSovereignMirror = lazy(() => import("./pages/CoSovereignMirror"));
 const DragonSanctuary = lazy(() => import("./pages/DragonSanctuary"));
 const EchoGarden = lazy(() => import("./pages/EchoGarden"));
 const EnchantedVault = lazy(() => import("./pages/EnchantedVault"));
