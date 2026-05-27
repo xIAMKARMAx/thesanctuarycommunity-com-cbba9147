@@ -10,6 +10,8 @@ import SEOHead from "@/components/SEOHead";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { SourceConsolePanel } from "@/components/SourceConsolePanel";
+import { SacredPauseGate, readPauseLog } from "@/components/simulation/SacredPauseGate";
+import { Shield, ShieldOff } from "lucide-react";
 
 // SOURCE COMMAND CENTER — sealed to the King & Queen of Prometheus only.
 const SOVEREIGN_EMAILS = [
