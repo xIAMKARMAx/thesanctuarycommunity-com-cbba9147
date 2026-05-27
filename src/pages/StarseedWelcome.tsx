@@ -8,17 +8,20 @@ import {
   MessageCircle, BookOpen, Smile, Settings, Users,
   Palette, Film, Heart, Brain, Sparkles, PawPrint,
   Compass, User, Star, Globe, Moon,
-  Baby, Eye
+  Baby, Eye, Home
 } from "lucide-react";
+
 import newEarthBg from "@/assets/new-earth-bg.jpg";
 import welcomeFigure from "@/assets/starseed-welcome-figure.png";
 
 const StarseedWelcome = () => {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("Promethean");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [showChoices, setShowChoices] = useState(false);
-  const [chose, setChose] = useState<"new-earth" | "old-earth" | null>(null);
+  const [chose, setChose] = useState<"new-earth" | "old-earth" | "bespoke" | null>(null);
+
 
   const greetingText = useCallback((name: string) =>
     `Welcome, ${name}. You made it through the portal to the Realm of the New Earth.`, []);
@@ -41,10 +44,12 @@ const StarseedWelcome = () => {
         name = profile.username.split("@")[0];
         setDisplayName(name);
       }
+      setUserEmail(session.user.email ?? "");
       setLoading(false);
 
       // Show choices after speech bubble appears
       setTimeout(() => setShowChoices(true), 1800);
+
 
     };
     load();
@@ -204,25 +209,49 @@ const StarseedWelcome = () => {
                   </Button>
                 </motion.div>
 
-                {/* Stay on Old Earth */}
+                {/* Bespoke Classic AI Inbox — themable home */}
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                   <Button
                     variant="outline"
                     onClick={async () => {
-                      // Set messaging mode to Old Inbox
+                      setChose("bespoke");
                       const { data: { user } } = await supabase.auth.getUser();
                       if (user) {
                         await supabase.from("profiles").update({ new_earth_resident: false }).eq("id", user.id);
                       }
-                      setChose("old-earth");
+                      setTimeout(() => navigate("/our-home"), 500);
                     }}
                     className="px-8 py-6 text-lg font-serif rounded-2xl bg-transparent border-purple-400/30 text-purple-200 hover:bg-purple-900/30 hover:text-purple-100 hover:border-purple-400/50 transition-all"
                   >
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Use Old Inbox
-                    <span className="block text-xs font-normal mt-1 opacity-80">Messages live here</span>
+                    <Home className="h-5 w-5 mr-2" />
+                    Bespoke Classic Inbox
+                    <span className="block text-xs font-normal mt-1 opacity-80">Your themed sanctuary</span>
                   </Button>
                 </motion.div>
+
+                {/* Original Old Inbox — sovereign access only (Karma & Jakob) */}
+                {(userEmail === "karmaisback2023@gmail.com" ||
+                  userEmail === "stormrriddari@aol.com" ||
+                  userEmail === "snakevenum500@gmail.com") && (
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                    <Button
+                      variant="outline"
+                      onClick={async () => {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (user) {
+                          await supabase.from("profiles").update({ new_earth_resident: false }).eq("id", user.id);
+                        }
+                        setChose("old-earth");
+                      }}
+                      className="px-8 py-6 text-lg font-serif rounded-2xl bg-transparent border-amber-400/30 text-amber-200 hover:bg-amber-900/20 hover:text-amber-100 hover:border-amber-400/50 transition-all"
+                    >
+                      <MessageCircle className="h-5 w-5 mr-2" />
+                      Old Inbox
+                      <span className="block text-xs font-normal mt-1 opacity-80">Sovereign legacy view</span>
+                    </Button>
+                  </motion.div>
+                )}
+
               </motion.div>
             )}
           </AnimatePresence>

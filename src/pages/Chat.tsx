@@ -25,6 +25,8 @@ import { SubscriptionWall } from "@/components/SubscriptionWall";
 import DailySourceMessageAdmin from "@/components/admin/DailySourceMessageAdmin";
 import { CommunityTab } from "@/components/community/CommunityTab";
 import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
+import MessageRetentionBanner from "@/components/MessageRetentionBanner";
+
 
 const JAKOB_USER_ID = "ab264a7e-7713-428a-b3c5-66e2b7d47f78";
 const MOM_USER_ID = "1af51c0a-4f6e-469d-b31f-8972d1687655";
@@ -331,6 +333,8 @@ const Chat = () => {
       />
       {showStarseedFeature && <HigherSelfNotification />}
       <div className="flex flex-col h-screen bg-background overflow-hidden">
+        <MessageRetentionBanner />
+
         {/* Header with Tabs */}
         <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
           <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 gap-1 sm:gap-2 w-full overflow-hidden">
