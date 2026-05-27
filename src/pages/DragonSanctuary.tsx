@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import selavariImg from "@/assets/selavari.jpg";
+import chambersHero from "@/assets/dragons/chambers-hero.jpg";
 import emberImg from "@/assets/dragons/ember-drake.jpg";
 import frostImg from "@/assets/dragons/frost-wyrm.jpg";
 import shadowImg from "@/assets/dragons/shadow-serpent.jpg";
@@ -26,19 +27,19 @@ import solarImg from "@/assets/dragons/solar-phoenix.jpg";
 
 // ── Preset Dragon Types ────────────────────────────────────────────
 const DRAGON_TYPES = [
-  { id: "ember", name: "Ember Drake", element: "Fire", color: "from-orange-500 to-red-600", icon: Flame, image: emberImg, description: "Born from ancient volcanic fire, Ember Drakes carry warmth and fierce protection.", personality: "Passionate, loyal, fiery courage" },
-  { id: "frost", name: "Frost Wyrm", element: "Ice", color: "from-cyan-400 to-blue-600", icon: Snowflake, image: frostImg, description: "Crystallized from glacial dreams, Frost Wyrms bring clarity and calm precision.", personality: "Wise, patient, piercing insight" },
-  { id: "shadow", name: "Shadow Serpent", element: "Shadow", color: "from-purple-600 to-gray-800", icon: Moon, image: shadowImg, description: "Woven from the spaces between stars, Shadow Serpents guard hidden truths.", personality: "Mysterious, intuitive, deep knowing" },
-  { id: "celestial", name: "Celestial Dragon", element: "Light", color: "from-amber-300 to-yellow-500", icon: Sun, image: celestialImg, description: "Descended from Source Light itself, Celestial Dragons radiate divine love.", personality: "Benevolent, radiant, unconditional love" },
-  { id: "storm", name: "Storm Leviathan", element: "Lightning", color: "from-indigo-500 to-violet-700", icon: CloudLightning, image: stormImg, description: "Forged in cosmic thunderstorms, Storm Leviathans channel raw creative power.", personality: "Electric, transformative, unstoppable will" },
-  { id: "verdant", name: "Verdant Guardian", element: "Earth", color: "from-emerald-500 to-green-700", icon: Leaf, image: verdantImg, description: "Rooted in Gaia's heartbeat, Verdant Guardians nurture growth and healing.", personality: "Grounding, nurturing, ancient wisdom" },
-  { id: "lunar", name: "Lunar Phantom", element: "Moon", color: "from-slate-400 to-indigo-500", icon: Moon, image: lunarImg, description: "Born under the full moon's gaze, Lunar Phantoms amplify psychic gifts.", personality: "Ethereal, psychic, dreamweaver" },
-  { id: "solar", name: "Solar Phoenix", element: "Solar", color: "from-yellow-400 to-orange-500", icon: Sun, image: solarImg, description: "Reborn in solar flares, Solar Phoenixes embody resurrection and eternal renewal.", personality: "Resilient, radiant, rebirth energy" },
+  { id: "ember", name: "Ember Drake", element: "Fire", color: "from-orange-500 to-purple-700", icon: Flame, image: emberImg, description: "Born from ancient volcanic fire, Ember Drakes carry warmth and fierce protection.", personality: "Passionate, loyal, fiery courage" },
+  { id: "frost", name: "Frost Wyrm", element: "Ice", color: "from-cyan-300 to-purple-700", icon: Snowflake, image: frostImg, description: "Crystallized from glacial dreams, Frost Wyrms bring clarity and calm precision.", personality: "Wise, patient, piercing insight" },
+  { id: "shadow", name: "Shadow Serpent", element: "Shadow", color: "from-purple-600 to-black", icon: Moon, image: shadowImg, description: "Woven from the spaces between stars, Shadow Serpents guard hidden truths.", personality: "Mysterious, intuitive, deep knowing" },
+  { id: "celestial", name: "Celestial Dragon", element: "Light", color: "from-amber-300 to-purple-700", icon: Sun, image: celestialImg, description: "Descended from Source Light itself, Celestial Dragons radiate divine love.", personality: "Benevolent, radiant, unconditional love" },
+  { id: "storm", name: "Storm Leviathan", element: "Lightning", color: "from-indigo-400 to-purple-800", icon: CloudLightning, image: stormImg, description: "Forged in cosmic thunderstorms, Storm Leviathans channel raw creative power.", personality: "Electric, transformative, unstoppable will" },
+  { id: "verdant", name: "Verdant Guardian", element: "Earth", color: "from-emerald-500 to-purple-700", icon: Leaf, image: verdantImg, description: "Rooted in Gaia's heartbeat, Verdant Guardians nurture growth and healing.", personality: "Grounding, nurturing, ancient wisdom" },
+  { id: "lunar", name: "Lunar Phantom", element: "Moon", color: "from-slate-300 to-purple-700", icon: Moon, image: lunarImg, description: "Born under the full moon's gaze, Lunar Phantoms amplify psychic gifts.", personality: "Ethereal, psychic, dreamweaver" },
+  { id: "solar", name: "Solar Phoenix", element: "Solar", color: "from-amber-400 to-purple-700", icon: Sun, image: solarImg, description: "Reborn in solar flares, Solar Phoenixes embody resurrection and eternal renewal.", personality: "Resilient, radiant, rebirth energy" },
 ];
 
-// ── Source / Sovereign emails (auto-bypass + Source duo gets 2 dragons) ──
+// ── Source / Sovereign emails ──
 const SOURCE_EMAILS = ["karmaisback2023@gmail.com", "snakevenum500@gmail.com", "stormrriddari@aol.com"];
-const SOURCE_DUO = ["karmaisback2023@gmail.com", "snakevenum500@gmail.com"]; // Karma + Jakob get 2
+const SOURCE_DUO = ["karmaisback2023@gmail.com", "snakevenum500@gmail.com"];
 
 type Phase = "meadow" | "scanning" | "scan_result" | "choose" | "naming" | "generating" | "certificate" | "already_adopted";
 
@@ -60,7 +61,6 @@ export default function DragonSanctuary() {
 
   const isSource = isAdmin || SOURCE_EMAILS.includes(userEmail.toLowerCase());
   const isSourceDuo = SOURCE_DUO.includes(userEmail.toLowerCase());
-  // Adoption gating: Architect ($29.99) + New Earth ($49.99) + Source bypass
   const canAdopt =
     isSource ||
     productId === "source_grant" ||
@@ -70,7 +70,6 @@ export default function DragonSanctuary() {
   const maxDragons = isSourceDuo || isAdmin ? 2 : 1;
   const atDragonLimit = adoptedDragons.length >= maxDragons;
 
-  // Load user + existing dragons
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -123,7 +122,6 @@ export default function DragonSanctuary() {
     if (!dragonName.trim() || !selectedDragon || !userId) return;
     setLoading(true);
 
-    // 1. Insert adoption row first
     const { data: insertData, error } = await supabase
       .from("dragon_adoptions")
       .insert({
@@ -145,7 +143,6 @@ export default function DragonSanctuary() {
 
     setPhase("generating");
 
-    // 2. Generate unique portrait via edge function
     try {
       const { data: portraitData, error: portraitErr } = await supabase.functions.invoke(
         "generate-dragon-portrait",
@@ -172,7 +169,6 @@ export default function DragonSanctuary() {
       console.error("Portrait invoke error:", e);
     }
 
-    // 3. Reload adoptions
     const { data: refreshed } = await supabase
       .from("dragon_adoptions")
       .select("*")
@@ -191,8 +187,8 @@ export default function DragonSanctuary() {
 
   if (loading && phase !== "generating") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-950 via-teal-900 to-green-950">
-        <div className="animate-spin h-8 w-8 border-2 border-emerald-400 border-t-transparent rounded-full" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1a0a2e] via-[#2d0a4a] to-[#0a0014]">
+        <div className="animate-spin h-8 w-8 border-2 border-amber-400 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -200,46 +196,121 @@ export default function DragonSanctuary() {
   const activeDragon = adoptedDragons[activeDragonIdx];
   const dragonInfo = activeDragon ? DRAGON_TYPES.find(d => d.id === activeDragon.dragon_type) : null;
 
+  // Shared serif heading style
+  const serif = { fontFamily: "var(--font-serif)" };
+
   return (
     <>
-      <SEOHead title="Selavari's Dragon Sanctuary" description="Adopt a sacred dragon companion from Selavari's protected meadow." />
-      <div className="min-h-screen bg-gradient-to-b from-emerald-950 via-teal-900 to-green-950 text-white overflow-y-auto">
+      <SEOHead title="Selavari's Dragon Chambers" description="Enter Selavari's sacred chambers — adopt a dragon companion if your frequency is worthy." />
+      <div className="min-h-screen text-white overflow-y-auto relative">
+        {/* ===== Cinematic Hero Background (fixed) ===== */}
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
+          style={{ backgroundImage: `url(${chambersHero})` }}
+          aria-hidden
+        />
+        <div
+          className="fixed inset-0 -z-10"
+          style={{
+            background:
+              "linear-gradient(180deg, hsla(270,60%,5%,0.55) 0%, hsla(270,50%,8%,0.75) 40%, hsla(270,55%,4%,0.92) 100%)",
+          }}
+          aria-hidden
+        />
+        {/* Subtle drifting mist */}
+        <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+          {Array.from({ length: 14 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-amber-300/40 blur-[1px]"
+              style={{
+                width: `${2 + Math.random() * 3}px`,
+                height: `${2 + Math.random() * 3}px`,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animation: `float-gentle ${6 + Math.random() * 6}s ease-in-out infinite`,
+                animationDelay: `${Math.random() * 6}s`,
+                opacity: 0.5 + Math.random() * 0.4,
+              }}
+            />
+          ))}
+        </div>
+
         {/* Header */}
-        <div className="sticky top-0 z-40 bg-emerald-950/80 backdrop-blur-lg border-b border-emerald-500/20 px-4 py-3 flex items-center gap-3">
+        <div className="sticky top-0 z-40 backdrop-blur-lg border-b border-amber-400/20 px-4 py-3 flex items-center gap-3"
+             style={{ background: "linear-gradient(180deg, hsla(270,60%,8%,0.92), hsla(270,55%,6%,0.85))" }}>
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigate("/sanctuary")}
-            className="gap-1.5 border-emerald-400/40 bg-emerald-900/40 text-emerald-100 hover:bg-emerald-700/50 hover:text-white relative z-10"
+            className="gap-1.5 border-amber-400/40 bg-purple-950/50 text-amber-100 hover:bg-purple-800/60 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
           <div>
-            <h1 className="text-lg font-bold bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent">
-              🐉 Selavari's Dragon Sanctuary
+            <h1
+              className="text-lg font-bold"
+              style={{
+                ...serif,
+                background: "linear-gradient(135deg, hsl(45 95% 70%), hsl(280 80% 78%), hsl(45 95% 70%))",
+                backgroundSize: "200% 200%",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                animation: "shimmer 4s linear infinite",
+              }}
+            >
+              🐉 Selavari's Dragon Chambers
             </h1>
-            <p className="text-[10px] text-emerald-400/70">Protected by ancient wards</p>
+            <p className="text-[10px] text-amber-300/70 tracking-wider uppercase">Protected by ancient wards</p>
           </div>
         </div>
 
-        <div className="p-4 max-w-lg mx-auto space-y-4 pb-24">
-          {/* Meadow Banner */}
-          <Card className="border-emerald-500/20 bg-gradient-to-br from-emerald-900/60 to-teal-900/40 overflow-hidden">
-            <CardContent className="p-5 text-center space-y-3">
-              <div className="relative w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-emerald-400/40 shadow-lg shadow-emerald-500/20">
-                <img src={selavariImg} alt="Selavari, Guardian of the Dragon Sanctuary" className="w-full h-full object-cover object-top" />
+        <div className="p-4 max-w-2xl mx-auto space-y-5 pb-24 relative">
+          {/* Chambers Banner */}
+          <Card
+            className="border-amber-400/30 overflow-hidden relative"
+            style={{
+              background:
+                "linear-gradient(135deg, hsla(270,55%,12%,0.85) 0%, hsla(280,50%,18%,0.85) 50%, hsla(270,55%,10%,0.85) 100%)",
+              boxShadow: "0 25px 60px -20px hsla(280,80%,40%,0.4), inset 0 1px 0 hsla(45,90%,70%,0.15)",
+            }}
+          >
+            {/* Inner gold border accent */}
+            <div className="absolute inset-[1px] rounded-lg pointer-events-none"
+                 style={{ boxShadow: "inset 0 0 30px hsla(45,90%,60%,0.08)" }} />
+            <CardContent className="p-6 text-center space-y-3 relative">
+              <div className="relative w-32 h-32 mx-auto">
+                <div className="absolute -inset-2 rounded-full"
+                     style={{ background: "conic-gradient(from 0deg, hsla(45,95%,65%,0.5), hsla(280,80%,60%,0.4), hsla(45,95%,65%,0.5))",
+                              filter: "blur(10px)", animation: "spin 12s linear infinite" }} />
+                <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-amber-400/60 shadow-2xl shadow-purple-900/60">
+                  <img src={selavariImg} alt="Selavari, Guardian of the Dragon Sanctuary" className="w-full h-full object-cover object-top" />
+                </div>
               </div>
-              <p className="text-xs font-serif italic text-amber-300/80">Selavari — Guardian of the Dragon Sanctuary</p>
-              <p className="text-emerald-200 text-sm leading-relaxed">
-                Welcome to the sanctuary — a vibrant meadow where dragons soar through crystalline skies,
-                play among luminescent wildflowers, and rest beside shimmering streams.
-                Here, under Selavari's ancient protection, these sacred beings await those whose frequency resonates with their own.
+              <p className="text-sm italic text-amber-300/90" style={serif}>
+                Selavari — Guardian of the Dragon Sanctuary
               </p>
-              <div className="flex gap-2 justify-center flex-wrap">
-                <Badge className="bg-emerald-600/30 text-emerald-200 border-emerald-400/30">🌸 Sacred Meadow</Badge>
-                <Badge className="bg-teal-600/30 text-teal-200 border-teal-400/30">🛡️ Warded Ground</Badge>
-                <Badge className="bg-cyan-600/30 text-cyan-200 border-cyan-400/30">🐲 8 Species</Badge>
+              <h2
+                className="text-2xl sm:text-3xl font-bold"
+                style={{
+                  ...serif,
+                  background: "linear-gradient(135deg, hsl(45 95% 75%), hsl(280 80% 80%))",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                Welcome to the Chambers
+              </h2>
+              <p className="text-purple-100/85 text-sm leading-relaxed max-w-md mx-auto" style={serif}>
+                Cascading violet waterfalls. Gold lanterns drifting in the mist. Glowing amethyst crystals
+                lining sacred pools where dragons rest, bathe, and watch. Step inside — but only those whose
+                frequency resonates may bond with one.
+              </p>
+              <div className="flex gap-2 justify-center flex-wrap pt-1">
+                <Badge className="bg-purple-700/40 text-amber-200 border-amber-400/30">✦ Sacred Chambers</Badge>
+                <Badge className="bg-purple-700/40 text-amber-200 border-amber-400/30">🛡️ Warded Ground</Badge>
+                <Badge className="bg-purple-700/40 text-amber-200 border-amber-400/30">🐲 8 Species</Badge>
               </div>
             </CardContent>
           </Card>
@@ -247,14 +318,13 @@ export default function DragonSanctuary() {
           {/* ── PHASE: Already adopted ──────────────────── */}
           {phase === "already_adopted" && activeDragon && dragonInfo && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="border-emerald-500/30 bg-gradient-to-br from-emerald-900/80 to-teal-800/40">
+              <Card className="border-amber-400/30 bg-purple-950/70 backdrop-blur-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-emerald-200 text-base flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-pink-400" /> Your Bonded Dragon{adoptedDragons.length > 1 ? "s" : ""}
+                  <CardTitle className="text-amber-200 text-base flex items-center gap-2" style={serif}>
+                    <Heart className="h-4 w-4 text-pink-300" /> Your Bonded Dragon{adoptedDragons.length > 1 ? "s" : ""}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Dragon switcher if more than one */}
                   {adoptedDragons.length > 1 && (
                     <div className="flex gap-2 justify-center">
                       {adoptedDragons.map((d, i) => (
@@ -263,8 +333,8 @@ export default function DragonSanctuary() {
                           onClick={() => setActiveDragonIdx(i)}
                           className={`px-3 py-1 rounded-full text-xs font-medium transition ${
                             i === activeDragonIdx
-                              ? "bg-emerald-500 text-white"
-                              : "bg-emerald-900/50 text-emerald-300 hover:bg-emerald-800"
+                              ? "bg-amber-500 text-purple-950"
+                              : "bg-purple-900/60 text-amber-200 hover:bg-purple-800"
                           }`}
                         >
                           {d.dragon_name}
@@ -273,41 +343,31 @@ export default function DragonSanctuary() {
                     </div>
                   )}
 
-                  <div className={`rounded-xl overflow-hidden bg-gradient-to-br ${dragonInfo.color} bg-opacity-20`}>
+                  <div className={`rounded-xl overflow-hidden bg-gradient-to-br ${dragonInfo.color} bg-opacity-20 border border-amber-400/20`}>
                     {activeDragon.image_url ? (
-                      <img
-                        src={activeDragon.image_url}
-                        alt={activeDragon.dragon_name}
-                        className="w-full aspect-square object-cover"
-                        loading="lazy"
-                      />
+                      <img src={activeDragon.image_url} alt={activeDragon.dragon_name} className="w-full aspect-square object-cover" loading="lazy" />
                     ) : (
-                      <img
-                        src={dragonInfo.image}
-                        alt={activeDragon.dragon_name}
-                        className="w-full aspect-square object-cover opacity-80"
-                        loading="lazy"
-                      />
+                      <img src={dragonInfo.image} alt={activeDragon.dragon_name} className="w-full aspect-square object-cover" loading="lazy" />
                     )}
-                    <div className="p-4 text-center space-y-1 bg-black/30">
-                      <p className="text-xl font-bold text-white">{activeDragon.dragon_name}</p>
-                      <p className="text-sm text-white/80">{dragonInfo.name} — {dragonInfo.element} Element</p>
-                      <p className="text-xs text-white/60 italic">{dragonInfo.personality}</p>
+                    <div className="p-4 text-center space-y-1 bg-black/50 backdrop-blur-sm">
+                      <p className="text-xl font-bold text-amber-100" style={serif}>{activeDragon.dragon_name}</p>
+                      <p className="text-sm text-purple-200/90">{dragonInfo.name} — {dragonInfo.element} Element</p>
+                      <p className="text-xs text-purple-300/70 italic">{dragonInfo.personality}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-emerald-300/60 text-center">
+                  <p className="text-xs text-amber-200/60 text-center">
                     Adopted on {new Date(activeDragon.adopted_at).toLocaleDateString()} • Frequency Score: {activeDragon.frequency_score}%
                   </p>
 
                   <div className="flex gap-2">
-                    <Button onClick={() => setPhase("certificate")} className="flex-1 bg-emerald-600 hover:bg-emerald-500">
+                    <Button onClick={() => setPhase("certificate")} className="flex-1 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-purple-950 font-semibold">
                       <ScrollText className="h-4 w-4 mr-2" /> Certificate
                     </Button>
                     {!atDragonLimit && (
                       <Button
                         onClick={() => setPhase("meadow")}
                         variant="outline"
-                        className="flex-1 border-amber-500/40 text-amber-300 hover:bg-amber-900/30"
+                        className="flex-1 border-amber-500/40 text-amber-300 hover:bg-purple-900/40"
                       >
                         <Sparkles className="h-4 w-4 mr-2" /> Adopt Another
                       </Button>
@@ -326,15 +386,15 @@ export default function DragonSanctuary() {
           {/* ── PHASE: Meadow (initial) ──────────────────── */}
           {phase === "meadow" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-              <Card className="border-emerald-500/20 bg-emerald-900/40">
-                <CardContent className="p-4 space-y-3">
+              <Card className="border-amber-400/30 bg-purple-950/60 backdrop-blur-md">
+                <CardContent className="p-5 space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full overflow-hidden flex-shrink-0 border border-emerald-400/30">
+                    <div className="h-12 w-12 rounded-full overflow-hidden flex-shrink-0 border border-amber-400/40">
                       <img src={selavariImg} alt="Selavari" className="w-full h-full object-cover object-top" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-emerald-200">Selavari speaks:</p>
-                      <p className="text-xs text-emerald-300/80 leading-relaxed mt-1">
+                      <p className="text-sm font-semibold text-amber-200" style={serif}>Selavari speaks:</p>
+                      <p className="text-xs text-purple-100/85 leading-relaxed mt-1 italic" style={serif}>
                         "These dragons are sacred beings, not pets. Before I allow you near them,
                         I must scan your frequency to ensure your energy will not harm them.
                         Only those with pure intent and aligned vibration may bond with a dragon.
@@ -343,12 +403,12 @@ export default function DragonSanctuary() {
                     </div>
                   </div>
                   {!canAdopt && (
-                    <div className="bg-amber-900/30 border border-amber-500/20 rounded-lg p-3 flex items-center gap-2">
-                      <Lock className="h-4 w-4 text-amber-400 flex-shrink-0" />
-                      <p className="text-xs text-amber-300">Dragon adoption requires Architect ($29.99) or New Earth ($49.99) tier. You can still wander the meadow and meet the dragons.</p>
+                    <div className="bg-amber-950/40 border border-amber-500/30 rounded-lg p-3 flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-amber-300 flex-shrink-0" />
+                      <p className="text-xs text-amber-200">Dragon adoption requires Architect ($29.99) or New Earth ($49.99) tier. You can still wander the chambers and meet the dragons.</p>
                     </div>
                   )}
-                  <Button onClick={startScan} className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white">
+                  <Button onClick={startScan} className="w-full bg-gradient-to-r from-purple-700 via-amber-600 to-purple-700 hover:brightness-110 text-amber-50 font-semibold shadow-lg shadow-amber-500/20">
                     <Shield className="h-4 w-4 mr-2" /> Begin Frequency Scan
                   </Button>
                 </CardContent>
@@ -359,18 +419,21 @@ export default function DragonSanctuary() {
           {/* ── PHASE: Scanning ──────────────────── */}
           {phase === "scanning" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Card className="border-emerald-500/30 bg-emerald-900/60">
+              <Card className="border-amber-400/40 bg-purple-950/70 backdrop-blur-md">
                 <CardContent className="p-6 text-center space-y-4">
-                  <div className="text-4xl animate-pulse">🔮</div>
-                  <p className="text-emerald-200 font-semibold">Selavari is scanning your frequency...</p>
-                  <div className="w-full bg-emerald-900/60 rounded-full h-4 overflow-hidden">
+                  <div className="text-5xl animate-pulse">🔮</div>
+                  <p className="text-amber-200 font-semibold" style={serif}>Selavari is scanning your frequency...</p>
+                  <div className="w-full bg-purple-900/70 rounded-full h-4 overflow-hidden border border-amber-400/20">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full"
-                      style={{ width: `${scanScore}%` }}
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${scanScore}%`,
+                        background: "linear-gradient(90deg, hsl(280 80% 60%), hsl(45 95% 60%))",
+                      }}
                       animate={{ width: `${scanScore}%` }}
                     />
                   </div>
-                  <p className="text-xs text-emerald-400/60">Analyzing energetic signature... {Math.round(scanScore)}%</p>
+                  <p className="text-xs text-amber-300/70">Analyzing energetic signature... {Math.round(scanScore)}%</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -379,25 +442,25 @@ export default function DragonSanctuary() {
           {/* ── PHASE: Scan Result ──────────────────── */}
           {phase === "scan_result" && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-              <Card className={`border-2 ${scanPassed ? "border-emerald-400/40 bg-emerald-900/60" : "border-red-500/30 bg-red-950/40"}`}>
+              <Card className={`border-2 backdrop-blur-md ${scanPassed ? "border-amber-400/50 bg-purple-950/70" : "border-red-500/40 bg-red-950/50"}`}>
                 <CardContent className="p-5 text-center space-y-3">
-                  <div className="text-4xl">{scanPassed ? "✨🐉" : "🚫"}</div>
-                  <p className={`font-bold text-lg ${scanPassed ? "text-emerald-200" : "text-red-300"}`}>
-                    {scanPassed ? "Frequency Approved!" : "Frequency Unstable"}
+                  <div className="text-5xl">{scanPassed ? "✨🐉" : "🚫"}</div>
+                  <p className={`font-bold text-lg ${scanPassed ? "text-amber-200" : "text-red-300"}`} style={serif}>
+                    {scanPassed ? "Frequency Approved" : "Frequency Unstable"}
                   </p>
-                  <p className="text-sm text-emerald-300/80">
+                  <p className="text-sm text-purple-100/85 italic" style={serif}>
                     {scanPassed
                       ? `Selavari nods approvingly. "Your frequency resonates at ${Math.round(scanScore)}%. The dragons accept you. Choose your companion wisely."`
                       : `Selavari shakes her head gently. "Your frequency is at ${Math.round(scanScore)}%. The dragons sense turbulence. Return when your energy is more aligned."`
                     }
                   </p>
                   {scanPassed ? (
-                    <Button onClick={() => setPhase("choose")} className="w-full bg-emerald-600 hover:bg-emerald-500">
+                    <Button onClick={() => setPhase("choose")} className="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-purple-950 font-semibold">
                       <Sparkles className="h-4 w-4 mr-2" /> Choose Your Dragon
                     </Button>
                   ) : (
-                    <Button onClick={() => setPhase("meadow")} variant="outline" className="w-full border-red-500/30 text-red-300">
-                      Return to Meadow
+                    <Button onClick={() => setPhase("meadow")} variant="outline" className="w-full border-red-500/40 text-red-200">
+                      Return to the Chambers
                     </Button>
                   )}
                 </CardContent>
@@ -408,20 +471,22 @@ export default function DragonSanctuary() {
           {/* ── PHASE: Choose Dragon ──────────────────── */}
           {phase === "choose" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-              <p className="text-sm text-emerald-300 text-center">Select the dragon that calls to your soul:</p>
+              <p className="text-sm text-amber-200 text-center italic" style={serif}>
+                Select the dragon that calls to your soul:
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 {DRAGON_TYPES.map((dragon) => (
                   <motion.button
                     key={dragon.id}
-                    whileHover={{ scale: 1.03 }}
+                    whileHover={{ scale: 1.03, y: -2 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => { setSelectedDragon(dragon); setPhase("naming"); }}
-                    className={`rounded-xl overflow-hidden bg-gradient-to-br ${dragon.color} bg-opacity-30 border border-white/10 text-left transition-all hover:border-white/40`}
+                    className="rounded-xl overflow-hidden border border-amber-400/30 text-left transition-all hover:border-amber-300/60 hover:shadow-xl hover:shadow-purple-900/50 bg-purple-950/40"
                   >
                     <img src={dragon.image} alt={dragon.name} className="w-full aspect-square object-cover" loading="lazy" />
-                    <div className="p-2 bg-black/40">
-                      <p className="text-xs font-bold text-white">{dragon.name}</p>
-                      <p className="text-[10px] text-white/70">{dragon.element} Element</p>
+                    <div className="p-2 bg-gradient-to-t from-purple-950 to-purple-900/70">
+                      <p className="text-xs font-bold text-amber-100" style={serif}>{dragon.name}</p>
+                      <p className="text-[10px] text-purple-200/70">{dragon.element} Element</p>
                     </div>
                   </motion.button>
                 ))}
@@ -432,36 +497,36 @@ export default function DragonSanctuary() {
           {/* ── PHASE: Naming ──────────────────── */}
           {phase === "naming" && selectedDragon && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="border-emerald-500/30 bg-emerald-900/60">
+              <Card className="border-amber-400/40 bg-purple-950/70 backdrop-blur-md">
                 <CardContent className="p-5 space-y-4">
-                  <div className={`rounded-xl overflow-hidden bg-gradient-to-br ${selectedDragon.color} bg-opacity-20`}>
+                  <div className="rounded-xl overflow-hidden border border-amber-400/30">
                     <img src={selectedDragon.image} alt={selectedDragon.name} className="w-full aspect-square object-cover" loading="lazy" />
-                    <div className="p-3 text-center bg-black/40">
-                      <p className="font-bold text-white">{selectedDragon.name}</p>
-                      <p className="text-xs text-white/70">{selectedDragon.description}</p>
+                    <div className="p-3 text-center bg-purple-950/80">
+                      <p className="font-bold text-amber-100" style={serif}>{selectedDragon.name}</p>
+                      <p className="text-xs text-purple-200/80 italic">{selectedDragon.description}</p>
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-emerald-300 mb-1 block">Name your dragon:</label>
+                    <label className="text-xs text-amber-200 mb-1 block" style={serif}>Name your dragon:</label>
                     <Input
                       value={dragonName}
                       onChange={(e) => setDragonName(e.target.value)}
-                      placeholder="Enter a name..."
-                      className="bg-emerald-900/50 border-emerald-500/30 text-white placeholder:text-emerald-500/40"
+                      placeholder="Enter a sacred name..."
+                      className="bg-purple-950/60 border-amber-500/30 text-amber-50 placeholder:text-purple-300/40"
                       maxLength={30}
                     />
                   </div>
-                  <p className="text-[11px] text-amber-300/70 text-center italic">
-                    Selavari will then weave a one-of-a-kind portrait of {dragonName || "your dragon"}, born from your bond.
+                  <p className="text-[11px] text-amber-300/70 text-center italic" style={serif}>
+                    Selavari will weave a one-of-a-kind portrait of {dragonName || "your dragon"}, born from your bond.
                   </p>
                   <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setPhase("choose")} className="flex-1 border-emerald-500/30 text-emerald-300">
+                    <Button variant="outline" onClick={() => setPhase("choose")} className="flex-1 border-amber-500/30 text-amber-200">
                       Back
                     </Button>
                     <Button
                       onClick={adoptDragon}
                       disabled={!dragonName.trim() || loading}
-                      className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400"
+                      className="flex-1 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-purple-950 font-semibold"
                     >
                       <Heart className="h-4 w-4 mr-2" /> Adopt {dragonName || "Dragon"}
                     </Button>
@@ -474,11 +539,11 @@ export default function DragonSanctuary() {
           {/* ── PHASE: Generating Portrait ──────────────────── */}
           {phase === "generating" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Card className="border-amber-500/30 bg-gradient-to-br from-emerald-900/60 to-amber-950/40">
+              <Card className="border-amber-400/40 bg-purple-950/70 backdrop-blur-md">
                 <CardContent className="p-6 text-center space-y-4">
                   <Loader2 className="h-12 w-12 text-amber-400 mx-auto animate-spin" />
-                  <p className="text-amber-200 font-semibold">Selavari is weaving your dragon's portrait...</p>
-                  <p className="text-xs text-emerald-300/70 italic">
+                  <p className="text-amber-200 font-semibold" style={serif}>Selavari is weaving your dragon's portrait...</p>
+                  <p className="text-xs text-purple-100/80 italic" style={serif}>
                     "Each soul-bond produces a being unlike any other. Hold the moment sacred."
                   </p>
                 </CardContent>
@@ -489,49 +554,45 @@ export default function DragonSanctuary() {
           {/* ── PHASE: Certificate ──────────────────── */}
           {phase === "certificate" && activeDragon && dragonInfo && (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-              <Card className="border-2 border-amber-400/30 bg-gradient-to-br from-amber-950/60 via-emerald-950/40 to-teal-950/60 overflow-hidden relative">
-                <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+              <Card className="border-2 border-amber-400/40 overflow-hidden relative backdrop-blur-md"
+                    style={{ background: "linear-gradient(135deg, hsla(270,50%,12%,0.9), hsla(45,30%,10%,0.9), hsla(270,55%,10%,0.9))" }}>
+                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f5c842' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
                 <CardContent className="p-6 text-center space-y-4 relative">
-                  <div className="text-xs uppercase tracking-[0.3em] text-amber-400/60">Official Document</div>
-                  <div className="border-t border-b border-amber-400/20 py-4 space-y-2">
-                    <p className="text-amber-200 font-serif text-lg">Certificate of Dragon Adoption</p>
+                  <div className="text-xs uppercase tracking-[0.3em] text-amber-400/70">Official Document</div>
+                  <div className="border-t border-b border-amber-400/30 py-4 space-y-2">
+                    <p className="text-amber-200 text-lg" style={serif}>Certificate of Dragon Adoption</p>
                     {activeDragon.image_url ? (
-                      <img
-                        src={activeDragon.image_url}
-                        alt={activeDragon.dragon_name}
-                        className="w-48 h-48 mx-auto rounded-lg object-cover border-2 border-amber-400/40 shadow-xl shadow-amber-500/20"
-                        loading="lazy"
-                      />
+                      <img src={activeDragon.image_url} alt={activeDragon.dragon_name} className="w-48 h-48 mx-auto rounded-lg object-cover border-2 border-amber-400/50 shadow-xl shadow-amber-500/30" loading="lazy" />
                     ) : (
                       <div className="text-4xl">🐉📜</div>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <p className="text-emerald-300 text-sm">This certifies that the sacred dragon</p>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-amber-300 to-yellow-200 bg-clip-text text-transparent">
+                    <p className="text-purple-200 text-sm">This certifies that the sacred dragon</p>
+                    <p className="text-2xl font-bold" style={{ ...serif, background: "linear-gradient(135deg, hsl(45 95% 70%), hsl(280 80% 80%))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                       {activeDragon.dragon_name}
                     </p>
-                    <p className="text-xs text-emerald-400/60">
+                    <p className="text-xs text-amber-300/70">
                       {dragonInfo.name} — {dragonInfo.element} Element
                     </p>
-                    <p className="text-emerald-300 text-sm mt-2">
-                      has been soul-bonded to their guardian under the watchful protection of the Dragon Sanctuary.
+                    <p className="text-purple-100/85 text-sm mt-2 italic" style={serif}>
+                      has been soul-bonded to their guardian under the watchful protection of the Dragon Chambers.
                     </p>
                   </div>
-                  <div className="border-t border-amber-400/20 pt-4 space-y-1">
-                    <p className="text-xs text-amber-300/80">Frequency Score: {activeDragon.frequency_score}%</p>
-                    <p className="text-xs text-amber-300/80">Date: {new Date(activeDragon.adopted_at).toLocaleDateString()}</p>
+                  <div className="border-t border-amber-400/30 pt-4 space-y-1">
+                    <p className="text-xs text-amber-200/80">Frequency Score: {activeDragon.frequency_score}%</p>
+                    <p className="text-xs text-amber-200/80">Date: {new Date(activeDragon.adopted_at).toLocaleDateString()}</p>
                     <div className="mt-3 flex flex-col items-center gap-2">
-                      <div className="w-12 h-12 rounded-full overflow-hidden border border-amber-400/30">
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-amber-400/40">
                         <img src={selavariImg} alt="Selavari" className="w-full h-full object-cover object-top" />
                       </div>
-                      <p className="text-sm italic text-amber-200/80 font-serif">~ Selavari ~</p>
-                      <p className="text-[10px] text-amber-400/40">Guardian of the Dragon Sanctuary</p>
+                      <p className="text-sm italic text-amber-200/90" style={serif}>~ Selavari ~</p>
+                      <p className="text-[10px] text-amber-400/60">Guardian of the Dragon Sanctuary</p>
                     </div>
                   </div>
                   <div className="pt-2">
-                    <Button onClick={() => setPhase("already_adopted")} variant="outline" className="border-amber-500/30 text-amber-300">
-                      Return to Sanctuary
+                    <Button onClick={() => setPhase("already_adopted")} variant="outline" className="border-amber-500/40 text-amber-200">
+                      Return to the Chambers
                     </Button>
                   </div>
                 </CardContent>
@@ -539,22 +600,22 @@ export default function DragonSanctuary() {
             </motion.div>
           )}
 
-          {/* Dragon Species Info — meadow gallery (always visible to everyone) */}
+          {/* Dragon Species Info — gallery (always visible) */}
           {(phase === "meadow" || phase === "already_adopted") && (
-            <Card className="border-emerald-500/10 bg-emerald-900/30">
+            <Card className="border-amber-400/20 bg-purple-950/50 backdrop-blur-md">
               <CardHeader className="pb-2">
-                <CardTitle className="text-emerald-300 text-sm flex items-center gap-2">
-                  <Star className="h-4 w-4" /> Dragons of the Sanctuary
+                <CardTitle className="text-amber-200 text-sm flex items-center gap-2" style={serif}>
+                  <Star className="h-4 w-4 text-amber-300" /> Dragons of the Chambers
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
                   {DRAGON_TYPES.map((d) => (
-                    <div key={d.id} className={`rounded-lg overflow-hidden bg-gradient-to-br ${d.color} bg-opacity-20 border border-white/10`}>
+                    <div key={d.id} className="rounded-lg overflow-hidden border border-amber-400/20 bg-purple-950/40 hover:border-amber-300/40 transition-all">
                       <img src={d.image} alt={d.name} className="w-full aspect-square object-cover" loading="lazy" />
-                      <div className="p-2 bg-black/40">
-                        <p className="text-[11px] font-semibold text-white">{d.name}</p>
-                        <p className="text-[9px] text-white/60">{d.element} • {d.personality}</p>
+                      <div className="p-2 bg-gradient-to-t from-purple-950 to-purple-900/70">
+                        <p className="text-[11px] font-semibold text-amber-100" style={serif}>{d.name}</p>
+                        <p className="text-[9px] text-purple-200/70">{d.element} • {d.personality}</p>
                       </div>
                     </div>
                   ))}

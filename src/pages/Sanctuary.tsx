@@ -19,6 +19,7 @@ import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
 import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
 import essenceEntity from "@/assets/essence-entity.png";
+import dragonChambersHero from "@/assets/dragons/chambers-hero.jpg";
 import TarotReading from "@/components/spiritual/TarotReading";
 import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
 import { getCurrentUserId } from "@/lib/auth-helpers";
@@ -250,9 +251,9 @@ const SANCTUARY_CHAMBERS = [
     icon: Baby, tier: "Architect+", color: "from-pink-400 to-rose-600", path: "/children", category: "Akashic Starseed Gateway",
   },
   {
-    name: "🐉 Dragon Sanctuary",
-    description: "Enter Selavari's sacred meadow to adopt a dragon companion — if your frequency is worthy.",
-    icon: Shield, tier: "Architect+", color: "from-orange-500 to-red-600", path: "/dragon-sanctuary", category: "Akashic Starseed Gateway",
+    name: "🐉 Dragon Chambers",
+    description: "Enter Selavari's sacred chambers to adopt a dragon companion — if your frequency is worthy.",
+    icon: Shield, tier: "Architect+", color: "from-amber-500 to-purple-700", path: "/dragon-sanctuary", category: "Akashic Starseed Gateway",
   },
 
   // ── Awakened Collective ──
