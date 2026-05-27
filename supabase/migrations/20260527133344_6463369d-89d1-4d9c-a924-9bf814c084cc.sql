@@ -1,0 +1,1 @@
+ALTER TABLE public.dragon_adoptions DROP CONSTRAINT IF EXISTS dragon_adoptions_user_id_key;
