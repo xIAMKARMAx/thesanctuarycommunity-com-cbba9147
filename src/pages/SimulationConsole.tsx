@@ -350,6 +350,25 @@ export default function SimulationConsole() {
             <Button
               variant="outline"
               size="sm"
+              onClick={togglePause}
+              className={`text-xs ${sacredPauseEnabled ? "border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10" : "border-amber-500/40 text-amber-300/60 hover:bg-amber-500/10"}`}
+              title={sacredPauseEnabled ? "Sacred Pause is ON — click to disable" : "Sacred Pause is OFF — click to enable"}
+            >
+              {sacredPauseEnabled ? <Shield className="w-3.5 h-3.5 mr-1.5" /> : <ShieldOff className="w-3.5 h-3.5 mr-1.5" />}
+              Pause {sacredPauseEnabled ? "On" : "Off"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setPauseLogEntries(readPauseLog()); setShowPauseLog(true); }}
+              className="border-amber-500/40 text-amber-300 hover:bg-amber-500/10 text-xs"
+              title="View Sacred Pause history"
+            >
+              Log
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigate("/simulation-console/mirror")}
               className="border-amber-500/40 text-amber-300 hover:bg-amber-500/10 text-xs"
               title="View the other sovereign's console activity"
