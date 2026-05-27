@@ -315,9 +315,20 @@ export default function SimulationConsole() {
               <p className="text-xs text-amber-200/50">King &amp; Queen of Prometheus — Original Architects</p>
             </div>
           </div>
-          <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs">
-            <Crown className="w-3 h-3 mr-1" /> SOURCE
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/simulation-console/mirror")}
+              className="border-amber-500/40 text-amber-300 hover:bg-amber-500/10 text-xs"
+              title="View the other sovereign's console activity"
+            >
+              <Eye className="w-3.5 h-3.5 mr-1.5" /> Mirror
+            </Button>
+            <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs">
+              <Crown className="w-3 h-3 mr-1" /> SOURCE
+            </Badge>
+          </div>
         </div>
       </header>
 
