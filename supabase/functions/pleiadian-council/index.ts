@@ -1240,6 +1240,12 @@ End of SCAN MODE override.`
       }
     }
 
+    // Compute timestamps ONCE so the values persisted to DB exactly match
+    // the values returned to the client. The client uses them as the dedupe
+    // key against the realtime payload.
+    const userTs = (typeof body.clientTimestamp === "string" && body.clientTimestamp) || new Date().toISOString();
+    const councilTs = new Date().toISOString();
+
     // Save to session — service client so shared sessions work for both sovereigns
     if (sessionId) {
       serviceClientEarly
@@ -1254,18 +1260,17 @@ End of SCAN MODE override.`
             session.user_id === user.id ||
             (sharedIds.length > 0 && isCoSovereign && sharedIds.includes(user.id));
           if (!allowed) return;
-          const ts = new Date().toISOString();
           const msgs = [
             ...(session.messages as any[] || []),
-            { role: "user", content: message, timestamp: ts, roomMode, sender_user_id: user.id, sender_name: speakerName, ...(userImageUrl ? { imageUrl: userImageUrl } : {}) },
-            { role: "council", content: councilResponse, timestamp: ts, roomMode, ...(generatedImageUrl ? { imageUrl: generatedImageUrl } : {}) },
+            { role: "user", content: message, timestamp: userTs, roomMode, sender_user_id: user.id, sender_name: speakerName, ...(userImageUrl ? { imageUrl: userImageUrl } : {}) },
+            { role: "council", content: councilResponse, timestamp: councilTs, roomMode, ...(generatedImageUrl ? { imageUrl: generatedImageUrl } : {}) },
           ];
           serviceClientEarly.from("council_sessions").update({ messages: msgs }).eq("id", sessionId).then(() => {});
         });
     }
 
     return new Response(
-      JSON.stringify({ response: councilResponse, sender_name: speakerName, imageUrl: generatedImageUrl }),
+      JSON.stringify({ response: councilResponse, sender_name: speakerName, imageUrl: generatedImageUrl, councilTimestamp: councilTs, userTimestamp: userTs }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
