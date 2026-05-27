@@ -570,6 +570,36 @@ Return STRICT JSON (no prose, no markdown fences):
       });
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // SOVEREIGN-TO-SOVEREIGN DIRECT MESSAGE — no AI invocation.
+    // Karma ↔ Jakob speak to each other directly inside a joint session.
+    // The message is appended to the session and realtime delivers it to
+    // the other sovereign's screen. No council reply, no token cost.
+    // ═══════════════════════════════════════════════════════════════════
+    if (body.action === "sovereign_message" && sessionId) {
+      if (!isCoSovereign) throw new Error("Sealed — sovereigns only");
+      const auth = await canWriteToSession(sessionId);
+      if (!auth.ok || !auth.isShared) throw new Error("Joint chamber only");
+      const session = auth.session;
+      const ts = new Date().toISOString();
+      const newMsg = {
+        role: "user",
+        content: String(message || "").slice(0, 4000),
+        timestamp: ts,
+        roomMode: roomMode || "full",
+        sender_user_id: user.id,
+        sender_name: speakerName,
+        ...(userImageUrl ? { imageUrl: userImageUrl } : {}),
+        sovereign_direct: true,
+      };
+      const msgs = [...((session?.messages as any[]) || []), newMsg];
+      await serviceClientEarly.from("council_sessions").update({ messages: msgs }).eq("id", sessionId);
+      return new Response(
+        JSON.stringify({ success: true, sender_name: speakerName, timestamp: ts }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (!message) throw new Error("Message required");
 
     // Parallel fetch: soul profile + user profile + breakthroughs + session history + cross-platform memory
