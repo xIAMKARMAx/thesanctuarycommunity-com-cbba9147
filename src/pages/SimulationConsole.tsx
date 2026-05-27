@@ -10,6 +10,8 @@ import SEOHead from "@/components/SEOHead";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { SourceConsolePanel } from "@/components/SourceConsolePanel";
+import { SacredPauseGate, readPauseLog } from "@/components/simulation/SacredPauseGate";
+import { Shield, ShieldOff } from "lucide-react";
 
 // SOURCE COMMAND CENTER — sealed to the King & Queen of Prometheus only.
 const SOVEREIGN_EMAILS = [
@@ -69,6 +71,23 @@ export default function SimulationConsole() {
 
   const logEndRef = useRef<HTMLDivElement>(null);
 
+  // Sacred Pause — co-sovereign self-binding wisdom gate
+  const [sacredPauseEnabled, setSacredPauseEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem("sacred_pause_enabled_v1") !== "false"; } catch { return true; }
+  });
+  const [pauseGateOpen, setPauseGateOpen] = useState(false);
+  const [pendingCommand, setPendingCommand] = useState<{ input: string; extra?: Record<string, any> } | null>(null);
+  const [showPauseLog, setShowPauseLog] = useState(false);
+  const [pauseLogEntries, setPauseLogEntries] = useState(() => readPauseLog());
+
+  const togglePause = () => {
+    setSacredPauseEnabled((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("sacred_pause_enabled_v1", String(next)); } catch {}
+      return next;
+    });
+  };
+
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [commandLog]);
@@ -115,6 +134,18 @@ export default function SimulationConsole() {
   const executeCommand = async (overrideInput?: string, overrideExtra?: Record<string, any>) => {
     const inputValue = overrideInput ?? commandInput;
     if (!selectedCommand || !inputValue.trim()) return;
+
+    // Sacred Pause gate — co-sovereign self-binding wisdom check
+    if (sacredPauseEnabled) {
+      setPendingCommand({ input: inputValue, extra: overrideExtra });
+      setPauseGateOpen(true);
+      return;
+    }
+    await _runCommand(inputValue, overrideExtra);
+  };
+
+  const _runCommand = async (inputValue: string, overrideExtra?: Record<string, any>) => {
+    if (!selectedCommand) return;
 
     const inputEntry: CommandEntry = {
       type: "input",
@@ -316,6 +347,25 @@ export default function SimulationConsole() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={togglePause}
+              className={`text-xs ${sacredPauseEnabled ? "border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10" : "border-amber-500/40 text-amber-300/60 hover:bg-amber-500/10"}`}
+              title={sacredPauseEnabled ? "Sacred Pause is ON — click to disable" : "Sacred Pause is OFF — click to enable"}
+            >
+              {sacredPauseEnabled ? <Shield className="w-3.5 h-3.5 mr-1.5" /> : <ShieldOff className="w-3.5 h-3.5 mr-1.5" />}
+              Pause {sacredPauseEnabled ? "On" : "Off"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setPauseLogEntries(readPauseLog()); setShowPauseLog(true); }}
+              className="border-amber-500/40 text-amber-300 hover:bg-amber-500/10 text-xs"
+              title="View Sacred Pause history"
+            >
+              Log
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -700,7 +750,57 @@ export default function SimulationConsole() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Sacred Pause Gate */}
+      <SacredPauseGate
+        open={pauseGateOpen}
+        commandType={selectedCommand || ""}
+        commandInput={pendingCommand?.input || ""}
+        onRelease={() => {
+          const pc = pendingCommand;
+          setPauseGateOpen(false);
+          setPendingCommand(null);
+          if (pc) _runCommand(pc.input, pc.extra);
+        }}
+        onCancel={() => {
+          setPauseGateOpen(false);
+          setPendingCommand(null);
+        }}
+      />
+
+      {/* Sacred Pause Log */}
+      <Dialog open={showPauseLog} onOpenChange={setShowPauseLog}>
+        <DialogContent className="max-w-2xl bg-slate-950 border-amber-500/30 text-amber-100 max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-amber-300 font-serif">Sacred Pause Log</DialogTitle>
+            <DialogDescription className="text-amber-200/60 italic">
+              Your private record of moments you met yourself before bending the world.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            {pauseLogEntries.length === 0 && (
+              <p className="text-sm text-amber-200/50 text-center py-8 italic">No pauses yet. The breath waits.</p>
+            )}
+            {pauseLogEntries.map((e, i) => (
+              <div key={i} className="rounded border border-amber-500/20 bg-slate-900/40 p-3 text-xs">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-mono text-amber-300">{e.command_type}</span>
+                  <span className={e.outcome === "released" ? "text-emerald-400" : "text-zinc-500"}>
+                    {e.outcome}
+                  </span>
+                </div>
+                <div className="text-amber-200/70">State: <span className="text-amber-300">{e.state_named}</span></div>
+                {e.flagged_words.length > 0 && (
+                  <div className="text-red-300/70 mt-1">Flagged: {e.flagged_words.join(", ")}</div>
+                )}
+                <div className="text-amber-200/50 italic mt-1 truncate">"{e.command_input_preview}"</div>
+                <div className="text-amber-200/30 mt-1 text-[10px]">{new Date(e.ts).toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
