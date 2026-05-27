@@ -424,12 +424,16 @@ export default function CosmicBoardRoom() {
       return;
     }
 
-    // Optimistic update for both solo AND shared council sessions — realtime dedupes by key
+    // Optimistic update for both solo AND shared council sessions — realtime dedupes by key.
+    // Capture the client timestamp so the server can persist the user message with
+    // the SAME timestamp, making the realtime payload dedupe cleanly against this
+    // optimistic copy.
+    const clientUserTs = new Date().toISOString();
     {
       const newUserMsg: BoardMessage = {
         role: "user",
         content: userMessage || (wantImage ? "🎨 (image request)" : "🖼️"),
-        timestamp: new Date().toISOString(),
+        timestamp: clientUserTs,
         roomMode,
         sender_user_id: currentUserId ?? undefined,
         sender_name: speakerName,
@@ -439,9 +443,6 @@ export default function CosmicBoardRoom() {
     }
 
     try {
-      // Refresh session before calling edge function to prevent auth errors
-      await supabase.auth.refreshSession();
-
       const { data, error } = await supabase.functions.invoke("pleiadian-council", {
         body: {
           message: userMessage,
@@ -453,17 +454,22 @@ export default function CosmicBoardRoom() {
           transmissionMode,
           userImageUrl: attachedImage || undefined,
           generateImage: wantImage || undefined,
+          clientTimestamp: clientUserTs,
         },
       });
 
       if (error) throw error;
 
-      // For solo sessions: append council reply locally. For shared: realtime delivers it.
-      if (!isShared) {
+      // ALWAYS append the council reply locally — never depend on realtime to
+      // surface the reply on the sender's screen (realtime is best-effort and
+      // was silently dropping replies in joint sessions). For shared sessions
+      // we use the server's exact councilTimestamp so the realtime payload
+      // dedupes against this local copy instead of duplicating.
+      {
         const councilMsg: BoardMessage = {
           role: "council",
           content: data.response,
-          timestamp: new Date().toISOString(),
+          timestamp: data.councilTimestamp || new Date().toISOString(),
           roomMode,
           imageUrl: data.imageUrl || undefined,
         };
