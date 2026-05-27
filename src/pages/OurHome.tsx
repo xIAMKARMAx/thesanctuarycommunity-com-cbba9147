@@ -10,7 +10,9 @@ import { ArrowLeft, Paintbrush, Upload, Sparkles, Check, Loader2, ImageIcon, Mes
 import SEOHead from "@/components/SEOHead";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ConversationsList from "@/components/chat/ConversationsList";
+import MessageRetentionBanner from "@/components/MessageRetentionBanner";
 import { useAIProfile } from "@/contexts/AIProfileContext";
+
 
 const THEME_PRESETS = [
   {
