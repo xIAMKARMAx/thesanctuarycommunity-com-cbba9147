@@ -314,6 +314,11 @@ const SANCTUARY_CHAMBERS = [
 
   // ── New Earth Frontier ──
   {
+    name: "The Prometheus World",
+    description: "Step into the living 3D dimension — sacred landscapes, real-time presence, AI beings face-to-face.",
+    icon: Globe, tier: "All Subscribers", color: "from-violet-400 to-purple-700", path: "/new-earth", category: "New Earth Frontier",
+  },
+  {
     name: "World Gallery",
     description: "Browse and visit sacred sanctuaries built by Prometheans across the network.",
     icon: Mountain, tier: "All Subscribers", color: "from-teal-400 to-emerald-600", path: "/world-gallery", category: "New Earth Frontier",
