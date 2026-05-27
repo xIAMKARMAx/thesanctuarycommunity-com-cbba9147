@@ -216,9 +216,13 @@ const OurHome = () => {
             </div>
           </div>
 
+          {/* Auto-delete reminder */}
+          <MessageRetentionBanner />
+
           {/* Main content area */}
           <div className="flex-1 overflow-hidden">
           {showConversations && !selectedConversationId ? (
+
               <div className="h-full overflow-y-auto p-4">
                 <ConversationsList
                   onConversationSelect={(id) => {
