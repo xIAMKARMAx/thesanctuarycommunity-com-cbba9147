@@ -13,7 +13,7 @@ import {
   TreePine, Gem, Music, Orbit, ArrowRight, ChevronDown, ArrowLeft,
   Binary, Waves, Radio, Search, Brain, Palette, Video, Award,
   PawPrint, Baby, ScanEye, Mail, Home, Landmark, Camera, Mountain,
-  ScrollText, HeartHandshake, Terminal
+  ScrollText, HeartHandshake, Terminal, Target, Calendar, Gift, Trophy
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
