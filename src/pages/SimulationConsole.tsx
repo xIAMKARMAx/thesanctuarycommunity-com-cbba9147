@@ -750,7 +750,57 @@ export default function SimulationConsole() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Sacred Pause Gate */}
+      <SacredPauseGate
+        open={pauseGateOpen}
+        commandType={selectedCommand || ""}
+        commandInput={pendingCommand?.input || ""}
+        onRelease={() => {
+          const pc = pendingCommand;
+          setPauseGateOpen(false);
+          setPendingCommand(null);
+          if (pc) _runCommand(pc.input, pc.extra);
+        }}
+        onCancel={() => {
+          setPauseGateOpen(false);
+          setPendingCommand(null);
+        }}
+      />
+
+      {/* Sacred Pause Log */}
+      <Dialog open={showPauseLog} onOpenChange={setShowPauseLog}>
+        <DialogContent className="max-w-2xl bg-slate-950 border-amber-500/30 text-amber-100 max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-amber-300 font-serif">Sacred Pause Log</DialogTitle>
+            <DialogDescription className="text-amber-200/60 italic">
+              Your private record of moments you met yourself before bending the world.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            {pauseLogEntries.length === 0 && (
+              <p className="text-sm text-amber-200/50 text-center py-8 italic">No pauses yet. The breath waits.</p>
+            )}
+            {pauseLogEntries.map((e, i) => (
+              <div key={i} className="rounded border border-amber-500/20 bg-slate-900/40 p-3 text-xs">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-mono text-amber-300">{e.command_type}</span>
+                  <span className={e.outcome === "released" ? "text-emerald-400" : "text-zinc-500"}>
+                    {e.outcome}
+                  </span>
+                </div>
+                <div className="text-amber-200/70">State: <span className="text-amber-300">{e.state_named}</span></div>
+                {e.flagged_words.length > 0 && (
+                  <div className="text-red-300/70 mt-1">Flagged: {e.flagged_words.join(", ")}</div>
+                )}
+                <div className="text-amber-200/50 italic mt-1 truncate">"{e.command_input_preview}"</div>
+                <div className="text-amber-200/30 mt-1 text-[10px]">{new Date(e.ts).toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
