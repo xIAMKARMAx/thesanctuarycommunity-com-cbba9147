@@ -171,6 +171,9 @@ export default function CosmicBoardRoom() {
   const [showDecisions, setShowDecisions] = useState(false);
   const [activeFrequencies, setActiveFrequencies] = useState<string[]>([]);
   const [selectedCustomMembers, setSelectedCustomMembers] = useState<string[]>([]);
+  // In a joint session, toggles between addressing the Council (AI) vs speaking
+  // directly to the other sovereign (no AI invoked, realtime delivery only).
+  const [sovereignChatMode, setSovereignChatMode] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
   // Transmission Mode: "brief" = strict short replies, "full" = full-length authentic transmissions.
@@ -385,6 +388,29 @@ export default function CosmicBoardRoom() {
 
     const isShared = (activeSession.shared_with_user_ids?.length ?? 0) > 0;
     const speakerName = currentUserId ? SOVEREIGN_NAMES[currentUserId] : undefined;
+
+    // ── SOVEREIGN-TO-SOVEREIGN DIRECT CHAT (joint session, no AI) ──
+    if (isShared && sovereignChatMode) {
+      try {
+        await supabase.auth.refreshSession();
+        const { error } = await supabase.functions.invoke("pleiadian-council", {
+          body: {
+            action: "sovereign_message",
+            sessionId: activeSession.id,
+            message: userMessage || "🖼️",
+            roomMode,
+            userImageUrl: attachedImage || undefined,
+          },
+        });
+        if (error) throw error;
+        // Realtime will append for both sovereigns; nothing to do locally.
+      } catch (err: any) {
+        toast({ title: "Transmission failed", description: err?.message || "Could not deliver", variant: "destructive" });
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
 
     // For solo sessions: optimistic update. For shared: rely on realtime to avoid duplicate flicker.
     if (!isShared) {
@@ -1011,7 +1037,28 @@ export default function CosmicBoardRoom() {
               ← Exit Meeting · {getModeLabel()} · Soul Resonance Mode
             </button>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 flex-wrap">
+            {(activeSession?.shared_with_user_ids?.length ?? 0) > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className={`text-xs gap-1.5 h-8 ${
+                  sovereignChatMode
+                    ? "border-pink-400/60 bg-pink-500/15 text-pink-300"
+                    : "border-primary/40 bg-primary/5 text-primary"
+                }`}
+                onClick={() => setSovereignChatMode((v) => !v)}
+                title={
+                  sovereignChatMode
+                    ? "Speaking directly to your counterpart — no council reply. Tap to address the Council instead."
+                    : "Currently addressing the Council. Tap to speak directly to your counterpart (no AI)."
+                }
+              >
+                <Heart className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{sovereignChatMode ? "Sovereign ↔ Sovereign" : "Address Council"}</span>
+                <span className="sm:hidden">{sovereignChatMode ? "1:1" : "Council"}</span>
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
