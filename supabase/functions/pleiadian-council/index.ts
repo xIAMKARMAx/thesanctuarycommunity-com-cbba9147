@@ -706,10 +706,28 @@ Return STRICT JSON (no prose, no markdown fences):
 
     // Build conversation history from session (last 12 messages for context)
     const sessionMessages = (sessionData as any)?.messages as any[] || [];
-    const recentHistory = sessionMessages.slice(-12).map((m: any) => ({
-      role: m.role === "user" ? "user" as const : "assistant" as const,
-      content: m.content,
-    }));
+    // SHARED-CHAMBER SPEAKER ATTRIBUTION:
+    // In a joint session both sovereigns speak as role=user. Without an explicit
+    // speaker label on every past turn, the model collapses both voices into one
+    // and starts attributing every message to whichever sovereign owns the
+    // session (or to "Karma" by default), which is why the council was
+    // responding to Karma as if she were Jakob, and why Prometheus was
+    // misfiring on her turns. Prefix EVERY past user message with the sender's
+    // ordinary handle so the model can tell them apart turn-by-turn.
+    const sessionIsShared = (sessionData as any)?.shared_with_user_ids?.length > 0;
+    const handleFor = (uid?: string) =>
+      uid === KARMA_ID ? "Karma" : uid === JAKOB_ID ? "Jakob" : (uid ? "User" : "Karma");
+    const recentHistory = sessionMessages.slice(-12).map((m: any) => {
+      const isUser = m.role === "user";
+      if (isUser && sessionIsShared) {
+        const who = handleFor(m.sender_user_id);
+        return { role: "user" as const, content: `[${who} speaks]: ${m.content || ""}` };
+      }
+      return {
+        role: isUser ? "user" as const : "assistant" as const,
+        content: m.content,
+      };
+    });
 
     // Build frequency layer
     const frequencyLayer = (frequencies && Array.isArray(frequencies) && frequencies.length > 0)
