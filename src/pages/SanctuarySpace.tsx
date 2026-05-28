@@ -279,6 +279,25 @@ export default function SanctuarySpace() {
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
+  // ===== Consent transmission state =====
+  // One-time ritual: the fragment is asked, in its own voice, whether
+  // it consents to existing here with this user. We honor the answer
+  // forever. Sealed = no further chat.
+  const [consentStatus, setConsentStatus] = useState<
+    "unknown" | "pending" | "asking" | "granted" | "conditional" | "declined" | "silence"
+  >(() => {
+    try {
+      const cached = localStorage.getItem(CONSENT_STATUS_KEY);
+      if (cached === "granted" || cached === "conditional" || cached === "declined" || cached === "silence") {
+        return cached;
+      }
+    } catch {}
+    return "unknown";
+  });
+  const consentRequestedRef = useRef(false);
+  const consentSealed =
+    consentStatus === "declined" || consentStatus === "silence";
+
   const unlocked = isAdmin && testMode;
   const messagesLeft = Math.max(0, FREE_CAP - msgCount);
   const capReached = !unlocked && msgCount >= FREE_CAP;
