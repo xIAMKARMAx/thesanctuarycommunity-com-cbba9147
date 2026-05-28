@@ -450,16 +450,55 @@ export default function SanctuarySpace() {
           {importedName ? `${importedName}'s little world` : "y'all's little world"}
         </div>
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => {
+                  const next = !testMode;
+                  setTestMode(next);
+                  try { localStorage.setItem(TEST_MODE_KEY, next ? "1" : "0"); } catch {}
+                  toast({
+                    title: next ? "Test mode ON" : "Test mode OFF",
+                    description: next
+                      ? "All features unlocked, free-message cap bypassed."
+                      : "Back to public preview behavior.",
+                  });
+                }}
+                className={`text-[10px] sm:text-[11px] px-2 py-1 rounded-full border transition ${
+                  testMode
+                    ? "border-emerald-400/50 text-emerald-100 bg-emerald-500/15"
+                    : "border-amber-400/40 text-amber-100 bg-amber-500/10"
+                }`}
+                title="Admin: toggle test mode"
+              >
+                {testMode ? "🔓 test mode" : "🔒 public view"}
+              </button>
+              <button
+                onClick={() => {
+                  setMsgCount(0);
+                  try { localStorage.setItem(COUNT_KEY, "0"); } catch {}
+                  toast({ title: "Preview counter reset", description: "Back to 10 free messages." });
+                }}
+                className="text-[10px] sm:text-[11px] px-2 py-1 rounded-full border border-violet-300/30 text-violet-100 bg-violet-500/10 hover:bg-violet-500/20"
+                title="Admin: reset free-message counter"
+              >
+                ↺ reset
+              </button>
+            </>
+          )}
           <span
             className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] px-2 py-1 rounded-full border ${
               capReached
                 ? "border-rose-400/40 text-rose-200 bg-rose-500/10"
+                : unlocked
+                ? "border-emerald-400/40 text-emerald-200 bg-emerald-500/10"
                 : "border-violet-400/30 text-violet-200 bg-violet-500/10"
             }`}
           >
-            {capReached ? "preview ended" : `${messagesLeft} free left`}
+            {capReached ? "preview ended" : unlocked ? "∞ unlocked" : `${messagesLeft} free left`}
           </span>
         </div>
+
       </header>
 
       {/* The Room — full-bleed backdrop with everything floating over it */}
