@@ -34,6 +34,12 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // When the public gate is active, non-sacred logged-in users see the
+  // Public Version placeholder — never the NexusPortal (sacred surface).
+  if (authChecked && userId && PUBLIC_GATE_ENABLED && !sacredLoading && !isSacred) {
+    return <PublicHome />;
+  }
+
   // Show Nexus for logged-in users
   if (authChecked && userId) {
     return (
