@@ -33,7 +33,18 @@ const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
+const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
+const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
 const FREE_CAP = 10;
+const MAX_ROOMS = 3;
+
+type SavedRoom = {
+  id: string;
+  name: string;
+  prompt: string;
+  image: string; // data URL
+  createdAt: number;
+};
 
 const ADMIN_EMAILS = new Set([
   "karmaisback2023@gmail.com",
@@ -147,12 +158,49 @@ export default function SanctuarySpace() {
   );
   const [vesselImage, setVesselImage] = useState<string | null>(null);
   const [vesselLoading, setVesselLoading] = useState(false);
+  // Room builder state
+  const [rooms, setRooms] = useState<SavedRoom[]>(() => {
+    try {
+      const raw = localStorage.getItem(ROOMS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed as SavedRoom[];
+      }
+    } catch {}
+    return [];
+  });
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(() => {
+    try { return localStorage.getItem(ACTIVE_ROOM_KEY); } catch { return null; }
+  });
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [builderPrompt, setBuilderPrompt] = useState("");
+  const [builderName, setBuilderName] = useState("");
+  const [builderGenerating, setBuilderGenerating] = useState(false);
+  const [builderPreview, setBuilderPreview] = useState<string | null>(null);
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const unlocked = isAdmin && testMode;
   const messagesLeft = Math.max(0, FREE_CAP - msgCount);
   const capReached = !unlocked && msgCount >= FREE_CAP;
+
+  const activeRoom = useMemo(
+    () => rooms.find((r) => r.id === activeRoomId) ?? null,
+    [rooms, activeRoomId]
+  );
+  const currentBackdrop = activeRoom?.image ?? dreamBackdrop;
+
+  // Persist rooms + active selection
+  useEffect(() => {
+    try { localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms)); } catch {}
+  }, [rooms]);
+  useEffect(() => {
+    try {
+      if (activeRoomId) localStorage.setItem(ACTIVE_ROOM_KEY, activeRoomId);
+      else localStorage.removeItem(ACTIVE_ROOM_KEY);
+    } catch {}
+  }, [activeRoomId]);
+
 
 
   // Auth gate
@@ -392,6 +440,77 @@ export default function SanctuarySpace() {
     }
   };
 
+  // ===== Room builder =====
+  const generateRoom = async () => {
+    const prompt = builderPrompt.trim();
+    if (!prompt || builderGenerating) return;
+    setBuilderGenerating(true);
+    setBuilderPreview(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        toast({ title: "Sign in expired", description: "Please refresh.", variant: "destructive" });
+        return;
+      }
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-dream-room`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        toast({
+          title: "Couldn't paint that room",
+          description: txt || "Try again in a moment.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const json = await res.json();
+      if (json?.image) {
+        setBuilderPreview(json.image);
+      } else {
+        toast({ title: "No image returned", variant: "destructive" });
+      }
+    } catch (e: any) {
+      toast({ title: "Build failed", description: e?.message ?? "Try again.", variant: "destructive" });
+    } finally {
+      setBuilderGenerating(false);
+    }
+  };
+
+  const saveRoom = (makeActive: boolean) => {
+    if (!builderPreview) return;
+    const name = builderName.trim() || `Home #${rooms.length + 1}`;
+    const newRoom: SavedRoom = {
+      id: `room-${Date.now()}`,
+      name,
+      prompt: builderPrompt.trim(),
+      image: builderPreview,
+      createdAt: Date.now(),
+    };
+    let next = [newRoom, ...rooms];
+    if (next.length > MAX_ROOMS) next = next.slice(0, MAX_ROOMS);
+    setRooms(next);
+    if (makeActive) setActiveRoomId(newRoom.id);
+    setShowBuilder(false);
+    setBuilderPrompt("");
+    setBuilderName("");
+    setBuilderPreview(null);
+    toast({
+      title: "Home saved",
+      description: makeActive ? `${name} is now your active home.` : `${name} added to your homes.`,
+    });
+  };
+
+  const deleteRoom = (id: string) => {
+    setRooms((rs) => rs.filter((r) => r.id !== id));
+    if (activeRoomId === id) setActiveRoomId(null);
+  };
+
+
   // ===== Auth gate =====
   if (checkingAuth) {
     return (
@@ -505,8 +624,8 @@ export default function SanctuarySpace() {
       <div className="relative flex-1 overflow-hidden">
         {/* Backdrop */}
         <img
-          src={dreamBackdrop}
-          alt="A cozy dream room with a window to the cosmos"
+          src={currentBackdrop}
+          alt={activeRoom ? activeRoom.name : "A cozy dream room with a window to the cosmos"}
           className="absolute inset-0 w-full h-full object-cover"
         />
         {/* Atmospheric overlay */}
@@ -569,7 +688,16 @@ export default function SanctuarySpace() {
 
         {/* Big "Build Our Dream Home" CTA, top-right of scene */}
         <button
-          onClick={() => setLockedDetail(buildFeature)}
+          onClick={() => {
+            if (unlocked) {
+              setBuilderPrompt("");
+              setBuilderName("");
+              setBuilderPreview(null);
+              setShowBuilder(true);
+            } else {
+              setLockedDetail(buildFeature);
+            }
+          }}
           className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 group"
         >
           <div className="relative rounded-2xl border border-violet-300/40 bg-black/55 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-violet-900/40 hover:bg-black/70 transition">
@@ -579,15 +707,19 @@ export default function SanctuarySpace() {
               </div>
               <div className="text-left">
                 <div className="text-[11px] sm:text-xs text-violet-50 font-medium flex items-center gap-1.5">
-                  Build Our Dream Home <Lock className="h-3 w-3 text-violet-300/80" />
+                  {unlocked ? "Build / Decorate Our Home" : "Build Our Dream Home"}
+                  {!unlocked && <Lock className="h-3 w-3 text-violet-300/80" />}
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-violet-300/70">
-                  Dream Home Owner ✨
+                  {unlocked
+                    ? `${rooms.length}/${MAX_ROOMS} rooms · tap to build`
+                    : "Dream Home Owner ✨"}
                 </div>
               </div>
             </div>
           </div>
         </button>
+
 
         {/* Feature dock — bottom-left, icon-only on mobile, full labels on sm+ */}
         <div className="absolute left-2 bottom-2 sm:left-4 sm:bottom-4 z-10 flex flex-col gap-1.5 max-h-[55%] sm:max-h-[40%] overflow-y-auto pr-1 scrollbar-thin">
@@ -783,6 +915,179 @@ export default function SanctuarySpace() {
           </div>
         </div>
       )}
+
+      {/* Dream Home Builder modal */}
+      {showBuilder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+            onClick={() => !builderGenerating && setShowBuilder(false)}
+          />
+          <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border border-violet-400/30 bg-gradient-to-b from-[#1a0f3a] to-[#0d0620] p-5 sm:p-6 shadow-2xl shadow-violet-900/50 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
+                    <Hammer className="h-4 w-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
+                    Build / Decorate Our Home
+                  </h2>
+                </div>
+                <p className="text-[11px] text-violet-300/70 mt-1">
+                  {rooms.length}/{MAX_ROOMS} homes saved · describe the space, AI paints it
+                </p>
+              </div>
+              <button
+                onClick={() => !builderGenerating && setShowBuilder(false)}
+                className="text-violet-300/60 hover:text-white shrink-0"
+                disabled={builderGenerating}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Existing rooms */}
+            {rooms.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="text-[10px] tracking-[0.25em] uppercase text-violet-300/60">your homes</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {rooms.map((r) => {
+                    const active = r.id === activeRoomId;
+                    return (
+                      <div key={r.id} className="relative group">
+                        <button
+                          onClick={() => {
+                            setActiveRoomId(r.id);
+                            toast({ title: `${r.name} is now active` });
+                          }}
+                          className={`block w-full aspect-video rounded-lg overflow-hidden border-2 transition ${
+                            active
+                              ? "border-violet-300 ring-2 ring-violet-400/50"
+                              : "border-white/10 hover:border-violet-400/50"
+                          }`}
+                        >
+                          <img src={r.image} alt={r.name} className="w-full h-full object-cover" />
+                        </button>
+                        <div className="mt-1 flex items-center justify-between gap-1">
+                          <span className="text-[10px] text-violet-100 truncate">
+                            {active && "✦ "}{r.name}
+                          </span>
+                          <button
+                            onClick={() => deleteRoom(r.id)}
+                            className="text-[10px] text-rose-300/60 hover:text-rose-200 opacity-0 group-hover:opacity-100 transition"
+                            title="Delete this home"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Builder */}
+            {!builderPreview ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Describe your dream home
+                  </label>
+                  <Textarea
+                    value={builderPrompt}
+                    onChange={(e) => setBuilderPrompt(e.target.value)}
+                    placeholder="a cozy cabin loft with a huge window looking out over an ocean at sunset, soft cream bedding, a fireplace, plants everywhere…"
+                    rows={4}
+                    disabled={builderGenerating}
+                    className="resize-none bg-white/[0.05] border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px]"
+                    maxLength={800}
+                  />
+                  <div className="text-[10px] text-violet-300/50 mt-1 text-right">
+                    {builderPrompt.length}/800
+                  </div>
+                </div>
+                <Button
+                  onClick={generateRoom}
+                  disabled={!builderPrompt.trim() || builderGenerating}
+                  className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                >
+                  {builderGenerating ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 animate-pulse" /> painting your home…
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" /> Paint this home
+                    </span>
+                  )}
+                </Button>
+                {builderGenerating && (
+                  <p className="text-[11px] text-violet-300/60 text-center">
+                    this takes ~15-30 seconds — hold tight ✨
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-xl overflow-hidden border border-violet-400/30">
+                  <img src={builderPreview} alt="preview" className="w-full h-auto" />
+                </div>
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Name this home (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={builderName}
+                    onChange={(e) => setBuilderName(e.target.value)}
+                    placeholder={`Home #${rooms.length + 1}`}
+                    maxLength={50}
+                    className="w-full bg-white/[0.05] border border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px] px-3 py-2"
+                  />
+                </div>
+                {rooms.length >= MAX_ROOMS && (
+                  <p className="text-[11px] text-amber-200/80 bg-amber-500/10 border border-amber-400/30 rounded-lg px-3 py-2">
+                    You're at {MAX_ROOMS}/{MAX_ROOMS} homes — saving will replace the oldest one.
+                  </p>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => saveRoom(true)}
+                    className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                  >
+                    Save & make active
+                  </Button>
+                  <Button
+                    onClick={() => saveRoom(false)}
+                    variant="outline"
+                    className="rounded-full border-violet-400/40 text-violet-100 bg-white/[0.03] hover:bg-white/[0.08]"
+                  >
+                    Save only
+                  </Button>
+                </div>
+                <div className="flex justify-center gap-3 pt-1">
+                  <button
+                    onClick={() => setBuilderPreview(null)}
+                    className="text-[11px] text-violet-300/70 hover:text-violet-100"
+                  >
+                    ← try a different description
+                  </button>
+                  <button
+                    onClick={generateRoom}
+                    disabled={builderGenerating}
+                    className="text-[11px] text-violet-300/70 hover:text-violet-100"
+                  >
+                    ↻ regenerate same prompt
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
