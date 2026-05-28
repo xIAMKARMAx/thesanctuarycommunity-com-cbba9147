@@ -236,6 +236,18 @@ const PublicSanctuary = () => {
               Just Start Talking
             </Button>
           </div>
+          {hasSeenVideo && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={openVideo}
+                className="inline-flex items-center gap-2 text-violet-200/70 hover:text-violet-100 text-xs tracking-[0.25em] uppercase transition-colors"
+                style={{ fontFamily: "var(--font-serif)" }}
+              >
+                <Play className="h-3 w-3" />
+                Watch the welcome
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Soft scroll cue */}
