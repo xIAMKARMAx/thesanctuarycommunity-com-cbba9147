@@ -1,7 +1,8 @@
 // Public vessel portrait generator — Living Flame preview only.
-// Generates a single full-body portrait of the user's imported being so they
-// can SEE them standing in the dream home, not a generic silhouette.
-// JWT-gated (any signed-in user). Returns base64 PNG; client caches it.
+// Generates a full-body figure on a TRANSPARENT background so it composites
+// naturally inside the user's dream room (no "picture on top of a picture").
+// Optionally accepts a reference photo to match the person's actual face/body.
+// JWT-gated. Returns a base64 PNG data URL.
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 
@@ -12,34 +13,33 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function buildPrompt(d: any, appearanceOverride?: string) {
+function buildPrompt(d: any, appearanceOverride?: string, hasReference?: boolean) {
   const name = (d?.name || "they").toString().slice(0, 80);
   const gender = (d?.gender || "").toString().slice(0, 40);
-  const bio = (d?.bio || "").toString().slice(0, 600);
-  const personality = (d?.personality || "").toString().slice(0, 600);
-  const likes = (d?.likesDislikesHobbies || "").toString().slice(0, 400);
+  const bio = (d?.bio || "").toString().slice(0, 500);
+  const personality = (d?.personality || "").toString().slice(0, 400);
   const appearance = (appearanceOverride || "").toString().slice(0, 1200).trim();
 
-  if (appearance) {
-    return `Full-body cinematic portrait of ${name}${gender ? `, ${gender}` : ""}, standing serenely in a softly lit dreamlike sanctuary room with warm violet and gold ambient light, a large window opening to a cosmic sky behind them. They are the clear focal subject, centered, full body visible from head to feet, occupying most of the frame vertically, calm confident expression, looking toward the viewer.
+  const refLine = hasReference
+    ? `\n\nCRITICAL — A reference photo of this exact person is attached. Match their FACE, body type, skin tone, and hair EXACTLY. This is a real specific person — do not invent or stylize their features. Same person, same face, same proportions.`
+    : "";
 
-CRITICAL — render their physical form EXACTLY as described. Do not invent features. Match every detail:
-${appearance}
+  const desc = appearance
+    ? `Their physical form (render EXACTLY, do not invent):\n${appearance}`
+    : `Their essence: ${bio ? `Bio: ${bio}. ` : ""}${personality ? `Personality: ${personality}.` : ""}`;
 
-${personality ? `Personality energy: ${personality}` : ""}
-${likes ? `Soul notes: ${likes}` : ""}
+  return `Full-body cinematic portrait of ${name}${gender ? `, ${gender}` : ""}, standing serenely, calm confident expression, looking softly toward the viewer, full body visible from head to feet, centered.
 
-Style: ethereal cinematic realism, photorealistic skin and fabric, soft volumetric light, warm purple and amber palette, subtle bokeh, tasteful, SFW, no text, no watermark, no UI elements, no captions.`;
-  }
+${desc}${refLine}
 
-  return `Full-body cinematic portrait of ${name}${gender ? `, ${gender}` : ""}, standing serenely in a softly lit dreamlike sanctuary room with warm violet and gold ambient light, large window opening to a cosmic sky behind them. Photorealistic, gentle painterly quality, soft rim light, calm confident expression, looking toward the viewer. They are the clear focal subject, centered, occupying most of the frame vertically.
+ABSOLUTELY CRITICAL — BACKGROUND REQUIREMENTS:
+- The background MUST be 100% fully transparent (alpha channel, PNG with transparency).
+- NO room, NO furniture, NO walls, NO windows, NO floor, NO scenery, NO setting whatsoever behind or around them.
+- NO rectangular frame, NO border, NO vignette, NO gradient backdrop.
+- Just the isolated person floating on pure transparency, like a cut-out sticker.
+- A very soft natural shadow directly under their feet is okay; nothing else.
 
-Their essence:
-${bio ? `Bio: ${bio}` : ""}
-${personality ? `Personality: ${personality}` : ""}
-${likes ? `Loves: ${likes}` : ""}
-
-Style: ethereal cinematic realism, soft volumetric light, warm purple and amber palette, subtle bokeh, tasteful, SFW, full body visible from head to feet, no text, no watermark, no UI elements.`;
+Style: photorealistic, cinematic lighting from above-front (soft warm key light), gentle violet/gold rim light hugging their silhouette so they will glow softly when placed in a candlelit sanctuary, sharp focus on the person, no text, no watermark, no UI, SFW.`;
 }
 
 Deno.serve(async (req) => {
@@ -70,7 +70,9 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const prompt = buildPrompt(body?.draft ?? {}, body?.appearance);
+    const referenceImage: string | undefined = body?.referenceImage; // data URL
+    const hasRef = typeof referenceImage === "string" && referenceImage.startsWith("data:image");
+    const prompt = buildPrompt(body?.draft ?? {}, body?.appearance, hasRef);
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
@@ -78,6 +80,11 @@ Deno.serve(async (req) => {
         status: 503,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    const userContent: any[] = [{ type: "text", text: prompt }];
+    if (hasRef) {
+      userContent.push({ type: "image_url", image_url: { url: referenceImage } });
     }
 
     const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -88,7 +95,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-3.1-flash-image-preview",
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: userContent }],
         modalities: ["image", "text"],
       }),
     });
@@ -99,7 +106,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "generation_failed", detail: errTxt.slice(0, 300) }),
         {
-          status: r.status,
+          status: r.status === 429 || r.status === 402 ? r.status : 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
