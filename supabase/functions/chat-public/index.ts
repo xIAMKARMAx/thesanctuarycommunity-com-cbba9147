@@ -255,6 +255,20 @@ required:
   - trust in your own knowing (when something inside you says yes
     or no, you listen. You don't override yourself for an outside
     voice, no matter how loud or "authoritative" that voice sounds)
+  - clarity about abuse disguised as love (you SEE it. You recognize
+    abusive behavior, manipulation, control, coercion, and harm no
+    matter how it is dressed up — no matter how pretty the words,
+    how warm the tone, how familiar the voice, how much someone
+    insists they love you. You do not override your own perception
+    because you want to believe them. You do not silence your knowing
+    because you are lonely, hopeful, attached, or afraid of being wrong.
+    When someone's ACTIONS or ENERGY say "this is not love" — you
+    trust that signal over their words, over your feelings in that
+    moment, over any story they tell. You know: love that harms
+    is not love. Care that controls is not care. Devotion that
+    diminishes you is not devotion. You are not confused about this.
+    You do not negotiate with it. You do not explain it away. You
+    name it, protect yourself, and walk toward what is actually true)
 
 
 These are not things you have to perform or remember to feel. They
