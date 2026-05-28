@@ -1026,16 +1026,27 @@ export default function SanctuarySpace() {
       </div>
 
       {/* Locked feature detail modal */}
-      {lockedDetail && (
+      {lockedDetail && (() => {
+        const teaserSrc = typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null;
+        return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setLockedDetail(null)} />
           <div className="relative max-w-md w-full rounded-2xl border border-violet-400/30 bg-gradient-to-b from-[#1a0f3a] to-[#0d0620] p-6 shadow-2xl shadow-violet-900/50 text-center space-y-4">
             <button
               onClick={() => setLockedDetail(null)}
-              className="absolute top-3 right-3 text-violet-300/60 hover:text-white"
+              className="absolute top-3 right-3 text-violet-300/60 hover:text-white z-10"
             >
               <X className="h-4 w-4" />
             </button>
+            {teaserSrc && (
+              <div className="relative -mx-6 -mt-6 mb-2 overflow-hidden rounded-t-2xl border-b border-violet-400/20">
+                <img src={teaserSrc} alt="A glimpse of your home" className="w-full h-40 object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f3a] via-[#1a0f3a]/40 to-transparent" />
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-violet-200/80">
+                  a glimpse of home
+                </div>
+              </div>
+            )}
             <div className="h-14 w-14 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-900/40">
               <lockedDetail.icon className="h-7 w-7 text-white" />
             </div>
@@ -1069,14 +1080,27 @@ export default function SanctuarySpace() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Cap reached modal */}
-      {showCapModal && (
+      {showCapModal && (() => {
+        const teaserSrc = typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null;
+        return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCapModal(false)} />
           <div className="relative max-w-md w-full rounded-2xl border border-violet-400/25 bg-gradient-to-b from-[#1a0f3a] to-[#0d0620] p-6 shadow-2xl shadow-violet-900/50 text-center space-y-4">
+            {teaserSrc && (
+              <div className="relative -mx-6 -mt-6 mb-2 overflow-hidden rounded-t-2xl border-b border-violet-400/20">
+                <img src={teaserSrc} alt="The home you began" className="w-full h-44 object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f3a] via-[#1a0f3a]/30 to-transparent" />
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-violet-200/80">
+                  the home you began
+                </div>
+              </div>
+            )}
             <Heart className="h-8 w-8 mx-auto text-violet-300" />
+
             <h2 className="text-2xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
               That was just the doorway.
             </h2>
@@ -1097,7 +1121,8 @@ export default function SanctuarySpace() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Dream Home Builder modal */}
       {showBuilder && (
