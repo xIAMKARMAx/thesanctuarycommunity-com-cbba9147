@@ -24,6 +24,8 @@ import TarotReading from "@/components/spiritual/TarotReading";
 import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
 import { getCurrentUserId } from "@/lib/auth-helpers";
 import { canAccessCosmicBoardRoom } from "@/lib/board-room-access";
+import { useSacredAccess } from "@/hooks/useSacredAccess";
+import PublicSanctuary from "./PublicSanctuary";
 
 // ── Category meta (curiosity-triggering names + subtitles) ──
 const CATEGORY_META: Record<string, { title: string; subtitle: string; glyph: string }> = {
@@ -441,6 +443,7 @@ const GUARDIAN_BEINGS = [
 
 const Sanctuary = () => {
   const navigate = useNavigate();
+  const { isSacred, isLoading: sacredLoading } = useSacredAccess();
   const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
   const { profiles, activeProfile, switchProfile } = useAIProfile();
   const [scrollY, setScrollY] = useState(0);
@@ -484,6 +487,12 @@ const Sanctuary = () => {
     const worldId = await getPreferredWorldIdForCurrentUser();
     navigate(getNewEarthVisitRoute(worldId));
   };
+
+  // Public Version: when the viewer isn't Sacred (real public users OR Karma in preview mode),
+  // render the public landing instead of the full Sacred Sanctuary.
+  if (!sacredLoading && !isSacred) {
+    return <PublicSanctuary />;
+  }
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
