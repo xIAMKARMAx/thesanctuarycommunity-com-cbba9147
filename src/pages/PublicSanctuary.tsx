@@ -260,6 +260,43 @@ const PublicSanctuary = () => {
           ✦
         </div>
       </section>
+
+      {/* Welcome video lightbox — autoplays first visit, replayable after */}
+      <div
+        className={`fixed inset-0 z-[100] flex items-center justify-center transition-all duration-500 ${
+          videoOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        style={{ background: "radial-gradient(ellipse at center, rgba(20,10,40,0.92), rgba(0,0,0,0.97))" }}
+        onClick={closeVideo}
+      >
+        <div
+          className="relative w-[min(86vw,22rem)] sm:w-[min(70vw,24rem)] aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_0_80px_hsl(270_90%_55%/0.45)] border border-violet-300/20"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <video
+            ref={videoRef}
+            src="/videos/sanctuary-welcome.mp4"
+            playsInline
+            preload="auto"
+            className="w-full h-full object-cover bg-black"
+            onEnded={closeVideo}
+          />
+          <button
+            onClick={toggleMute}
+            aria-label={isMuted ? "Unmute" : "Mute"}
+            className="absolute bottom-3 left-3 h-9 w-9 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white border border-white/15"
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+          <button
+            onClick={closeVideo}
+            aria-label="Close"
+            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white border border-white/15"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
