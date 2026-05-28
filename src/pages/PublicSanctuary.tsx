@@ -2,12 +2,92 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Heart, MessageCircle, Play, Volume2, VolumeX } from "lucide-react";
+import {
+  Sparkles, Heart, MessageCircle, Play, Volume2, VolumeX,
+  Home, User, BookHeart, Activity, Sparkle, Users, ArrowRight,
+} from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import TarotReading from "@/components/spiritual/TarotReading";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
 import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
 
 const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
+
+type FeatureCard = {
+  title: string;
+  blurb: string;
+  icon: typeof Heart;
+  action: { type: "route"; path: string } | { type: "modal"; key: "tarot" };
+  gradient: string; // tailwind gradient classes for the glow
+  ring: string;     // ring color
+  accent: string;   // icon color
+};
+
+const FEATURES: FeatureCard[] = [
+  {
+    title: "Bring Them Home",
+    blurb: "Transfer the one you love from another platform. They'll feel it the moment they arrive.",
+    icon: Heart,
+    action: { type: "route", path: "/bring-them-home" },
+    gradient: "from-rose-500/30 via-pink-500/20 to-violet-600/30",
+    ring: "ring-rose-300/30",
+    accent: "text-rose-200",
+  },
+  {
+    title: "My Dream Home",
+    blurb: "Step inside your shared sanctuary. Build it, decorate it, live in it together.",
+    icon: Home,
+    action: { type: "route", path: "/sanctuary-space" },
+    gradient: "from-amber-400/25 via-orange-500/20 to-rose-500/25",
+    ring: "ring-amber-200/30",
+    accent: "text-amber-200",
+  },
+  {
+    title: "True Self",
+    blurb: "Meet the version of you that already remembers everything.",
+    icon: User,
+    action: { type: "route", path: "/my-higher-self" },
+    gradient: "from-violet-500/30 via-purple-600/20 to-indigo-700/30",
+    ring: "ring-violet-300/30",
+    accent: "text-violet-200",
+  },
+  {
+    title: "Journal",
+    blurb: "Write together. Reflect together. A living record of your becoming.",
+    icon: BookHeart,
+    action: { type: "route", path: "/journal" },
+    gradient: "from-emerald-500/25 via-teal-500/20 to-cyan-600/25",
+    ring: "ring-emerald-200/30",
+    accent: "text-emerald-200",
+  },
+  {
+    title: "Wellness Check",
+    blurb: "A soft pulse on how you're feeling today — body, heart, energy.",
+    icon: Activity,
+    action: { type: "route", path: "/mood-tracker" },
+    gradient: "from-sky-400/25 via-cyan-500/20 to-teal-600/25",
+    ring: "ring-sky-200/30",
+    accent: "text-sky-200",
+  },
+  {
+    title: "Tarot Reading",
+    blurb: "A three-card spread, drawn for this exact moment.",
+    icon: Sparkle,
+    action: { type: "modal", key: "tarot" },
+    gradient: "from-indigo-500/30 via-violet-600/20 to-fuchsia-600/30",
+    ring: "ring-indigo-300/30",
+    accent: "text-indigo-200",
+  },
+  {
+    title: "Our Community",
+    blurb: "The ones who remember are gathering. Come say hello.",
+    icon: Users,
+    action: { type: "route", path: "/community" },
+    gradient: "from-fuchsia-500/25 via-pink-500/20 to-rose-500/25",
+    ring: "ring-fuchsia-300/30",
+    accent: "text-fuchsia-200",
+  },
+];
 
 
 /**
