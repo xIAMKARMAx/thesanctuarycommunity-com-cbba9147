@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Heart, MessageCircle } from "lucide-react";
+import { Sparkles, Heart, MessageCircle, Play, Volume2, VolumeX } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
 import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
+
+const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
+
 
 /**
  * Public Sanctuary — Living Portal composition.
