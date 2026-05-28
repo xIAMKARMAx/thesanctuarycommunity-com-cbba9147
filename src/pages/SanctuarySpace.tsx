@@ -779,12 +779,16 @@ export default function SanctuarySpace() {
 
       {/* The Room — full-bleed backdrop with everything floating over it */}
       <div className="relative flex-1 overflow-hidden">
-        {/* Backdrop */}
-        <img
-          src={currentBackdrop}
-          alt={activeRoom ? activeRoom.name : "A cozy dream room with a window to the cosmos"}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {/* Backdrop — cosmic aurora for unsubscribed preview, painted room once unlocked or a room is chosen */}
+        {!activeRoom && !unlocked ? (
+          <CosmicAuroraBackdrop motes={26} />
+        ) : (
+          <img
+            src={currentBackdrop}
+            alt={activeRoom ? activeRoom.name : "A cozy dream room with a window to the cosmos"}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
