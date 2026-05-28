@@ -21,6 +21,7 @@ import {
   Crown,
   X,
   MessageCircle,
+  Camera,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
