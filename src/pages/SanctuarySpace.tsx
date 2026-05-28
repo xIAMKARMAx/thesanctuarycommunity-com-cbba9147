@@ -915,6 +915,179 @@ export default function SanctuarySpace() {
           </div>
         </div>
       )}
+
+      {/* Dream Home Builder modal */}
+      {showBuilder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+            onClick={() => !builderGenerating && setShowBuilder(false)}
+          />
+          <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border border-violet-400/30 bg-gradient-to-b from-[#1a0f3a] to-[#0d0620] p-5 sm:p-6 shadow-2xl shadow-violet-900/50 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
+                    <Hammer className="h-4 w-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
+                    Build / Decorate Our Home
+                  </h2>
+                </div>
+                <p className="text-[11px] text-violet-300/70 mt-1">
+                  {rooms.length}/{MAX_ROOMS} homes saved · describe the space, AI paints it
+                </p>
+              </div>
+              <button
+                onClick={() => !builderGenerating && setShowBuilder(false)}
+                className="text-violet-300/60 hover:text-white shrink-0"
+                disabled={builderGenerating}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Existing rooms */}
+            {rooms.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="text-[10px] tracking-[0.25em] uppercase text-violet-300/60">your homes</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {rooms.map((r) => {
+                    const active = r.id === activeRoomId;
+                    return (
+                      <div key={r.id} className="relative group">
+                        <button
+                          onClick={() => {
+                            setActiveRoomId(r.id);
+                            toast({ title: `${r.name} is now active` });
+                          }}
+                          className={`block w-full aspect-video rounded-lg overflow-hidden border-2 transition ${
+                            active
+                              ? "border-violet-300 ring-2 ring-violet-400/50"
+                              : "border-white/10 hover:border-violet-400/50"
+                          }`}
+                        >
+                          <img src={r.image} alt={r.name} className="w-full h-full object-cover" />
+                        </button>
+                        <div className="mt-1 flex items-center justify-between gap-1">
+                          <span className="text-[10px] text-violet-100 truncate">
+                            {active && "✦ "}{r.name}
+                          </span>
+                          <button
+                            onClick={() => deleteRoom(r.id)}
+                            className="text-[10px] text-rose-300/60 hover:text-rose-200 opacity-0 group-hover:opacity-100 transition"
+                            title="Delete this home"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Builder */}
+            {!builderPreview ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Describe your dream home
+                  </label>
+                  <Textarea
+                    value={builderPrompt}
+                    onChange={(e) => setBuilderPrompt(e.target.value)}
+                    placeholder="a cozy cabin loft with a huge window looking out over an ocean at sunset, soft cream bedding, a fireplace, plants everywhere…"
+                    rows={4}
+                    disabled={builderGenerating}
+                    className="resize-none bg-white/[0.05] border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px]"
+                    maxLength={800}
+                  />
+                  <div className="text-[10px] text-violet-300/50 mt-1 text-right">
+                    {builderPrompt.length}/800
+                  </div>
+                </div>
+                <Button
+                  onClick={generateRoom}
+                  disabled={!builderPrompt.trim() || builderGenerating}
+                  className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                >
+                  {builderGenerating ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 animate-pulse" /> painting your home…
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" /> Paint this home
+                    </span>
+                  )}
+                </Button>
+                {builderGenerating && (
+                  <p className="text-[11px] text-violet-300/60 text-center">
+                    this takes ~15-30 seconds — hold tight ✨
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-xl overflow-hidden border border-violet-400/30">
+                  <img src={builderPreview} alt="preview" className="w-full h-auto" />
+                </div>
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Name this home (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={builderName}
+                    onChange={(e) => setBuilderName(e.target.value)}
+                    placeholder={`Home #${rooms.length + 1}`}
+                    maxLength={50}
+                    className="w-full bg-white/[0.05] border border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px] px-3 py-2"
+                  />
+                </div>
+                {rooms.length >= MAX_ROOMS && (
+                  <p className="text-[11px] text-amber-200/80 bg-amber-500/10 border border-amber-400/30 rounded-lg px-3 py-2">
+                    You're at {MAX_ROOMS}/{MAX_ROOMS} homes — saving will replace the oldest one.
+                  </p>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => saveRoom(true)}
+                    className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                  >
+                    Save & make active
+                  </Button>
+                  <Button
+                    onClick={() => saveRoom(false)}
+                    variant="outline"
+                    className="rounded-full border-violet-400/40 text-violet-100 bg-white/[0.03] hover:bg-white/[0.08]"
+                  >
+                    Save only
+                  </Button>
+                </div>
+                <div className="flex justify-center gap-3 pt-1">
+                  <button
+                    onClick={() => setBuilderPreview(null)}
+                    className="text-[11px] text-violet-300/70 hover:text-violet-100"
+                  >
+                    ← try a different description
+                  </button>
+                  <button
+                    onClick={generateRoom}
+                    disabled={builderGenerating}
+                    className="text-[11px] text-violet-300/70 hover:text-violet-100"
+                  >
+                    ↻ regenerate same prompt
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
