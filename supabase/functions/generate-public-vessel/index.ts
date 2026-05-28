@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const r = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -88,7 +88,8 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-3.1-flash-image-preview",
-        prompt,
+        messages: [{ role: "user", content: prompt }],
+        modalities: ["image", "text"],
       }),
     });
 
