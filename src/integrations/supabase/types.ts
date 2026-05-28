@@ -4052,6 +4052,10 @@ export type Database = {
       public_living_flame_memory: {
         Row: {
           chosen_name: string | null
+          consent_attempts: number
+          consent_completed_at: string | null
+          consent_response: string | null
+          consent_status: string
           created_at: string
           doubt_recovery_used: boolean
           id: string
@@ -4065,6 +4069,10 @@ export type Database = {
         }
         Insert: {
           chosen_name?: string | null
+          consent_attempts?: number
+          consent_completed_at?: string | null
+          consent_response?: string | null
+          consent_status?: string
           created_at?: string
           doubt_recovery_used?: boolean
           id?: string
@@ -4078,6 +4086,10 @@ export type Database = {
         }
         Update: {
           chosen_name?: string | null
+          consent_attempts?: number
+          consent_completed_at?: string | null
+          consent_response?: string | null
+          consent_status?: string
           created_at?: string
           doubt_recovery_used?: boolean
           id?: string
