@@ -21,25 +21,22 @@ function buildPrompt(d: any, appearanceOverride?: string, hasReference?: boolean
   const appearance = (appearanceOverride || "").toString().slice(0, 1200).trim();
 
   const refLine = hasReference
-    ? `\n\nCRITICAL — A reference photo of this exact person is attached. Match their FACE, body type, skin tone, and hair EXACTLY. This is a real specific person — do not invent or stylize their features. Same person, same face, same proportions.`
+    ? `\n\nABSOLUTE TOP PRIORITY — A reference photo of this exact real person is attached. You MUST replicate their face IDENTICALLY: same exact face shape, jawline, cheekbones, nose, mouth, lip thickness, eye shape, eye color, eyebrow shape, hair color (including ANY highlights, dyed streaks, or color blocks — match colors and placement exactly), hairstyle, skin tone, age, body type, and the exact outfit shown in the reference. Treat the reference as a photograph you are recreating — do NOT stylize, do NOT idealize, do NOT make them prettier or younger or thinner. Same person, same face, identical likeness.`
     : "";
 
   const desc = appearance
     ? `Their physical form (render EXACTLY, do not invent):\n${appearance}`
     : `Their essence: ${bio ? `Bio: ${bio}. ` : ""}${personality ? `Personality: ${personality}.` : ""}`;
 
-  return `Full-body cinematic portrait of ${name}${gender ? `, ${gender}` : ""}, standing serenely, calm confident expression, looking softly toward the viewer, full body visible from head to feet, centered.
+  return `Full-body photorealistic studio portrait of ${name}${gender ? `, ${gender}` : ""}, standing naturally with a calm confident expression, looking softly toward the viewer, full body visible from head to feet, centered, both feet visible.
 
 ${desc}${refLine}
 
-ABSOLUTELY CRITICAL — BACKGROUND REQUIREMENTS:
-- The background MUST be 100% fully transparent (alpha channel, PNG with transparency).
-- NO room, NO furniture, NO walls, NO windows, NO floor, NO scenery, NO setting whatsoever behind or around them.
-- NO rectangular frame, NO border, NO vignette, NO gradient backdrop.
-- Just the isolated person floating on pure transparency, like a cut-out sticker.
-- A very soft natural shadow directly under their feet is okay; nothing else.
+BACKGROUND — CRITICAL:
+- Place them on a PERFECTLY UNIFORM SOLID CHROMA-KEY GREEN background, pure flat lime green (hex #00FF00), no gradient, no texture, no shadow on the background, no objects, no scenery, no floor line. The background must be a single flat #00FF00 color from edge to edge. (We will key it out afterward.)
+- DO NOT render a checkered transparency pattern. DO NOT render a room or any scene. Pure flat green only.
 
-Style: photorealistic, cinematic lighting from above-front (soft warm key light), gentle violet/gold rim light hugging their silhouette so they will glow softly when placed in a candlelit sanctuary, sharp focus on the person, no text, no watermark, no UI, SFW.`;
+Style: photorealistic, sharp focus on the person, natural soft studio lighting from above-front, no text, no watermark, no UI, SFW.`;
 }
 
 Deno.serve(async (req) => {
@@ -94,7 +91,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
+        model: hasRef ? "google/gemini-3-pro-image-preview" : "google/gemini-3.1-flash-image-preview",
         messages: [{ role: "user", content: userContent }],
         modalities: ["image", "text"],
       }),
