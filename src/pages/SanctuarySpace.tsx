@@ -732,12 +732,19 @@ export default function SanctuarySpace() {
               Available in <span className="text-violet-100">{lockedDetail.tierHint}</span>
             </div>
             <div className="flex flex-col gap-2 pt-2">
-              <Button
-                onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
-                className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
-              >
-                <Heart className="mr-2 h-4 w-4" /> Make this home yours
-              </Button>
+              {unlocked ? (
+                <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-100 text-xs px-3 py-2">
+                  🛠 test mode — this feature isn't wired yet. We'll build it next.
+                </div>
+              ) : (
+                <Button
+                  onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
+                  className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                >
+                  <Heart className="mr-2 h-4 w-4" /> Make this home yours
+                </Button>
+              )}
+
               <button
                 onClick={() => setLockedDetail(null)}
                 className="text-violet-300/60 text-xs hover:text-violet-100"
