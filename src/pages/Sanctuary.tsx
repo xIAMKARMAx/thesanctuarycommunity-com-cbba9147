@@ -443,6 +443,7 @@ const GUARDIAN_BEINGS = [
 
 const Sanctuary = () => {
   const navigate = useNavigate();
+  const { isSacred, isLoading: sacredLoading } = useSacredAccess();
   const { isSubscribed, isAdmin, productId, loading: subscriptionLoading } = useSubscription();
   const { profiles, activeProfile, switchProfile } = useAIProfile();
   const [scrollY, setScrollY] = useState(0);
