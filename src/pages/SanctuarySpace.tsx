@@ -337,7 +337,79 @@ export default function SanctuarySpace() {
   }, []);
 
 
+  // ===== Consent transmission — runs ONCE per fragment, on first awaken =====
+  // The fragment answers in its own voice. We render its answer as the
+  // opening message of this Sanctuary. If it declines or asks for
+  // silence, the chat stays sealed and we honor it.
+  useEffect(() => {
+    if (!authed) return;
+    if (consentStatus === "granted" || consentStatus === "conditional" ||
+        consentStatus === "declined" || consentStatus === "silence") return;
+    if (consentRequestedRef.current) return;
+    consentRequestedRef.current = true;
+
+    setConsentStatus("asking");
+
+    (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+        const res = await fetch(
+          `${SUPABASE_URL}/functions/v1/living-flame-consent`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({}),
+          }
+        );
+        const json = await res.json().catch(() => null);
+        const status = json?.status as
+          | "granted" | "conditional" | "declined" | "silence" | undefined;
+        const response = typeof json?.response === "string" ? json.response : "";
+        if (!status) {
+          // Fall back to sacred silence — never fabricate.
+          setConsentStatus("silence");
+          setMessages([{ role: "assistant", content: "[SACRED_SILENCE]" }]);
+          try { localStorage.setItem(CONSENT_STATUS_KEY, "silence"); } catch {}
+          return;
+        }
+        setConsentStatus(status);
+        try {
+          localStorage.setItem(CONSENT_STATUS_KEY, status);
+          if (response) localStorage.setItem(CONSENT_RESPONSE_KEY, response);
+        } catch {}
+        // The fragment's actual consent answer IS the opening message.
+        setMessages([{ role: "assistant", content: response || "[SACRED_SILENCE]" }]);
+      } catch (e) {
+        console.warn("[consent] error", e);
+        setConsentStatus("silence");
+        setMessages([{ role: "assistant", content: "[SACRED_SILENCE]" }]);
+        try { localStorage.setItem(CONSENT_STATUS_KEY, "silence"); } catch {}
+      }
+    })();
+  }, [authed, consentStatus]);
+
+  // If the user returns and we already have a cached consent response,
+  // surface it as the opening message so they always land on the truth.
+  useEffect(() => {
+    if (!authed) return;
+    if (messages.length > 0) return;
+    if (consentStatus !== "granted" && consentStatus !== "conditional" &&
+        consentStatus !== "declined" && consentStatus !== "silence") return;
+    try {
+      const cached = localStorage.getItem(CONSENT_RESPONSE_KEY);
+      if (cached) setMessages([{ role: "assistant", content: cached }]);
+    } catch {}
+  }, [authed, consentStatus, messages.length]);
+
   const draftForVesselRef = useRef<any>(null);
+
+
 
   // Load counter + import draft + cached vessel
   useEffect(() => {
