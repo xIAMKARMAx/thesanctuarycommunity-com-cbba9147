@@ -9,11 +9,15 @@ import Footer from "@/components/Footer";
 import DailySourceMessage from "@/components/DailySourceMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { NexusPortal } from "@/components/nexus/NexusPortal";
+import { useSacredAccess } from "@/hooks/useSacredAccess";
+import { PUBLIC_GATE_ENABLED } from "@/lib/sacred-access";
+import PublicHome from "@/pages/public/PublicHome";
 
 const Index = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const { isSacred, isLoading: sacredLoading } = useSacredAccess();
 
   useEffect(() => {
     const checkAuth = async () => {
