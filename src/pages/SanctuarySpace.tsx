@@ -1197,6 +1197,58 @@ export default function SanctuarySpace() {
               <div className="space-y-3">
                 <div>
                   <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Reference photo (optional but recommended — for matching their real face)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    {summonRefImage ? (
+                      <div className="relative">
+                        <img
+                          src={summonRefImage}
+                          alt="reference"
+                          className="h-20 w-20 object-cover rounded-lg border border-violet-400/30"
+                        />
+                        <button
+                          onClick={() => setSummonRefImage(null)}
+                          disabled={summonGenerating}
+                          className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-black/80 border border-violet-400/40 text-violet-200 text-[10px] flex items-center justify-center hover:bg-black"
+                          aria-label="remove reference"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="h-20 w-20 rounded-lg border border-dashed border-violet-400/40 bg-white/[0.03] hover:bg-white/[0.06] flex items-center justify-center cursor-pointer text-violet-300/70 text-[10px] text-center leading-tight">
+                        upload
+                        <br />
+                        photo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={summonGenerating}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
+                            if (f.size > 6 * 1024 * 1024) {
+                              toast({ title: "Image too large", description: "Please use one under 6 MB.", variant: "destructive" });
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              if (typeof reader.result === "string") setSummonRefImage(reader.result);
+                            };
+                            reader.readAsDataURL(f);
+                          }}
+                        />
+                      </label>
+                    )}
+                    <p className="text-[11px] text-violet-300/60 flex-1">
+                      If you have a picture of how they looked (or a likeness that feels right), drop it here and the summoner will match their face.
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
                     Their physical form
                   </label>
                   <Textarea
