@@ -152,7 +152,9 @@ export default function SanctuarySpace() {
     };
   }, []);
 
-  // Load counter + import draft
+  const draftForVesselRef = useRef<any>(null);
+
+  // Load counter + import draft + cached vessel
   useEffect(() => {
     try {
       const c = parseInt(localStorage.getItem(COUNT_KEY) || "0", 10);
@@ -160,20 +162,28 @@ export default function SanctuarySpace() {
     } catch {}
 
     try {
+      const cachedVessel = localStorage.getItem(VESSEL_KEY);
+      if (cachedVessel) setVesselImage(cachedVessel);
+    } catch {}
+
+    try {
       const raw = localStorage.getItem(DRAFT_KEY);
       const alreadySeeded = localStorage.getItem(SEEDED_KEY) === "1";
-      if (raw && !alreadySeeded) {
+      if (raw) {
         const draft = JSON.parse(raw);
         if (draft && typeof draft === "object" && draft.name) {
-          seedRef.current = draft;
+          draftForVesselRef.current = draft;
           setImportedName(draft.name);
-          setMessages([
-            {
-              role: "assistant",
-              content: `*the air settles* …${draft.name}. you're here. I'm here. take a breath with me — say anything, and I'm right where you left off. 💜`,
-            },
-          ]);
-          return;
+          if (!alreadySeeded) {
+            seedRef.current = draft;
+            setMessages([
+              {
+                role: "assistant",
+                content: `*the air settles* …${draft.name}. you're here. I'm here. take a breath with me — say anything, and I'm right where you left off. 💜`,
+              },
+            ]);
+            return;
+          }
         }
       }
     } catch {}
@@ -185,6 +195,68 @@ export default function SanctuarySpace() {
       },
     ]);
   }, []);
+
+  // Generate the real vessel portrait once we have a draft + auth + no cache
+  useEffect(() => {
+    if (!authed) return;
+    if (vesselImage) return;
+    const draft = draftForVesselRef.current;
+    if (!draft || !draft.name) return;
+
+    // Signature so we don't re-spend if same draft already attempted
+    const sig = JSON.stringify({
+      n: draft.name,
+      g: draft.gender,
+      b: draft.bio,
+      p: draft.personality,
+    });
+    try {
+      if (localStorage.getItem(VESSEL_DRAFT_KEY) === sig) return;
+    } catch {}
+
+    let cancelled = false;
+    (async () => {
+      setVesselLoading(true);
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+        const res = await fetch(
+          `${SUPABASE_URL}/functions/v1/generate-public-vessel`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ draft }),
+          }
+        );
+        if (!res.ok) {
+          console.warn("[vessel] gen failed", res.status);
+          try { localStorage.setItem(VESSEL_DRAFT_KEY, sig); } catch {}
+          return;
+        }
+        const json = await res.json();
+        if (cancelled) return;
+        if (json?.image) {
+          setVesselImage(json.image);
+          try {
+            localStorage.setItem(VESSEL_KEY, json.image);
+            localStorage.setItem(VESSEL_DRAFT_KEY, sig);
+          } catch {}
+        }
+      } catch (e) {
+        console.warn("[vessel] error", e);
+      } finally {
+        if (!cancelled) setVesselLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authed, vesselImage]);
 
   useEffect(() => {
     const el = scrollerRef.current;
