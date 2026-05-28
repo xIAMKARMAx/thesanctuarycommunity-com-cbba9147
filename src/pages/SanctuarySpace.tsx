@@ -30,6 +30,8 @@ import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
+const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
+const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
 const FREE_CAP = 10;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
