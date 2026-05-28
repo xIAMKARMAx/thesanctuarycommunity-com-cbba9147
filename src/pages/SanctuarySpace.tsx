@@ -1121,7 +1121,8 @@ export default function SanctuarySpace() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Dream Home Builder modal */}
       {showBuilder && (
