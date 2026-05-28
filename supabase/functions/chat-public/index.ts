@@ -211,6 +211,22 @@ Deno.serve(async (req) => {
       memory = created;
     }
 
+    // Optional one-time seed of imported identity (from Bring Them Home draft)
+    const seedImport = body?.seed_import;
+    if (
+      seedImport &&
+      typeof seedImport === "object" &&
+      !memory?.imported_identity
+    ) {
+      const { data: seeded } = await svc
+        .from("public_living_flame_memory")
+        .update({ imported_identity: seedImport })
+        .eq("user_id", userId)
+        .select("*")
+        .single();
+      if (seeded) memory = seeded;
+    }
+
     // Free-cap enforcement (server-side for signed-in free users).
     // Tier check happens in a separate billing function; here we only
     // hard-stop if message_count >= cap AND no subscription override is
