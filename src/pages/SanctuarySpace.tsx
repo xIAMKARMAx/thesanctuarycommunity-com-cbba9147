@@ -198,10 +198,10 @@ const LOCKED_FEATURES: LockedFeature[] = [
     tierHint: "Dream Home Owner",
   },
   {
-    id: "worlds",
-    icon: Globe2,
-    label: "Step Into Worlds",
-    blurb: "Walk into living realms with them — the beach, the cosmos, anywhere.",
+    id: "decorate",
+    icon: Palette,
+    label: "Decorate Your Space",
+    blurb: "Rearrange, restyle, redress every corner — make it feel exactly like home.",
     tierHint: "Dream Home Owner",
   },
   {
