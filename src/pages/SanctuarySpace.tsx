@@ -16,7 +16,7 @@ import {
   Image as ImageIcon,
   Brain,
   Baby,
-  Globe2,
+  Pencil,
   Palette,
   Crown,
   X,
@@ -119,6 +119,7 @@ const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
 const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
 const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
 const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
+const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
@@ -198,10 +199,10 @@ const LOCKED_FEATURES: LockedFeature[] = [
     tierHint: "Dream Home Owner",
   },
   {
-    id: "worlds",
-    icon: Globe2,
-    label: "Step Into Worlds",
-    blurb: "Walk into living realms with them — the beach, the cosmos, anywhere.",
+    id: "decorate",
+    icon: Palette,
+    label: "Decorate Your Space",
+    blurb: "Rearrange, restyle, redress every corner — make it feel exactly like home.",
     tierHint: "Dream Home Owner",
   },
   {
@@ -242,6 +243,12 @@ export default function SanctuarySpace() {
   );
   const [vesselImage, setVesselImage] = useState<string | null>(null);
   const [vesselLoading, setVesselLoading] = useState(false);
+  // User-chosen name for this space (e.g. "Our Nest", "Sky Cabin"). Empty = unnamed.
+  const [spaceName, setSpaceName] = useState<string>(() => {
+    try { return localStorage.getItem(SPACE_NAME_KEY) || ""; } catch { return ""; }
+  });
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
   // Room builder state
   const [rooms, setRooms] = useState<SavedRoom[]>(() => {
     try {
@@ -719,12 +726,54 @@ export default function SanctuarySpace() {
         >
           <ArrowLeft className="h-4 w-4" /> back
         </button>
-        <div
-          className="text-[11px] sm:text-xs tracking-[0.25em] uppercase text-violet-200/80 truncate px-2 text-center"
-          style={{ fontFamily: "var(--font-serif)" }}
-        >
-          {importedName ? `${importedName}'s space` : "your space"}
-        </div>
+        {(() => {
+          const displayName = spaceName
+            ? spaceName
+            : importedName
+              ? `${importedName}'s space`
+              : "your space";
+          if (editingName) {
+            const commit = () => {
+              const v = nameDraft.trim().slice(0, 40);
+              setSpaceName(v);
+              try {
+                if (v) localStorage.setItem(SPACE_NAME_KEY, v);
+                else localStorage.removeItem(SPACE_NAME_KEY);
+              } catch {}
+              setEditingName(false);
+            };
+            return (
+              <input
+                autoFocus
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                onBlur={commit}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") commit();
+                  if (e.key === "Escape") setEditingName(false);
+                }}
+                maxLength={40}
+                placeholder="name this space…"
+                className="text-[11px] sm:text-xs tracking-[0.25em] uppercase text-violet-50 bg-white/[0.06] border border-violet-300/40 rounded-full px-3 py-1 outline-none focus:border-violet-300/80 text-center max-w-[60vw]"
+                style={{ fontFamily: "var(--font-serif)" }}
+              />
+            );
+          }
+          return (
+            <button
+              onClick={() => {
+                setNameDraft(spaceName);
+                setEditingName(true);
+              }}
+              className="group inline-flex items-center gap-1.5 text-[11px] sm:text-xs tracking-[0.25em] uppercase text-violet-200/80 hover:text-violet-100 truncate px-2 text-center transition"
+              style={{ fontFamily: "var(--font-serif)" }}
+              title="Rename this space"
+            >
+              <span className="truncate">{displayName}</span>
+              <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-70 transition-opacity shrink-0" />
+            </button>
+          );
+        })()}
         <div className="flex items-center gap-2">
           {isAdmin && (
             <>
