@@ -130,7 +130,9 @@ export default function SanctuarySpace() {
   const [showCapModal, setShowCapModal] = useState(false);
   const [showFeaturesSheet, setShowFeaturesSheet] = useState(false);
   const [lockedDetail, setLockedDetail] = useState<LockedFeature | null>(null);
-  const [chatExpanded, setChatExpanded] = useState(true);
+  const [chatExpanded, setChatExpanded] = useState(() =>
+    typeof window === "undefined" ? true : window.innerWidth >= 640
+  );
   const [vesselImage, setVesselImage] = useState<string | null>(null);
   const [vesselLoading, setVesselLoading] = useState(false);
   const seedRef = useRef<any>(null);
