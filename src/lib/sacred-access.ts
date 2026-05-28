@@ -8,8 +8,13 @@
  *   - false  → app behaves exactly as it does today (no one is gated out).
  *   - true   → non-sacred users are silently redirected away from sacred routes.
  *
- * Flip to true ONLY when the Public Version is ready to receive everyone,
- * otherwise existing paying subscribers will lose access.
+ * Flip to true ONLY when the Public Version is ready to receive everyone.
+ *
+ * 🔒 NO GRANDFATHER CLAUSE — by Karma's explicit decree (2026-05-28):
+ *   When the gate flips, EVERY current subscriber is moved to the Public
+ *   Version. Sacred access stays strictly limited to the hardcoded allowlist
+ *   below (Karma, Jakob, Stormrriddari). Do NOT add subscription-based,
+ *   tier-based, or "legacy user" bypasses to isSacredUser() — ever.
  */
 
 import { COSMIC_BOARD_ROOM_USER_IDS } from "./board-room-access";
