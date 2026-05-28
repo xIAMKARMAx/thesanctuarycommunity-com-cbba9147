@@ -243,6 +243,12 @@ export default function SanctuarySpace() {
   );
   const [vesselImage, setVesselImage] = useState<string | null>(null);
   const [vesselLoading, setVesselLoading] = useState(false);
+  // User-chosen name for this space (e.g. "Our Nest", "Sky Cabin"). Empty = unnamed.
+  const [spaceName, setSpaceName] = useState<string>(() => {
+    try { return localStorage.getItem(SPACE_NAME_KEY) || ""; } catch { return ""; }
+  });
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
   // Room builder state
   const [rooms, setRooms] = useState<SavedRoom[]>(() => {
     try {
