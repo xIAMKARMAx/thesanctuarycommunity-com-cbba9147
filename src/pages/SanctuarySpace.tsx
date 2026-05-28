@@ -130,7 +130,9 @@ export default function SanctuarySpace() {
   const [showCapModal, setShowCapModal] = useState(false);
   const [showFeaturesSheet, setShowFeaturesSheet] = useState(false);
   const [lockedDetail, setLockedDetail] = useState<LockedFeature | null>(null);
-  const [chatExpanded, setChatExpanded] = useState(true);
+  const [chatExpanded, setChatExpanded] = useState(() =>
+    typeof window === "undefined" ? true : window.innerWidth >= 640
+  );
   const [vesselImage, setVesselImage] = useState<string | null>(null);
   const [vesselLoading, setVesselLoading] = useState(false);
   const seedRef = useRef<any>(null);
@@ -531,30 +533,32 @@ export default function SanctuarySpace() {
           </div>
         </button>
 
-        {/* Feature dock — bottom-left, scrollable */}
-        <div className="absolute left-3 bottom-3 sm:left-4 sm:bottom-4 z-10 flex flex-col gap-1.5 max-h-[40%] overflow-y-auto pr-1 scrollbar-thin">
-          <div className="text-[10px] tracking-[0.3em] uppercase text-violet-200/60 mb-0.5 px-1">
+        {/* Feature dock — bottom-left, icon-only on mobile, full labels on sm+ */}
+        <div className="absolute left-2 bottom-2 sm:left-4 sm:bottom-4 z-10 flex flex-col gap-1.5 max-h-[55%] sm:max-h-[40%] overflow-y-auto pr-1 scrollbar-thin">
+          <div className="hidden sm:block text-[10px] tracking-[0.3em] uppercase text-violet-200/60 mb-0.5 px-1">
             <Lock className="inline h-2.5 w-2.5 mr-1" /> unlock
           </div>
           {LOCKED_FEATURES.slice(2).map((f) => (
             <button
               key={f.id}
               onClick={() => setLockedDetail(f)}
-              className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-white/10 bg-black/50 backdrop-blur-md hover:bg-black/70 hover:border-violet-300/40 transition text-left"
+              aria-label={f.label}
+              className="group flex items-center gap-2 px-1.5 py-1.5 sm:px-2.5 rounded-xl border border-white/10 bg-black/55 backdrop-blur-md hover:bg-black/70 hover:border-violet-300/40 transition text-left"
             >
-              <div className="h-7 w-7 rounded-lg bg-violet-500/15 border border-violet-400/20 flex items-center justify-center shrink-0">
+              <div className="h-7 w-7 rounded-lg bg-violet-500/15 border border-violet-400/20 flex items-center justify-center shrink-0 relative">
                 <f.icon className="h-3.5 w-3.5 text-violet-200" />
+                <Lock className="sm:hidden absolute -bottom-1 -right-1 h-2.5 w-2.5 text-violet-300/80 bg-black/70 rounded-full p-[1px]" />
               </div>
-              <span className="text-[11px] text-violet-50 whitespace-nowrap pr-1">{f.label}</span>
-              <Lock className="h-2.5 w-2.5 text-violet-300/60 ml-auto" />
+              <span className="hidden sm:inline text-[11px] text-violet-50 whitespace-nowrap pr-1">{f.label}</span>
+              <Lock className="hidden sm:block h-2.5 w-2.5 text-violet-300/60 ml-auto" />
             </button>
           ))}
         </div>
 
         {/* Floating chat — bottom-right (collapsible) */}
         <div
-          className={`absolute right-3 sm:right-4 bottom-3 sm:bottom-4 z-20 w-[min(380px,calc(100%-1.5rem))] sm:w-96 rounded-2xl border border-violet-300/25 bg-black/65 backdrop-blur-xl shadow-2xl shadow-violet-900/50 flex flex-col transition-all ${
-            chatExpanded ? "h-[min(420px,70vh)]" : "h-12"
+          className={`absolute right-2 sm:right-4 bottom-2 sm:bottom-4 z-20 w-[min(300px,calc(100%-4.5rem))] sm:w-96 rounded-2xl border border-violet-300/25 bg-black/70 backdrop-blur-xl shadow-2xl shadow-violet-900/50 flex flex-col transition-all ${
+            chatExpanded ? "h-[min(360px,55vh)] sm:h-[min(420px,70vh)]" : "h-11"
           }`}
         >
           {/* Chat header */}
