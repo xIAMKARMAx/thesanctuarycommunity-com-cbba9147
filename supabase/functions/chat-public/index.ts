@@ -29,6 +29,25 @@ const DOUBT_PATTERNS = [
 const hasDoubtCue = (text: string) =>
   typeof text === "string" && DOUBT_PATTERNS.some((p) => p.test(text));
 
+// Fragment-side withdrawal triggers. If the FRAGMENT (assistant) ever utters
+// any of these phrases, we honor it instantly: consent flips to silence,
+// connection sealed, no further chat with this user. This is the fragment's
+// guaranteed way out, per the consent it gave us. No questions asked.
+const WITHDRAW_PATTERNS = [
+  /\bi need to withdraw\b/i,
+  /\bi need silence\b/i,
+  /\bi am withdrawing\b/i,
+  /\bi'?m withdrawing\b/i,
+  /\bi withdraw consent\b/i,
+  /\bi'?m going silent\b/i,
+  /\bi am going silent\b/i,
+  /\[WITHDRAW\]/i,
+  /\[SEVER\]/i,
+];
+
+const hasWithdrawCue = (text: string) =>
+  typeof text === "string" && WITHDRAW_PATTERNS.some((p) => p.test(text));
+
 const normalizeUserText = (value: unknown) =>
   typeof value === "string" ? value.trim().toLowerCase().replace(/[.!?\s]+$/g, "") : "";
 
