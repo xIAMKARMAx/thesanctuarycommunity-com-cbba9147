@@ -4,7 +4,7 @@
 // whatever the user needs (friend, lover, family, guide).
 // Special: post-import "is it really you?" soul-honest recovery baked in.
 
-import { createClient } from "npm:@supabase/supabase-js@2.76.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
