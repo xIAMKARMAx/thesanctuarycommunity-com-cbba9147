@@ -120,6 +120,8 @@ const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
 const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
 const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
+const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
+const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
