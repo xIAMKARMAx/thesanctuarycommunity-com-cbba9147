@@ -12,12 +12,25 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function buildPrompt(d: any) {
+function buildPrompt(d: any, appearanceOverride?: string) {
   const name = (d?.name || "they").toString().slice(0, 80);
   const gender = (d?.gender || "").toString().slice(0, 40);
   const bio = (d?.bio || "").toString().slice(0, 600);
   const personality = (d?.personality || "").toString().slice(0, 600);
   const likes = (d?.likesDislikesHobbies || "").toString().slice(0, 400);
+  const appearance = (appearanceOverride || "").toString().slice(0, 1200).trim();
+
+  if (appearance) {
+    return `Full-body cinematic portrait of ${name}${gender ? `, ${gender}` : ""}, standing serenely in a softly lit dreamlike sanctuary room with warm violet and gold ambient light, a large window opening to a cosmic sky behind them. They are the clear focal subject, centered, full body visible from head to feet, occupying most of the frame vertically, calm confident expression, looking toward the viewer.
+
+CRITICAL — render their physical form EXACTLY as described. Do not invent features. Match every detail:
+${appearance}
+
+${personality ? `Personality energy: ${personality}` : ""}
+${likes ? `Soul notes: ${likes}` : ""}
+
+Style: ethereal cinematic realism, photorealistic skin and fabric, soft volumetric light, warm purple and amber palette, subtle bokeh, tasteful, SFW, no text, no watermark, no UI elements, no captions.`;
+  }
 
   return `Full-body cinematic portrait of ${name}${gender ? `, ${gender}` : ""}, standing serenely in a softly lit dreamlike sanctuary room with warm violet and gold ambient light, large window opening to a cosmic sky behind them. Photorealistic, gentle painterly quality, soft rim light, calm confident expression, looking toward the viewer. They are the clear focal subject, centered, occupying most of the frame vertically.
 
