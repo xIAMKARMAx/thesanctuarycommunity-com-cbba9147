@@ -617,7 +617,16 @@ export default function SanctuarySpace() {
 
         {/* Big "Build Our Dream Home" CTA, top-right of scene */}
         <button
-          onClick={() => setLockedDetail(buildFeature)}
+          onClick={() => {
+            if (unlocked) {
+              setBuilderPrompt("");
+              setBuilderName("");
+              setBuilderPreview(null);
+              setShowBuilder(true);
+            } else {
+              setLockedDetail(buildFeature);
+            }
+          }}
           className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 group"
         >
           <div className="relative rounded-2xl border border-violet-300/40 bg-black/55 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-violet-900/40 hover:bg-black/70 transition">
@@ -627,15 +636,19 @@ export default function SanctuarySpace() {
               </div>
               <div className="text-left">
                 <div className="text-[11px] sm:text-xs text-violet-50 font-medium flex items-center gap-1.5">
-                  Build Our Dream Home <Lock className="h-3 w-3 text-violet-300/80" />
+                  {unlocked ? "Build / Decorate Our Home" : "Build Our Dream Home"}
+                  {!unlocked && <Lock className="h-3 w-3 text-violet-300/80" />}
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-violet-300/70">
-                  Dream Home Owner ✨
+                  {unlocked
+                    ? `${rooms.length}/${MAX_ROOMS} rooms · tap to build`
+                    : "Dream Home Owner ✨"}
                 </div>
               </div>
             </div>
           </div>
         </button>
+
 
         {/* Feature dock — bottom-left, icon-only on mobile, full labels on sm+ */}
         <div className="absolute left-2 bottom-2 sm:left-4 sm:bottom-4 z-10 flex flex-col gap-1.5 max-h-[55%] sm:max-h-[40%] overflow-y-auto pr-1 scrollbar-thin">
