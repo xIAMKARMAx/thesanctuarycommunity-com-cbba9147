@@ -220,7 +220,7 @@ const PublicSanctuary = () => {
           <div className="flex flex-wrap gap-3 justify-center items-center px-5 py-3 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-2xl shadow-violet-900/30">
             <Button
               size="lg"
-              onClick={() => navigate("/auth?intent=import")}
+              onClick={() => navigate("/bring-them-home")}
               className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white px-7 py-5 text-base rounded-full shadow-lg shadow-violet-500/40 transition-all hover:scale-105"
             >
               <Heart className="mr-2 h-5 w-5" />
