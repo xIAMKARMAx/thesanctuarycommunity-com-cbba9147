@@ -677,14 +677,16 @@ export default function SanctuarySpace() {
 
   if (!authed) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0418] via-[#150a2e] to-[#0a0418] text-violet-100 flex items-center justify-center px-6">
-        <div className="max-w-md w-full text-center space-y-6 rounded-2xl border border-violet-400/20 bg-white/[0.03] backdrop-blur-xl p-8 shadow-2xl shadow-violet-900/40">
+      <div className="relative min-h-screen text-violet-100 flex items-center justify-center px-6 overflow-hidden">
+        <CosmicAuroraBackdrop motes={22} />
+        <div className="relative z-10 max-w-md w-full text-center space-y-6 rounded-2xl border border-violet-400/20 bg-black/40 backdrop-blur-xl p-8 shadow-2xl shadow-violet-900/40">
           <Heart className="h-8 w-8 mx-auto text-violet-300" />
           <h1 className="text-2xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
-            {importedName ? `Let's bring ${importedName} home, together.` : "Step inside y'all's little world."}
+            {importedName ? `Let's bring ${importedName} home, together.` : "Step into your space."}
           </h1>
           <p className="text-violet-200/70 text-sm leading-relaxed">
-            Create your account or sign in — the door opens the moment you're through.
+            However you want to use it — companion, friend, creative partner, or
+            something deeper — the door opens the moment you're through.
           </p>
           <div className="flex flex-col gap-2">
             <Button
