@@ -119,6 +119,7 @@ const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
 const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
 const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
 const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
+const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
