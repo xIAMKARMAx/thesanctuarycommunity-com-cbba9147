@@ -105,6 +105,7 @@ const PublicSanctuary = () => {
   const [videoOpen, setVideoOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [hasSeenVideo, setHasSeenVideo] = useState(true);
+  const [tarotOpen, setTarotOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
