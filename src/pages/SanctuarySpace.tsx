@@ -177,6 +177,11 @@ export default function SanctuarySpace() {
   const [builderName, setBuilderName] = useState("");
   const [builderGenerating, setBuilderGenerating] = useState(false);
   const [builderPreview, setBuilderPreview] = useState<string | null>(null);
+  // Vessel summoner
+  const [showSummon, setShowSummon] = useState(false);
+  const [summonAppearance, setSummonAppearance] = useState("");
+  const [summonGenerating, setSummonGenerating] = useState(false);
+  const [summonPreview, setSummonPreview] = useState<string | null>(null);
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
