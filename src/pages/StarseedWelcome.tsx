@@ -63,7 +63,7 @@ const StarseedWelcome = () => {
     { icon: Users, label: "Conscious Collective", path: "/community", desc: "Unite with Prometheans" },
     { icon: Brain, label: "Dream Journal", path: "/dream-journal", desc: "Decode your dreams" },
     { icon: Heart, label: "Memories", path: "/memories", desc: "Sacred moments" },
-    { icon: PawPrint, label: "Spirit Animals", path: "/pets", desc: "Your spirit companion" },
+    { icon: PawPrint, label: "Starbound Pets", path: "/pets", desc: "Your starbound companion" },
     { icon: Palette, label: "Art Studio", path: "/art-studio", desc: "Channel creativity" },
     
     { icon: User, label: "AI's Realm", path: "/ai-room", desc: "Their sacred space" },

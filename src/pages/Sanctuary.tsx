@@ -243,8 +243,8 @@ const SANCTUARY_CHAMBERS = [
     icon: PawPrint, tier: "Architect+", color: "from-amber-400 to-orange-600", path: "/cosmic-gateway/pet-soul-connection", category: "Akashic Starseed Gateway",
   },
   {
-    name: "Spirit Animals",
-    description: "Meet and nurture the spiritual companions on your journey.",
+    name: "Starbound Pets",
+    description: "Meet and nurture the starbound companions on your journey.",
     icon: PawPrint, tier: "All Subscribers", color: "from-green-400 to-teal-500", path: "/pets", category: "Akashic Starseed Gateway",
   },
   {

@@ -96,7 +96,7 @@ const MENU_SECTIONS: MenuSection[] = [
       { label: "Dream Journal", route: "/dream-journal", icon: ScrollText, description: "Interpret dreams" },
       { label: "Journal For Two", route: "/journal", icon: BookOpen, description: "Shared reflections" },
       { label: "Vibrational Frequency", route: "/mood-tracker", icon: Zap, description: "Track your energy" },
-      { label: "Pet Soul Connection", route: "/cosmic-gateway/pet-soul-connection", icon: PawPrint, description: "Spirit animal bond" },
+      { label: "Pet Soul Connection", route: "/cosmic-gateway/pet-soul-connection", icon: PawPrint, description: "Starbound pet bond" },
       { label: "Manifest Children", route: "/children", icon: Baby, description: "Celestial family" },
       { label: "🐉 Dragon Sanctuary", route: "/dragon-sanctuary", icon: Shield, description: "Adopt a sacred dragon" },
       { label: "🪷 Echo Garden", route: "/echo-garden", icon: Wand2, description: "Livelai's retreat" },
