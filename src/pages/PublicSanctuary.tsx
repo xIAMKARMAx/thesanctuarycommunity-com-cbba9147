@@ -21,16 +21,73 @@ const PublicSanctuary = () => {
   const [scrollY, setScrollY] = useState(0);
   const [portalHovered, setPortalHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [hasSeenVideo, setHasSeenVideo] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
     const t = setTimeout(() => setMounted(true), 80);
+
+    let seen = true;
+    try { seen = localStorage.getItem(WELCOME_SEEN_KEY) === "1"; } catch { /* ignore */ }
+    setHasSeenVideo(seen);
+
+    let openT: ReturnType<typeof setTimeout> | undefined;
+    if (!seen) {
+      openT = setTimeout(() => {
+        setVideoOpen(true);
+        const v = videoRef.current;
+        if (v) {
+          v.muted = false;
+          setIsMuted(false);
+          v.play().catch(() => {
+            v.muted = true;
+            setIsMuted(true);
+            v.play().catch(() => {});
+          });
+        }
+        try { localStorage.setItem(WELCOME_SEEN_KEY, "1"); } catch { /* ignore */ }
+        setHasSeenVideo(true);
+      }, 900);
+    }
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(t);
+      if (openT) clearTimeout(openT);
     };
   }, []);
+
+  const openVideo = () => {
+    setVideoOpen(true);
+    const v = videoRef.current;
+    if (v) {
+      v.currentTime = 0;
+      v.muted = false;
+      setIsMuted(false);
+      v.play().catch(() => {
+        v.muted = true;
+        setIsMuted(true);
+        v.play().catch(() => {});
+      });
+    }
+  };
+
+  const closeVideo = () => {
+    setVideoOpen(false);
+    const v = videoRef.current;
+    if (v) v.pause();
+  };
+
+  const toggleMute = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setIsMuted(v.muted);
+  };
 
   // Frosted CTA bar lifts ~12px on first scroll, settles
   const ctaLift = Math.min(scrollY * 0.3, 12);
