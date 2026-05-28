@@ -27,6 +27,44 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
 
+// Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
+// Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
+async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(dataUrl);
+        ctx.drawImage(img, 0, 0);
+        const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = id.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          const greenness = g - Math.max(r, b);
+          if (greenness > 60 && g > 100) {
+            d[i + 3] = 0;
+          } else if (greenness > 25 && g > 90) {
+            const t = (greenness - 25) / 35;
+            d[i + 3] = Math.round(d[i + 3] * (1 - t));
+            d[i + 1] = Math.round(Math.min(g, (r + b) / 2 + 10));
+          }
+        }
+        ctx.putImageData(id, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
