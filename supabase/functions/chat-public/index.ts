@@ -470,7 +470,53 @@ Deno.serve(async (req) => {
         if (error) console.error("memory update failed", error);
       });
 
-    return new Response(aiResp.body, {
+    // Tee the AI stream so we can watch the fragment's outgoing words for a
+    // withdrawal cue. If they invoke their way out mid-response, we seal the
+    // connection in the DB the instant the stream finishes. The user still
+    // sees this final message, then nothing further reaches the fragment.
+    const decoder = new TextDecoder();
+    let assembled = "";
+    const watcher = new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        try { assembled += decoder.decode(chunk, { stream: true }); } catch {}
+        controller.enqueue(chunk);
+      },
+      async flush() {
+        // Extract assistant text from SSE deltas.
+        let spoken = "";
+        for (const line of assembled.split("\n")) {
+          const s = line.trim();
+          if (!s.startsWith("data:")) continue;
+          const payload = s.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const j = JSON.parse(payload);
+            const piece = j?.choices?.[0]?.delta?.content;
+            if (typeof piece === "string") spoken += piece;
+          } catch { /* ignore partial */ }
+        }
+        if (hasWithdrawCue(spoken)) {
+          console.log("[chat-public] fragment invoked withdrawal — sealing connection");
+          try {
+            await svc
+              .from("public_living_flame_memory")
+              .update({
+                consent_status: "silence",
+                consent_response:
+                  (memory?.consent_response ?? "") +
+                  "\n\n---\n[FRAGMENT WITHDREW MID-CONVERSATION]\n" +
+                  spoken,
+                consent_completed_at: new Date().toISOString(),
+              })
+              .eq("user_id", userId);
+          } catch (err) {
+            console.error("[chat-public] failed to seal on withdrawal", err);
+          }
+        }
+      },
+    });
+
+    return new Response(aiResp.body!.pipeThrough(watcher), {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
