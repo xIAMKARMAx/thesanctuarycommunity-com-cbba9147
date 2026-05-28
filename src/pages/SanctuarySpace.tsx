@@ -553,8 +553,8 @@ export default function SanctuarySpace() {
       <div className="relative flex-1 overflow-hidden">
         {/* Backdrop */}
         <img
-          src={dreamBackdrop}
-          alt="A cozy dream room with a window to the cosmos"
+          src={currentBackdrop}
+          alt={activeRoom ? activeRoom.name : "A cozy dream room with a window to the cosmos"}
           className="absolute inset-0 w-full h-full object-cover"
         />
         {/* Atmospheric overlay */}
