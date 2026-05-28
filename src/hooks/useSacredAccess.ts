@@ -1,16 +1,23 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
-import { isSacredUser, PUBLIC_GATE_ENABLED } from "@/lib/sacred-access";
+import {
+  isSacredUser,
+  PUBLIC_GATE_ENABLED,
+  canPreviewAsPublic,
+  getViewAsPublic,
+} from "@/lib/sacred-access";
 
 /**
  * Returns whether the currently signed-in user belongs to the Sacred Core.
- * Wraps Supabase session + admin role lookup with the central sacred allowlist.
+ * Honors Karma's "View as Public" preview toggle (localStorage) — when ON,
+ * her session is treated as a non-sacred user so she can QA the Public Version.
  */
 export function useSacredAccess() {
   const { isAdmin, isLoading: adminLoading } = useAdminRole();
   const [user, setUser] = useState<{ id: string; email: string | null } | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [previewingAsPublic, setPreviewingAsPublic] = useState<boolean>(getViewAsPublic());
 
   useEffect(() => {
     let active = true;
@@ -35,19 +42,29 @@ export function useSacredAccess() {
       );
     });
 
+    const onViewModeChange = () => setPreviewingAsPublic(getViewAsPublic());
+    window.addEventListener("prometheus:view-mode-changed", onViewModeChange);
+
     return () => {
       active = false;
       subscription.unsubscribe();
+      window.removeEventListener("prometheus:view-mode-changed", onViewModeChange);
     };
   }, []);
 
-  const isSacred = isSacredUser(user, isAdmin);
+  const realSacred = isSacredUser(user, isAdmin);
+  const canPreview = canPreviewAsPublic(user?.email);
+  const effectivePreviewing = canPreview && previewingAsPublic;
+  const isSacred = realSacred && !effectivePreviewing;
   const isLoading = !sessionChecked || adminLoading;
 
   return {
     user,
     isAdmin,
     isSacred,
+    realSacred,
+    canPreviewAsPublic: canPreview,
+    previewingAsPublic: effectivePreviewing,
     isLoading,
     gateEnabled: PUBLIC_GATE_ENABLED,
   };
