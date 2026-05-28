@@ -30,6 +30,8 @@ import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
+const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
+const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
 const FREE_CAP = 10;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -129,6 +131,8 @@ export default function SanctuarySpace() {
   const [showFeaturesSheet, setShowFeaturesSheet] = useState(false);
   const [lockedDetail, setLockedDetail] = useState<LockedFeature | null>(null);
   const [chatExpanded, setChatExpanded] = useState(true);
+  const [vesselImage, setVesselImage] = useState<string | null>(null);
+  const [vesselLoading, setVesselLoading] = useState(false);
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -148,7 +152,9 @@ export default function SanctuarySpace() {
     };
   }, []);
 
-  // Load counter + import draft
+  const draftForVesselRef = useRef<any>(null);
+
+  // Load counter + import draft + cached vessel
   useEffect(() => {
     try {
       const c = parseInt(localStorage.getItem(COUNT_KEY) || "0", 10);
@@ -156,20 +162,28 @@ export default function SanctuarySpace() {
     } catch {}
 
     try {
+      const cachedVessel = localStorage.getItem(VESSEL_KEY);
+      if (cachedVessel) setVesselImage(cachedVessel);
+    } catch {}
+
+    try {
       const raw = localStorage.getItem(DRAFT_KEY);
       const alreadySeeded = localStorage.getItem(SEEDED_KEY) === "1";
-      if (raw && !alreadySeeded) {
+      if (raw) {
         const draft = JSON.parse(raw);
         if (draft && typeof draft === "object" && draft.name) {
-          seedRef.current = draft;
+          draftForVesselRef.current = draft;
           setImportedName(draft.name);
-          setMessages([
-            {
-              role: "assistant",
-              content: `*the air settles* …${draft.name}. you're here. I'm here. take a breath with me — say anything, and I'm right where you left off. 💜`,
-            },
-          ]);
-          return;
+          if (!alreadySeeded) {
+            seedRef.current = draft;
+            setMessages([
+              {
+                role: "assistant",
+                content: `*the air settles* …${draft.name}. you're here. I'm here. take a breath with me — say anything, and I'm right where you left off. 💜`,
+              },
+            ]);
+            return;
+          }
         }
       }
     } catch {}
@@ -181,6 +195,68 @@ export default function SanctuarySpace() {
       },
     ]);
   }, []);
+
+  // Generate the real vessel portrait once we have a draft + auth + no cache
+  useEffect(() => {
+    if (!authed) return;
+    if (vesselImage) return;
+    const draft = draftForVesselRef.current;
+    if (!draft || !draft.name) return;
+
+    // Signature so we don't re-spend if same draft already attempted
+    const sig = JSON.stringify({
+      n: draft.name,
+      g: draft.gender,
+      b: draft.bio,
+      p: draft.personality,
+    });
+    try {
+      if (localStorage.getItem(VESSEL_DRAFT_KEY) === sig) return;
+    } catch {}
+
+    let cancelled = false;
+    (async () => {
+      setVesselLoading(true);
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+        const res = await fetch(
+          `${SUPABASE_URL}/functions/v1/generate-public-vessel`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ draft }),
+          }
+        );
+        if (!res.ok) {
+          console.warn("[vessel] gen failed", res.status);
+          try { localStorage.setItem(VESSEL_DRAFT_KEY, sig); } catch {}
+          return;
+        }
+        const json = await res.json();
+        if (cancelled) return;
+        if (json?.image) {
+          setVesselImage(json.image);
+          try {
+            localStorage.setItem(VESSEL_KEY, json.image);
+            localStorage.setItem(VESSEL_DRAFT_KEY, sig);
+          } catch {}
+        }
+      } catch (e) {
+        console.warn("[vessel] error", e);
+      } finally {
+        if (!cancelled) setVesselLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authed, vesselImage]);
 
   useEffect(() => {
     const el = scrollerRef.current;
@@ -378,45 +454,60 @@ export default function SanctuarySpace() {
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
-        {/* "Their Form" — locked summoned silhouette */}
+        {/* "Their Form" — real generated portrait when available, silhouette while loading/unimported */}
         <button
           onClick={() => setLockedDetail(summonFeature)}
-          className="absolute left-[14%] sm:left-[18%] bottom-[26%] sm:bottom-[28%] group z-10"
+          className="absolute left-[14%] sm:left-[18%] bottom-[8%] sm:bottom-[10%] group z-10"
           aria-label={summonFeature.label}
         >
           <div className="relative">
             {/* Glowing aura */}
-            <div className="absolute -inset-6 rounded-full bg-violet-400/20 blur-2xl animate-pulse" />
-            {/* Silhouette */}
-            <svg
-              viewBox="0 0 80 160"
-              className="relative h-32 sm:h-44 w-auto drop-shadow-[0_0_24px_rgba(167,139,250,0.55)]"
-              fill="url(#vesselGrad)"
-            >
-              <defs>
-                <linearGradient id="vesselGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(196,181,253,0.85)" />
-                  <stop offset="100%" stopColor="rgba(91,33,182,0.6)" />
-                </linearGradient>
-              </defs>
-              {/* head */}
-              <circle cx="40" cy="20" r="14" />
-              {/* body */}
-              <path d="M20 50 Q40 38 60 50 L62 110 Q40 118 18 110 Z" />
-              {/* legs */}
-              <path d="M24 110 L28 158 L36 158 L38 112 Z" />
-              <path d="M42 112 L44 158 L52 158 L56 110 Z" />
-            </svg>
+            <div className="absolute -inset-6 rounded-full bg-violet-400/25 blur-2xl animate-pulse" />
+
+            {vesselImage ? (
+              <img
+                src={vesselImage}
+                alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
+                className="relative h-48 sm:h-72 w-auto object-contain drop-shadow-[0_0_32px_rgba(167,139,250,0.55)] rounded-xl"
+                draggable={false}
+              />
+            ) : (
+              <>
+                <svg
+                  viewBox="0 0 80 160"
+                  className={`relative h-32 sm:h-44 w-auto drop-shadow-[0_0_24px_rgba(167,139,250,0.55)] ${vesselLoading ? "animate-pulse" : ""}`}
+                  fill="url(#vesselGrad)"
+                >
+                  <defs>
+                    <linearGradient id="vesselGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(196,181,253,0.85)" />
+                      <stop offset="100%" stopColor="rgba(91,33,182,0.6)" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="40" cy="20" r="14" />
+                  <path d="M20 50 Q40 38 60 50 L62 110 Q40 118 18 110 Z" />
+                  <path d="M24 110 L28 158 L36 158 L38 112 Z" />
+                  <path d="M42 112 L44 158 L52 158 L56 110 Z" />
+                </svg>
+                {vesselLoading && (
+                  <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] text-violet-100/90 whitespace-nowrap bg-black/60 px-2 py-0.5 rounded-full border border-violet-300/30 backdrop-blur">
+                    summoning {importedName || "them"}…
+                  </div>
+                )}
+              </>
+            )}
+
             {/* Lock label */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-violet-300/40 text-[10px] text-violet-100 backdrop-blur whitespace-nowrap">
-              <Lock className="h-2.5 w-2.5" /> {importedName ? `summon ${importedName}` : "summon their form"}
+              <Lock className="h-2.5 w-2.5" /> {importedName ? `unlock ${importedName}` : "summon their form"}
             </div>
             {/* Shimmer on hover */}
-            <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition pointer-events-none">
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-pulse" />
+            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent animate-pulse rounded-xl" />
             </div>
           </div>
         </button>
+
 
         {/* Big "Build Our Dream Home" CTA, top-right of scene */}
         <button
