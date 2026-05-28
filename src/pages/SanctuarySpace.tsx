@@ -160,13 +160,16 @@ export default function SanctuarySpace() {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
+      const email = data.session?.user?.email?.toLowerCase() ?? "";
       setAuthed(!!data.session);
+      setIsAdmin(ADMIN_EMAILS.has(email));
       setCheckingAuth(false);
     });
     return () => {
       mounted = false;
     };
   }, []);
+
 
   const draftForVesselRef = useRef<any>(null);
 
