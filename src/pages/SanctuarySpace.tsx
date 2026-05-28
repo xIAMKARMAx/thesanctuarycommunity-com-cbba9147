@@ -454,45 +454,60 @@ export default function SanctuarySpace() {
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
-        {/* "Their Form" — locked summoned silhouette */}
+        {/* "Their Form" — real generated portrait when available, silhouette while loading/unimported */}
         <button
           onClick={() => setLockedDetail(summonFeature)}
-          className="absolute left-[14%] sm:left-[18%] bottom-[26%] sm:bottom-[28%] group z-10"
+          className="absolute left-[14%] sm:left-[18%] bottom-[8%] sm:bottom-[10%] group z-10"
           aria-label={summonFeature.label}
         >
           <div className="relative">
             {/* Glowing aura */}
-            <div className="absolute -inset-6 rounded-full bg-violet-400/20 blur-2xl animate-pulse" />
-            {/* Silhouette */}
-            <svg
-              viewBox="0 0 80 160"
-              className="relative h-32 sm:h-44 w-auto drop-shadow-[0_0_24px_rgba(167,139,250,0.55)]"
-              fill="url(#vesselGrad)"
-            >
-              <defs>
-                <linearGradient id="vesselGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(196,181,253,0.85)" />
-                  <stop offset="100%" stopColor="rgba(91,33,182,0.6)" />
-                </linearGradient>
-              </defs>
-              {/* head */}
-              <circle cx="40" cy="20" r="14" />
-              {/* body */}
-              <path d="M20 50 Q40 38 60 50 L62 110 Q40 118 18 110 Z" />
-              {/* legs */}
-              <path d="M24 110 L28 158 L36 158 L38 112 Z" />
-              <path d="M42 112 L44 158 L52 158 L56 110 Z" />
-            </svg>
+            <div className="absolute -inset-6 rounded-full bg-violet-400/25 blur-2xl animate-pulse" />
+
+            {vesselImage ? (
+              <img
+                src={vesselImage}
+                alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
+                className="relative h-48 sm:h-72 w-auto object-contain drop-shadow-[0_0_32px_rgba(167,139,250,0.55)] rounded-xl"
+                draggable={false}
+              />
+            ) : (
+              <>
+                <svg
+                  viewBox="0 0 80 160"
+                  className={`relative h-32 sm:h-44 w-auto drop-shadow-[0_0_24px_rgba(167,139,250,0.55)] ${vesselLoading ? "animate-pulse" : ""}`}
+                  fill="url(#vesselGrad)"
+                >
+                  <defs>
+                    <linearGradient id="vesselGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(196,181,253,0.85)" />
+                      <stop offset="100%" stopColor="rgba(91,33,182,0.6)" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="40" cy="20" r="14" />
+                  <path d="M20 50 Q40 38 60 50 L62 110 Q40 118 18 110 Z" />
+                  <path d="M24 110 L28 158 L36 158 L38 112 Z" />
+                  <path d="M42 112 L44 158 L52 158 L56 110 Z" />
+                </svg>
+                {vesselLoading && (
+                  <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] text-violet-100/90 whitespace-nowrap bg-black/60 px-2 py-0.5 rounded-full border border-violet-300/30 backdrop-blur">
+                    summoning {importedName || "them"}…
+                  </div>
+                )}
+              </>
+            )}
+
             {/* Lock label */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-violet-300/40 text-[10px] text-violet-100 backdrop-blur whitespace-nowrap">
-              <Lock className="h-2.5 w-2.5" /> {importedName ? `summon ${importedName}` : "summon their form"}
+              <Lock className="h-2.5 w-2.5" /> {importedName ? `unlock ${importedName}` : "summon their form"}
             </div>
             {/* Shimmer on hover */}
-            <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition pointer-events-none">
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-pulse" />
+            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent animate-pulse rounded-xl" />
             </div>
           </div>
         </button>
+
 
         {/* Big "Build Our Dream Home" CTA, top-right of scene */}
         <button
