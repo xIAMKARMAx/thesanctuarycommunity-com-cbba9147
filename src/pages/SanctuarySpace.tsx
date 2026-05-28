@@ -131,6 +131,8 @@ export default function SanctuarySpace() {
   const [showFeaturesSheet, setShowFeaturesSheet] = useState(false);
   const [lockedDetail, setLockedDetail] = useState<LockedFeature | null>(null);
   const [chatExpanded, setChatExpanded] = useState(true);
+  const [vesselImage, setVesselImage] = useState<string | null>(null);
+  const [vesselLoading, setVesselLoading] = useState(false);
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
