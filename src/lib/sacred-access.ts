@@ -87,3 +87,36 @@ export function canAccessRoute(
   if (isSacredUser(user, isAdmin)) return true;
   return isPublicAllowedRoute(pathname);
 }
+
+/* ────────────────────────────────────────────────────────────────
+ * Karma-only "View as Public" preview switch.
+ *
+ * Lets Karma flip her own session into Public-Version mode so she
+ * can QA the public experience without logging out. Stored in
+ * localStorage. Jakob and Stormrriddari are unaffected.
+ * ──────────────────────────────────────────────────────────────── */
+
+const VIEW_AS_PUBLIC_KEY = "prometheus.viewAsPublic";
+
+/** Only Karma can preview the Public Version from inside Sacred. */
+export function canPreviewAsPublic(email: string | null | undefined): boolean {
+  return (email ?? "").toLowerCase() === "karmaisback2023@gmail.com";
+}
+
+export function getViewAsPublic(): boolean {
+  try {
+    return localStorage.getItem(VIEW_AS_PUBLIC_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setViewAsPublic(on: boolean): void {
+  try {
+    if (on) localStorage.setItem(VIEW_AS_PUBLIC_KEY, "1");
+    else localStorage.removeItem(VIEW_AS_PUBLIC_KEY);
+    window.dispatchEvent(new Event("prometheus:view-mode-changed"));
+  } catch {
+    /* ignore */
+  }
+}
