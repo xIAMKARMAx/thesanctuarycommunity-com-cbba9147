@@ -342,7 +342,111 @@ const PublicSanctuary = () => {
         </div>
       </section>
 
+      {/* ===== FEATURE CONSTELLATION ===== */}
+      <section className="relative px-4 sm:px-6 py-20 sm:py-28 overflow-hidden">
+        {/* ambient backdrop */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-[#0a0418] to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(270_60%_25%/0.4),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,hsl(330_60%_25%/0.3),transparent_60%)]" />
+
+        {/* drifting motes */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {Array.from({ length: 18 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-[2px] h-[2px] rounded-full bg-violet-200/40 animate-float-gentle"
+              style={{
+                left: `${(i * 5.7) % 100}%`,
+                top: `${(i * 13.3) % 100}%`,
+                animationDelay: `${i * 0.5}s`,
+                animationDuration: `${10 + (i % 5)}s`,
+                boxShadow: "0 0 6px hsl(270 90% 75% / 0.5)",
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative max-w-6xl mx-auto">
+          {/* section heading */}
+          <div className="text-center mb-12 sm:mb-16">
+            <Badge className="bg-violet-500/15 text-violet-200 border-violet-400/30 mb-4 px-3 py-1 backdrop-blur-sm">
+              <Sparkles className="h-3 w-3 mr-1.5" /> Begin anywhere
+            </Badge>
+            <h2
+              className="text-4xl sm:text-5xl font-bold tracking-tight mb-3"
+              style={{
+                fontFamily: "var(--font-serif)",
+                background: "linear-gradient(135deg, hsl(270 90% 85%), hsl(45 95% 75%), hsl(330 80% 80%))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              What lives here
+            </h2>
+            <p className="text-violet-100/65 text-base sm:text-lg max-w-xl mx-auto italic" style={{ fontFamily: "var(--font-serif)" }}>
+              Each doorway opens onto something different. Follow what calls you.
+            </p>
+          </div>
+
+          {/* card grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            {FEATURES.map((f, idx) => {
+              const Icon = f.icon;
+              const onClick = () => {
+                if (f.action.type === "route") navigate(f.action.path);
+                else if (f.action.key === "tarot") setTarotOpen(true);
+              };
+              return (
+                <button
+                  key={f.title}
+                  onClick={onClick}
+                  className={`group relative text-left rounded-2xl p-px overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] ring-1 ${f.ring} hover:ring-2`}
+                  style={{
+                    animation: `fadeInUp 0.7s ease-out ${idx * 0.07}s both`,
+                  }}
+                >
+                  {/* gradient border glow */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${f.gradient} opacity-80 group-hover:opacity-100 transition-opacity`} />
+                  {/* inner card */}
+                  <div className="relative rounded-2xl bg-black/70 backdrop-blur-xl p-6 h-full flex flex-col gap-4 border border-white/[0.04]">
+                    {/* corner shimmer */}
+                    <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/5 blur-2xl group-hover:bg-white/10 transition-all duration-700" />
+
+                    <div className="flex items-start justify-between gap-3">
+                      <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/[0.06] border border-white/10 ${f.accent} group-hover:scale-110 group-hover:rotate-[-4deg] transition-transform duration-500`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-white/30 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    </div>
+
+                    <div className="relative z-10">
+                      <h3
+                        className="text-xl sm:text-2xl font-semibold text-white mb-2 tracking-tight"
+                        style={{ fontFamily: "var(--font-serif)" }}
+                      >
+                        {f.title}
+                      </h3>
+                      <p className="text-sm text-white/65 leading-relaxed">{f.blurb}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* soft footer cue */}
+          <div className="text-center mt-14">
+            <p className="text-violet-200/40 text-xs tracking-[0.3em] uppercase" style={{ fontFamily: "var(--font-serif)" }}>
+              ✦  more unfolding soon  ✦
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <TarotReading open={tarotOpen} onOpenChange={setTarotOpen} />
+
       {/* Welcome video lightbox — autoplays first visit, replayable after */}
+
       <div
         className={`fixed inset-0 z-[100] flex items-center justify-center transition-all duration-500 ${
           videoOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
