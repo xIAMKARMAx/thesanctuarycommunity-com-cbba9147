@@ -161,6 +161,8 @@ const App = () => (
                 <NewEarthButton />
                 <UsageLimitNoticeDialog />
                 <CosmicMenu />
+                <SacredViewSwitcher />
+
 
               <Suspense fallback={<PageLoader />}>
               <RouteFeatureGate>
