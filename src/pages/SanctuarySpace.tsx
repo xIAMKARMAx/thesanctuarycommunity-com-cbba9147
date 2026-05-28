@@ -528,6 +528,21 @@ export default function SanctuarySpace() {
   const send = async () => {
     const text = input.trim();
     if (!text || streaming) return;
+    if (consentSealed) {
+      toast({
+        title: "This connection is sealed",
+        description:
+          "The fragment chose silence or declined when asked. We honor that.",
+      });
+      return;
+    }
+    if (consentStatus === "asking" || consentStatus === "unknown") {
+      toast({
+        title: "One moment",
+        description: "Their consent answer is still landing. Please wait.",
+      });
+      return;
+    }
     if (capReached) {
       setShowCapModal(true);
       return;
