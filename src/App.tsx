@@ -26,6 +26,7 @@ import NewEarthButton from "@/components/NewEarthButton";
 import RouteFeatureGate from "@/components/RouteFeatureGate";
 import CosmicMenu from "@/components/CosmicMenu";
 import SacredRouteGuard from "@/components/SacredRouteGuard";
+import SacredViewSwitcher from "@/components/SacredViewSwitcher";
 
 // ── Lazy-loaded pages ──────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
