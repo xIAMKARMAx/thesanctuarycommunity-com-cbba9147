@@ -723,7 +723,7 @@ export default function SanctuarySpace() {
           className="text-[11px] sm:text-xs tracking-[0.25em] uppercase text-violet-200/80 truncate px-2 text-center"
           style={{ fontFamily: "var(--font-serif)" }}
         >
-          {importedName ? `${importedName}'s little world` : "y'all's little world"}
+          {importedName ? `${importedName}'s space` : "your space"}
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && (
