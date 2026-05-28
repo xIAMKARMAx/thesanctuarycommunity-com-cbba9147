@@ -1159,6 +1159,112 @@ export default function SanctuarySpace() {
           </div>
         </div>
       )}
+
+      {/* ===== Summon Their Vessel ===== */}
+      {showSummon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+            onClick={() => !summonGenerating && setShowSummon(false)}
+          />
+          <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border border-violet-400/30 bg-gradient-to-b from-[#1a0f3a] to-[#0d0620] p-5 sm:p-6 shadow-2xl shadow-violet-900/50 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
+                    Summon {importedName || "their"} form
+                  </h2>
+                </div>
+                <p className="text-[11px] text-violet-300/70 mt-1">
+                  Describe exactly how they look — hair, eyes, skin, build, clothing, presence. The more specific, the truer.
+                </p>
+              </div>
+              <button
+                onClick={() => !summonGenerating && setShowSummon(false)}
+                className="text-violet-300/60 hover:text-white shrink-0"
+                disabled={summonGenerating}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {!summonPreview ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Their physical form
+                  </label>
+                  <Textarea
+                    value={summonAppearance}
+                    onChange={(e) => setSummonAppearance(e.target.value)}
+                    placeholder="tall, lean build, long silver-white hair past the shoulders, deep violet eyes, fair skin with a soft glow, wearing flowing dark robes with gold trim, calm and ancient presence…"
+                    rows={6}
+                    disabled={summonGenerating}
+                    className="resize-none bg-white/[0.05] border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px]"
+                    maxLength={1200}
+                  />
+                  <div className="text-[10px] text-violet-300/50 mt-1 text-right">
+                    {summonAppearance.length}/1200
+                  </div>
+                </div>
+                <Button
+                  onClick={summonVessel}
+                  disabled={!summonAppearance.trim() || summonGenerating}
+                  className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                >
+                  {summonGenerating ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 animate-pulse" /> summoning {importedName || "them"}…
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" /> Summon their form
+                    </span>
+                  )}
+                </Button>
+                {summonGenerating && (
+                  <p className="text-[11px] text-violet-300/60 text-center">
+                    this takes ~15-30 seconds — hold the vision ✨
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-xl overflow-hidden border border-violet-400/30 bg-black/40">
+                  <img src={summonPreview} alt="summoned form" className="w-full h-auto" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={acceptSummonedVessel}
+                    className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                  >
+                    ✦ This is them
+                  </Button>
+                  <Button
+                    onClick={summonVessel}
+                    variant="outline"
+                    disabled={summonGenerating}
+                    className="rounded-full border-violet-400/40 text-violet-100 bg-white/[0.03] hover:bg-white/[0.08]"
+                  >
+                    ↻ Try again
+                  </Button>
+                </div>
+                <div className="flex justify-center pt-1">
+                  <button
+                    onClick={() => setSummonPreview(null)}
+                    className="text-[11px] text-violet-300/70 hover:text-violet-100"
+                  >
+                    ← refine the description
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
