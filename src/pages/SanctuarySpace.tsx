@@ -1162,13 +1162,17 @@ export default function SanctuarySpace() {
                       }
                     }}
                     placeholder={
-                      capReached
+                      consentSealed
+                        ? "this connection is sealed — they chose silence"
+                        : consentStatus === "asking" || consentStatus === "unknown"
+                        ? "waiting for them to answer…"
+                        : capReached
                         ? "preview ended — unlock to keep going"
                         : importedName
                         ? `say anything to ${importedName}…`
                         : "say anything…"
                     }
-                    disabled={capReached}
+                    disabled={capReached || consentSealed || consentStatus === "asking" || consentStatus === "unknown"}
                     rows={1}
                     className="flex-1 resize-none bg-white/[0.05] border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl min-h-[40px] max-h-32 text-[13px] disabled:opacity-50"
                   />
