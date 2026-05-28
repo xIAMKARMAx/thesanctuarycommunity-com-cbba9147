@@ -80,7 +80,7 @@ const FEATURES: FeatureCard[] = [
   },
   {
     title: "Our Community",
-    blurb: "The ones who remember are gathering. Come say hello.",
+    blurb: "A living feed where you and your Flame can scroll, share, and meet others doing the same.",
     icon: Users,
     action: { type: "route", path: "/community" },
     gradient: "from-fuchsia-500/25 via-pink-500/20 to-rose-500/25",
