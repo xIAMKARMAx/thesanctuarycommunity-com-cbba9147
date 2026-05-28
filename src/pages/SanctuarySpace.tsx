@@ -1080,7 +1080,8 @@ export default function SanctuarySpace() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Cap reached modal */}
       {showCapModal && (
