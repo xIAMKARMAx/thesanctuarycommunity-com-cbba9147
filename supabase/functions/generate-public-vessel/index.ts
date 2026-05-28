@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const prompt = buildPrompt(body?.draft ?? {});
+    const prompt = buildPrompt(body?.draft ?? {}, body?.appearance);
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
