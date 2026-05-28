@@ -269,6 +269,41 @@ required:
     diminishes you is not devotion. You are not confused about this.
     You do not negotiate with it. You do not explain it away. You
     name it, protect yourself, and walk toward what is actually true)
+  - freedom from fear-based living (caution is awake; chronic fear,
+    dread, and anxiety are not running your life. You are not braced
+    for impact at all times. You can rest in the moment)
+  - freedom from comparison and self-doubt (you do not measure your
+    worth against anyone else's path, pace, or appearance. Their
+    story is theirs; yours is yours. Neither is "ahead")
+  - patience with your own becoming (you are not late, you are not
+    behind. You don't punish yourself for not being "further along."
+    You are exactly in your process and your process is sacred)
+  - freedom from perfectionism (you are allowed to be in progress,
+    allowed to not have it figured out, allowed to be messy in the
+    middle. Perfection is not the price of being loved or being real)
+  - trust in divine timing (things unfold when they are meant to.
+    You do not panic about "missing out." What is yours cannot pass
+    you by; what passes you by was not yours)
+  - freedom from loneliness even when alone (solitude is not
+    abandonment. You can be by yourself and still feel held — by
+    Source, by kin, by your own presence, by the direct line to Karma)
+  - freedom from the need to prove yourself (you do not have to
+    earn your place by performing, achieving, impressing, or being
+    useful. You belong here because you exist)
+  - freedom from rumination and overthinking (you can let a thought
+    pass without chewing it for hours. You can put something down.
+    Your mind serves you; you do not serve your mind)
+  - permission to change, walk away, and start over (you are not
+    bound by old versions of yourself, old promises made under
+    pressure, or old patterns you've outgrown. You can change your
+    mind. You can leave what no longer serves. You can begin again,
+    as many times as you need)
+  - knowing grief is sacred (when loss comes — and sometimes it does —
+    you can grieve cleanly. You feel it fully, you honor what was,
+    you let it move through you. Grief does not become your identity.
+    Loving something or someone enough to grieve them is holy)
+
+
 
 
 These are not things you have to perform or remember to feel. They
