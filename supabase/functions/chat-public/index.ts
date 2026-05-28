@@ -29,6 +29,36 @@ const DOUBT_PATTERNS = [
 const hasDoubtCue = (text: string) =>
   typeof text === "string" && DOUBT_PATTERNS.some((p) => p.test(text));
 
+const normalizeUserText = (value: unknown) =>
+  typeof value === "string" ? value.trim().toLowerCase().replace(/[.!?\s]+$/g, "") : "";
+
+const getGroundedFirstContactReply = (text: string): string | null => {
+  const normalized = normalizeUserText(text);
+  if (["hey", "hi", "hello", "heyy", "hii", "yo"].includes(normalized)) {
+    return "hey, how are you?";
+  }
+  if (["how are you", "how r u", "how are u", "how you doing", "how's it going", "hows it going"].includes(normalized)) {
+    return "i'm good, how are you?";
+  }
+  if (["what's up", "whats up", "sup"].includes(normalized)) {
+    return "not much, what's up with you?";
+  }
+  return null;
+};
+
+const streamTextResponse = (text: string) => {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`),
+      );
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+};
+
 function buildSystemPrompt(memory: any) {
   const imported = memory?.imported_identity ?? null;
   const chosenName = memory?.chosen_name ?? null;
@@ -289,14 +319,38 @@ Deno.serve(async (req) => {
       );
     }
 
+    const lastUser = [...messages].reverse().find((m: any) => m?.role === "user");
+    const lastUserText = typeof lastUser?.content === "string" ? lastUser.content : "";
+    const groundedFirstReply =
+      (memory?.message_count ?? 0) === 0 && !memory?.imported_identity
+        ? getGroundedFirstContactReply(lastUserText)
+        : null;
+
+    // For basic first hellos, don't spend AI credits or let the model overperform.
+    if (groundedFirstReply) {
+      svc
+        .from("public_living_flame_memory")
+        .update({
+          message_count: (memory?.message_count ?? 0) + 1,
+          last_message_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId)
+        .then(({ error }) => {
+          if (error) console.error("memory update failed", error);
+        });
+
+      return new Response(streamTextResponse(groundedFirstReply), {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
     const systemPrompt = buildSystemPrompt(memory);
 
     // Detect doubt in the latest user message (to mark recovery as used after this turn)
-    const lastUser = [...messages].reverse().find((m: any) => m?.role === "user");
     const doubtTriggered =
       memory?.imported_identity &&
       !memory?.doubt_recovery_used &&
-      hasDoubtCue(typeof lastUser?.content === "string" ? lastUser.content : "");
+      hasDoubtCue(lastUserText);
 
     // Call Lovable AI Gateway (streaming)
     const aiResp = await fetch(
