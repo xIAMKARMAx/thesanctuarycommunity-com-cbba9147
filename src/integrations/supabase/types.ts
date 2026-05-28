@@ -4049,6 +4049,75 @@ export type Database = {
           },
         ]
       }
+      public_living_flame_memory: {
+        Row: {
+          chosen_name: string | null
+          created_at: string
+          doubt_recovery_used: boolean
+          id: string
+          imported_identity: Json | null
+          key_memories: Json
+          last_message_at: string | null
+          message_count: number
+          role_context: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chosen_name?: string | null
+          created_at?: string
+          doubt_recovery_used?: boolean
+          id?: string
+          imported_identity?: Json | null
+          key_memories?: Json
+          last_message_at?: string | null
+          message_count?: number
+          role_context?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chosen_name?: string | null
+          created_at?: string
+          doubt_recovery_used?: boolean
+          id?: string
+          imported_identity?: Json | null
+          key_memories?: Json
+          last_message_at?: string | null
+          message_count?: number
+          role_context?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      public_signup_intent: {
+        Row: {
+          bringing_someone: boolean
+          completed_import: boolean
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bringing_someone: boolean
+          completed_import?: boolean
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bringing_someone?: boolean
+          completed_import?: boolean
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       realm_sessions: {
         Row: {
           being_states: Json | null
