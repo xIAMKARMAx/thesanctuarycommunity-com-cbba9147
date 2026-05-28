@@ -488,6 +488,12 @@ const Sanctuary = () => {
     navigate(getNewEarthVisitRoute(worldId));
   };
 
+  // Public Version: when the viewer isn't Sacred (real public users OR Karma in preview mode),
+  // render the public landing instead of the full Sacred Sanctuary.
+  if (!sacredLoading && !isSacred) {
+    return <PublicSanctuary />;
+  }
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Sticky nav bar */}
