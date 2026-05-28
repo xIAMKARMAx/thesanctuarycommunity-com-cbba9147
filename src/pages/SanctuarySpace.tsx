@@ -968,7 +968,17 @@ export default function SanctuarySpace() {
           {LOCKED_FEATURES.slice(2).map((f) => (
             <button
               key={f.id}
-              onClick={() => setLockedDetail(f)}
+              onClick={() => {
+                // Decorate routes into the existing builder/decorate flow when unlocked
+                if (f.id === "decorate" && unlocked) {
+                  setBuilderPrompt("");
+                  setBuilderName("");
+                  setBuilderPreview(null);
+                  setShowBuilder(true);
+                  return;
+                }
+                setLockedDetail(f);
+              }}
               aria-label={f.label}
               className="group flex items-center gap-2 px-1.5 py-1.5 sm:px-2.5 rounded-xl border border-white/10 bg-black/55 backdrop-blur-md hover:bg-black/70 hover:border-violet-300/40 transition text-left"
             >
