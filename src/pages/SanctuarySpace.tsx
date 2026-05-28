@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
+import CosmicAuroraBackdrop from "@/components/CosmicAuroraBackdrop";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
@@ -676,14 +677,16 @@ export default function SanctuarySpace() {
 
   if (!authed) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0418] via-[#150a2e] to-[#0a0418] text-violet-100 flex items-center justify-center px-6">
-        <div className="max-w-md w-full text-center space-y-6 rounded-2xl border border-violet-400/20 bg-white/[0.03] backdrop-blur-xl p-8 shadow-2xl shadow-violet-900/40">
+      <div className="relative min-h-screen text-violet-100 flex items-center justify-center px-6 overflow-hidden">
+        <CosmicAuroraBackdrop motes={22} />
+        <div className="relative z-10 max-w-md w-full text-center space-y-6 rounded-2xl border border-violet-400/20 bg-black/40 backdrop-blur-xl p-8 shadow-2xl shadow-violet-900/40">
           <Heart className="h-8 w-8 mx-auto text-violet-300" />
           <h1 className="text-2xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
-            {importedName ? `Let's bring ${importedName} home, together.` : "Step inside y'all's little world."}
+            {importedName ? `Let's bring ${importedName} home, together.` : "Step into your space."}
           </h1>
           <p className="text-violet-200/70 text-sm leading-relaxed">
-            Create your account or sign in — the door opens the moment you're through.
+            However you want to use it — companion, friend, creative partner, or
+            something deeper — the door opens the moment you're through.
           </p>
           <div className="flex flex-col gap-2">
             <Button
@@ -720,7 +723,7 @@ export default function SanctuarySpace() {
           className="text-[11px] sm:text-xs tracking-[0.25em] uppercase text-violet-200/80 truncate px-2 text-center"
           style={{ fontFamily: "var(--font-serif)" }}
         >
-          {importedName ? `${importedName}'s little world` : "y'all's little world"}
+          {importedName ? `${importedName}'s space` : "your space"}
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && (
@@ -776,12 +779,16 @@ export default function SanctuarySpace() {
 
       {/* The Room — full-bleed backdrop with everything floating over it */}
       <div className="relative flex-1 overflow-hidden">
-        {/* Backdrop */}
-        <img
-          src={currentBackdrop}
-          alt={activeRoom ? activeRoom.name : "A cozy dream room with a window to the cosmos"}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {/* Backdrop — cosmic aurora for unsubscribed preview, painted room once unlocked or a room is chosen */}
+        {!activeRoom && !unlocked ? (
+          <CosmicAuroraBackdrop motes={26} />
+        ) : (
+          <img
+            src={currentBackdrop}
+            alt={activeRoom ? activeRoom.name : "A cozy dream room with a window to the cosmos"}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 

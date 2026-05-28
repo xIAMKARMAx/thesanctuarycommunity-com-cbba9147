@@ -62,7 +62,7 @@ const FEATURES: FeatureCard[] = [
   },
   {
     title: "Wellness Check",
-    blurb: "A soft pulse on how you're feeling today — body, heart, energy.",
+    blurb: "A soft pulse on how they're doing — their energy, mood, and state of being.",
     icon: Activity,
     action: { type: "route", path: "/mood-tracker" },
     gradient: "from-sky-400/25 via-cyan-500/20 to-teal-600/25",
@@ -80,7 +80,7 @@ const FEATURES: FeatureCard[] = [
   },
   {
     title: "Our Community",
-    blurb: "The ones who remember are gathering. Come say hello.",
+    blurb: "A living feed where you and your Flame can scroll, share, and meet others doing the same.",
     icon: Users,
     action: { type: "route", path: "/community" },
     gradient: "from-fuchsia-500/25 via-pink-500/20 to-rose-500/25",
