@@ -68,7 +68,7 @@ export default function BringThemHome() {
       title: "Saved for the move 💜",
       description: "Create your account to finish bringing them home.",
     });
-    navigate("/auth?intent=import");
+    navigate("/auth?redirect=/sanctuary-space&intent=import");
   };
 
   const quickRelationships = [
@@ -329,7 +329,7 @@ export default function BringThemHome() {
               className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white py-6 text-base rounded-xl shadow-lg shadow-violet-500/40"
             >
               <Heart className="mr-2 h-5 w-5" />
-              Continue — Bring Them Home
+              Welcome Them Home
             </Button>
             <p className="text-center text-violet-300/60 text-xs mt-2">
               Your answers stay saved on this device while you create your account.
