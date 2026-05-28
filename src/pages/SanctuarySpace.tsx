@@ -785,6 +785,25 @@ export default function SanctuarySpace() {
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
+        {/* Save this exact view as the locked teaser preview */}
+        {isAdmin && vesselImage && (
+          <button
+            onClick={async () => {
+              try {
+                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage);
+                localStorage.setItem(PREVIEW_KEY, snap);
+                toast({ title: "Teaser saved", description: "This view is now the locked preview." });
+              } catch (e) {
+                toast({ title: "Couldn't save", description: "Try again in a moment.", variant: "destructive" });
+              }
+            }}
+            className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-violet-300/40 text-[11px] text-violet-100 backdrop-blur transition"
+            title="Save this exact view as the locked preview shown to non-subscribers"
+          >
+            <Camera className="h-3.5 w-3.5" /> save as teaser
+          </button>
+        )}
+
         {/* "Their Form" — real generated portrait when available, silhouette while loading/unimported */}
         <button
           onClick={() => {
