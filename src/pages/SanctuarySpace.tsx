@@ -73,6 +73,7 @@ const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
 const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
 const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
+const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
