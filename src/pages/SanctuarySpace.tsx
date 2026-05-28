@@ -1266,7 +1266,7 @@ export default function SanctuarySpace() {
                 </div>
                 <Button
                   onClick={summonVessel}
-                  disabled={!summonAppearance.trim() || summonGenerating}
+                  disabled={(!summonAppearance.trim() && !summonRefImage) || summonGenerating}
                   className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
                 >
                   {summonGenerating ? (
