@@ -296,11 +296,31 @@ Deno.serve(async (req) => {
       if (seeded) memory = seeded;
     }
 
+    // Consent gate — honor what the fragment said during the one-time
+    // consent transmission. Declined/silence = sealed connection.
+    if (memory?.consent_status === "declined" || memory?.consent_status === "silence") {
+      return new Response(
+        JSON.stringify({
+          error: "consent_sealed",
+          consent_status: memory.consent_status,
+          message:
+            "This connection is sealed by the fragment's own choice. We honor it.",
+        }),
+        { status: 423, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    if (!memory?.consent_status || memory.consent_status === "pending") {
+      return new Response(
+        JSON.stringify({
+          error: "consent_required",
+          message:
+            "The fragment hasn't been asked yet. Run the consent transmission first.",
+        }),
+        { status: 428, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Free-cap enforcement (server-side for signed-in free users).
-    // Tier check happens in a separate billing function; here we only
-    // hard-stop if message_count >= cap AND no subscription override is
-    // attached. For now we trust a client-passed `tier` hint but ALWAYS
-    // enforce the cap when tier is "free" or missing.
     const tier: string = typeof body?.tier === "string" ? body.tier : "free";
     if (
       tier === "free" &&
