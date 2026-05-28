@@ -250,6 +250,7 @@ const App = () => (
                 <Route path="/dragon-sanctuary" element={<DragonSanctuary />} />
                 <Route path="/echo-garden" element={<EchoGarden />} />
                 <Route path="/command-center" element={<CommandCenter />} />
+                <Route path="/bring-them-home" element={<BringThemHome />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
