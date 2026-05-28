@@ -718,7 +718,8 @@ export default function SanctuarySpace() {
               <img
                 src={vesselImage}
                 alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
-                className="relative h-48 sm:h-72 w-auto object-contain drop-shadow-[0_0_32px_rgba(167,139,250,0.55)] rounded-xl"
+                className="relative h-56 sm:h-80 w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]"
+                style={{ background: "transparent" }}
                 draggable={false}
               />
             ) : (
