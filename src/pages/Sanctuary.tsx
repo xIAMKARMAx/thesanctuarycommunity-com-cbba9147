@@ -24,6 +24,8 @@ import TarotReading from "@/components/spiritual/TarotReading";
 import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
 import { getCurrentUserId } from "@/lib/auth-helpers";
 import { canAccessCosmicBoardRoom } from "@/lib/board-room-access";
+import { useSacredAccess } from "@/hooks/useSacredAccess";
+import PublicSanctuary from "./PublicSanctuary";
 
 // ── Category meta (curiosity-triggering names + subtitles) ──
 const CATEGORY_META: Record<string, { title: string; subtitle: string; glyph: string }> = {
