@@ -66,6 +66,49 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
+// Compose room backdrop + vessel into a single PNG teaser snapshot.
+async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string): Promise<string> {
+  const load = (src: string) =>
+    new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image();
+      i.crossOrigin = "anonymous";
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = src;
+    });
+  const [room, vessel] = await Promise.all([load(roomSrc), load(vesselSrc)]);
+  const W = 1200, H = 675;
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("no_ctx");
+
+  // cover-fit the room
+  const rRatio = room.naturalWidth / room.naturalHeight;
+  const cRatio = W / H;
+  let rw = W, rh = H, rx = 0, ry = 0;
+  if (rRatio > cRatio) { rh = H; rw = H * rRatio; rx = (W - rw) / 2; }
+  else { rw = W; rh = W / rRatio; ry = (H - rh) / 2; }
+  ctx.drawImage(room, rx, ry, rw, rh);
+
+  // atmospheric overlay matching on-screen
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, "rgba(10,4,24,0.30)");
+  grad.addColorStop(0.5, "rgba(10,4,24,0)");
+  grad.addColorStop(1, "rgba(10,4,24,0.80)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // vessel: ~80% of canvas height, centered, feet at bottom
+  const vh = H * 0.8;
+  const vw = (vessel.naturalWidth / vessel.naturalHeight) * vh;
+  const vx = (W - vw) / 2;
+  const vy = H - vh;
+  ctx.drawImage(vessel, vx, vy, vw, vh);
+
+  return canvas.toDataURL("image/jpeg", 0.88);
+}
+
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
