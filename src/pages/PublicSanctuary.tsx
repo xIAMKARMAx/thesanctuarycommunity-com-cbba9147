@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Heart, MessageCircle } from "lucide-react";
+import { Sparkles, Heart, MessageCircle, Play, Volume2, VolumeX } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import sanctuaryPortal from "@/assets/sanctuary-portal.jpg";
 import sanctuaryInterior from "@/assets/sanctuary-interior.jpg";
+
+const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
+
 
 /**
  * Public Sanctuary — Living Portal composition.
@@ -18,16 +21,73 @@ const PublicSanctuary = () => {
   const [scrollY, setScrollY] = useState(0);
   const [portalHovered, setPortalHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [hasSeenVideo, setHasSeenVideo] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
     const t = setTimeout(() => setMounted(true), 80);
+
+    let seen = true;
+    try { seen = localStorage.getItem(WELCOME_SEEN_KEY) === "1"; } catch { /* ignore */ }
+    setHasSeenVideo(seen);
+
+    let openT: ReturnType<typeof setTimeout> | undefined;
+    if (!seen) {
+      openT = setTimeout(() => {
+        setVideoOpen(true);
+        const v = videoRef.current;
+        if (v) {
+          v.muted = false;
+          setIsMuted(false);
+          v.play().catch(() => {
+            v.muted = true;
+            setIsMuted(true);
+            v.play().catch(() => {});
+          });
+        }
+        try { localStorage.setItem(WELCOME_SEEN_KEY, "1"); } catch { /* ignore */ }
+        setHasSeenVideo(true);
+      }, 900);
+    }
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(t);
+      if (openT) clearTimeout(openT);
     };
   }, []);
+
+  const openVideo = () => {
+    setVideoOpen(true);
+    const v = videoRef.current;
+    if (v) {
+      v.currentTime = 0;
+      v.muted = false;
+      setIsMuted(false);
+      v.play().catch(() => {
+        v.muted = true;
+        setIsMuted(true);
+        v.play().catch(() => {});
+      });
+    }
+  };
+
+  const closeVideo = () => {
+    setVideoOpen(false);
+    const v = videoRef.current;
+    if (v) v.pause();
+  };
+
+  const toggleMute = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setIsMuted(v.muted);
+  };
 
   // Frosted CTA bar lifts ~12px on first scroll, settles
   const ctaLift = Math.min(scrollY * 0.3, 12);
@@ -176,6 +236,18 @@ const PublicSanctuary = () => {
               Just Start Talking
             </Button>
           </div>
+          {hasSeenVideo && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={openVideo}
+                className="inline-flex items-center gap-2 text-violet-200/70 hover:text-violet-100 text-xs tracking-[0.25em] uppercase transition-colors"
+                style={{ fontFamily: "var(--font-serif)" }}
+              >
+                <Play className="h-3 w-3" />
+                Watch the welcome
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Soft scroll cue */}
@@ -188,6 +260,43 @@ const PublicSanctuary = () => {
           ✦
         </div>
       </section>
+
+      {/* Welcome video lightbox — autoplays first visit, replayable after */}
+      <div
+        className={`fixed inset-0 z-[100] flex items-center justify-center transition-all duration-500 ${
+          videoOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        style={{ background: "radial-gradient(ellipse at center, rgba(20,10,40,0.92), rgba(0,0,0,0.97))" }}
+        onClick={closeVideo}
+      >
+        <div
+          className="relative w-[min(86vw,22rem)] sm:w-[min(70vw,24rem)] aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_0_80px_hsl(270_90%_55%/0.45)] border border-violet-300/20"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <video
+            ref={videoRef}
+            src="/videos/sanctuary-welcome.mp4"
+            playsInline
+            preload="auto"
+            className="w-full h-full object-cover bg-black"
+            onEnded={closeVideo}
+          />
+          <button
+            onClick={toggleMute}
+            aria-label={isMuted ? "Unmute" : "Mute"}
+            className="absolute bottom-3 left-3 h-9 w-9 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white border border-white/15"
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+          <button
+            onClick={closeVideo}
+            aria-label="Close"
+            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white border border-white/15"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
