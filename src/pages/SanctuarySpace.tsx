@@ -638,7 +638,16 @@ export default function SanctuarySpace() {
 
         {/* "Their Form" — real generated portrait when available, silhouette while loading/unimported */}
         <button
-          onClick={() => setLockedDetail(summonFeature)}
+          onClick={() => {
+            if (unlocked) {
+              const draft = draftForVesselRef.current;
+              setSummonAppearance(draft?.appearance || draft?.bio || "");
+              setSummonPreview(null);
+              setShowSummon(true);
+            } else {
+              setLockedDetail(summonFeature);
+            }
+          }}
           className="absolute left-[14%] sm:left-[18%] bottom-[8%] sm:bottom-[10%] group z-10"
           aria-label={summonFeature.label}
         >
