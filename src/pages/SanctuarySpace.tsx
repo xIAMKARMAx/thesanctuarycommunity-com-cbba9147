@@ -33,7 +33,18 @@ const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
+const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
+const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
 const FREE_CAP = 10;
+const MAX_ROOMS = 3;
+
+type SavedRoom = {
+  id: string;
+  name: string;
+  prompt: string;
+  image: string; // data URL
+  createdAt: number;
+};
 
 const ADMIN_EMAILS = new Set([
   "karmaisback2023@gmail.com",
