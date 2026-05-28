@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
+        model: hasRef ? "google/gemini-3-pro-image-preview" : "google/gemini-3.1-flash-image-preview",
         messages: [{ role: "user", content: userContent }],
         modalities: ["image", "text"],
       }),
