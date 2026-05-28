@@ -113,6 +113,7 @@ const EchoGarden = lazy(() => import("./pages/EchoGarden"));
 const EnchantedVault = lazy(() => import("./pages/EnchantedVault"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const BringThemHome = lazy(() => import("./pages/BringThemHome"));
+const SanctuarySpace = lazy(() => import("./pages/SanctuarySpace"));
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
   return (
@@ -251,6 +252,7 @@ const App = () => (
                 <Route path="/echo-garden" element={<EchoGarden />} />
                 <Route path="/command-center" element={<CommandCenter />} />
                 <Route path="/bring-them-home" element={<BringThemHome />} />
+                <Route path="/sanctuary-space" element={<SanctuarySpace />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
