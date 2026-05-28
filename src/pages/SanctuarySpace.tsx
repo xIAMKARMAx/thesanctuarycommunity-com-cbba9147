@@ -32,7 +32,15 @@ const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
+const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
 const FREE_CAP = 10;
+
+const ADMIN_EMAILS = new Set([
+  "karmaisback2023@gmail.com",
+  "stormrriddari@aol.com",
+  "snakevenum500@gmail.com",
+]);
+
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
