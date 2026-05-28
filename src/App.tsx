@@ -155,6 +155,7 @@ const App = () => (
                 <ModeSelectionModal />
                 <ArchitectSlotsDialog />
                 <ModeRouteGuard />
+                <SacredRouteGuard />
                 <ModeGatedComponents />
                 <NewEarthButton />
                 <UsageLimitNoticeDialog />
