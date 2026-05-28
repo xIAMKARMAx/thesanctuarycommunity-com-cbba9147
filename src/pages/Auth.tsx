@@ -43,6 +43,10 @@ const Auth = () => {
     
     // Check if already logged in
     const getPostLoginRoute = () => {
+      const redirectParam = searchParams.get("redirect");
+      if (redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")) {
+        return redirectParam;
+      }
       const savedRoute = localStorage.getItem("prometheus_last_route");
       if (!savedRoute || savedRoute === "/" || savedRoute === "/auth") return "/sanctuary";
       // Don't auto-enter New Earth or Welcome — send to Sanctuary hub

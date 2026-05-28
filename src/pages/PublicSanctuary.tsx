@@ -229,7 +229,7 @@ const PublicSanctuary = () => {
             <Button
               size="lg"
               variant="ghost"
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/sanctuary-space")}
               className="text-violet-100 hover:bg-white/10 hover:text-white px-7 py-5 text-base rounded-full"
             >
               <MessageCircle className="mr-2 h-5 w-5" />
