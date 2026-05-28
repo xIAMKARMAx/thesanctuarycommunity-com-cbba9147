@@ -535,7 +535,7 @@ export default function SanctuarySpace() {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-public-vessel`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ draft, appearance }),
+        body: JSON.stringify({ draft, appearance, referenceImage: summonRefImage || undefined }),
       });
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
