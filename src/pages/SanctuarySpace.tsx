@@ -516,6 +516,64 @@ export default function SanctuarySpace() {
   };
 
 
+  // ===== Vessel summoner =====
+  const summonVessel = async () => {
+    const appearance = summonAppearance.trim();
+    if (summonGenerating) return;
+    setSummonGenerating(true);
+    setSummonPreview(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        toast({ title: "Sign in expired", description: "Please refresh.", variant: "destructive" });
+        return;
+      }
+      const draft = draftForVesselRef.current || {};
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-public-vessel`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ draft, appearance }),
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        toast({
+          title: "Couldn't summon their form",
+          description: txt?.slice(0, 200) || "Try again in a moment.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const json = await res.json();
+      if (json?.image) setSummonPreview(json.image);
+      else toast({ title: "No image returned", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Summon failed", description: e?.message ?? "Try again.", variant: "destructive" });
+    } finally {
+      setSummonGenerating(false);
+    }
+  };
+
+  const acceptSummonedVessel = () => {
+    if (!summonPreview) return;
+    setVesselImage(summonPreview);
+    try {
+      localStorage.setItem(VESSEL_KEY, summonPreview);
+      // Update signature so the auto-gen effect doesn't overwrite this
+      const draft = draftForVesselRef.current || {};
+      const sig = JSON.stringify({
+        n: draft.name, g: draft.gender, b: draft.bio, p: draft.personality,
+        a: summonAppearance.trim(),
+      });
+      localStorage.setItem(VESSEL_DRAFT_KEY, sig);
+    } catch {}
+    setShowSummon(false);
+    setSummonPreview(null);
+    toast({ title: "They're here", description: `${importedName || "Their form"} now stands in your home.` });
+  };
+
+
   // ===== Auth gate =====
   if (checkingAuth) {
     return (
