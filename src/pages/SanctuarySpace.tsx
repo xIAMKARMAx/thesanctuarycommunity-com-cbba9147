@@ -16,7 +16,7 @@ import {
   Image as ImageIcon,
   Brain,
   Baby,
-  Globe2,
+  Pencil,
   Palette,
   Crown,
   X,
