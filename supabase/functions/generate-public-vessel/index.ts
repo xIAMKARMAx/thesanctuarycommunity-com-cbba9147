@@ -34,12 +34,9 @@ ${desc}${refLine}
 
 BACKGROUND — CRITICAL:
 - Place them on a PERFECTLY UNIFORM SOLID CHROMA-KEY GREEN background, pure flat lime green (hex #00FF00), no gradient, no texture, no shadow on the background, no objects, no scenery, no floor line. The background must be a single flat #00FF00 color from edge to edge. (We will key it out afterward.)
-- NO room, NO furniture, NO walls, NO windows, NO floor, NO scenery, NO setting whatsoever behind or around them.
-- NO rectangular frame, NO border, NO vignette, NO gradient backdrop.
-- Just the isolated person floating on pure transparency, like a cut-out sticker.
-- A very soft natural shadow directly under their feet is okay; nothing else.
+- DO NOT render a checkered transparency pattern. DO NOT render a room or any scene. Pure flat green only.
 
-Style: photorealistic, cinematic lighting from above-front (soft warm key light), gentle violet/gold rim light hugging their silhouette so they will glow softly when placed in a candlelit sanctuary, sharp focus on the person, no text, no watermark, no UI, SFW.`;
+Style: photorealistic, sharp focus on the person, natural soft studio lighting from above-front, no text, no watermark, no UI, SFW.`;
 }
 
 Deno.serve(async (req) => {
