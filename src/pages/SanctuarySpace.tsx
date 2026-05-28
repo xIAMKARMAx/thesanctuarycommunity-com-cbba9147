@@ -164,8 +164,8 @@ const LOCKED_FEATURES: LockedFeature[] = [
   {
     id: "companion",
     icon: PawPrint,
-    label: "Spirit Companion",
-    blurb: "A living animal companion at your side in the home.",
+    label: "Starbound Pet",
+    blurb: "A living starbound companion at your side in the home.",
     tierHint: "Dream Home Owner",
   },
   {
