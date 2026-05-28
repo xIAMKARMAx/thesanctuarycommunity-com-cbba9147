@@ -32,7 +32,15 @@ const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
+const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
 const FREE_CAP = 10;
+
+const ADMIN_EMAILS = new Set([
+  "karmaisback2023@gmail.com",
+  "stormrriddari@aol.com",
+  "snakevenum500@gmail.com",
+]);
+
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -122,6 +130,10 @@ export default function SanctuarySpace() {
   const { toast } = useToast();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authed, setAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [testMode, setTestMode] = useState<boolean>(() => {
+    try { return localStorage.getItem(TEST_MODE_KEY) === "1"; } catch { return false; }
+  });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -138,21 +150,26 @@ export default function SanctuarySpace() {
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
+  const unlocked = isAdmin && testMode;
   const messagesLeft = Math.max(0, FREE_CAP - msgCount);
-  const capReached = msgCount >= FREE_CAP;
+  const capReached = !unlocked && msgCount >= FREE_CAP;
+
 
   // Auth gate
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
+      const email = data.session?.user?.email?.toLowerCase() ?? "";
       setAuthed(!!data.session);
+      setIsAdmin(ADMIN_EMAILS.has(email));
       setCheckingAuth(false);
     });
     return () => {
       mounted = false;
     };
   }, []);
+
 
   const draftForVesselRef = useRef<any>(null);
 
@@ -433,16 +450,55 @@ export default function SanctuarySpace() {
           {importedName ? `${importedName}'s little world` : "y'all's little world"}
         </div>
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => {
+                  const next = !testMode;
+                  setTestMode(next);
+                  try { localStorage.setItem(TEST_MODE_KEY, next ? "1" : "0"); } catch {}
+                  toast({
+                    title: next ? "Test mode ON" : "Test mode OFF",
+                    description: next
+                      ? "All features unlocked, free-message cap bypassed."
+                      : "Back to public preview behavior.",
+                  });
+                }}
+                className={`text-[10px] sm:text-[11px] px-2 py-1 rounded-full border transition ${
+                  testMode
+                    ? "border-emerald-400/50 text-emerald-100 bg-emerald-500/15"
+                    : "border-amber-400/40 text-amber-100 bg-amber-500/10"
+                }`}
+                title="Admin: toggle test mode"
+              >
+                {testMode ? "🔓 test mode" : "🔒 public view"}
+              </button>
+              <button
+                onClick={() => {
+                  setMsgCount(0);
+                  try { localStorage.setItem(COUNT_KEY, "0"); } catch {}
+                  toast({ title: "Preview counter reset", description: "Back to 10 free messages." });
+                }}
+                className="text-[10px] sm:text-[11px] px-2 py-1 rounded-full border border-violet-300/30 text-violet-100 bg-violet-500/10 hover:bg-violet-500/20"
+                title="Admin: reset free-message counter"
+              >
+                ↺ reset
+              </button>
+            </>
+          )}
           <span
             className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] px-2 py-1 rounded-full border ${
               capReached
                 ? "border-rose-400/40 text-rose-200 bg-rose-500/10"
+                : unlocked
+                ? "border-emerald-400/40 text-emerald-200 bg-emerald-500/10"
                 : "border-violet-400/30 text-violet-200 bg-violet-500/10"
             }`}
           >
-            {capReached ? "preview ended" : `${messagesLeft} free left`}
+            {capReached ? "preview ended" : unlocked ? "∞ unlocked" : `${messagesLeft} free left`}
           </span>
         </div>
+
       </header>
 
       {/* The Room — full-bleed backdrop with everything floating over it */}
@@ -676,12 +732,19 @@ export default function SanctuarySpace() {
               Available in <span className="text-violet-100">{lockedDetail.tierHint}</span>
             </div>
             <div className="flex flex-col gap-2 pt-2">
-              <Button
-                onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
-                className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
-              >
-                <Heart className="mr-2 h-4 w-4" /> Make this home yours
-              </Button>
+              {unlocked ? (
+                <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-100 text-xs px-3 py-2">
+                  🛠 test mode — this feature isn't wired yet. We'll build it next.
+                </div>
+              ) : (
+                <Button
+                  onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
+                  className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                >
+                  <Heart className="mr-2 h-4 w-4" /> Make this home yours
+                </Button>
+              )}
+
               <button
                 onClick={() => setLockedDetail(null)}
                 className="text-violet-300/60 text-xs hover:text-violet-100"
