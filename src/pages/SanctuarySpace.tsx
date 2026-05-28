@@ -158,12 +158,49 @@ export default function SanctuarySpace() {
   );
   const [vesselImage, setVesselImage] = useState<string | null>(null);
   const [vesselLoading, setVesselLoading] = useState(false);
+  // Room builder state
+  const [rooms, setRooms] = useState<SavedRoom[]>(() => {
+    try {
+      const raw = localStorage.getItem(ROOMS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed as SavedRoom[];
+      }
+    } catch {}
+    return [];
+  });
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(() => {
+    try { return localStorage.getItem(ACTIVE_ROOM_KEY); } catch { return null; }
+  });
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [builderPrompt, setBuilderPrompt] = useState("");
+  const [builderName, setBuilderName] = useState("");
+  const [builderGenerating, setBuilderGenerating] = useState(false);
+  const [builderPreview, setBuilderPreview] = useState<string | null>(null);
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const unlocked = isAdmin && testMode;
   const messagesLeft = Math.max(0, FREE_CAP - msgCount);
   const capReached = !unlocked && msgCount >= FREE_CAP;
+
+  const activeRoom = useMemo(
+    () => rooms.find((r) => r.id === activeRoomId) ?? null,
+    [rooms, activeRoomId]
+  );
+  const currentBackdrop = activeRoom?.image ?? dreamBackdrop;
+
+  // Persist rooms + active selection
+  useEffect(() => {
+    try { localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms)); } catch {}
+  }, [rooms]);
+  useEffect(() => {
+    try {
+      if (activeRoomId) localStorage.setItem(ACTIVE_ROOM_KEY, activeRoomId);
+      else localStorage.removeItem(ACTIVE_ROOM_KEY);
+    } catch {}
+  }, [activeRoomId]);
+
 
 
   // Auth gate
