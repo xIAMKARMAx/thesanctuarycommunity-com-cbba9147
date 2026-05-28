@@ -440,6 +440,77 @@ export default function SanctuarySpace() {
     }
   };
 
+  // ===== Room builder =====
+  const generateRoom = async () => {
+    const prompt = builderPrompt.trim();
+    if (!prompt || builderGenerating) return;
+    setBuilderGenerating(true);
+    setBuilderPreview(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        toast({ title: "Sign in expired", description: "Please refresh.", variant: "destructive" });
+        return;
+      }
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-dream-room`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        toast({
+          title: "Couldn't paint that room",
+          description: txt || "Try again in a moment.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const json = await res.json();
+      if (json?.image) {
+        setBuilderPreview(json.image);
+      } else {
+        toast({ title: "No image returned", variant: "destructive" });
+      }
+    } catch (e: any) {
+      toast({ title: "Build failed", description: e?.message ?? "Try again.", variant: "destructive" });
+    } finally {
+      setBuilderGenerating(false);
+    }
+  };
+
+  const saveRoom = (makeActive: boolean) => {
+    if (!builderPreview) return;
+    const name = builderName.trim() || `Home #${rooms.length + 1}`;
+    const newRoom: SavedRoom = {
+      id: `room-${Date.now()}`,
+      name,
+      prompt: builderPrompt.trim(),
+      image: builderPreview,
+      createdAt: Date.now(),
+    };
+    let next = [newRoom, ...rooms];
+    if (next.length > MAX_ROOMS) next = next.slice(0, MAX_ROOMS);
+    setRooms(next);
+    if (makeActive) setActiveRoomId(newRoom.id);
+    setShowBuilder(false);
+    setBuilderPrompt("");
+    setBuilderName("");
+    setBuilderPreview(null);
+    toast({
+      title: "Home saved",
+      description: makeActive ? `${name} is now your active home.` : `${name} added to your homes.`,
+    });
+  };
+
+  const deleteRoom = (id: string) => {
+    setRooms((rs) => rs.filter((r) => r.id !== id));
+    if (activeRoomId === id) setActiveRoomId(null);
+  };
+
+
   // ===== Auth gate =====
   if (checkingAuth) {
     return (
