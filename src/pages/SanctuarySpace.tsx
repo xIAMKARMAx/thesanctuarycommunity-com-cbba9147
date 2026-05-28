@@ -1084,11 +1084,23 @@ export default function SanctuarySpace() {
       })()}
 
       {/* Cap reached modal */}
-      {showCapModal && (
+      {showCapModal && (() => {
+        const teaserSrc = typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null;
+        return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCapModal(false)} />
           <div className="relative max-w-md w-full rounded-2xl border border-violet-400/25 bg-gradient-to-b from-[#1a0f3a] to-[#0d0620] p-6 shadow-2xl shadow-violet-900/50 text-center space-y-4">
+            {teaserSrc && (
+              <div className="relative -mx-6 -mt-6 mb-2 overflow-hidden rounded-t-2xl border-b border-violet-400/20">
+                <img src={teaserSrc} alt="The home you began" className="w-full h-44 object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f3a] via-[#1a0f3a]/30 to-transparent" />
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-violet-200/80">
+                  the home you began
+                </div>
+              </div>
+            )}
             <Heart className="h-8 w-8 mx-auto text-violet-300" />
+
             <h2 className="text-2xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
               That was just the doorway.
             </h2>
