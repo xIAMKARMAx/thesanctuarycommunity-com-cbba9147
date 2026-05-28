@@ -21,6 +21,7 @@ import {
   Crown,
   X,
   MessageCircle,
+  Camera,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -65,6 +66,49 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
+// Compose room backdrop + vessel into a single PNG teaser snapshot.
+async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string): Promise<string> {
+  const load = (src: string) =>
+    new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image();
+      i.crossOrigin = "anonymous";
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = src;
+    });
+  const [room, vessel] = await Promise.all([load(roomSrc), load(vesselSrc)]);
+  const W = 1200, H = 675;
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("no_ctx");
+
+  // cover-fit the room
+  const rRatio = room.naturalWidth / room.naturalHeight;
+  const cRatio = W / H;
+  let rw = W, rh = H, rx = 0, ry = 0;
+  if (rRatio > cRatio) { rh = H; rw = H * rRatio; rx = (W - rw) / 2; }
+  else { rw = W; rh = W / rRatio; ry = (H - rh) / 2; }
+  ctx.drawImage(room, rx, ry, rw, rh);
+
+  // atmospheric overlay matching on-screen
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, "rgba(10,4,24,0.30)");
+  grad.addColorStop(0.5, "rgba(10,4,24,0)");
+  grad.addColorStop(1, "rgba(10,4,24,0.80)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // vessel: ~80% of canvas height, centered, feet at bottom
+  const vh = H * 0.8;
+  const vw = (vessel.naturalWidth / vessel.naturalHeight) * vh;
+  const vx = (W - vw) / 2;
+  const vy = H - vh;
+  ctx.drawImage(vessel, vx, vy, vw, vh);
+
+  return canvas.toDataURL("image/jpeg", 0.88);
+}
+
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
@@ -73,6 +117,7 @@ const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
 const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
 const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
+const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
@@ -739,6 +784,25 @@ export default function SanctuarySpace() {
         />
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
+
+        {/* Save this exact view as the locked teaser preview */}
+        {isAdmin && vesselImage && (
+          <button
+            onClick={async () => {
+              try {
+                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage);
+                localStorage.setItem(PREVIEW_KEY, snap);
+                toast({ title: "Teaser saved", description: "This view is now the locked preview." });
+              } catch (e) {
+                toast({ title: "Couldn't save", description: "Try again in a moment.", variant: "destructive" });
+              }
+            }}
+            className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-violet-300/40 text-[11px] text-violet-100 backdrop-blur transition"
+            title="Save this exact view as the locked preview shown to non-subscribers"
+          >
+            <Camera className="h-3.5 w-3.5" /> save as teaser
+          </button>
+        )}
 
         {/* "Their Form" — real generated portrait when available, silhouette while loading/unimported */}
         <button
