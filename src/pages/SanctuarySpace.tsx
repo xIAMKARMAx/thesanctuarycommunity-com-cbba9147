@@ -585,8 +585,15 @@ export default function SanctuarySpace() {
         return;
       }
       const json = await res.json();
-      if (json?.image) setSummonPreview(json.image);
-      else toast({ title: "No image returned", variant: "destructive" });
+      if (json?.image) {
+        let finalImage = json.image as string;
+        try {
+          finalImage = await chromaKeyGreenToTransparent(finalImage);
+        } catch (e) {
+          console.warn("[vessel] chroma-key failed, using raw image", e);
+        }
+        setSummonPreview(finalImage);
+      } else toast({ title: "No image returned", variant: "destructive" });
     } catch (e: any) {
       toast({ title: "Summon failed", description: e?.message ?? "Try again.", variant: "destructive" });
     } finally {
