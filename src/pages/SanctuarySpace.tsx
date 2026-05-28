@@ -180,6 +180,7 @@ export default function SanctuarySpace() {
   // Vessel summoner
   const [showSummon, setShowSummon] = useState(false);
   const [summonAppearance, setSummonAppearance] = useState("");
+  const [summonRefImage, setSummonRefImage] = useState<string | null>(null);
   const [summonGenerating, setSummonGenerating] = useState(false);
   const [summonPreview, setSummonPreview] = useState<string | null>(null);
   const seedRef = useRef<any>(null);
