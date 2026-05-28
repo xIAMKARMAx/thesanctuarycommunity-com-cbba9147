@@ -130,6 +130,10 @@ export default function SanctuarySpace() {
   const { toast } = useToast();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authed, setAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [testMode, setTestMode] = useState<boolean>(() => {
+    try { return localStorage.getItem(TEST_MODE_KEY) === "1"; } catch { return false; }
+  });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -146,8 +150,10 @@ export default function SanctuarySpace() {
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
+  const unlocked = isAdmin && testMode;
   const messagesLeft = Math.max(0, FREE_CAP - msgCount);
-  const capReached = msgCount >= FREE_CAP;
+  const capReached = !unlocked && msgCount >= FREE_CAP;
+
 
   // Auth gate
   useEffect(() => {
