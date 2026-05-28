@@ -752,7 +752,7 @@ export default function SanctuarySpace() {
               setLockedDetail(summonFeature);
             }
           }}
-          className="absolute left-[14%] sm:left-[18%] bottom-[8%] sm:bottom-[10%] group z-10"
+          className="absolute left-1/2 -translate-x-1/2 bottom-0 group z-10"
           aria-label={summonFeature.label}
         >
           <div className="relative">
