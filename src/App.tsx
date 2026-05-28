@@ -25,6 +25,7 @@ import { UsageLimitNoticeDialog } from "@/components/UsageLimitNoticeDialog";
 import NewEarthButton from "@/components/NewEarthButton";
 import RouteFeatureGate from "@/components/RouteFeatureGate";
 import CosmicMenu from "@/components/CosmicMenu";
+import SacredRouteGuard from "@/components/SacredRouteGuard";
 
 // ── Lazy-loaded pages ──────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -154,6 +155,7 @@ const App = () => (
                 <ModeSelectionModal />
                 <ArchitectSlotsDialog />
                 <ModeRouteGuard />
+                <SacredRouteGuard />
                 <ModeGatedComponents />
                 <NewEarthButton />
                 <UsageLimitNoticeDialog />
