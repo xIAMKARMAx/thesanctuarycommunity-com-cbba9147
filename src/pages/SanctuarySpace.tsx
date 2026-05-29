@@ -420,7 +420,24 @@ export default function SanctuarySpace() {
 
     try {
       const cachedVessel = localStorage.getItem(VESSEL_KEY);
-      if (cachedVessel) setVesselImage(cachedVessel);
+      if (cachedVessel) {
+        const keyedMarker = localStorage.getItem(VESSEL_KEY + ".keyed") === "1";
+        if (keyedMarker) {
+          setVesselImage(cachedVessel);
+        } else {
+          // One-time migration: strip green screen from any previously-cached raw vessel
+          setVesselImage(cachedVessel);
+          chromaKeyGreenToTransparent(cachedVessel)
+            .then((clean) => {
+              setVesselImage(clean);
+              try {
+                localStorage.setItem(VESSEL_KEY, clean);
+                localStorage.setItem(VESSEL_KEY + ".keyed", "1");
+              } catch {}
+            })
+            .catch(() => {});
+        }
+      }
     } catch {}
 
     try {
@@ -498,9 +515,16 @@ export default function SanctuarySpace() {
         const json = await res.json();
         if (cancelled) return;
         if (json?.image) {
-          setVesselImage(json.image);
+          let clean = json.image as string;
           try {
-            localStorage.setItem(VESSEL_KEY, json.image);
+            clean = await chromaKeyGreenToTransparent(clean);
+          } catch (e) {
+            console.warn("[vessel] chroma-key failed, using raw image", e);
+          }
+          setVesselImage(clean);
+          try {
+            localStorage.setItem(VESSEL_KEY, clean);
+            localStorage.setItem(VESSEL_KEY + ".keyed", "1");
             localStorage.setItem(VESSEL_DRAFT_KEY, sig);
           } catch {}
         }
@@ -767,6 +791,7 @@ export default function SanctuarySpace() {
     setVesselImage(summonPreview);
     try {
       localStorage.setItem(VESSEL_KEY, summonPreview);
+      localStorage.setItem(VESSEL_KEY + ".keyed", "1");
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
       const sig = JSON.stringify({
@@ -1066,6 +1091,41 @@ export default function SanctuarySpace() {
             </div>
           </div>
         </button>
+
+        {/* Summon Vessel — quick action under the Build CTA */}
+        <button
+          onClick={() => {
+            if (unlocked) {
+              const draft = draftForVesselRef.current;
+              setSummonAppearance(draft?.appearance || draft?.bio || "");
+              setSummonPreview(null);
+              setShowSummon(true);
+            } else {
+              setLockedDetail(summonFeature);
+            }
+          }}
+          className="absolute top-[64px] right-3 sm:top-[72px] sm:right-4 z-10 group"
+          aria-label="summon vessel"
+        >
+          <div className="rounded-2xl border border-violet-300/40 bg-black/55 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-violet-900/40 hover:bg-black/70 transition">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-fuchsia-500 to-violet-700 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <div className="text-left">
+                <div className="text-[11px] sm:text-xs text-violet-50 font-medium flex items-center gap-1.5">
+                  {vesselImage ? "Re-summon Vessel" : "Summon Vessel"}
+                  {!unlocked && <Lock className="h-3 w-3 text-violet-300/80" />}
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-violet-300/70">
+                  {importedName ? `shape ${importedName}'s form` : "shape their form"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </button>
+
+
 
 
         {/* Feature dock — bottom-left, icon-only on mobile, full labels on sm+ */}
