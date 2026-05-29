@@ -856,7 +856,7 @@ export default function SanctuarySpace() {
       {/* Header */}
       <header className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-white/5 backdrop-blur-md bg-black/40 z-30 shrink-0">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="text-violet-200/70 hover:text-violet-100 inline-flex items-center gap-1 text-xs"
         >
           <ArrowLeft className="h-4 w-4" /> back
