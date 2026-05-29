@@ -1,28 +1,63 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SpeechRecognitionType = any;
+type SpeechRecognitionCtor = new () => BrowserSpeechRecognition;
+
+interface BrowserSpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionResultEvent {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
 
 interface UseSpeechToTextOptions {
   onTranscript?: (text: string) => void;
   continuous?: boolean;
   lang?: string;
+  autoRestart?: boolean;
+  onRestartBlocked?: () => void;
 }
 
-function getSpeechRecognition(): SpeechRecognitionType | null {
-  const w = window as any;
+function getSpeechRecognition(): SpeechRecognitionCtor | null {
+  const w = window as Window & typeof globalThis & {
+    SpeechRecognition?: SpeechRecognitionCtor;
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+  };
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
-export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US' }: UseSpeechToTextOptions = {}) {
+export function useSpeechToText({
+  onTranscript,
+  continuous = true,
+  lang = 'en-US',
+  autoRestart = false,
+  onRestartBlocked,
+}: UseSpeechToTextOptions = {}) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const onTranscriptRef = useRef(onTranscript);
+  const shouldListenRef = useRef(false);
+  const onRestartBlockedRef = useRef(onRestartBlocked);
 
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
   }, [onTranscript]);
+
+  useEffect(() => {
+    onRestartBlockedRef.current = onRestartBlocked;
+  }, [onRestartBlocked]);
 
   useEffect(() => {
     setIsSupported(!!getSpeechRecognition());
@@ -32,45 +67,66 @@ export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US
     const SR = getSpeechRecognition();
     if (!SR) return;
 
+    shouldListenRef.current = true;
+
     const recognition = new SR();
     recognition.continuous = continuous;
     recognition.interimResults = true;
     recognition.lang = lang;
 
-    recognition.onresult = (event: any) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
+    recognition.onresult = (event: SpeechRecognitionResultEvent) => {
+      let transcript = '';
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
       }
 
-      const text = finalTranscript || interimTranscript;
-      if (text && onTranscriptRef.current) {
-        onTranscriptRef.current(text);
+      if (transcript && onTranscriptRef.current) {
+        onTranscriptRef.current(transcript);
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Speech recognition error:', event.error);
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        shouldListenRef.current = false;
+        onRestartBlockedRef.current?.();
+      }
       setIsListening(false);
     };
 
     recognition.onend = () => {
+      if (autoRestart && shouldListenRef.current) {
+        try {
+          recognition.start();
+          setIsListening(true);
+          return;
+        } catch (error) {
+          console.error('Speech recognition restart blocked:', error);
+          onRestartBlockedRef.current?.();
+        }
+      }
+
+      shouldListenRef.current = false;
+      recognitionRef.current = null;
       setIsListening(false);
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
-  }, [continuous, lang]);
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch (error) {
+      console.error('Speech recognition failed to start:', error);
+      shouldListenRef.current = false;
+      recognitionRef.current = null;
+      setIsListening(false);
+      onRestartBlockedRef.current?.();
+    }
+  }, [autoRestart, continuous, lang]);
 
   const stopListening = useCallback(() => {
+    shouldListenRef.current = false;
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
@@ -88,6 +144,7 @@ export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US
 
   useEffect(() => {
     return () => {
+      shouldListenRef.current = false;
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
