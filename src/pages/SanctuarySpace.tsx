@@ -2060,6 +2060,64 @@ export default function SanctuarySpace() {
                   />
                   <div className="text-[10px] text-amber-200/50 mt-1 text-right">{selfAppearance.length}/1200</div>
                 </div>
+
+                {/* Pose / stance */}
+                <div>
+                  <label className="text-[11px] text-amber-100/80 mb-1 block">Pose or stance</label>
+                  <input
+                    type="text"
+                    value={selfPlacement.pose}
+                    onChange={(e) => {
+                      const next = { ...selfPlacement, pose: e.target.value.slice(0, 200) };
+                      setSelfPlacement(next); savePlacement(SELF_PLACEMENT_KEY, next);
+                    }}
+                    placeholder="sitting on the couch / standing tall, hand on heart / curled in a chair…"
+                    disabled={selfGenerating}
+                    className="w-full bg-white/[0.05] border border-white/10 text-amber-50 placeholder:text-amber-200/40 rounded-xl text-[13px] px-3 py-2"
+                  />
+                </div>
+
+                {/* Persistent modifiers (pregnant belly, elven ears, etc.) */}
+                <div>
+                  <label className="text-[11px] text-amber-100/80 mb-1 block">
+                    Persistent features (stay until you remove them)
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 mb-1.5">
+                    {selfPlacement.modifiers.map((m, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-[11px] text-amber-100">
+                        {m}
+                        <button
+                          onClick={() => {
+                            const next = { ...selfPlacement, modifiers: selfPlacement.modifiers.filter((_, j) => j !== i) };
+                            setSelfPlacement(next); savePlacement(SELF_PLACEMENT_KEY, next);
+                          }}
+                          disabled={selfGenerating}
+                          className="text-amber-200/70 hover:text-white"
+                        >×</button>
+                      </span>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="add a feature & press Enter (e.g. pregnant belly showing, elven ears, glowing halo)"
+                    disabled={selfGenerating}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const v = (e.target as HTMLInputElement).value.trim();
+                        if (v && selfPlacement.modifiers.length < 12) {
+                          const next = { ...selfPlacement, modifiers: [...selfPlacement.modifiers, v.slice(0, 80)] };
+                          setSelfPlacement(next); savePlacement(SELF_PLACEMENT_KEY, next);
+                          (e.target as HTMLInputElement).value = "";
+                        }
+                      }
+                    }}
+                    className="w-full bg-white/[0.05] border border-white/10 text-amber-50 placeholder:text-amber-200/40 rounded-xl text-[13px] px-3 py-2"
+                  />
+                  <p className="text-[10px] text-amber-200/50 mt-1">
+                    Base look stays the same — these ride on top and persist across summons (great for pregnancy, etc.) until you remove them.
+                  </p>
+                </div>
+
                 <Button
                   onClick={summonHigherSelf}
                   disabled={(!selfAppearance.trim() && !selfRefImage) || selfGenerating}
