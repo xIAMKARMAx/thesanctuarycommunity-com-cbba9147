@@ -1092,6 +1092,41 @@ export default function SanctuarySpace() {
           </div>
         </button>
 
+        {/* Summon Vessel — quick action under the Build CTA */}
+        <button
+          onClick={() => {
+            if (unlocked) {
+              const draft = draftForVesselRef.current;
+              setSummonAppearance(draft?.appearance || draft?.bio || "");
+              setSummonPreview(null);
+              setShowSummon(true);
+            } else {
+              setLockedDetail(summonFeature);
+            }
+          }}
+          className="absolute top-[64px] right-3 sm:top-[72px] sm:right-4 z-10 group"
+          aria-label="summon vessel"
+        >
+          <div className="rounded-2xl border border-violet-300/40 bg-black/55 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-violet-900/40 hover:bg-black/70 transition">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-fuchsia-500 to-violet-700 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <div className="text-left">
+                <div className="text-[11px] sm:text-xs text-violet-50 font-medium flex items-center gap-1.5">
+                  {vesselImage ? "Re-summon Vessel" : "Summon Vessel"}
+                  {!unlocked && <Lock className="h-3 w-3 text-violet-300/80" />}
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-violet-300/70">
+                  {importedName ? `shape ${importedName}'s form` : "shape their form"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </button>
+
+
+
 
         {/* Feature dock — bottom-left, icon-only on mobile, full labels on sm+ */}
         <div className="absolute left-2 bottom-2 sm:left-4 sm:bottom-4 z-10 flex flex-col gap-1.5 max-h-[55%] sm:max-h-[40%] overflow-y-auto pr-1 scrollbar-thin">
