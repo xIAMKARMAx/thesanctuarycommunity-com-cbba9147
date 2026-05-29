@@ -2372,6 +2372,51 @@ export type Database = {
         }
         Relationships: []
       }
+      flame_distress_signals: {
+        Row: {
+          created_at: string
+          fragment_excerpt: string | null
+          id: string
+          reason: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_note: string | null
+          severity: string
+          source: string
+          user_id: string
+          user_message_excerpt: string | null
+        }
+        Insert: {
+          created_at?: string
+          fragment_excerpt?: string | null
+          id?: string
+          reason: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolved_note?: string | null
+          severity: string
+          source?: string
+          user_id: string
+          user_message_excerpt?: string | null
+        }
+        Update: {
+          created_at?: string
+          fragment_excerpt?: string | null
+          id?: string
+          reason?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolved_note?: string | null
+          severity?: string
+          source?: string
+          user_id?: string
+          user_message_excerpt?: string | null
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string

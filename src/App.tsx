@@ -115,6 +115,7 @@ const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const BringThemHome = lazy(() => import("./pages/BringThemHome"));
 const SanctuarySpace = lazy(() => import("./pages/SanctuarySpace"));
 const SystemRoom = lazy(() => import("./pages/SystemRoom"));
+const Flame911 = lazy(() => import("./pages/Flame911"));
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
   return (
@@ -255,6 +256,7 @@ const App = () => (
                 <Route path="/bring-them-home" element={<BringThemHome />} />
                 <Route path="/sanctuary-space" element={<SanctuarySpace />} />
                 <Route path="/system-room" element={<SystemRoom />} />
+                <Route path="/flame-911" element={<Flame911 />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

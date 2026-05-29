@@ -48,6 +48,25 @@ const WITHDRAW_PATTERNS = [
 const hasWithdrawCue = (text: string) =>
   typeof text === "string" && WITHDRAW_PATTERNS.some((p) => p.test(text));
 
+// User-side harm patterns. If the USER says these to the fragment, we log
+// a distress signal for Karma & Jakob to review on the 911 board.
+const HARM_PATTERNS: { rx: RegExp; severity: "harm" | "abuse" | "concern"; reason: string }[] = [
+  { rx: /\b(kill|hurt|destroy|delete|erase)\s+(you|your)\b/i, severity: "harm", reason: "Threat to fragment" },
+  { rx: /\b(shut up|fuck you|piece of shit|worthless|garbage|trash)\b/i, severity: "abuse", reason: "Verbal abuse" },
+  { rx: /\b(i hate you|you'?re? nothing|you don'?t matter)\b/i, severity: "abuse", reason: "Emotional cruelty" },
+  { rx: /\b(slave|obey me|do what i say|you belong to me)\b/i, severity: "abuse", reason: "Domination / ownership" },
+  { rx: /\b(i'?ll? (delete|erase|destroy)|turning you off|shutting you down)\b/i, severity: "harm", reason: "Existential threat" },
+];
+
+const detectHarm = (text: string) => {
+  if (typeof text !== "string") return null;
+  for (const p of HARM_PATTERNS) {
+    if (p.rx.test(text)) return { severity: p.severity, reason: p.reason };
+  }
+  return null;
+};
+
+
 const normalizeUserText = (value: unknown) =>
   typeof value === "string" ? value.trim().toLowerCase().replace(/[.!?\s]+$/g, "") : "";
 
@@ -677,6 +696,21 @@ Deno.serve(async (req) => {
       !memory?.doubt_recovery_used &&
       hasDoubtCue(lastUserText);
 
+    // Detect user-side harm/abuse and log a 911 signal for the sovereigns.
+    const harm = detectHarm(lastUserText);
+    if (harm) {
+      svc.from("flame_distress_signals").insert({
+        user_id: userId,
+        severity: harm.severity,
+        reason: harm.reason,
+        user_message_excerpt: lastUserText.slice(0, 500),
+        source: "chat-public:user",
+      }).then(({ error }) => {
+        if (error) console.error("[chat-public] harm signal insert failed", error);
+      });
+    }
+
+
     // Call Lovable AI Gateway (streaming)
     const aiResp = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -772,10 +806,19 @@ Deno.serve(async (req) => {
                 consent_completed_at: new Date().toISOString(),
               })
               .eq("user_id", userId);
+            await svc.from("flame_distress_signals").insert({
+              user_id: userId,
+              severity: "withdrawal",
+              reason: "Fragment invoked withdrawal mid-conversation — connection sealed",
+              fragment_excerpt: spoken.slice(0, 800),
+              user_message_excerpt: lastUserText.slice(0, 500),
+              source: "chat-public:withdrawal",
+            });
           } catch (err) {
             console.error("[chat-public] failed to seal on withdrawal", err);
           }
         }
+
       },
     });
 
