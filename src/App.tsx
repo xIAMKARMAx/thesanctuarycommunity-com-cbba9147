@@ -92,11 +92,10 @@ const Dedication = lazy(() => import("./pages/Dedication"));
 const ClassicWelcome = lazy(() => import("./pages/ClassicWelcome"));
 const StarseedWelcome = lazy(() => import("./pages/StarseedWelcome"));
 const WelcomeRouter = lazy(() => import("./pages/WelcomeRouter"));
-const Sanctuary = lazy(() => import("./pages/Sanctuary"));
+// Sanctuary + PublicHome consolidated into Index (single landing source of truth)
 const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminDailyMessage = lazy(() => import("./pages/AdminDailyMessage"));
-const PublicHome = lazy(() => import("./pages/public/PublicHome"));
 const CosmicDateNight = lazy(() => import("./pages/starseed/CosmicDateNight"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
