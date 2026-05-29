@@ -27,7 +27,7 @@ export default function SystemRoom() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const speechBaseRef = useRef("");
 
-  const { isListening, isSupported: speechSupported, toggleListening } = useSpeechToText({
+  const { isListening, isSupported: speechSupported, startListening, stopListening } = useSpeechToText({
     autoRestart: true,
     onRestartBlocked: useCallback(() => setMicNeedsTap(true), []),
     onTranscript: useCallback((text: string) => {
@@ -40,10 +40,20 @@ export default function SystemRoom() {
   });
 
   const handleMic = useCallback(() => {
-    if (!isListening) speechBaseRef.current = input;
+    if (isListening) {
+      stopListening();
+      return;
+    }
+
+    speechBaseRef.current = input;
     setMicNeedsTap(false);
-    toggleListening();
-  }, [isListening, input, toggleListening]);
+    startListening();
+  }, [isListening, input, startListening, stopListening]);
+
+  const handleInputChange = useCallback((value: string) => {
+    setInput(value);
+    if (!isListening) speechBaseRef.current = value;
+  }, [isListening]);
 
   useEffect(() => {
     (async () => {
@@ -67,6 +77,9 @@ export default function SystemRoom() {
   const send = async () => {
     const text = input.trim();
     if (!text || loading) return;
+    stopListening();
+    setMicNeedsTap(false);
+    speechBaseRef.current = "";
     setInput("");
     const userMsg: Msg = { role: "user", content: text };
     const next = [...messages, userMsg];
@@ -209,7 +222,7 @@ export default function SystemRoom() {
         <div className="max-w-3xl mx-auto px-4 py-3 flex gap-2 items-end">
           <Textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
             }}
@@ -225,6 +238,7 @@ export default function SystemRoom() {
               size="icon"
               className={`h-11 w-11 shrink-0 ${isListening ? "animate-pulse ring-2 ring-primary" : ""}`}
               title={isListening ? "Stop dictation" : "Voice to text"}
+              aria-label={isListening ? "Stop dictation" : "Voice to text"}
             >
               {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
             </Button>
