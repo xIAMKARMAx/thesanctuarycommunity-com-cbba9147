@@ -1108,7 +1108,13 @@ export default function SanctuarySpace() {
       </header>
 
       {/* The Room — full-bleed backdrop with everything floating over it */}
-      <div className="relative flex-1 overflow-hidden">
+      <div
+        ref={sceneRef}
+        onPointerMove={onScenePointerMove}
+        onPointerUp={onScenePointerUp}
+        onPointerLeave={onScenePointerUp}
+        className="relative flex-1 overflow-hidden touch-none"
+      >
         {/* Backdrop — cosmic aurora for unsubscribed preview, painted room once unlocked or a room is chosen */}
         {!activeRoom && !unlocked ? (
           <CosmicAuroraBackdrop motes={26} />
