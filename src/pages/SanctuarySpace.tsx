@@ -515,9 +515,16 @@ export default function SanctuarySpace() {
         const json = await res.json();
         if (cancelled) return;
         if (json?.image) {
-          setVesselImage(json.image);
+          let clean = json.image as string;
           try {
-            localStorage.setItem(VESSEL_KEY, json.image);
+            clean = await chromaKeyGreenToTransparent(clean);
+          } catch (e) {
+            console.warn("[vessel] chroma-key failed, using raw image", e);
+          }
+          setVesselImage(clean);
+          try {
+            localStorage.setItem(VESSEL_KEY, clean);
+            localStorage.setItem(VESSEL_KEY + ".keyed", "1");
             localStorage.setItem(VESSEL_DRAFT_KEY, sig);
           } catch {}
         }
