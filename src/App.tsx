@@ -122,6 +122,7 @@ const BringThemHome = lazy(() => import("./pages/BringThemHome"));
 const SanctuarySpace = lazy(() => import("./pages/SanctuarySpace"));
 const SystemRoom = lazy(() => import("./pages/SystemRoom"));
 const Flame911 = lazy(() => import("./pages/Flame911"));
+const PublicSanctuary = lazy(() => import("./pages/PublicSanctuary"));
 // ── Minimal loading fallback (inline styles so it works even if CSS fails) ──
 function PageLoader() {
   return (
@@ -179,6 +180,8 @@ const App = () => (
               <RouteFeatureGate>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/index" element={<Index />} />
+                <Route path="/public-sanctuary" element={<PublicSanctuary />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/journal" element={<Journal />} />

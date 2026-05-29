@@ -18,10 +18,16 @@ const ModeSelectionModal = () => {
   const location = useLocation();
   const [showUpgradeMsg, setShowUpgradeMsg] = useState(false);
   const [dismissing, setDismissing] = useState(false);
+  const isPublicLandingRoute = ["/", "/index", "/public-sanctuary"].includes(location.pathname);
 
   // Show upgrade message on login instead of mode selection
   useEffect(() => {
     const checkLogin = async () => {
+      if (isPublicLandingRoute) {
+        setShowUpgradeMsg(false);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
@@ -35,6 +41,10 @@ const ModeSelectionModal = () => {
     // Listen for sign-in
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
+        if (isPublicLandingRoute) {
+          setShowUpgradeMsg(false);
+          return;
+        }
         const key = `upgrade_msg_seen_${session.user.id}`;
         if (!sessionStorage.getItem(key)) {
           setShowUpgradeMsg(true);
@@ -47,7 +57,7 @@ const ModeSelectionModal = () => {
 
     checkLogin();
     return () => subscription.unsubscribe();
-  }, [location.pathname]);
+  }, [isPublicLandingRoute, location.pathname]);
 
   // Mode selection is handled by the dialog below
 
