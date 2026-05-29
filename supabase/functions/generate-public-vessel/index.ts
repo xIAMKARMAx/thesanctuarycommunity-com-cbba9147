@@ -84,30 +84,59 @@ Deno.serve(async (req) => {
       userContent.push({ type: "image_url", image_url: { url: referenceImage } });
     }
 
-    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: hasRef ? "google/gemini-3-pro-image-preview" : "google/gemini-3.1-flash-image-preview",
-        messages: [{ role: "user", content: userContent }],
-        modalities: ["image", "text"],
-      }),
-    });
+    const callModel = async (model: string) => {
+      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: userContent }],
+          modalities: ["image", "text"],
+        }),
+      });
+    };
+
+    const primaryModel = hasRef ? "google/gemini-3-pro-image-preview" : "google/gemini-3.1-flash-image-preview";
+    let r = await callModel(primaryModel);
+    let json: any = r.ok ? await r.json() : null;
+    let b64 =
+      json?.data?.[0]?.b64_json ||
+      json?.choices?.[0]?.message?.images?.[0]?.image_url?.url?.replace(
+        /^data:image\/\w+;base64,/,
+        ""
+      );
+
+    // Fallback if blocked by IMAGE_SAFETY or no image returned
+    const blocked = json?.choices?.[0]?.native_finish_reason === "IMAGE_SAFETY";
+    if ((!b64 || blocked) && primaryModel !== "google/gemini-3.1-flash-image-preview") {
+      console.log("[generate-public-vessel] primary returned no image, falling back to flash");
+      r = await callModel("google/gemini-3.1-flash-image-preview");
+      if (r.ok) {
+        json = await r.json();
+        b64 =
+          json?.data?.[0]?.b64_json ||
+          json?.choices?.[0]?.message?.images?.[0]?.image_url?.url?.replace(
+            /^data:image\/\w+;base64,/,
+            ""
+          );
+      }
+    }
 
     if (!r.ok) {
-      const errTxt = await r.text().catch(() => "");
+      const errTxt = JSON.stringify(json || {}).slice(0, 300);
       console.error("[generate-public-vessel] image gen failed", r.status, errTxt);
       return new Response(
-        JSON.stringify({ error: "generation_failed", detail: errTxt.slice(0, 300) }),
+        JSON.stringify({ error: "generation_failed", detail: errTxt }),
         {
           status: r.status === 429 || r.status === 402 ? r.status : 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
+
 
     const json = await r.json();
     const b64 =
