@@ -1322,7 +1322,9 @@ export default function SanctuarySpace() {
               setSelfPreview(null);
               setShowSummonSelf(true);
             }}
-            className="absolute left-[28%] -translate-x-1/2 bottom-0 group z-10"
+            onPointerDown={onAvatarPointerDown("self")}
+            style={{ left: `${selfPlacement.x}%` }}
+            className="absolute -translate-x-1/2 bottom-0 group z-10 cursor-grab active:cursor-grabbing touch-none"
             aria-label="your higher self"
           >
             <div className="relative">
