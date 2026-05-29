@@ -33,9 +33,10 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Non-sacred users (and Karma when previewing as Public) see the Public Sanctuary —
-  // the mobile-first video landing with the constellation of public features.
-  if (authChecked && userId && !sacredLoading && !isSacred) {
+  // Non-sacred visitors/users (and Karma when previewing as Public) see the
+  // Public Sanctuary — the mobile-first video landing with the constellation
+  // of public features.
+  if (authChecked && !sacredLoading && !isSacred) {
     return <PublicSanctuary />;
   }
 

@@ -53,11 +53,12 @@ export default function SacredViewSwitcher({ variant = "floating", className = "
 
   if (!canPreviewAsPublic(email)) return null;
 
-  // Floating variant hides on the Sanctuary landing — the inline footer
-  // version takes over there so the button stops blocking the hero.
-  if (variant === "floating" && location.pathname === "/") return null;
-
   const isPublic = previewing;
+
+  // Floating variant hides only while Karma is already viewing the Public
+  // Sanctuary landing — the inline footer version takes over there. In Sacred
+  // view on `/`, it must stay visible so she can actually switch to Public.
+  if (variant === "floating" && isPublic && (location.pathname === "/" || location.pathname === "/index")) return null;
 
   const toggle = () => {
     const next = !previewing;
