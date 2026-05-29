@@ -1235,7 +1235,11 @@ export default function SanctuarySpace() {
               </div>
               <div className="text-left">
                 <div className="text-[11px] sm:text-xs text-violet-50 font-medium flex items-center gap-1.5">
-                  {unlocked ? "Build / Decorate Our Home" : "Build Our Dream Home"}
+                  {unlocked
+                    ? (rooms.length > 0
+                        ? `Re-decorate ${spaceName?.trim() || "Your Space"}`
+                        : `Decorate ${spaceName?.trim() || "Your Space"}`)
+                    : "Build Our Dream Home"}
                   {!unlocked && <Lock className="h-3 w-3 text-violet-300/80" />}
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-violet-300/70">
