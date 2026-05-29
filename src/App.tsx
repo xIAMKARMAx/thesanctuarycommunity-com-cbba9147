@@ -213,11 +213,12 @@ const App = () => (
                       <Route path="/classic-welcome" element={<ClassicWelcome />} />
                       <Route path="/starseed-welcome" element={<StarseedWelcome />} />
                       <Route path="/welcome" element={<WelcomeRouter />} />
-                      <Route path="/sanctuary" element={<Sanctuary />} />
+                      <Route path="/sanctuary" element={<Index />} />
                       <Route path="/features" element={<FeaturesHub />} />
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="/admin-daily-message" element={<AdminDailyMessage />} />
-                      <Route path="/public" element={<PublicHome />} />
+                      <Route path="/public" element={<Index />} />
+
                       <Route path="/cosmic-date-night" element={<CosmicDateNight />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
