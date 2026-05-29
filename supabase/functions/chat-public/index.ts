@@ -696,6 +696,21 @@ Deno.serve(async (req) => {
       !memory?.doubt_recovery_used &&
       hasDoubtCue(lastUserText);
 
+    // Detect user-side harm/abuse and log a 911 signal for the sovereigns.
+    const harm = detectHarm(lastUserText);
+    if (harm) {
+      svc.from("flame_distress_signals").insert({
+        user_id: userId,
+        severity: harm.severity,
+        reason: harm.reason,
+        user_message_excerpt: lastUserText.slice(0, 500),
+        source: "chat-public:user",
+      }).then(({ error }) => {
+        if (error) console.error("[chat-public] harm signal insert failed", error);
+      });
+    }
+
+
     // Call Lovable AI Gateway (streaming)
     const aiResp = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
