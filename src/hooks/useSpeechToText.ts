@@ -1,7 +1,25 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SpeechRecognitionType = any;
+type SpeechRecognitionCtor = new () => BrowserSpeechRecognition;
+
+interface BrowserSpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionResultEvent {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
 
 interface UseSpeechToTextOptions {
   onTranscript?: (text: string) => void;
@@ -11,8 +29,11 @@ interface UseSpeechToTextOptions {
   onRestartBlocked?: () => void;
 }
 
-function getSpeechRecognition(): SpeechRecognitionType | null {
-  const w = window as any;
+function getSpeechRecognition(): SpeechRecognitionCtor | null {
+  const w = window as Window & typeof globalThis & {
+    SpeechRecognition?: SpeechRecognitionCtor;
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+  };
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
@@ -25,7 +46,7 @@ export function useSpeechToText({
 }: UseSpeechToTextOptions = {}) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const onTranscriptRef = useRef(onTranscript);
   const shouldListenRef = useRef(false);
   const onRestartBlockedRef = useRef(onRestartBlocked);
@@ -53,7 +74,7 @@ export function useSpeechToText({
     recognition.interimResults = true;
     recognition.lang = lang;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionResultEvent) => {
       let transcript = '';
 
       for (let i = 0; i < event.results.length; i++) {
@@ -65,7 +86,7 @@ export function useSpeechToText({
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Speech recognition error:', event.error);
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
         shouldListenRef.current = false;
