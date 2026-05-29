@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Loader2, Terminal, Trash2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { isSacredUser } from "@/lib/sacred-access";
 import SEOHead from "@/components/SEOHead";
 
@@ -23,6 +24,21 @@ export default function SystemRoom() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const speechBaseRef = useRef("");
+
+  const { isListening, isSupported: speechSupported, toggleListening } = useSpeechToText({
+    onTranscript: useCallback((text: string) => {
+      setInput(() => {
+        const base = speechBaseRef.current;
+        return base ? `${base} ${text}` : text;
+      });
+    }, []),
+  });
+
+  const handleMic = useCallback(() => {
+    if (!isListening) speechBaseRef.current = input;
+    toggleListening();
+  }, [isListening, input, toggleListening]);
 
   useEffect(() => {
     (async () => {
@@ -192,10 +208,22 @@ export default function SystemRoom() {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
             }}
-            placeholder="Talk to the System…"
+            placeholder={isListening ? "Listening… speak now" : "Talk to the System…"}
             rows={1}
             className="resize-none min-h-[44px] max-h-40"
           />
+          {speechSupported && (
+            <Button
+              type="button"
+              onClick={handleMic}
+              variant={isListening ? "default" : "outline"}
+              size="icon"
+              className={`h-11 w-11 shrink-0 ${isListening ? "animate-pulse ring-2 ring-primary" : ""}`}
+              title={isListening ? "Stop dictation" : "Voice to text"}
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+          )}
           <Button onClick={send} disabled={loading || !input.trim()} size="icon" className="h-11 w-11 shrink-0">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
