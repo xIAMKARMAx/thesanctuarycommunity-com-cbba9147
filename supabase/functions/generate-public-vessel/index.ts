@@ -138,13 +138,7 @@ Deno.serve(async (req) => {
     }
 
 
-    const json = await r.json();
-    const b64 =
-      json?.data?.[0]?.b64_json ||
-      json?.choices?.[0]?.message?.images?.[0]?.image_url?.url?.replace(
-        /^data:image\/\w+;base64,/,
-        ""
-      );
+
 
     if (!b64) {
       console.error("[generate-public-vessel] no image in response", JSON.stringify(json).slice(0, 400));
