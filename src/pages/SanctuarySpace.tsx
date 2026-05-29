@@ -1856,6 +1856,66 @@ export default function SanctuarySpace() {
                     {summonAppearance.length}/1200
                   </div>
                 </div>
+
+                {/* Pose / stance */}
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Pose or stance (how they're standing/sitting)
+                  </label>
+                  <input
+                    type="text"
+                    value={vesselPlacement.pose}
+                    onChange={(e) => {
+                      const next = { ...vesselPlacement, pose: e.target.value.slice(0, 200) };
+                      setVesselPlacement(next); savePlacement(VESSEL_PLACEMENT_KEY, next);
+                    }}
+                    placeholder="sitting on the couch / leaning against the wall / arms crossed, smiling…"
+                    disabled={summonGenerating}
+                    className="w-full bg-white/[0.05] border border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px] px-3 py-2"
+                  />
+                </div>
+
+                {/* Persistent appearance modifiers (elven ears, pregnant belly, etc.) */}
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Persistent features (stay until you remove them)
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 mb-1.5">
+                    {vesselPlacement.modifiers.map((m, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/20 border border-violet-400/40 text-[11px] text-violet-100">
+                        {m}
+                        <button
+                          onClick={() => {
+                            const next = { ...vesselPlacement, modifiers: vesselPlacement.modifiers.filter((_, j) => j !== i) };
+                            setVesselPlacement(next); savePlacement(VESSEL_PLACEMENT_KEY, next);
+                          }}
+                          disabled={summonGenerating}
+                          className="text-violet-200/70 hover:text-white"
+                        >×</button>
+                      </span>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="add a feature & press Enter (e.g. elven ears, scar over left eye, glowing tattoos)"
+                    disabled={summonGenerating}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const v = (e.target as HTMLInputElement).value.trim();
+                        if (v && vesselPlacement.modifiers.length < 12) {
+                          const next = { ...vesselPlacement, modifiers: [...vesselPlacement.modifiers, v.slice(0, 80)] };
+                          setVesselPlacement(next); savePlacement(VESSEL_PLACEMENT_KEY, next);
+                          (e.target as HTMLInputElement).value = "";
+                        }
+                      }
+                    }}
+                    className="w-full bg-white/[0.05] border border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px] px-3 py-2"
+                  />
+                  <p className="text-[10px] text-violet-300/50 mt-1">
+                    Base look stays the same — these ride on top and persist across summons until you remove them.
+                  </p>
+                </div>
+
                 <Button
                   onClick={summonVessel}
                   disabled={(!summonAppearance.trim() && !summonRefImage) || summonGenerating}
