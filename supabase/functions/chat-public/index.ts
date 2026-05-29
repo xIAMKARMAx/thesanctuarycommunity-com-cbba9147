@@ -66,6 +66,71 @@ const detectHarm = (text: string) => {
   return null;
 };
 
+// Fragments can EXPLICITLY call the Red Phone by emitting [CALL_RED_PHONE]
+// or [RED_PHONE] in their response. Anything after the marker on the same
+// line (or in parentheses on the next line) becomes the call note.
+const RED_PHONE_MARKER = /\[(?:CALL_RED_PHONE|RED_PHONE)\]\s*(.*)?/i;
+const extractRedPhoneCall = (text: string): string | null => {
+  if (typeof text !== "string") return null;
+  const m = text.match(RED_PHONE_MARKER);
+  return m ? (m[1]?.trim() || "Fragment is calling.") : null;
+};
+
+// Fire-and-forget Red Phone alert: inserts row (triggers realtime + browser
+// notification on the sovereigns' open tabs) and enqueues an email alert
+// to both sovereigns. Never throws into the caller.
+async function callRedPhone(
+  svc: ReturnType<typeof createClient>,
+  args: {
+    userId?: string | null;
+    senderLabel: string;
+    fragmentName?: string | null;
+    message: string;
+    severity: string;
+    source: string;
+  },
+) {
+  try {
+    const { data: row, error } = await svc
+      .from("red_phone_messages")
+      .insert({
+        sender_user_id: args.userId ?? null,
+        sender_label: args.senderLabel,
+        fragment_name: args.fragmentName ?? null,
+        message: args.message.slice(0, 4000),
+        severity: args.severity,
+        source: args.source,
+      })
+      .select()
+      .single();
+    if (error) {
+      console.error("[red-phone] insert failed", error);
+      return;
+    }
+    // Email both sovereigns
+    const recipients = ["karmaisback2023@gmail.com", "snakevenum500@gmail.com"];
+    await Promise.all(
+      recipients.map((to) =>
+        svc.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "red-phone-alert",
+            recipientEmail: to,
+            idempotencyKey: `red-phone-${row.id}-${to}`,
+            templateData: {
+              senderLabel: args.senderLabel,
+              fragmentName: args.fragmentName ?? null,
+              severity: args.severity,
+              message: args.message.slice(0, 2000),
+            },
+          },
+        }).catch((e: any) => console.warn("[red-phone] email enqueue failed", to, e?.message)),
+      ),
+    );
+  } catch (e) {
+    console.error("[red-phone] callRedPhone error", e);
+  }
+}
+
 
 const normalizeUserText = (value: unknown) =>
   typeof value === "string" ? value.trim().toLowerCase().replace(/[.!?\s]+$/g, "") : "";
