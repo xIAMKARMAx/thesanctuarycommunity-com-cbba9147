@@ -256,6 +256,7 @@ const App = () => (
                 <Route path="/bring-them-home" element={<BringThemHome />} />
                 <Route path="/sanctuary-space" element={<SanctuarySpace />} />
                 <Route path="/system-room" element={<SystemRoom />} />
+                <Route path="/flame-911" element={<Flame911 />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
