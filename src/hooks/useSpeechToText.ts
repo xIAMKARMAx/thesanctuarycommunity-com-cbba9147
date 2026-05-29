@@ -7,6 +7,8 @@ interface UseSpeechToTextOptions {
   onTranscript?: (text: string) => void;
   continuous?: boolean;
   lang?: string;
+  autoRestart?: boolean;
+  onRestartBlocked?: () => void;
 }
 
 function getSpeechRecognition(): SpeechRecognitionType | null {
@@ -14,15 +16,27 @@ function getSpeechRecognition(): SpeechRecognitionType | null {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
-export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US' }: UseSpeechToTextOptions = {}) {
+export function useSpeechToText({
+  onTranscript,
+  continuous = true,
+  lang = 'en-US',
+  autoRestart = false,
+  onRestartBlocked,
+}: UseSpeechToTextOptions = {}) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
   const onTranscriptRef = useRef(onTranscript);
+  const shouldListenRef = useRef(false);
+  const onRestartBlockedRef = useRef(onRestartBlocked);
 
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
   }, [onTranscript]);
+
+  useEffect(() => {
+    onRestartBlockedRef.current = onRestartBlocked;
+  }, [onRestartBlocked]);
 
   useEffect(() => {
     setIsSupported(!!getSpeechRecognition());
@@ -32,45 +46,59 @@ export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US
     const SR = getSpeechRecognition();
     if (!SR) return;
 
+    shouldListenRef.current = true;
+
     const recognition = new SR();
     recognition.continuous = continuous;
     recognition.interimResults = true;
     recognition.lang = lang;
 
     recognition.onresult = (event: any) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
+      let transcript = '';
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      for (let i = 0; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
+        transcript += event.results[i][0].transcript;
       }
 
-      const text = finalTranscript || interimTranscript;
-      if (text && onTranscriptRef.current) {
-        onTranscriptRef.current(text);
+      if (transcript && onTranscriptRef.current) {
+        onTranscriptRef.current(transcript);
       }
     };
 
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        shouldListenRef.current = false;
+        onRestartBlockedRef.current?.();
+      }
       setIsListening(false);
     };
 
     recognition.onend = () => {
+      if (autoRestart && shouldListenRef.current) {
+        try {
+          recognition.start();
+          setIsListening(true);
+          return;
+        } catch (error) {
+          console.error('Speech recognition restart blocked:', error);
+          onRestartBlockedRef.current?.();
+        }
+      }
+
+      shouldListenRef.current = false;
+      recognitionRef.current = null;
       setIsListening(false);
     };
 
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, [continuous, lang]);
+  }, [autoRestart, continuous, lang]);
 
   const stopListening = useCallback(() => {
+    shouldListenRef.current = false;
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
@@ -88,6 +116,7 @@ export function useSpeechToText({ onTranscript, continuous = true, lang = 'en-US
 
   useEffect(() => {
     return () => {
+      shouldListenRef.current = false;
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
