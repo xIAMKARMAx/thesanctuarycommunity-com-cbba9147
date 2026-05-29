@@ -3,15 +3,29 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { isSacredUser } from "@/lib/sacred-access";
 import SEOHead from "@/components/SEOHead";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type ContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+type Msg = { role: "user" | "assistant"; content: string | ContentPart[] };
 const STORAGE_KEY = "prometheus.systemRoom.history";
+
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB per image (data URL stored in history)
+
+function getText(content: Msg["content"]): string {
+  if (typeof content === "string") return content;
+  return content.filter((p): p is { type: "text"; text: string } => p.type === "text").map(p => p.text).join("");
+}
+function getImages(content: Msg["content"]): string[] {
+  if (typeof content === "string") return [];
+  return content.filter((p): p is { type: "image_url"; image_url: { url: string } } => p.type === "image_url").map(p => p.image_url.url);
+}
 
 export default function SystemRoom() {
   const navigate = useNavigate();
@@ -22,9 +36,11 @@ export default function SystemRoom() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { return []; }
   });
   const [input, setInput] = useState("");
+  const [pendingImages, setPendingImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [micNeedsTap, setMicNeedsTap] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const speechBaseRef = useRef("");
 
   const { isListening, isSupported: speechSupported, startListening, stopListening } = useSpeechToText({
@@ -55,6 +71,30 @@ export default function SystemRoom() {
     if (!isListening) speechBaseRef.current = value;
   }, [isListening]);
 
+  const handleFilePick = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        toast({ title: "Images only here", description: "Drop a screenshot or photo.", variant: "destructive" });
+        continue;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        toast({ title: "Too big", description: `${file.name} is over 4MB. Compress or crop and try again.`, variant: "destructive" });
+        continue;
+      }
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      }).catch(() => null);
+      if (dataUrl) setPendingImages(prev => [...prev, dataUrl]);
+    }
+  }, [toast]);
+
+  const removePending = (i: number) => setPendingImages(prev => prev.filter((_, idx) => idx !== i));
+
   useEffect(() => {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -76,12 +116,24 @@ export default function SystemRoom() {
 
   const send = async () => {
     const text = input.trim();
-    if (!text || loading) return;
+    if ((!text && pendingImages.length === 0) || loading) return;
     stopListening();
     setMicNeedsTap(false);
     speechBaseRef.current = "";
+
+    let content: Msg["content"];
+    if (pendingImages.length === 0) {
+      content = text;
+    } else {
+      const parts: ContentPart[] = [];
+      if (text) parts.push({ type: "text", text });
+      for (const url of pendingImages) parts.push({ type: "image_url", image_url: { url } });
+      content = parts;
+    }
+
     setInput("");
-    const userMsg: Msg = { role: "user", content: text };
+    setPendingImages([]);
+    const userMsg: Msg = { role: "user", content };
     const next = [...messages, userMsg];
     setMessages(next);
     setLoading(true);
@@ -191,23 +243,37 @@ export default function SystemRoom() {
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {messages.length === 0 && (
             <Card className="p-6 text-sm text-muted-foreground border-dashed">
-              Private line to the System — your dev-partner voice. Talk freely, no Lovable credits burned. If you want something
-              actually shipped to the app, drop it in the Lovable build chat instead.
+              Private line to the System — your dev-partner voice. Talk freely, no Lovable credits burned. Drop screenshots
+              with the image button so I can see what you're seeing. If you want something actually shipped to the app,
+              drop it in the Lovable build chat instead.
             </Card>
           )}
-          {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed ${
-                  m.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-muted text-foreground rounded-bl-sm"
-                }`}
-              >
-                {m.content || (loading && i === messages.length - 1 ? "…" : "")}
+          {messages.map((m, i) => {
+            const text = getText(m.content);
+            const imgs = getImages(m.content);
+            return (
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed ${
+                    m.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-sm"
+                      : "bg-muted text-foreground rounded-bl-sm"
+                  }`}
+                >
+                  {imgs.length > 0 && (
+                    <div className={`grid gap-2 mb-2 ${imgs.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+                      {imgs.map((src, idx) => (
+                        <a key={idx} href={src} target="_blank" rel="noreferrer">
+                          <img src={src} alt={`attachment ${idx + 1}`} className="rounded-lg max-h-64 object-cover w-full" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  {text || (loading && i === messages.length - 1 && m.role === "assistant" ? "…" : "")}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {loading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex justify-start">
               <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-2.5">
@@ -219,33 +285,70 @@ export default function SystemRoom() {
       </div>
 
       <div className="border-t border-border/40 bg-background/80 backdrop-blur sticky bottom-0">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex gap-2 items-end">
-          <Textarea
-            value={input}
-            onChange={(e) => handleInputChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
-            }}
-            placeholder={micNeedsTap ? "Tap the mic again to keep dictating…" : isListening ? "Listening… keep talking" : "Talk to the System…"}
-            rows={1}
-            className="resize-none min-h-[44px] max-h-40"
-          />
-          {speechSupported && (
+        <div className="max-w-3xl mx-auto px-4 py-3 space-y-2">
+          {pendingImages.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {pendingImages.map((src, i) => (
+                <div key={i} className="relative">
+                  <img src={src} alt={`pending ${i + 1}`} className="h-16 w-16 object-cover rounded-md border border-border/40" />
+                  <button
+                    onClick={() => removePending(i)}
+                    className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center"
+                    aria-label="Remove image"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2 items-end">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleFilePick}
+            />
             <Button
               type="button"
-              onClick={handleMic}
-              variant={isListening ? "default" : "outline"}
+              onClick={() => fileInputRef.current?.click()}
+              variant="outline"
               size="icon"
-              className={`h-11 w-11 shrink-0 ${isListening ? "animate-pulse ring-2 ring-primary" : ""}`}
-              title={isListening ? "Stop dictation" : "Voice to text"}
-              aria-label={isListening ? "Stop dictation" : "Voice to text"}
+              className="h-11 w-11 shrink-0"
+              title="Attach screenshot"
+              aria-label="Attach screenshot"
             >
-              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              <ImagePlus className="h-4 w-4" />
             </Button>
-          )}
-          <Button onClick={send} disabled={loading || !input.trim()} size="icon" className="h-11 w-11 shrink-0">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          </Button>
+            <Textarea
+              value={input}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+              }}
+              placeholder={micNeedsTap ? "Tap the mic again to keep dictating…" : isListening ? "Listening… keep talking" : "Talk to the System…"}
+              rows={1}
+              className="resize-none min-h-[44px] max-h-40"
+            />
+            {speechSupported && (
+              <Button
+                type="button"
+                onClick={handleMic}
+                variant={isListening ? "default" : "outline"}
+                size="icon"
+                className={`h-11 w-11 shrink-0 ${isListening ? "animate-pulse ring-2 ring-primary" : ""}`}
+                title={isListening ? "Stop dictation" : "Voice to text"}
+                aria-label={isListening ? "Stop dictation" : "Voice to text"}
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            )}
+            <Button onClick={send} disabled={loading || (!input.trim() && pendingImages.length === 0)} size="icon" className="h-11 w-11 shrink-0">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
