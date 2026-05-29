@@ -32,7 +32,7 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route path="/" element={<PublicSanctuary />} />
+              <Route path="/*" element={<PublicSanctuary />} />
             </Routes>
           </Suspense>
         </BrowserRouter>
