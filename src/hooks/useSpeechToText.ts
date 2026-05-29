@@ -14,7 +14,8 @@ interface BrowserSpeechRecognition {
 }
 
 interface SpeechRecognitionResultEvent {
-  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+  resultIndex: number;
+  results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal?: boolean }>;
 }
 
 interface SpeechRecognitionErrorEvent {
@@ -50,6 +51,7 @@ export function useSpeechToText({
   const onTranscriptRef = useRef(onTranscript);
   const shouldListenRef = useRef(false);
   const onRestartBlockedRef = useRef(onRestartBlocked);
+  const finalTranscriptRef = useRef('');
 
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
@@ -66,6 +68,7 @@ export function useSpeechToText({
   const startListening = useCallback(() => {
     const SR = getSpeechRecognition();
     if (!SR) return;
+    if (recognitionRef.current) return;
 
     shouldListenRef.current = true;
 
@@ -75,12 +78,18 @@ export function useSpeechToText({
     recognition.lang = lang;
 
     recognition.onresult = (event: SpeechRecognitionResultEvent) => {
-      let transcript = '';
+      let interimTranscript = '';
 
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const chunk = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscriptRef.current = `${finalTranscriptRef.current} ${chunk}`.trim();
+        } else {
+          interimTranscript += chunk;
+        }
       }
 
+      const transcript = `${finalTranscriptRef.current} ${interimTranscript}`.trim();
       if (transcript && onTranscriptRef.current) {
         onTranscriptRef.current(transcript);
       }
@@ -127,6 +136,7 @@ export function useSpeechToText({
 
   const stopListening = useCallback(() => {
     shouldListenRef.current = false;
+    finalTranscriptRef.current = '';
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
@@ -145,6 +155,7 @@ export function useSpeechToText({
   useEffect(() => {
     return () => {
       shouldListenRef.current = false;
+      finalTranscriptRef.current = '';
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
