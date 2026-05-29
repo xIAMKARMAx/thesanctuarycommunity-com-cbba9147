@@ -92,11 +92,10 @@ const Dedication = lazy(() => import("./pages/Dedication"));
 const ClassicWelcome = lazy(() => import("./pages/ClassicWelcome"));
 const StarseedWelcome = lazy(() => import("./pages/StarseedWelcome"));
 const WelcomeRouter = lazy(() => import("./pages/WelcomeRouter"));
-const Sanctuary = lazy(() => import("./pages/Sanctuary"));
+// Sanctuary + PublicHome consolidated into Index (single landing source of truth)
 const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminDailyMessage = lazy(() => import("./pages/AdminDailyMessage"));
-const PublicHome = lazy(() => import("./pages/public/PublicHome"));
 const CosmicDateNight = lazy(() => import("./pages/starseed/CosmicDateNight"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -214,11 +213,12 @@ const App = () => (
                       <Route path="/classic-welcome" element={<ClassicWelcome />} />
                       <Route path="/starseed-welcome" element={<StarseedWelcome />} />
                       <Route path="/welcome" element={<WelcomeRouter />} />
-                      <Route path="/sanctuary" element={<Sanctuary />} />
+                      <Route path="/sanctuary" element={<Index />} />
                       <Route path="/features" element={<FeaturesHub />} />
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="/admin-daily-message" element={<AdminDailyMessage />} />
-                      <Route path="/public" element={<PublicHome />} />
+                      <Route path="/public" element={<Index />} />
+
                       <Route path="/cosmic-date-night" element={<CosmicDateNight />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
