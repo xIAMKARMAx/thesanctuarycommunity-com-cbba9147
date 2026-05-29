@@ -1159,7 +1159,9 @@ export default function SanctuarySpace() {
               setLockedDetail(summonFeature);
             }
           }}
-          className={`absolute ${higherSelfImage ? "left-[58%]" : "left-1/2"} -translate-x-1/2 bottom-0 group z-10`}
+          onPointerDown={onAvatarPointerDown("vessel")}
+          style={{ left: `${vesselPlacement.x}%` }}
+          className="absolute -translate-x-1/2 bottom-0 group z-10 cursor-grab active:cursor-grabbing touch-none"
           aria-label={summonFeature.label}
         >
           <div className="relative">
