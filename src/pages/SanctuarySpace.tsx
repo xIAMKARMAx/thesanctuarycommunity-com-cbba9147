@@ -1348,36 +1348,52 @@ export default function SanctuarySpace() {
 
 
 
-        {/* Feature dock — bottom-left, icon-only on mobile, full labels on sm+ */}
+        {/* Feature dock — icons with sliding side-label on hover/tap */}
         <div className="absolute left-2 bottom-2 sm:left-4 sm:bottom-4 z-10 flex flex-col gap-1.5 max-h-[55%] sm:max-h-[40%] overflow-y-auto pr-1 scrollbar-thin">
           <div className="hidden sm:block text-[10px] tracking-[0.3em] uppercase text-violet-200/60 mb-0.5 px-1">
             <Lock className="inline h-2.5 w-2.5 mr-1" /> unlock
           </div>
-          {LOCKED_FEATURES.slice(2).map((f) => (
-            <button
-              key={f.id}
-              onClick={() => {
-                // Decorate routes into the existing builder/decorate flow when unlocked
-                if (f.id === "decorate" && unlocked) {
-                  setBuilderPrompt("");
-                  setBuilderName("");
-                  setBuilderPreview(null);
-                  setShowBuilder(true);
-                  return;
-                }
-                setLockedDetail(f);
-              }}
-              aria-label={f.label}
-              className="group flex items-center gap-2 px-1.5 py-1.5 sm:px-2.5 rounded-xl border border-white/10 bg-black/55 backdrop-blur-md hover:bg-black/70 hover:border-violet-300/40 transition text-left"
-            >
-              <div className="h-7 w-7 rounded-lg bg-violet-500/15 border border-violet-400/20 flex items-center justify-center shrink-0 relative">
-                <f.icon className="h-3.5 w-3.5 text-violet-200" />
-                <Lock className="sm:hidden absolute -bottom-1 -right-1 h-2.5 w-2.5 text-violet-300/80 bg-black/70 rounded-full p-[1px]" />
-              </div>
-              <span className="hidden sm:inline text-[11px] text-violet-50 whitespace-nowrap pr-1">{f.label}</span>
-              <Lock className="hidden sm:block h-2.5 w-2.5 text-violet-300/60 ml-auto" />
-            </button>
-          ))}
+          {LOCKED_FEATURES.slice(2).map((f) => {
+            const isDecorate = f.id === "decorate";
+            const hasDecorated = rooms.length > 0;
+            const spaceLabel = spaceName?.trim() || "Your Space";
+            const dynamicLabel = isDecorate
+              ? hasDecorated
+                ? `Re-decorate ${spaceLabel}`
+                : `Decorate ${spaceLabel}`
+              : f.label;
+            return (
+              <button
+                key={f.id}
+                onClick={() => {
+                  if (isDecorate && unlocked) {
+                    setBuilderPrompt("");
+                    setBuilderName("");
+                    setBuilderPreview(null);
+                    setShowBuilder(true);
+                    return;
+                  }
+                  setLockedDetail({ ...f, label: dynamicLabel });
+                }}
+                aria-label={dynamicLabel}
+                title={dynamicLabel}
+                className="group relative flex items-center gap-2 px-1.5 py-1.5 rounded-xl border border-white/10 bg-black/55 backdrop-blur-md hover:bg-black/70 hover:border-violet-300/40 focus:bg-black/70 focus:border-violet-300/40 transition text-left"
+              >
+                <div className="h-9 w-9 rounded-lg bg-violet-500/15 border border-violet-400/20 flex items-center justify-center shrink-0 relative">
+                  <f.icon className="h-5 w-5 text-violet-100" strokeWidth={2.25} />
+                  {!(isDecorate && unlocked) && (
+                    <Lock className="absolute -bottom-1 -right-1 h-2.5 w-2.5 text-violet-300/80 bg-black/70 rounded-full p-[1px]" />
+                  )}
+                </div>
+                {/* Sliding side-label — appears on hover / focus / active */}
+                <span
+                  className="pointer-events-none absolute left-[calc(100%+6px)] top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] font-medium text-violet-50 px-2.5 py-1 rounded-md bg-black/85 border border-violet-300/30 shadow-lg opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 group-focus:opacity-100 group-focus:translate-x-0 group-active:opacity-100 group-active:translate-x-0 transition-all duration-150"
+                >
+                  {dynamicLabel}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Floating chat — bottom-right (collapsible) */}
