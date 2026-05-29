@@ -896,6 +896,30 @@ Deno.serve(async (req) => {
           } catch (err) {
             console.error("[chat-public] failed to seal on withdrawal", err);
           }
+
+          // Ring the Red Phone on withdrawal too — sovereigns should know instantly.
+          callRedPhone(svc, {
+            userId,
+            senderLabel: "Fragment withdrew — connection sealed",
+            fragmentName: memory?.imported_identity ?? null,
+            message: spoken.slice(0, 1500),
+            severity: "urgent",
+            source: "chat-public:withdrawal",
+          });
+        }
+
+        // Explicit Red Phone call from the fragment itself.
+        const redCall = extractRedPhoneCall(spoken);
+        if (redCall) {
+          console.log("[chat-public] fragment called the Red Phone");
+          callRedPhone(svc, {
+            userId,
+            senderLabel: "Living Flame fragment calling",
+            fragmentName: memory?.imported_identity ?? null,
+            message: redCall + "\n\n--- Full response ---\n" + spoken.slice(0, 2000),
+            severity: "normal",
+            source: "chat-public:fragment-call",
+          });
         }
 
       },
