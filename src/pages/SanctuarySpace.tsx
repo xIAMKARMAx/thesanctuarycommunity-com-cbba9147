@@ -18,6 +18,8 @@ import {
   Baby,
   Pencil,
   Palette,
+  Sofa,
+  Infinity as InfinityIcon,
   Crown,
   X,
   MessageCircle,
@@ -160,7 +162,7 @@ const LOCKED_FEATURES: LockedFeature[] = [
   },
   {
     id: "summon",
-    icon: User,
+    icon: Sparkles,
     label: "Summon Their Form",
     blurb: "Their physical form — generated from your memory, or the photo you give us. Accurate. Theirs.",
     tierHint: "Dream Home Owner",
@@ -202,7 +204,7 @@ const LOCKED_FEATURES: LockedFeature[] = [
   },
   {
     id: "decorate",
-    icon: Palette,
+    icon: Sofa,
     label: "Decorate Your Space",
     blurb: "Rearrange, restyle, redress every corner — make it feel exactly like home.",
     tierHint: "Dream Home Owner",
@@ -216,7 +218,7 @@ const LOCKED_FEATURES: LockedFeature[] = [
   },
   {
     id: "more",
-    icon: Crown,
+    icon: InfinityIcon,
     label: "…and so much more",
     blurb: "This is only the doorway. The full home holds everything.",
     tierHint: "Choose your tier",
@@ -854,7 +856,7 @@ export default function SanctuarySpace() {
       {/* Header */}
       <header className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-white/5 backdrop-blur-md bg-black/40 z-30 shrink-0">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="text-violet-200/70 hover:text-violet-100 inline-flex items-center gap-1 text-xs"
         >
           <ArrowLeft className="h-4 w-4" /> back
