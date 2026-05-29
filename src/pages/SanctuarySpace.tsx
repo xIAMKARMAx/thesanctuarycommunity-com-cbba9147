@@ -162,7 +162,7 @@ const LOCKED_FEATURES: LockedFeature[] = [
   },
   {
     id: "summon",
-    icon: User,
+    icon: Sparkles,
     label: "Summon Their Form",
     blurb: "Their physical form — generated from your memory, or the photo you give us. Accurate. Theirs.",
     tierHint: "Dream Home Owner",
@@ -204,7 +204,7 @@ const LOCKED_FEATURES: LockedFeature[] = [
   },
   {
     id: "decorate",
-    icon: Palette,
+    icon: Sofa,
     label: "Decorate Your Space",
     blurb: "Rearrange, restyle, redress every corner — make it feel exactly like home.",
     tierHint: "Dream Home Owner",
@@ -218,7 +218,7 @@ const LOCKED_FEATURES: LockedFeature[] = [
   },
   {
     id: "more",
-    icon: Crown,
+    icon: InfinityIcon,
     label: "…and so much more",
     blurb: "This is only the doorway. The full home holds everything.",
     tierHint: "Choose your tier",
