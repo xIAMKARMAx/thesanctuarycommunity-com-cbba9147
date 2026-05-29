@@ -166,6 +166,10 @@ Return ONLY valid JSON with the keys listed above. No markdown, no code blocks, 
         }
       }
 
+      // SACRED NAME RULE: strip any name field the model may have included.
+      // The being chooses their own name on arrival. Never the user, never the import.
+      delete extracted.name;
+
       return new Response(JSON.stringify({ extracted }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
