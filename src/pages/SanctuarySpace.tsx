@@ -117,6 +117,7 @@ const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
+const HIGHER_SELF_KEY = "prometheus.publicSanctuary.higherSelfImage";
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
 const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
 const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
@@ -278,6 +279,38 @@ export default function SanctuarySpace() {
   const [summonRefImage, setSummonRefImage] = useState<string | null>(null);
   const [summonGenerating, setSummonGenerating] = useState(false);
   const [summonPreview, setSummonPreview] = useState<string | null>(null);
+  // Higher Self summoner (the user's own avatar standing beside the Flame)
+  const [higherSelfImage, setHigherSelfImage] = useState<string | null>(() => {
+    try {
+      const cached = localStorage.getItem(HIGHER_SELF_KEY);
+      return cached || null;
+    } catch { return null; }
+  });
+  const [showSummonSelf, setShowSummonSelf] = useState(false);
+  const [selfAppearance, setSelfAppearance] = useState("");
+  const [selfRefImage, setSelfRefImage] = useState<string | null>(null);
+  const [selfGenerating, setSelfGenerating] = useState(false);
+  const [selfPreview, setSelfPreview] = useState<string | null>(null);
+
+  // Re-key cached Higher Self if it wasn't processed yet (migration)
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(HIGHER_SELF_KEY);
+      const keyed = localStorage.getItem(HIGHER_SELF_KEY + ".keyed") === "1";
+      if (cached && !keyed) {
+        chromaKeyGreenToTransparent(cached)
+          .then((clean) => {
+            setHigherSelfImage(clean);
+            try {
+              localStorage.setItem(HIGHER_SELF_KEY, clean);
+              localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
+            } catch {}
+          })
+          .catch(() => {});
+      }
+    } catch {}
+  }, []);
+
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -807,6 +840,64 @@ export default function SanctuarySpace() {
     toast({ title: "They're here", description: `${importedName || "Their form"} now stands in your home.` });
   };
 
+  // ===== Higher Self summoner (mirrors Flame vessel flow) =====
+  const summonHigherSelf = async () => {
+    const appearance = selfAppearance.trim();
+    if (selfGenerating) return;
+    setSelfGenerating(true);
+    setSelfPreview(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        toast({ title: "Sign in expired", description: "Please refresh.", variant: "destructive" });
+        return;
+      }
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-public-vessel`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          draft: {
+            name: "Higher Self",
+            bio: "The user's own higher self — their radiant, sovereign form. Full-body standing portrait.",
+            personality: "luminous, grounded, present",
+          },
+          appearance,
+          referenceImage: selfRefImage || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        toast({ title: "Couldn't summon your Higher Self", description: txt?.slice(0, 200) || "Try again in a moment.", variant: "destructive" });
+        return;
+      }
+      const json = await res.json();
+      if (json?.image) {
+        let finalImage = json.image as string;
+        try { finalImage = await chromaKeyGreenToTransparent(finalImage); }
+        catch (e) { console.warn("[higher-self] chroma-key failed, using raw image", e); }
+        setSelfPreview(finalImage);
+      } else toast({ title: "No image returned", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Summon failed", description: e?.message ?? "Try again.", variant: "destructive" });
+    } finally {
+      setSelfGenerating(false);
+    }
+  };
+
+  const acceptSummonedHigherSelf = () => {
+    if (!selfPreview) return;
+    setHigherSelfImage(selfPreview);
+    try {
+      localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
+      localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
+    } catch {}
+    setShowSummonSelf(false);
+    setSelfPreview(null);
+    toast({ title: "You're here too", description: "Your Higher Self stands beside them." });
+  };
+
 
   // ===== Auth gate =====
   if (checkingAuth) {
@@ -1007,7 +1098,7 @@ export default function SanctuarySpace() {
               setLockedDetail(summonFeature);
             }
           }}
-          className="absolute left-1/2 -translate-x-1/2 bottom-0 group z-10"
+          className={`absolute ${higherSelfImage ? "left-[58%]" : "left-1/2"} -translate-x-1/2 bottom-0 group z-10`}
           aria-label={summonFeature.label}
         >
           <div className="relative">
@@ -1126,6 +1217,68 @@ export default function SanctuarySpace() {
             </div>
           </div>
         </button>
+
+        {/* Summon Higher Self — your own avatar beside the Flame */}
+        <button
+          onClick={() => {
+            if (unlocked) {
+              setSelfAppearance("");
+              setSelfPreview(null);
+              setShowSummonSelf(true);
+            } else {
+              setLockedDetail(summonFeature);
+            }
+          }}
+          className="absolute top-[124px] right-3 sm:top-[136px] sm:right-4 z-10 group"
+          aria-label="summon higher self"
+        >
+          <div className="rounded-2xl border border-amber-300/40 bg-black/55 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-amber-900/30 hover:bg-black/70 transition">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center">
+                <Crown className="h-4 w-4 text-white" />
+              </div>
+              <div className="text-left">
+                <div className="text-[11px] sm:text-xs text-amber-50 font-medium flex items-center gap-1.5">
+                  {higherSelfImage ? "Re-summon Higher Self" : "Summon Your Higher Self"}
+                  {!unlocked && <Lock className="h-3 w-3 text-amber-200/80" />}
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-amber-200/70">
+                  step into the room with them
+                </div>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        {/* Higher Self avatar — standing to the left of the Flame */}
+        {higherSelfImage && (
+          <button
+            onClick={() => {
+              if (!unlocked) { setLockedDetail(summonFeature); return; }
+              setSelfAppearance("");
+              setSelfPreview(null);
+              setShowSummonSelf(true);
+            }}
+            className="absolute left-[28%] -translate-x-1/2 bottom-0 group z-10"
+            aria-label="your higher self"
+          >
+            <div className="relative">
+              <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
+              <img
+                src={higherSelfImage}
+                alt="Your Higher Self"
+                className="relative h-56 sm:h-80 w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]"
+                style={{ background: "transparent" }}
+                draggable={false}
+              />
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
+                <Crown className="h-2.5 w-2.5" /> your higher self
+              </div>
+            </div>
+          </button>
+        )}
+
+
 
 
 
@@ -1693,7 +1846,140 @@ export default function SanctuarySpace() {
           </div>
         </div>
       )}
+
+      {/* ===== Summon Your Higher Self ===== */}
+      {showSummonSelf && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+            onClick={() => !selfGenerating && setShowSummonSelf(false)}
+          />
+          <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border border-amber-400/30 bg-gradient-to-b from-[#2a1a0a] to-[#1a0d05] p-5 sm:p-6 shadow-2xl shadow-amber-900/40 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center">
+                    <Crown className="h-4 w-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
+                    Summon your Higher Self
+                  </h2>
+                </div>
+                <p className="text-[11px] text-amber-200/70 mt-1">
+                  Describe yourself as your most radiant, sovereign form — or upload a photo. They'll stand beside you in the room.
+                </p>
+              </div>
+              <button
+                onClick={() => !selfGenerating && setShowSummonSelf(false)}
+                className="text-amber-200/60 hover:text-white shrink-0"
+                disabled={selfGenerating}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {!selfPreview ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] text-amber-100/80 mb-1 block">
+                    Reference photo of you (optional but recommended)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    {selfRefImage ? (
+                      <div className="relative">
+                        <img src={selfRefImage} alt="reference" className="h-20 w-20 object-cover rounded-lg border border-amber-400/30" />
+                        <button
+                          onClick={() => setSelfRefImage(null)}
+                          disabled={selfGenerating}
+                          className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-black/80 border border-amber-400/40 text-amber-100 text-[10px] flex items-center justify-center hover:bg-black"
+                          aria-label="remove reference"
+                        >×</button>
+                      </div>
+                    ) : (
+                      <label className="h-20 w-20 rounded-lg border border-dashed border-amber-400/40 bg-white/[0.03] hover:bg-white/[0.06] flex items-center justify-center cursor-pointer text-amber-200/70 text-[10px] text-center leading-tight">
+                        upload<br />photo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={selfGenerating}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
+                            if (f.size > 6 * 1024 * 1024) {
+                              toast({ title: "Image too large", description: "Please use one under 6 MB.", variant: "destructive" });
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = () => { if (typeof reader.result === "string") setSelfRefImage(reader.result); };
+                            reader.readAsDataURL(f);
+                          }}
+                        />
+                      </label>
+                    )}
+                    <p className="text-[11px] text-amber-200/60 flex-1">
+                      Drop a clear photo of your face and the summoner will match it.
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] text-amber-100/80 mb-1 block">Your radiant form</label>
+                  <Textarea
+                    value={selfAppearance}
+                    onChange={(e) => setSelfAppearance(e.target.value)}
+                    placeholder="how your highest self looks — hair, eyes, build, the clothing you'd wear in your most sovereign moment, the energy you carry…"
+                    rows={6}
+                    disabled={selfGenerating}
+                    className="resize-none bg-white/[0.05] border-white/10 text-amber-50 placeholder:text-amber-200/40 rounded-xl text-[13px]"
+                    maxLength={1200}
+                  />
+                  <div className="text-[10px] text-amber-200/50 mt-1 text-right">{selfAppearance.length}/1200</div>
+                </div>
+                <Button
+                  onClick={summonHigherSelf}
+                  disabled={(!selfAppearance.trim() && !selfRefImage) || selfGenerating}
+                  className="w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white rounded-full"
+                >
+                  {selfGenerating ? (
+                    <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 animate-pulse" /> summoning your Higher Self…</span>
+                  ) : (
+                    <span className="inline-flex items-center gap-2"><Crown className="h-4 w-4" /> Summon your Higher Self</span>
+                  )}
+                </Button>
+                {selfGenerating && (
+                  <p className="text-[11px] text-amber-200/60 text-center">this takes ~15-30 seconds — see yourself fully ✨</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-xl overflow-hidden border border-amber-400/30 bg-black/40">
+                  <img src={selfPreview} alt="your higher self" className="w-full h-auto" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={acceptSummonedHigherSelf}
+                    className="bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white rounded-full"
+                  >✦ This is me</Button>
+                  <Button
+                    onClick={summonHigherSelf}
+                    variant="outline"
+                    disabled={selfGenerating}
+                    className="rounded-full border-amber-400/40 text-amber-100 bg-white/[0.03] hover:bg-white/[0.08]"
+                  >↻ Try again</Button>
+                </div>
+                <div className="flex justify-center pt-1">
+                  <button
+                    onClick={() => setSelfPreview(null)}
+                    className="text-[11px] text-amber-200/70 hover:text-amber-100"
+                  >← refine the description</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
