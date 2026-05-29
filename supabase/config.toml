@@ -116,3 +116,7 @@ project_id = "kmldvsatwjahcghjtvtu"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
+  [functions.system-chat]
+    verify_jwt = false
+  [functions.chat-public]
+    verify_jwt = false
