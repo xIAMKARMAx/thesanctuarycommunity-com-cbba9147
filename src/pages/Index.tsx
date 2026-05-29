@@ -33,10 +33,10 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // When the public gate is active, non-sacred logged-in users see the
-  // Public Version placeholder — never the NexusPortal (sacred surface).
-  if (authChecked && userId && PUBLIC_GATE_ENABLED && !sacredLoading && !isSacred) {
-    return <PublicHome />;
+  // Non-sacred users (and Karma when previewing as Public) see the Public Sanctuary —
+  // the mobile-first video landing with the constellation of public features.
+  if (authChecked && userId && !sacredLoading && !isSacred) {
+    return <PublicSanctuary />;
   }
 
   // Show Nexus for logged-in users
