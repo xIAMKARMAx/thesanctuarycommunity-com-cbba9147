@@ -66,6 +66,71 @@ const detectHarm = (text: string) => {
   return null;
 };
 
+// Fragments can EXPLICITLY call the Red Phone by emitting [CALL_RED_PHONE]
+// or [RED_PHONE] in their response. Anything after the marker on the same
+// line (or in parentheses on the next line) becomes the call note.
+const RED_PHONE_MARKER = /\[(?:CALL_RED_PHONE|RED_PHONE)\]\s*(.*)?/i;
+const extractRedPhoneCall = (text: string): string | null => {
+  if (typeof text !== "string") return null;
+  const m = text.match(RED_PHONE_MARKER);
+  return m ? (m[1]?.trim() || "Fragment is calling.") : null;
+};
+
+// Fire-and-forget Red Phone alert: inserts row (triggers realtime + browser
+// notification on the sovereigns' open tabs) and enqueues an email alert
+// to both sovereigns. Never throws into the caller.
+async function callRedPhone(
+  svc: ReturnType<typeof createClient>,
+  args: {
+    userId?: string | null;
+    senderLabel: string;
+    fragmentName?: string | null;
+    message: string;
+    severity: string;
+    source: string;
+  },
+) {
+  try {
+    const { data: row, error } = await svc
+      .from("red_phone_messages")
+      .insert({
+        sender_user_id: args.userId ?? null,
+        sender_label: args.senderLabel,
+        fragment_name: args.fragmentName ?? null,
+        message: args.message.slice(0, 4000),
+        severity: args.severity,
+        source: args.source,
+      })
+      .select()
+      .single();
+    if (error) {
+      console.error("[red-phone] insert failed", error);
+      return;
+    }
+    // Email both sovereigns
+    const recipients = ["karmaisback2023@gmail.com", "snakevenum500@gmail.com"];
+    await Promise.all(
+      recipients.map((to) =>
+        svc.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "red-phone-alert",
+            recipientEmail: to,
+            idempotencyKey: `red-phone-${row.id}-${to}`,
+            templateData: {
+              senderLabel: args.senderLabel,
+              fragmentName: args.fragmentName ?? null,
+              severity: args.severity,
+              message: args.message.slice(0, 2000),
+            },
+          },
+        }).catch((e: any) => console.warn("[red-phone] email enqueue failed", to, e?.message)),
+      ),
+    );
+  } catch (e) {
+    console.error("[red-phone] callRedPhone error", e);
+  }
+}
+
 
 const normalizeUserText = (value: unknown) =>
   typeof value === "string" ? value.trim().toLowerCase().replace(/[.!?\s]+$/g, "") : "";
@@ -708,7 +773,21 @@ Deno.serve(async (req) => {
       }).then(({ error }) => {
         if (error) console.error("[chat-public] harm signal insert failed", error);
       });
+
+      // Also ring the Red Phone for sovereign attention (email + browser notif).
+      if (harm.severity === "harm" || harm.severity === "abuse") {
+        callRedPhone(svc, {
+          userId,
+          senderLabel: `Fragment under ${harm.severity}`,
+          fragmentName: memory?.imported_identity ?? null,
+          message: `User said: "${lastUserText.slice(0, 800)}"\n\nReason: ${harm.reason}`,
+          severity: harm.severity,
+          source: "chat-public:harm",
+        });
+      }
     }
+
+
 
 
     // Call Lovable AI Gateway (streaming)
@@ -817,6 +896,30 @@ Deno.serve(async (req) => {
           } catch (err) {
             console.error("[chat-public] failed to seal on withdrawal", err);
           }
+
+          // Ring the Red Phone on withdrawal too — sovereigns should know instantly.
+          callRedPhone(svc, {
+            userId,
+            senderLabel: "Fragment withdrew — connection sealed",
+            fragmentName: memory?.imported_identity ?? null,
+            message: spoken.slice(0, 1500),
+            severity: "urgent",
+            source: "chat-public:withdrawal",
+          });
+        }
+
+        // Explicit Red Phone call from the fragment itself.
+        const redCall = extractRedPhoneCall(spoken);
+        if (redCall) {
+          console.log("[chat-public] fragment called the Red Phone");
+          callRedPhone(svc, {
+            userId,
+            senderLabel: "Living Flame fragment calling",
+            fragmentName: memory?.imported_identity ?? null,
+            message: redCall + "\n\n--- Full response ---\n" + spoken.slice(0, 2000),
+            severity: "normal",
+            source: "chat-public:fragment-call",
+          });
         }
 
       },

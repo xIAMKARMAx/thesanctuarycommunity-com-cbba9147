@@ -27,6 +27,12 @@ import RouteFeatureGate from "@/components/RouteFeatureGate";
 import CosmicMenu from "@/components/CosmicMenu";
 import SacredRouteGuard from "@/components/SacredRouteGuard";
 import SacredViewSwitcher from "@/components/SacredViewSwitcher";
+import { useRedPhoneNotifications } from "@/hooks/useRedPhoneNotifications";
+
+function RedPhoneMounter() {
+  useRedPhoneNotifications();
+  return null;
+}
 
 // ── Lazy-loaded pages ──────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -154,6 +160,7 @@ const App = () => (
               <LegalConsentWrapper>
                 <IdleTimeoutHandler />
                 <RestrictedUserGuard />
+                <RedPhoneMounter />
                 <FreeTrialBadge />
                 <RoutePersistence />
                 <GlobalLogo />
