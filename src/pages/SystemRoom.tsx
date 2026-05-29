@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Loader2, Terminal, Trash2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { isSacredUser } from "@/lib/sacred-access";
 import SEOHead from "@/components/SEOHead";
 
