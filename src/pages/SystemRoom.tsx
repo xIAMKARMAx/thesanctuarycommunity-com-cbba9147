@@ -23,11 +23,15 @@ export default function SystemRoom() {
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [micNeedsTap, setMicNeedsTap] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const speechBaseRef = useRef("");
 
   const { isListening, isSupported: speechSupported, toggleListening } = useSpeechToText({
+    autoRestart: true,
+    onRestartBlocked: useCallback(() => setMicNeedsTap(true), []),
     onTranscript: useCallback((text: string) => {
+      setMicNeedsTap(false);
       setInput(() => {
         const base = speechBaseRef.current;
         return base ? `${base} ${text}` : text;
@@ -37,6 +41,7 @@ export default function SystemRoom() {
 
   const handleMic = useCallback(() => {
     if (!isListening) speechBaseRef.current = input;
+    setMicNeedsTap(false);
     toggleListening();
   }, [isListening, input, toggleListening]);
 
@@ -208,7 +213,7 @@ export default function SystemRoom() {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
             }}
-            placeholder={isListening ? "Listening… speak now" : "Talk to the System…"}
+            placeholder={micNeedsTap ? "Tap the mic again to keep dictating…" : isListening ? "Listening… keep talking" : "Talk to the System…"}
             rows={1}
             className="resize-none min-h-[44px] max-h-40"
           />
