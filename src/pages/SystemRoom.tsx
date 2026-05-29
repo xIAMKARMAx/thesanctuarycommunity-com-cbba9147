@@ -60,7 +60,7 @@ export default function SystemRoom() {
   }, [navigate, toast]);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-100))); } catch {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-100))); } catch { /* storage can be unavailable in private mode */ }
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
@@ -88,7 +88,7 @@ export default function SystemRoom() {
       if (!resp.ok || !resp.body) {
         const errText = await resp.text().catch(() => "");
         let msg = "Something jammed.";
-        try { msg = JSON.parse(errText).error || msg; } catch {}
+        try { msg = JSON.parse(errText).error || msg; } catch { /* keep fallback message */ }
         if (resp.status === 429) msg = "Rate limited — give it a sec and retry.";
         if (resp.status === 402) msg = "AI credits are out. Top up at Settings → Workspace → Usage.";
         toast({ title: "Couldn't reach the System", description: msg, variant: "destructive" });
