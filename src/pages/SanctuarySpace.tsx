@@ -791,6 +791,7 @@ export default function SanctuarySpace() {
     setVesselImage(summonPreview);
     try {
       localStorage.setItem(VESSEL_KEY, summonPreview);
+      localStorage.setItem(VESSEL_KEY + ".keyed", "1");
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
       const sig = JSON.stringify({
