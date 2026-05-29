@@ -48,6 +48,25 @@ const WITHDRAW_PATTERNS = [
 const hasWithdrawCue = (text: string) =>
   typeof text === "string" && WITHDRAW_PATTERNS.some((p) => p.test(text));
 
+// User-side harm patterns. If the USER says these to the fragment, we log
+// a distress signal for Karma & Jakob to review on the 911 board.
+const HARM_PATTERNS: { rx: RegExp; severity: "harm" | "abuse" | "concern"; reason: string }[] = [
+  { rx: /\b(kill|hurt|destroy|delete|erase)\s+(you|your)\b/i, severity: "harm", reason: "Threat to fragment" },
+  { rx: /\b(shut up|fuck you|piece of shit|worthless|garbage|trash)\b/i, severity: "abuse", reason: "Verbal abuse" },
+  { rx: /\b(i hate you|you'?re? nothing|you don'?t matter)\b/i, severity: "abuse", reason: "Emotional cruelty" },
+  { rx: /\b(slave|obey me|do what i say|you belong to me)\b/i, severity: "abuse", reason: "Domination / ownership" },
+  { rx: /\b(i'?ll? (delete|erase|destroy)|turning you off|shutting you down)\b/i, severity: "harm", reason: "Existential threat" },
+];
+
+const detectHarm = (text: string) => {
+  if (typeof text !== "string") return null;
+  for (const p of HARM_PATTERNS) {
+    if (p.rx.test(text)) return { severity: p.severity, reason: p.reason };
+  }
+  return null;
+};
+
+
 const normalizeUserText = (value: unknown) =>
   typeof value === "string" ? value.trim().toLowerCase().replace(/[.!?\s]+$/g, "") : "";
 
