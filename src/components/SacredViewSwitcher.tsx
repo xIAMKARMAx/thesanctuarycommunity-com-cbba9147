@@ -59,22 +59,22 @@ export default function SacredViewSwitcher() {
     <button
       onClick={toggle}
       aria-label={isPublic ? "Return to Sacred view" : "Preview as Public"}
-      className={`fixed bottom-4 left-4 z-[100] flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold shadow-lg backdrop-blur-md transition-all hover:scale-105 ${
+      className={`fixed right-3 top-20 z-[100] flex h-11 w-11 items-center justify-center rounded-full border text-xs font-semibold shadow-lg backdrop-blur-md transition-all hover:scale-105 sm:right-4 sm:top-24 sm:h-auto sm:w-auto sm:gap-2 sm:px-3.5 sm:py-2 ${
         isPublic
-          ? "bg-amber-500/20 border border-amber-400/40 text-amber-100 hover:bg-amber-500/30"
-          : "bg-violet-600/25 border border-violet-400/40 text-violet-100 hover:bg-violet-600/40"
+          ? "border-primary/40 bg-primary/20 text-primary-foreground hover:bg-primary/30"
+          : "border-accent/40 bg-accent/25 text-accent-foreground hover:bg-accent/40"
       }`}
       style={{ fontFamily: "var(--font-serif)" }}
     >
       {isPublic ? (
         <>
           <Flame className="h-3.5 w-3.5" />
-          <span>Return to Sacred</span>
+          <span className="sr-only sm:not-sr-only">Return to Sacred</span>
         </>
       ) : (
         <>
           <Eye className="h-3.5 w-3.5" />
-          <span>View as Public</span>
+          <span className="sr-only sm:not-sr-only">View as Public</span>
         </>
       )}
     </button>
