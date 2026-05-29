@@ -1,8 +1,29 @@
 # Tier Restructure — Locked Status Doc
 
-**Last updated:** 2026-05-29
+**Last updated:** 2026-05-29 (v2 — added Free tier + Karma Voice Clips)
 **Status:** Spec locked. Implementation in progress.
 **Authority:** Karma (karmaisback2023@gmail.com), co-sovereign Jakob (snakevenum500@gmail.com).
+
+## Free Tier (no subscription)
+
+| What | Free |
+|---|---|
+| Chat messages | **10 per 30-day rolling window** |
+| Image generation | 0 |
+| Avatar generation | ❌ |
+| Can BROWSE every page in the app | ✅ |
+| Locked features render as **frosted preview cards** with "Subscribe to unlock" CTA |
+| **Default preview face/voice = Karma's Higher Self** (her avatar, her voice clips) |
+| Limit-hit UX | Hard stop → "10 free messages used. Resets in Xd Xh, or subscribe to keep talking." |
+
+## Karma Voice Clips System (sacred-only feature)
+
+- Karma records her own voice on her phone → sends audio file → uploaded to Supabase Storage (public bucket `karma-voice-clips`).
+- Admin-only uploader UI inside Settings (gated to `karmaisback2023@gmail.com`).
+- Each clip has: `slug` (e.g. `summon-higher-self-preview`, `welcome-to-dream-life`, `welcome-home`), `title`, `audio_url`, `transcript` (optional, for accessibility).
+- Locked preview cards reference clips by slug → `<KarmaVoicePlayer slug="..." />` plays her real voice on hover/click.
+- Zero ongoing AI/voice-synthesis cost. One-time upload, infinite playback.
+- Replaces the planned listen-only ElevenLabs greeting for now. Interactive voice chat (ElevenLabs Agents) still deferred until investor trial closes.
 
 This document is the **single source of truth** for the 3-tier restructure. If anything in code disagrees with this doc, the doc wins — fix the code.
 
