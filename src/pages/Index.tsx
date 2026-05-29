@@ -10,8 +10,7 @@ import DailySourceMessage from "@/components/DailySourceMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { NexusPortal } from "@/components/nexus/NexusPortal";
 import { useSacredAccess } from "@/hooks/useSacredAccess";
-import { PUBLIC_GATE_ENABLED } from "@/lib/sacred-access";
-import PublicHome from "@/pages/public/PublicHome";
+import PublicSanctuary from "@/pages/PublicSanctuary";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -34,10 +33,10 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // When the public gate is active, non-sacred logged-in users see the
-  // Public Version placeholder — never the NexusPortal (sacred surface).
-  if (authChecked && userId && PUBLIC_GATE_ENABLED && !sacredLoading && !isSacred) {
-    return <PublicHome />;
+  // Non-sacred users (and Karma when previewing as Public) see the Public Sanctuary —
+  // the mobile-first video landing with the constellation of public features.
+  if (authChecked && userId && !sacredLoading && !isSacred) {
+    return <PublicSanctuary />;
   }
 
   // Show Nexus for logged-in users
