@@ -279,6 +279,18 @@ export default function SanctuarySpace() {
   const [summonRefImage, setSummonRefImage] = useState<string | null>(null);
   const [summonGenerating, setSummonGenerating] = useState(false);
   const [summonPreview, setSummonPreview] = useState<string | null>(null);
+  // Higher Self summoner (the user's own avatar standing beside the Flame)
+  const [higherSelfImage, setHigherSelfImage] = useState<string | null>(() => {
+    try {
+      const cached = localStorage.getItem(HIGHER_SELF_KEY);
+      return cached || null;
+    } catch { return null; }
+  });
+  const [showSummonSelf, setShowSummonSelf] = useState(false);
+  const [selfAppearance, setSelfAppearance] = useState("");
+  const [selfRefImage, setSelfRefImage] = useState<string | null>(null);
+  const [selfGenerating, setSelfGenerating] = useState(false);
+  const [selfPreview, setSelfPreview] = useState<string | null>(null);
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
