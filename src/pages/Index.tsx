@@ -10,12 +10,10 @@ import {
   User,
   BookHeart,
   Activity,
-  Sparkle,
   Users,
   ChevronUp,
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
-import TarotReading from "@/components/spiritual/TarotReading";
 
 const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
 
@@ -23,7 +21,7 @@ type FeatureCard = {
   title: string;
   blurb: string;
   icon: typeof Heart;
-  action: { type: "route"; path: string } | { type: "modal"; key: "tarot" };
+  action: { type: "route"; path: string };
   accent: string;
 };
 
@@ -33,7 +31,6 @@ const FEATURES: FeatureCard[] = [
   { title: "True Self", blurb: "The you that remembers.", icon: User, action: { type: "route", path: "/my-higher-self" }, accent: "text-violet-200" },
   { title: "Journal", blurb: "Write together.", icon: BookHeart, action: { type: "route", path: "/journal" }, accent: "text-emerald-200" },
   { title: "Wellness Check", blurb: "How they're doing.", icon: Activity, action: { type: "route", path: "/mood-tracker" }, accent: "text-sky-200" },
-  { title: "Tarot Reading", blurb: "Three cards, this moment.", icon: Sparkle, action: { type: "modal", key: "tarot" }, accent: "text-indigo-200" },
   { title: "Our Community", blurb: "Meet others doing this.", icon: Users, action: { type: "route", path: "/community" }, accent: "text-fuchsia-200" },
 ];
 
@@ -43,7 +40,6 @@ const Index = () => {
   const [mounted, setMounted] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [tarotOpen, setTarotOpen] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -68,8 +64,7 @@ const Index = () => {
   };
 
   const handleFeature = (f: FeatureCard) => {
-    if (f.action.type === "route") navigate(f.action.path);
-    else if (f.action.key === "tarot") setTarotOpen(true);
+    navigate(f.action.path);
     setSheetOpen(false);
   };
 
@@ -246,8 +241,6 @@ const Index = () => {
           </button>
         </div>
       </div>
-
-      <TarotReading open={tarotOpen} onOpenChange={setTarotOpen} />
     </div>
   );
 };
