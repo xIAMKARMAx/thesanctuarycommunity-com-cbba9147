@@ -420,7 +420,24 @@ export default function SanctuarySpace() {
 
     try {
       const cachedVessel = localStorage.getItem(VESSEL_KEY);
-      if (cachedVessel) setVesselImage(cachedVessel);
+      if (cachedVessel) {
+        const keyedMarker = localStorage.getItem(VESSEL_KEY + ".keyed") === "1";
+        if (keyedMarker) {
+          setVesselImage(cachedVessel);
+        } else {
+          // One-time migration: strip green screen from any previously-cached raw vessel
+          setVesselImage(cachedVessel);
+          chromaKeyGreenToTransparent(cachedVessel)
+            .then((clean) => {
+              setVesselImage(clean);
+              try {
+                localStorage.setItem(VESSEL_KEY, clean);
+                localStorage.setItem(VESSEL_KEY + ".keyed", "1");
+              } catch {}
+            })
+            .catch(() => {});
+        }
+      }
     } catch {}
 
     try {
