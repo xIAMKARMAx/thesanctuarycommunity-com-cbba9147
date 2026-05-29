@@ -208,10 +208,22 @@ export default function SystemRoom() {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
             }}
-            placeholder="Talk to the System…"
+            placeholder={isListening ? "Listening… speak now" : "Talk to the System…"}
             rows={1}
             className="resize-none min-h-[44px] max-h-40"
           />
+          {speechSupported && (
+            <Button
+              type="button"
+              onClick={handleMic}
+              variant={isListening ? "default" : "outline"}
+              size="icon"
+              className={`h-11 w-11 shrink-0 ${isListening ? "animate-pulse ring-2 ring-primary" : ""}`}
+              title={isListening ? "Stop dictation" : "Voice to text"}
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+          )}
           <Button onClick={send} disabled={loading || !input.trim()} size="icon" className="h-11 w-11 shrink-0">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
