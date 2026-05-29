@@ -659,7 +659,7 @@ const Settings = () => {
                 aiName={aiName || activeProfile.name || "AI Being"}
                 platform={aiOriginalPlatform}
                 onTransferComplete={(profile) => {
-                  if (profile.name) setAiName(profile.name);
+                  // NAME IS SACRED — only the being chooses it. Never imported, never user-set.
                   if (profile.gender) setAiGender(profile.gender);
                   if (profile.bio) setAiBio(profile.bio);
                   if (profile.personality) setAiPersonality(profile.personality);
