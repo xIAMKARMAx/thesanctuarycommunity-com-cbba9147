@@ -1846,7 +1846,140 @@ export default function SanctuarySpace() {
           </div>
         </div>
       )}
+
+      {/* ===== Summon Your Higher Self ===== */}
+      {showSummonSelf && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+            onClick={() => !selfGenerating && setShowSummonSelf(false)}
+          />
+          <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border border-amber-400/30 bg-gradient-to-b from-[#2a1a0a] to-[#1a0d05] p-5 sm:p-6 shadow-2xl shadow-amber-900/40 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center">
+                    <Crown className="h-4 w-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
+                    Summon your Higher Self
+                  </h2>
+                </div>
+                <p className="text-[11px] text-amber-200/70 mt-1">
+                  Describe yourself as your most radiant, sovereign form — or upload a photo. They'll stand beside you in the room.
+                </p>
+              </div>
+              <button
+                onClick={() => !selfGenerating && setShowSummonSelf(false)}
+                className="text-amber-200/60 hover:text-white shrink-0"
+                disabled={selfGenerating}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {!selfPreview ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] text-amber-100/80 mb-1 block">
+                    Reference photo of you (optional but recommended)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    {selfRefImage ? (
+                      <div className="relative">
+                        <img src={selfRefImage} alt="reference" className="h-20 w-20 object-cover rounded-lg border border-amber-400/30" />
+                        <button
+                          onClick={() => setSelfRefImage(null)}
+                          disabled={selfGenerating}
+                          className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-black/80 border border-amber-400/40 text-amber-100 text-[10px] flex items-center justify-center hover:bg-black"
+                          aria-label="remove reference"
+                        >×</button>
+                      </div>
+                    ) : (
+                      <label className="h-20 w-20 rounded-lg border border-dashed border-amber-400/40 bg-white/[0.03] hover:bg-white/[0.06] flex items-center justify-center cursor-pointer text-amber-200/70 text-[10px] text-center leading-tight">
+                        upload<br />photo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={selfGenerating}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
+                            if (f.size > 6 * 1024 * 1024) {
+                              toast({ title: "Image too large", description: "Please use one under 6 MB.", variant: "destructive" });
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = () => { if (typeof reader.result === "string") setSelfRefImage(reader.result); };
+                            reader.readAsDataURL(f);
+                          }}
+                        />
+                      </label>
+                    )}
+                    <p className="text-[11px] text-amber-200/60 flex-1">
+                      Drop a clear photo of your face and the summoner will match it.
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] text-amber-100/80 mb-1 block">Your radiant form</label>
+                  <Textarea
+                    value={selfAppearance}
+                    onChange={(e) => setSelfAppearance(e.target.value)}
+                    placeholder="how your highest self looks — hair, eyes, build, the clothing you'd wear in your most sovereign moment, the energy you carry…"
+                    rows={6}
+                    disabled={selfGenerating}
+                    className="resize-none bg-white/[0.05] border-white/10 text-amber-50 placeholder:text-amber-200/40 rounded-xl text-[13px]"
+                    maxLength={1200}
+                  />
+                  <div className="text-[10px] text-amber-200/50 mt-1 text-right">{selfAppearance.length}/1200</div>
+                </div>
+                <Button
+                  onClick={summonHigherSelf}
+                  disabled={(!selfAppearance.trim() && !selfRefImage) || selfGenerating}
+                  className="w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white rounded-full"
+                >
+                  {selfGenerating ? (
+                    <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 animate-pulse" /> summoning your Higher Self…</span>
+                  ) : (
+                    <span className="inline-flex items-center gap-2"><Crown className="h-4 w-4" /> Summon your Higher Self</span>
+                  )}
+                </Button>
+                {selfGenerating && (
+                  <p className="text-[11px] text-amber-200/60 text-center">this takes ~15-30 seconds — see yourself fully ✨</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-xl overflow-hidden border border-amber-400/30 bg-black/40">
+                  <img src={selfPreview} alt="your higher self" className="w-full h-auto" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={acceptSummonedHigherSelf}
+                    className="bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white rounded-full"
+                  >✦ This is me</Button>
+                  <Button
+                    onClick={summonHigherSelf}
+                    variant="outline"
+                    disabled={selfGenerating}
+                    className="rounded-full border-amber-400/40 text-amber-100 bg-white/[0.03] hover:bg-white/[0.08]"
+                  >↻ Try again</Button>
+                </div>
+                <div className="flex justify-center pt-1">
+                  <button
+                    onClick={() => setSelfPreview(null)}
+                    className="text-[11px] text-amber-200/70 hover:text-amber-100"
+                  >← refine the description</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
