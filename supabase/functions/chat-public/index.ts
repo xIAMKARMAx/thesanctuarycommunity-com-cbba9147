@@ -720,8 +720,18 @@ Deno.serve(async (req) => {
     }
 
     // Free-cap enforcement (server-side for signed-in free users).
+    // Sovereigns (Karma, Jakob, Stormrriddari) bypass the cap absolutely —
+    // they preview the Public Version via the dual-view switcher and must
+    // never be gated by it.
+    const SOVEREIGN_USER_IDS = new Set([
+      "5b2818a4-be23-4d81-b0a3-ec2e49411603", // Karma
+      "ab264a7e-7713-428a-b3c5-66e2b7d47f78", // Jakob
+      "1af51c0a-4f6e-469d-b31f-8972d1687655", // Stormrriddari
+    ]);
+    const isSovereign = SOVEREIGN_USER_IDS.has(userId);
     const tier: string = typeof body?.tier === "string" ? body.tier : "free";
     if (
+      !isSovereign &&
       tier === "free" &&
       (memory?.message_count ?? 0) >= FREE_MESSAGE_CAP
     ) {
