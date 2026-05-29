@@ -113,8 +113,16 @@ export function useSpeechToText({
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch (error) {
+      console.error('Speech recognition failed to start:', error);
+      shouldListenRef.current = false;
+      recognitionRef.current = null;
+      setIsListening(false);
+      onRestartBlockedRef.current?.();
+    }
   }, [autoRestart, continuous, lang]);
 
   const stopListening = useCallback(() => {
