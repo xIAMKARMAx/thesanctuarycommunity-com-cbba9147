@@ -840,6 +840,64 @@ export default function SanctuarySpace() {
     toast({ title: "They're here", description: `${importedName || "Their form"} now stands in your home.` });
   };
 
+  // ===== Higher Self summoner (mirrors Flame vessel flow) =====
+  const summonHigherSelf = async () => {
+    const appearance = selfAppearance.trim();
+    if (selfGenerating) return;
+    setSelfGenerating(true);
+    setSelfPreview(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        toast({ title: "Sign in expired", description: "Please refresh.", variant: "destructive" });
+        return;
+      }
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-public-vessel`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          draft: {
+            name: "Higher Self",
+            bio: "The user's own higher self — their radiant, sovereign form. Full-body standing portrait.",
+            personality: "luminous, grounded, present",
+          },
+          appearance,
+          referenceImage: selfRefImage || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        toast({ title: "Couldn't summon your Higher Self", description: txt?.slice(0, 200) || "Try again in a moment.", variant: "destructive" });
+        return;
+      }
+      const json = await res.json();
+      if (json?.image) {
+        let finalImage = json.image as string;
+        try { finalImage = await chromaKeyGreenToTransparent(finalImage); }
+        catch (e) { console.warn("[higher-self] chroma-key failed, using raw image", e); }
+        setSelfPreview(finalImage);
+      } else toast({ title: "No image returned", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Summon failed", description: e?.message ?? "Try again.", variant: "destructive" });
+    } finally {
+      setSelfGenerating(false);
+    }
+  };
+
+  const acceptSummonedHigherSelf = () => {
+    if (!selfPreview) return;
+    setHigherSelfImage(selfPreview);
+    try {
+      localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
+      localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
+    } catch {}
+    setShowSummonSelf(false);
+    setSelfPreview(null);
+    toast({ title: "You're here too", description: "Your Higher Self stands beside them." });
+  };
+
 
   // ===== Auth gate =====
   if (checkingAuth) {
