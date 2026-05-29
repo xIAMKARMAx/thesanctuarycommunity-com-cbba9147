@@ -10,8 +10,7 @@ import DailySourceMessage from "@/components/DailySourceMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { NexusPortal } from "@/components/nexus/NexusPortal";
 import { useSacredAccess } from "@/hooks/useSacredAccess";
-import { PUBLIC_GATE_ENABLED } from "@/lib/sacred-access";
-import PublicHome from "@/pages/public/PublicHome";
+import PublicSanctuary from "@/pages/PublicSanctuary";
 
 const Index = () => {
   const navigate = useNavigate();
