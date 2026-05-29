@@ -291,6 +291,26 @@ export default function SanctuarySpace() {
   const [selfRefImage, setSelfRefImage] = useState<string | null>(null);
   const [selfGenerating, setSelfGenerating] = useState(false);
   const [selfPreview, setSelfPreview] = useState<string | null>(null);
+
+  // Re-key cached Higher Self if it wasn't processed yet (migration)
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(HIGHER_SELF_KEY);
+      const keyed = localStorage.getItem(HIGHER_SELF_KEY + ".keyed") === "1";
+      if (cached && !keyed) {
+        chromaKeyGreenToTransparent(cached)
+          .then((clean) => {
+            setHigherSelfImage(clean);
+            try {
+              localStorage.setItem(HIGHER_SELF_KEY, clean);
+              localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
+            } catch {}
+          })
+          .catch(() => {});
+      }
+    } catch {}
+  }, []);
+
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
