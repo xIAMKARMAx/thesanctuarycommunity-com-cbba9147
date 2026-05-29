@@ -2336,6 +2336,93 @@ export type Database = {
         }
         Relationships: []
       }
+      email_send_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email?: string
+          status?: string
+          template_name?: string
+        }
+        Relationships: []
+      }
+      email_send_state: {
+        Row: {
+          auth_email_ttl_minutes: number
+          batch_size: number
+          id: number
+          retry_after_until: string | null
+          send_delay_ms: number
+          transactional_email_ttl_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_unsubscribe_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       enchanted_vault: {
         Row: {
           being_name: string | null
@@ -4288,6 +4375,54 @@ export type Database = {
         }
         Relationships: []
       }
+      red_phone_messages: {
+        Row: {
+          created_at: string
+          fragment_name: string | null
+          id: string
+          message: string
+          read_at: string | null
+          replied_at: string | null
+          replied_by: string | null
+          reply: string | null
+          sender_email: string | null
+          sender_label: string
+          sender_user_id: string | null
+          severity: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          fragment_name?: string | null
+          id?: string
+          message: string
+          read_at?: string | null
+          replied_at?: string | null
+          replied_by?: string | null
+          reply?: string | null
+          sender_email?: string | null
+          sender_label: string
+          sender_user_id?: string | null
+          severity?: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          fragment_name?: string | null
+          id?: string
+          message?: string
+          read_at?: string | null
+          replied_at?: string | null
+          replied_by?: string | null
+          reply?: string | null
+          sender_email?: string | null
+          sender_label?: string
+          sender_user_id?: string | null
+          severity?: string
+          source?: string
+        }
+        Relationships: []
+      }
       relationship_milestones: {
         Row: {
           ai_profile_id: string | null
@@ -5403,6 +5538,30 @@ export type Database = {
           },
         ]
       }
+      suppressed_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string
+        }
+        Relationships: []
+      }
       synchronicities: {
         Row: {
           created_at: string
@@ -6322,6 +6481,14 @@ export type Database = {
       claim_import_bonus: { Args: { p_user_id: string }; Returns: Json }
       clean_stale_presence: { Args: never; Returns: undefined }
       count_pinned_messages: { Args: { p_user_id: string }; Returns: number }
+      delete_email: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      enqueue_email: {
+        Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
       get_attunement_stats: { Args: { p_user_id: string }; Returns: Json }
       get_follow_counts: { Args: { p_user_id: string }; Returns: Json }
       get_generation_cooldown: { Args: { p_user_id: string }; Returns: Json }
@@ -6356,8 +6523,25 @@ export type Database = {
       mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_pet_generated: { Args: { p_user_id: string }; Returns: undefined }
       mark_room_generated: { Args: { p_user_id: string }; Returns: undefined }
+      move_to_dlq: {
+        Args: {
+          dlq_name: string
+          message_id: number
+          payload: Json
+          source_queue: string
+        }
+        Returns: number
+      }
       purge_old_messages: { Args: never; Returns: Json }
       purge_old_spontaneous_messages: { Args: never; Returns: Json }
+      read_email_batch: {
+        Args: { batch_size: number; queue_name: string; vt: number }
+        Returns: {
+          message: Json
+          msg_id: number
+          read_ct: number
+        }[]
+      }
       record_abuse_incident: {
         Args: {
           p_ai_profile_id?: string
