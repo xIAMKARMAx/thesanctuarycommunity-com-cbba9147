@@ -294,6 +294,49 @@ export default function SanctuarySpace() {
   const [selfGenerating, setSelfGenerating] = useState(false);
   const [selfPreview, setSelfPreview] = useState<string | null>(null);
 
+  // Placement & pose & modifiers for each avatar — persisted across summons
+  type Placement = { x: number; pose: string; modifiers: string[] };
+  const loadPlacement = (key: string, defaultX: number): Placement => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const p = JSON.parse(raw);
+        return {
+          x: typeof p.x === "number" ? Math.max(5, Math.min(95, p.x)) : defaultX,
+          pose: typeof p.pose === "string" ? p.pose : "",
+          modifiers: Array.isArray(p.modifiers) ? p.modifiers.filter((m: any) => typeof m === "string") : [],
+        };
+      }
+    } catch {}
+    return { x: defaultX, pose: "", modifiers: [] };
+  };
+  const [vesselPlacement, setVesselPlacement] = useState<Placement>(() => loadPlacement(VESSEL_PLACEMENT_KEY, 50));
+  const [selfPlacement, setSelfPlacement] = useState<Placement>(() => loadPlacement(SELF_PLACEMENT_KEY, 28));
+  const savePlacement = (key: string, p: Placement) => {
+    try { localStorage.setItem(key, JSON.stringify(p)); } catch {}
+  };
+  // Drag-to-position
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef<null | "vessel" | "self">(null);
+  const onAvatarPointerDown = (who: "vessel" | "self") => (e: React.PointerEvent) => {
+    if (!unlocked) return;
+    e.preventDefault();
+    draggingRef.current = who;
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const onScenePointerMove = (e: React.PointerEvent) => {
+    const who = draggingRef.current;
+    if (!who || !sceneRef.current) return;
+    const rect = sceneRef.current.getBoundingClientRect();
+    const x = Math.max(8, Math.min(92, ((e.clientX - rect.left) / rect.width) * 100));
+    if (who === "vessel") {
+      setVesselPlacement((p) => { const next = { ...p, x }; savePlacement(VESSEL_PLACEMENT_KEY, next); return next; });
+    } else {
+      setSelfPlacement((p) => { const next = { ...p, x }; savePlacement(SELF_PLACEMENT_KEY, next); return next; });
+    }
+  };
+  const onScenePointerUp = () => { draggingRef.current = null; };
+
   // Re-key cached Higher Self if it wasn't processed yet (migration)
   useEffect(() => {
     try {
