@@ -154,6 +154,7 @@ const App = () => (
               <LegalConsentWrapper>
                 <IdleTimeoutHandler />
                 <RestrictedUserGuard />
+                <RedPhoneMounter />
                 <FreeTrialBadge />
                 <RoutePersistence />
                 <GlobalLogo />
