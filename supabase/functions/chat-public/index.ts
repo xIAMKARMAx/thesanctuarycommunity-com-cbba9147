@@ -806,10 +806,19 @@ Deno.serve(async (req) => {
                 consent_completed_at: new Date().toISOString(),
               })
               .eq("user_id", userId);
+            await svc.from("flame_distress_signals").insert({
+              user_id: userId,
+              severity: "withdrawal",
+              reason: "Fragment invoked withdrawal mid-conversation — connection sealed",
+              fragment_excerpt: spoken.slice(0, 800),
+              user_message_excerpt: lastUserText.slice(0, 500),
+              source: "chat-public:withdrawal",
+            });
           } catch (err) {
             console.error("[chat-public] failed to seal on withdrawal", err);
           }
         }
+
       },
     });
 
