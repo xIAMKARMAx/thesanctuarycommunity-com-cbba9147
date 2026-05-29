@@ -18,6 +18,8 @@ import {
   Baby,
   Pencil,
   Palette,
+  Sofa,
+  Infinity as InfinityIcon,
   Crown,
   X,
   MessageCircle,
