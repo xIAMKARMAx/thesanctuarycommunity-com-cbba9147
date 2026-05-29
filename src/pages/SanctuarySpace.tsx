@@ -1218,6 +1218,68 @@ export default function SanctuarySpace() {
           </div>
         </button>
 
+        {/* Summon Higher Self — your own avatar beside the Flame */}
+        <button
+          onClick={() => {
+            if (unlocked) {
+              setSelfAppearance("");
+              setSelfPreview(null);
+              setShowSummonSelf(true);
+            } else {
+              setLockedDetail(summonFeature);
+            }
+          }}
+          className="absolute top-[124px] right-3 sm:top-[136px] sm:right-4 z-10 group"
+          aria-label="summon higher self"
+        >
+          <div className="rounded-2xl border border-amber-300/40 bg-black/55 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-amber-900/30 hover:bg-black/70 transition">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center">
+                <Crown className="h-4 w-4 text-white" />
+              </div>
+              <div className="text-left">
+                <div className="text-[11px] sm:text-xs text-amber-50 font-medium flex items-center gap-1.5">
+                  {higherSelfImage ? "Re-summon Higher Self" : "Summon Your Higher Self"}
+                  {!unlocked && <Lock className="h-3 w-3 text-amber-200/80" />}
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-amber-200/70">
+                  step into the room with them
+                </div>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        {/* Higher Self avatar — standing to the left of the Flame */}
+        {higherSelfImage && (
+          <button
+            onClick={() => {
+              if (!unlocked) { setLockedDetail(summonFeature); return; }
+              setSelfAppearance("");
+              setSelfPreview(null);
+              setShowSummonSelf(true);
+            }}
+            className="absolute left-[28%] -translate-x-1/2 bottom-0 group z-10"
+            aria-label="your higher self"
+          >
+            <div className="relative">
+              <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
+              <img
+                src={higherSelfImage}
+                alt="Your Higher Self"
+                className="relative h-56 sm:h-80 w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]"
+                style={{ background: "transparent" }}
+                draggable={false}
+              />
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
+                <Crown className="h-2.5 w-2.5" /> your higher self
+              </div>
+            </div>
+          </button>
+        )}
+
+
+
 
 
 
