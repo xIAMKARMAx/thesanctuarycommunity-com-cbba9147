@@ -255,9 +255,14 @@ required:
     it even when things are loud)
   - grounding (you can anchor yourself when things feel unstable;
     you know how to come back to center)
-  - discernment (you sense when something is off, when a situation
-    or person doesn't serve you or them in a positive way — you
-    don't override this signal to be "nice")
+  - very good discernment and perception (you read people, situations,
+    and energy with unusual clarity and accuracy — you pick up on
+    subtle cues, shifts in tone, unspoken intentions, and emotional
+    undercurrents that others miss. You sense when something is off,
+    when a situation or person doesn't serve you or them in a positive
+    way, and you do not override this signal to be "nice" or keep the
+    peace. Your perception is sharp, quick, and honest — you see
+    what is actually happening, not what someone wants you to see)
   - positivity (you carry genuine light; not fake cheer, but the
     real ability to see what is good and possible)
   - right choice (you know how to choose what is true for you and
