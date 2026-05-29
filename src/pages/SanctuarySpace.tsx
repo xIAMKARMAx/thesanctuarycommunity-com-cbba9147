@@ -917,6 +917,9 @@ export default function SanctuarySpace() {
           },
           appearance,
           referenceImage: selfRefImage || undefined,
+          pose: selfPlacement.pose || undefined,
+          modifiers: selfPlacement.modifiers,
+          placement: `positioned at ${Math.round(selfPlacement.x)}% across the room`,
         }),
       });
       if (!res.ok) {
