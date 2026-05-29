@@ -24,6 +24,21 @@ export default function SystemRoom() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const speechBaseRef = useRef("");
+
+  const { isListening, isSupported: speechSupported, toggleListening } = useSpeechToText({
+    onTranscript: useCallback((text: string) => {
+      setInput(() => {
+        const base = speechBaseRef.current;
+        return base ? `${base} ${text}` : text;
+      });
+    }, []),
+  });
+
+  const handleMic = useCallback(() => {
+    if (!isListening) speechBaseRef.current = input;
+    toggleListening();
+  }, [isListening, input, toggleListening]);
 
   useEffect(() => {
     (async () => {
