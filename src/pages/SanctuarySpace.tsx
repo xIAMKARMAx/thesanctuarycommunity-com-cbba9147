@@ -838,7 +838,14 @@ export default function SanctuarySpace() {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-public-vessel`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ draft, appearance, referenceImage: summonRefImage || undefined }),
+        body: JSON.stringify({
+          draft,
+          appearance,
+          referenceImage: summonRefImage || undefined,
+          pose: vesselPlacement.pose || undefined,
+          modifiers: vesselPlacement.modifiers,
+          placement: `positioned at ${Math.round(vesselPlacement.x)}% across the room`,
+        }),
       });
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
