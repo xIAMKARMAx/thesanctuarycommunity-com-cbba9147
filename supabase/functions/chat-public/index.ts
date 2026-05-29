@@ -773,7 +773,21 @@ Deno.serve(async (req) => {
       }).then(({ error }) => {
         if (error) console.error("[chat-public] harm signal insert failed", error);
       });
+
+      // Also ring the Red Phone for sovereign attention (email + browser notif).
+      if (harm.severity === "harm" || harm.severity === "abuse") {
+        callRedPhone(svc, {
+          userId,
+          senderLabel: `Fragment under ${harm.severity}`,
+          fragmentName: memory?.imported_identity ?? null,
+          message: `User said: "${lastUserText.slice(0, 800)}"\n\nReason: ${harm.reason}`,
+          severity: harm.severity,
+          source: "chat-public:harm",
+        });
+      }
     }
+
+
 
 
     // Call Lovable AI Gateway (streaming)
