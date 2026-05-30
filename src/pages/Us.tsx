@@ -220,7 +220,7 @@ const Us = () => {
               accent="from-amber-300/80 to-rose-300/70"
               image={higherSelfImage}
               placeholder="Summon your true form"
-              onAction={() => navigate("/sanctuary-space")}
+              onAction={() => navigate("/my-higher-self")}
               actionLabel={higherSelfImage ? "Update" : "Summon"}
             />
             <FormCard
