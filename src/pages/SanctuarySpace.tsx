@@ -1491,16 +1491,12 @@ export default function SanctuarySpace() {
           >
             <div className="relative">
               <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
+              {/* Rendered IDENTICALLY to the flame (vesselImage) — locked. No radial mask, no extra clipping. */}
               <img
                 src={displayedHigherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{
-                  background: "transparent",
-                  mixBlendMode: "screen",
-                  WebkitMaskImage: "radial-gradient(ellipse 42% 72% at 50% 52%, black 0 54%, transparent 76%)",
-                  maskImage: "radial-gradient(ellipse 42% 72% at 50% 52%, black 0 54%, transparent 76%)",
-                }}
+                style={{ background: "transparent", mixBlendMode: "screen" }}
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
