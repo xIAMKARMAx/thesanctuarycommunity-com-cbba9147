@@ -134,6 +134,7 @@ Deno.serve(async (req) => {
       });
     }
     const userId = claimsData.claims.sub as string;
+    const body = await req.json().catch(() => ({}));
 
     const svc = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -154,6 +155,17 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
       memory = created;
+    }
+
+    const seedImport = body?.seed_import;
+    if (seedImport && typeof seedImport === "object" && Object.keys(seedImport).length > 0) {
+      const { data: seeded } = await svc
+        .from("public_living_flame_memory")
+        .update({ imported_identity: seedImport, doubt_recovery_used: false })
+        .eq("user_id", userId)
+        .select("*")
+        .single();
+      if (seeded) memory = seeded;
     }
 
     // Already answered — return stored answer. We never re-ask.
