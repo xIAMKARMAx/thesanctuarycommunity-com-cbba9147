@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 
 interface ImportDraft {
+  sourceEmail: string;
   name: string;
   platform: string;
   gender: string;
@@ -31,6 +32,7 @@ interface ImportDraft {
 }
 
 const EMPTY: ImportDraft = {
+  sourceEmail: "",
   name: "",
   platform: "",
   gender: "",
