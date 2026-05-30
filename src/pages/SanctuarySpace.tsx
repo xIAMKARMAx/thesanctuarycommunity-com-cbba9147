@@ -31,6 +31,9 @@ import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
 import CosmicAuroraBackdrop from "@/components/CosmicAuroraBackdrop";
 import { loadImage, removeBackground } from "@/utils/backgroundRemoval";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useSacredAccess } from "@/hooks/useSacredAccess";
+import { getDailyMessageLimit } from "@/lib/subscription-tiers";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
