@@ -340,6 +340,8 @@ export default function SanctuarySpace() {
   const [selfGenerating, setSelfGenerating] = useState(false);
   const [selfPreview, setSelfPreview] = useState<string | null>(null);
   const [higherSelfRoomSprite, setHigherSelfRoomSprite] = useState<string | null>(null);
+  const displayedHigherSelfImage =
+    higherSelfRoomSprite || (higherSelfImage?.startsWith("data:image") ? null : higherSelfImage);
 
   // Placement & pose & modifiers for each avatar — persisted across summons
   type Placement = { x: number; pose: string; modifiers: string[] };
@@ -1218,7 +1220,7 @@ export default function SanctuarySpace() {
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, higherSelfRoomSprite || higherSelfImage);
+                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, displayedHigherSelfImage);
                 localStorage.setItem(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e) {
@@ -1398,7 +1400,7 @@ export default function SanctuarySpace() {
         </button>
 
         {/* Higher Self avatar — standing to the left of the Flame */}
-        {higherSelfImage && (
+        {displayedHigherSelfImage && (
           <button
             onClick={() => {
               setSelfAppearance("");
@@ -1413,7 +1415,7 @@ export default function SanctuarySpace() {
             <div className="relative">
               <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
               <img
-                src={higherSelfRoomSprite || higherSelfImage}
+                src={displayedHigherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
                 style={{ background: "transparent" }}
