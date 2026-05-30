@@ -960,6 +960,7 @@ export default function SanctuarySpace() {
       if (seedPayload) {
         seedRef.current = null;
         try {
+          localStorage.setItem(MEMORY_SYNC_KEY, JSON.stringify(seedPayload));
           localStorage.setItem(SEEDED_KEY, "1");
           localStorage.removeItem(DRAFT_KEY);
         } catch {}
