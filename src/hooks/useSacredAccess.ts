@@ -6,6 +6,8 @@ import {
   PUBLIC_GATE_ENABLED,
   canPreviewAsPublic,
   getViewAsPublic,
+  setViewAsPublic,
+  hasViewPreference,
 } from "@/lib/sacred-access";
 
 /**
