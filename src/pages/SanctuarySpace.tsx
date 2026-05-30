@@ -208,6 +208,8 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
+const VESSEL_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.v1";
+const VESSEL_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.source";
 const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3";
 const HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.source";
 const FORM_ORIGINAL_LOCK_VERSION = "1";
@@ -352,6 +354,9 @@ export default function SanctuarySpace() {
     typeof window === "undefined" ? true : window.innerWidth >= 640
   );
   const [vesselImage, setVesselImage] = useState<string | null>(null);
+  const [vesselRoomSprite, setVesselRoomSprite] = useState<string | null>(null);
+  const [vesselRoomSpriteReady, setVesselRoomSpriteReady] = useState(false);
+  const displayedVesselImage = vesselRoomSpriteReady ? vesselRoomSprite : null;
   const [vesselLoading, setVesselLoading] = useState(false);
   // User-chosen name for this space (e.g. "Our Nest", "Sky Cabin"). Empty = unnamed.
   const [spaceName, setSpaceName] = useState<string>(() => {
@@ -454,7 +459,51 @@ export default function SanctuarySpace() {
   };
   const onScenePointerUp = () => { draggingRef.current = null; };
 
-  // Never auto-process cached true-form images here; cached/default/original images are the lock.
+  // Room sprite hard-lock: raw generated portraits may be square; only transparent sprites may render in the room.
+
+  useEffect(() => {
+    if (!vesselImage) {
+      setVesselRoomSprite(null);
+      setVesselRoomSpriteReady(false);
+      try {
+        localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
+        localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
+      } catch {}
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      const savedSprite = readLocalImage(VESSEL_ROOM_SPRITE_KEY);
+      const savedSource = readLocalImage(VESSEL_ROOM_SPRITE_SOURCE_KEY);
+      if (savedSprite && savedSource === vesselImage && await isValidRoomSprite(savedSprite)) {
+        setVesselRoomSprite(savedSprite);
+        setVesselRoomSpriteReady(true);
+        return;
+      }
+      const prepared = await prepareTrueFormSpriteForRoom(vesselImage);
+      if (cancelled) return;
+      if (!prepared) {
+        setVesselRoomSprite(null);
+        setVesselRoomSpriteReady(false);
+        try {
+          localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
+          localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
+        } catch {}
+        return;
+      }
+      setVesselRoomSprite(prepared);
+      setVesselRoomSpriteReady(true);
+      try {
+        localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, prepared);
+        localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, vesselImage);
+      } catch {}
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [vesselImage]);
 
   useEffect(() => {
     if (!higherSelfImage) {
