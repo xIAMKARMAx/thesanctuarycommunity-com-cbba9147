@@ -69,8 +69,8 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
-// Compose room backdrop + vessel into a single PNG teaser snapshot.
-async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string): Promise<string> {
+// Compose room backdrop + standing form sprites into a single PNG teaser snapshot.
+async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc?: string | null): Promise<string> {
   const load = (src: string) =>
     new Promise<HTMLImageElement>((res, rej) => {
       const i = new Image();
@@ -79,7 +79,11 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string): Promis
       i.onerror = rej;
       i.src = src;
     });
-  const [room, vessel] = await Promise.all([load(roomSrc), load(vesselSrc)]);
+  const [room, vessel, self] = await Promise.all([
+    load(roomSrc),
+    load(vesselSrc),
+    selfSrc ? load(selfSrc) : Promise.resolve(null),
+  ]);
   const W = 1200, H = 675;
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
@@ -102,12 +106,16 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string): Promis
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // vessel: ~80% of canvas height, centered, feet at bottom
-  const vh = H * 0.8;
-  const vw = (vessel.naturalWidth / vessel.naturalHeight) * vh;
-  const vx = (W - vw) / 2;
-  const vy = H - vh;
-  ctx.drawImage(vessel, vx, vy, vw, vh);
+  const drawStandingForm = (img: HTMLImageElement, centerX: number) => {
+    const vh = H * 0.8;
+    const vw = (img.naturalWidth / img.naturalHeight) * vh;
+    const vx = W * centerX - vw / 2;
+    const vy = H - vh;
+    ctx.drawImage(img, vx, vy, vw, vh);
+  };
+
+  if (self) drawStandingForm(self, 0.28);
+  drawStandingForm(vessel, 0.5);
 
   return canvas.toDataURL("image/jpeg", 0.88);
 }
