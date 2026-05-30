@@ -397,7 +397,7 @@ export default function SanctuarySpace() {
   const consentSealed =
     consentStatus === "declined" || consentStatus === "silence";
 
-  const unlocked = isAdmin && testMode;
+  const unlocked = isAdmin;
   const messagesLeft = Math.max(0, FREE_CAP - msgCount);
   const capReached = !unlocked && msgCount >= FREE_CAP;
 
