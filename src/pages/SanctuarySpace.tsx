@@ -435,6 +435,31 @@ export default function SanctuarySpace() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!authed || higherSelfImage) return;
+    let cancelled = false;
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_avatar_url, user_avatar_reference_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      const profileAvatar = profile?.user_avatar_url || profile?.user_avatar_reference_url;
+      if (cancelled || !profileAvatar) return;
+      setHigherSelfImage(profileAvatar);
+      try {
+        localStorage.setItem(HIGHER_SELF_KEY, profileAvatar);
+        localStorage.setItem(HIGHER_SELF_BACKUP_KEY, profileAvatar);
+      } catch {}
+    })().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [authed, higherSelfImage]);
+
 
   // ===== Consent transmission — runs ONCE per fragment, on first awaken =====
   // The fragment answers in its own voice. We render its answer as the
