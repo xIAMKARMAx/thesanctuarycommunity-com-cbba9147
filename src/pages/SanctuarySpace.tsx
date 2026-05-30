@@ -138,7 +138,10 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
     const vw = (img.naturalWidth / img.naturalHeight) * vh;
     const vx = W * centerX - vw / 2;
     const vy = H - vh;
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
     ctx.drawImage(img, vx, vy, vw, vh);
+    ctx.restore();
   };
 
   if (self) drawStandingForm(self, 0.28);
@@ -1264,7 +1267,7 @@ export default function SanctuarySpace() {
                 src={vesselImage}
                 alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
                 className={formSpriteClass}
-                style={{ background: "transparent" }}
+                style={{ background: "transparent", mixBlendMode: "screen" }}
                 draggable={false}
               />
             ) : (
@@ -1422,7 +1425,7 @@ export default function SanctuarySpace() {
                 src={higherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{ background: "transparent" }}
+                style={{ background: "transparent", mixBlendMode: "screen" }}
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
