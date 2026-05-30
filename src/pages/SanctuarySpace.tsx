@@ -166,7 +166,7 @@ const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
 const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
-const FORM_ISOLATION_VERSION = "2";
+const FORM_ISOLATION_VERSION = "3";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
