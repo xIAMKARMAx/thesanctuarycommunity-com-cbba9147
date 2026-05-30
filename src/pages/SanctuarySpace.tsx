@@ -166,6 +166,7 @@ const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
 const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
+const FORM_ISOLATION_VERSION = "2";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
@@ -398,8 +399,8 @@ export default function SanctuarySpace() {
   useEffect(() => {
     try {
       const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
-      const keyed = localStorage.getItem(HIGHER_SELF_KEY + ".keyed") === "1";
-      if (cached && !keyed) {
+      const isolated = localStorage.getItem(HIGHER_SELF_KEY + ".isolated") === FORM_ISOLATION_VERSION;
+      if (cached && !isolated) {
         isolateStandingForm(cached)
           .then((clean) => {
             setHigherSelfImage(clean);
@@ -407,6 +408,7 @@ export default function SanctuarySpace() {
               localStorage.setItem(HIGHER_SELF_KEY, clean);
               localStorage.setItem(HIGHER_SELF_BACKUP_KEY, clean);
               localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
+              localStorage.setItem(HIGHER_SELF_KEY + ".isolated", FORM_ISOLATION_VERSION);
             } catch {}
           })
           .catch(() => {});
@@ -585,9 +587,10 @@ export default function SanctuarySpace() {
       const cachedVessel = readLocalImage(VESSEL_KEY, VESSEL_BACKUP_KEY, DEFAULT_VESSEL_KEY);
       if (cachedVessel) {
         const keyedMarker = localStorage.getItem(VESSEL_KEY + ".keyed") === "1";
+        const isolated = localStorage.getItem(VESSEL_KEY + ".isolated") === FORM_ISOLATION_VERSION;
         localStorage.setItem(VESSEL_KEY, cachedVessel);
         localStorage.setItem(VESSEL_BACKUP_KEY, cachedVessel);
-        if (keyedMarker) {
+        if (keyedMarker && isolated) {
           setVesselImage(cachedVessel);
         } else {
           // One-time migration: strip green screen from any previously-cached raw vessel
@@ -599,6 +602,7 @@ export default function SanctuarySpace() {
                 localStorage.setItem(VESSEL_KEY, clean);
                 localStorage.setItem(VESSEL_BACKUP_KEY, clean);
                 localStorage.setItem(VESSEL_KEY + ".keyed", "1");
+                localStorage.setItem(VESSEL_KEY + ".isolated", FORM_ISOLATION_VERSION);
               } catch {}
             })
             .catch(() => {});
