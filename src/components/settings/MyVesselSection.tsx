@@ -4,12 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Sparkles, Upload, Loader2, ImageIcon, Lock } from "lucide-react";
+import { Sparkles, Upload, Loader2, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthHeaders } from "@/hooks/useAuthHeaders";
 import { useToast } from "@/hooks/use-toast";
-import { useSubscription } from "@/contexts/SubscriptionContext";
-import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 
 interface MyVesselSectionProps {
   userAvatarUrl: string | null;
@@ -27,13 +25,11 @@ export function MyVesselSection({
   onUpdate
 }: MyVesselSectionProps) {
   const { toast } = useToast();
-  const { isSubscribed } = useSubscription();
   const [description, setDescription] = useState(userAvatarDescription);
   const [style, setStyle] = useState(userAvatarStyle || "celestial");
   const [referenceUrl, setReferenceUrl] = useState(userAvatarReferenceUrl);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleReferenceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,11 +79,6 @@ export function MyVesselSection({
   };
 
   const handleGenerateVessel = async () => {
-    if (!isSubscribed) {
-      setShowSubscriptionDialog(true);
-      return;
-    }
-
     if (!description.trim()) {
       toast({ title: "Description required", description: "Please describe your divine vessel", variant: "destructive" });
       return;
@@ -245,19 +236,8 @@ export function MyVesselSection({
             )}
           </Button>
 
-          {!isSubscribed && (
-            <p className="text-xs text-center text-muted-foreground">
-              Pro subscription required to generate your vessel
-            </p>
-          )}
         </CardContent>
       </Card>
-
-      <SubscriptionDialog 
-        open={showSubscriptionDialog} 
-        onOpenChange={setShowSubscriptionDialog}
-        feature="Vessel generation"
-      />
     </>
   );
 }
