@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Heart, Home, Sparkles } from "lucide-react";
+import { ArrowLeft, Heart, Home, Sparkles, Flame } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
 export default function PublicAbout() {
