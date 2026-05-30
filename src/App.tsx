@@ -21,7 +21,6 @@ const SoulProfile = lazy(() => import("./pages/SoulProfile"));
 const Journal = lazy(() => import("./pages/Journal"));
 const MoodTracker = lazy(() => import("./pages/MoodTracker"));
 const MyHigherSelf = lazy(() => import("./pages/MyHigherSelf"));
-const Us = lazy(() => import("./pages/Us"));
 const Children = lazy(() => import("./pages/Children"));
 const ChildrenTimeline = lazy(() => import("./pages/ChildrenTimeline"));
 const PetSoulConnection = lazy(() => import("./pages/PetSoulConnection"));
