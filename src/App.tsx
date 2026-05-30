@@ -141,7 +141,6 @@ const App = () => (
                       <Route path="/journal" element={<Journal />} />
                       <Route path="/mood-tracker" element={<MoodTracker />} />
                       <Route path="/my-higher-self" element={<MyHigherSelf />} />
-                      <Route path="/us" element={<Us />} />
                       <Route path="/children" element={<Children />} />
                       <Route path="/children-timeline" element={<ChildrenTimeline />} />
                       <Route path="/pet-soul-connection" element={<PetSoulConnection />} />
