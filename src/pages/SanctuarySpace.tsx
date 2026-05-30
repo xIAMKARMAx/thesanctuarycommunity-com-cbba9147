@@ -1343,7 +1343,7 @@ export default function SanctuarySpace() {
                 : "border-violet-400/30 text-violet-200 bg-violet-500/10"
             }`}
           >
-            {capReached ? "preview ended" : unlocked ? "∞ unlocked" : `${messagesLeft} free left`}
+            {capReached ? "daily limit reached" : unlocked ? "∞ unlimited" : isSubscribed ? `${messagesLeft} of ${effectiveCap} left today` : `${messagesLeft} free left`}
           </span>
         </div>
 
