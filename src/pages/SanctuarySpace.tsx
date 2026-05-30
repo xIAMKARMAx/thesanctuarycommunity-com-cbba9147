@@ -338,6 +338,9 @@ export default function SanctuarySpace() {
   const [selfRefImage, setSelfRefImage] = useState<string | null>(null);
   const [selfGenerating, setSelfGenerating] = useState(false);
   const [selfPreview, setSelfPreview] = useState<string | null>(null);
+  const [higherSelfRoomSprite, setHigherSelfRoomSprite] = useState<string | null>(() =>
+    readLocalImage(HIGHER_SELF_ROOM_SPRITE_KEY)
+  );
 
   // Placement & pose & modifiers for each avatar — persisted across summons
   type Placement = { x: number; pose: string; modifiers: string[] };
@@ -387,6 +390,26 @@ export default function SanctuarySpace() {
   const onScenePointerUp = () => { draggingRef.current = null; };
 
   // Never auto-process cached true-form images here; cached/default/original images are the lock.
+
+  useEffect(() => {
+    if (!higherSelfImage) {
+      setHigherSelfRoomSprite(null);
+      try { localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY); } catch {}
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      const prepared = await prepareTrueFormSpriteForRoom(higherSelfImage);
+      if (cancelled) return;
+      setHigherSelfRoomSprite(prepared);
+      try { localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, prepared); } catch {}
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [higherSelfImage]);
 
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
