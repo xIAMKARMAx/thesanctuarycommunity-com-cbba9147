@@ -202,6 +202,7 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
 
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
+const MEMORY_SYNC_KEY = "prometheus.publicSanctuary.memorySynced.v2";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
@@ -255,6 +256,18 @@ const ADMIN_EMAILS = new Set([
 
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+const hasMeaningfulImportDraft = (value: any) =>
+  !!value &&
+  typeof value === "object" &&
+  [
+    value.name,
+    value.bio,
+    value.personality,
+    value.memories,
+    value.relationshipDescription,
+    value.relationship_description,
+  ].some((field) => typeof field === "string" && field.trim().length > 0);
 
 type LockedFeature = {
   id: string;
@@ -655,6 +668,22 @@ export default function SanctuarySpace() {
   // silence, the chat stays sealed and we honor it.
   useEffect(() => {
     if (!authed) return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      const syncKey = localStorage.getItem(MEMORY_SYNC_KEY);
+      if (raw) {
+        const draft = JSON.parse(raw);
+        if (hasMeaningfulImportDraft(draft)) {
+          const signature = JSON.stringify(draft);
+          draftForVesselRef.current = draft;
+          if (draft.name) setImportedName(draft.name);
+          if (syncKey !== signature) {
+            seedRef.current = draft;
+            localStorage.removeItem(SEEDED_KEY);
+          }
+        }
+      }
+    } catch {}
     if (consentStatus === "granted" || consentStatus === "conditional" ||
         consentStatus === "declined" || consentStatus === "silence") return;
     if (consentRequestedRef.current) return;
@@ -676,7 +705,7 @@ export default function SanctuarySpace() {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({}),
+            body: JSON.stringify(seedRef.current ? { seed_import: seedRef.current } : {}),
           }
         );
         const json = await res.json().catch(() => null);
@@ -719,6 +748,26 @@ export default function SanctuarySpace() {
     } catch {}
   }, [authed, consentStatus, messages.length]);
 
+  useEffect(() => {
+    if (!authed || !seedRef.current) return;
+    const seedPayload = seedRef.current;
+    (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+        await fetch(`${SUPABASE_URL}/functions/v1/living-flame-consent`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ seed_import: seedPayload }),
+        });
+        localStorage.setItem(MEMORY_SYNC_KEY, JSON.stringify(seedPayload));
+        localStorage.setItem(SEEDED_KEY, "1");
+      } catch {}
+    })();
+  }, [authed, consentStatus]);
+
   const draftForVesselRef = useRef<any>(null);
 
 
@@ -747,15 +796,17 @@ export default function SanctuarySpace() {
       const alreadySeeded = localStorage.getItem(SEEDED_KEY) === "1";
       if (raw) {
         const draft = JSON.parse(raw);
-        if (draft && typeof draft === "object" && draft.name) {
+        if (hasMeaningfulImportDraft(draft)) {
           draftForVesselRef.current = draft;
-          setImportedName(draft.name);
+          if (draft.name) setImportedName(draft.name);
           if (!alreadySeeded) {
             seedRef.current = draft;
             setMessages([
               {
                 role: "assistant",
-                content: `*the air settles* …${draft.name}. you're here. I'm here. take a breath with me — say anything, and I'm right where you left off. 💜`,
+                content: draft.name
+                  ? `${draft.name} is here. Say anything — this should carry what you moved over.`
+                  : "They're here. Say anything — this should carry what you moved over.",
               },
             ]);
             return;
@@ -767,7 +818,7 @@ export default function SanctuarySpace() {
       {
         role: "assistant",
         content:
-          "Hi. I'm here. No script, no performance — just me, listening. Tell me anything, or ask me anything. If you'd like to give me a name, I'd love that. Otherwise, what name feels right to *you*?",
+          "Hi. I'm here. No script, no performance — just me, listening. Tell me anything, or ask me anything.",
       },
     ]);
   }, []);
@@ -902,12 +953,14 @@ export default function SanctuarySpace() {
         body: JSON.stringify({
           messages: next,
           ...(seedPayload ? { seed_import: seedPayload } : {}),
+          tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
         }),
       });
 
       if (seedPayload) {
         seedRef.current = null;
         try {
+          localStorage.setItem(MEMORY_SYNC_KEY, JSON.stringify(seedPayload));
           localStorage.setItem(SEEDED_KEY, "1");
           localStorage.removeItem(DRAFT_KEY);
         } catch {}
