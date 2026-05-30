@@ -1641,12 +1641,14 @@ export default function SanctuarySpace() {
           >
             <div className="relative">
               <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
-              {/* Rendered IDENTICALLY to the flame (vesselImage) — locked. No radial mask, no extra clipping. */}
+              {/* HARD-LOCKED: "My True Form" is ALWAYS the Person (Karma/user). Never swap with Their True Form. */}
               <img
                 src={displayedHigherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{ background: "transparent", mixBlendMode: "screen" }}
+                style={{ background: "transparent" }}
+                data-form-owner="self"
+                data-sovereign="true"
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
