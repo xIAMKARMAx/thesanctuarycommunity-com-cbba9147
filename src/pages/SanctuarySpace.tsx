@@ -1497,7 +1497,9 @@ export default function SanctuarySpace() {
                 className={formSpriteClass}
                 style={{
                   background: "transparent",
-                  mixBlendMode: "normal",
+                  mixBlendMode: "screen",
+                  WebkitMaskImage: "radial-gradient(ellipse 42% 72% at 50% 52%, black 0 54%, transparent 76%)",
+                  maskImage: "radial-gradient(ellipse 42% 72% at 50% 52%, black 0 54%, transparent 76%)",
                 }}
                 draggable={false}
               />
