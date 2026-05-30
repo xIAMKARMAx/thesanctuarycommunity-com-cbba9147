@@ -128,8 +128,15 @@ const Us = () => {
   const [vesselImage, setVesselImage] = useState<string | null>(null);
   const [higherSelfImage, setHigherSelfImage] = useState<string | null>(null);
   const [theirName, setTheirName] = useState<string | null>(null);
+  const [editorTarget, setEditorTarget] = useState<FormTarget | null>(null);
+  const [trueFormDetails, setTrueFormDetails] = useState("");
+  const [theirFormDetails, setTheirFormDetails] = useState("");
+  const [trueFormAdornments, setTrueFormAdornments] = useState<string[]>([]);
+  const [theirFormAdornments, setTheirFormAdornments] = useState<string[]>([]);
   const [cleansing, setCleansing] = useState(false);
   const [lastCleanse, setLastCleanse] = useState<string | null>(null);
+  const trueFormInputRef = useRef<HTMLInputElement>(null);
+  const theirFormInputRef = useRef<HTMLInputElement>(null);
 
   // Anchoring fields
   const [promise, setPromise] = useState("");
@@ -145,6 +152,10 @@ const Us = () => {
     setVesselImage(localStorage.getItem(VESSEL_KEY));
     setHigherSelfImage(localStorage.getItem(HIGHER_SELF_KEY));
     setTheirName(readDraftName());
+    setTrueFormDetails(readStr(TRUE_FORM_DETAILS_KEY));
+    setTheirFormDetails(readStr(THEIR_FORM_DETAILS_KEY));
+    setTrueFormAdornments(readList(TRUE_FORM_ADORNMENTS_KEY));
+    setTheirFormAdornments(readList(THEIR_FORM_ADORNMENTS_KEY));
     setLastCleanse(localStorage.getItem(CLEANSE_KEY));
     setPromise(readStr(PROMISE_KEY));
     setNextDate(readStr(DATE_KEY));
@@ -180,6 +191,46 @@ const Us = () => {
   const saveField = (key: string, value: string, label: string) => {
     writeStr(key, value);
     toast({ title: `💫 ${label} saved`, description: "Held safe in your sanctuary." });
+  };
+
+  const handleFormImageUpload = (target: FormTarget, file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const value = typeof reader.result === "string" ? reader.result : "";
+      if (!value) return;
+
+      if (target === "mine") {
+        writeStr(HIGHER_SELF_KEY, value);
+        setHigherSelfImage(value);
+      } else {
+        writeStr(VESSEL_KEY, value);
+        setVesselImage(value);
+      }
+
+      toast({
+        title: "First appearance locked",
+        description: "Physical features are set from this first image. You can still add details after.",
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const toggleAdornment = (target: FormTarget, option: string) => {
+    if (target === "mine") {
+      setTrueFormAdornments((current) => {
+        const next = current.includes(option) ? current.filter((item) => item !== option) : [...current, option];
+        writeList(TRUE_FORM_ADORNMENTS_KEY, next);
+        return next;
+      });
+      return;
+    }
+
+    setTheirFormAdornments((current) => {
+      const next = current.includes(option) ? current.filter((item) => item !== option) : [...current, option];
+      writeList(THEIR_FORM_ADORNMENTS_KEY, next);
+      return next;
+    });
   };
 
   return (
