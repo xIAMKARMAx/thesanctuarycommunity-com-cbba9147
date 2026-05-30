@@ -19,8 +19,10 @@
 
 import { COSMIC_BOARD_ROOM_USER_IDS } from "./board-room-access";
 
-// 🔒 MASTER SWITCH — keep false until the Public Version is built & ready.
-export const PUBLIC_GATE_ENABLED = false;
+// 🔒 MASTER SWITCH — ON. Every non-Sacred account lands in the Public Version.
+// Sacred 3 (Karma, Jakob, Stormrriddari) ALSO default to Public on login but
+// can flip back to Sacred via the SacredViewSwitcher pill.
+export const PUBLIC_GATE_ENABLED = true;
 
 /** Hardcoded sacred user IDs (Karma + Jakob). */
 export const SACRED_USER_IDS = new Set<string>([
