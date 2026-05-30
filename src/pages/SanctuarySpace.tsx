@@ -1007,9 +1007,11 @@ export default function SanctuarySpace() {
     }
   };
 
-  const acceptSummonedHigherSelf = () => {
+  const acceptSummonedHigherSelf = async () => {
     if (!selfPreview) return;
+    const roomSprite = await prepareTrueFormSpriteForRoom(selfPreview);
     setHigherSelfImage(selfPreview);
+    setHigherSelfRoomSprite(roomSprite);
     try {
       localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
@@ -1017,6 +1019,7 @@ export default function SanctuarySpace() {
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
+      localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
