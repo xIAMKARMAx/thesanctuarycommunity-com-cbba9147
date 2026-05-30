@@ -144,7 +144,7 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
-const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v2";
+const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3";
 const HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.source";
 const FORM_ORIGINAL_LOCK_VERSION = "1";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
@@ -342,6 +342,7 @@ export default function SanctuarySpace() {
   const [higherSelfRoomSprite, setHigherSelfRoomSprite] = useState<string | null>(null);
   const displayedHigherSelfImage =
     higherSelfRoomSprite || (higherSelfImage?.startsWith("data:image") ? null : higherSelfImage);
+  const displayedHigherSelfNeedsBlend = !!displayedHigherSelfImage && displayedHigherSelfImage === higherSelfImage;
 
   // Placement & pose & modifiers for each avatar — persisted across summons
   type Placement = { x: number; pose: string; modifiers: string[] };
@@ -397,6 +398,7 @@ export default function SanctuarySpace() {
       setHigherSelfRoomSprite(null);
       try {
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
+        localStorage.removeItem("prometheus.publicSanctuary.higherSelfImage.roomSprite.v2");
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
       } catch {}
       return;
