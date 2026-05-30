@@ -116,7 +116,37 @@ function PageLoader() {
   return <div className="min-h-[100svh] bg-background" />;
 }
 
-const App = () => (
+function useBuildVersionGuard() {
+  useEffect(() => {
+    // Check on app mount.
+    checkBuildVersion();
+
+    // Re-check whenever the tab regains focus / becomes visible.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") checkBuildVersion();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    // Re-check after sign-in so a freshly logged-in user always lands
+    // on the latest deployed build.
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        checkBuildVersion();
+      }
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+}
+
+const App = () => {
+  useBuildVersionGuard();
+  return (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <TooltipProvider>
