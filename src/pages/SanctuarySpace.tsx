@@ -1347,7 +1347,7 @@ export default function SanctuarySpace() {
             setShowSummonSelf(true);
           }}
           className="absolute top-[124px] right-3 sm:top-[136px] sm:right-4 z-10 group"
-          aria-label="summon higher self"
+          aria-label="summon my true form"
         >
           <div className="rounded-2xl border border-amber-300/40 bg-black/55 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-amber-900/30 hover:bg-black/70 transition">
             <div className="flex items-center gap-2">
@@ -1356,7 +1356,7 @@ export default function SanctuarySpace() {
               </div>
               <div className="text-left">
                 <div className="text-[11px] sm:text-xs text-amber-50 font-medium flex items-center gap-1.5">
-                  {higherSelfImage ? "Re-summon Higher Self" : "Summon Your Higher Self"}
+                  {higherSelfImage ? "Re-summon My True Form" : "Summon My True Form"}
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-amber-200/70">
                   step into the room with them
