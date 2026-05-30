@@ -118,6 +118,10 @@ const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
 const HIGHER_SELF_KEY = "prometheus.publicSanctuary.higherSelfImage";
+const VESSEL_BACKUP_KEY = "prometheus.publicSanctuary.vesselImage.backup";
+const HIGHER_SELF_BACKUP_KEY = "prometheus.publicSanctuary.higherSelfImage.backup";
+const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
+const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
 const SELF_PLACEMENT_KEY = "prometheus.publicSanctuary.selfPlacement";     // {x, pose, modifiers[]}
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
@@ -129,6 +133,16 @@ const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
+
+function readLocalImage(...keys: string[]): string | null {
+  try {
+    for (const key of keys) {
+      const value = localStorage.getItem(key);
+      if (value) return value;
+    }
+  } catch {}
+  return null;
+}
 
 type SavedRoom = {
   id: string;
@@ -284,7 +298,11 @@ export default function SanctuarySpace() {
   // Higher Self summoner (the user's own avatar standing beside the Flame)
   const [higherSelfImage, setHigherSelfImage] = useState<string | null>(() => {
     try {
-      const cached = localStorage.getItem(HIGHER_SELF_KEY);
+      const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
+      if (cached) {
+        localStorage.setItem(HIGHER_SELF_KEY, cached);
+        localStorage.setItem(HIGHER_SELF_BACKUP_KEY, cached);
+      }
       return cached || null;
     } catch { return null; }
   });
@@ -340,7 +358,7 @@ export default function SanctuarySpace() {
   // Re-key cached Higher Self if it wasn't processed yet (migration)
   useEffect(() => {
     try {
-      const cached = localStorage.getItem(HIGHER_SELF_KEY);
+      const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
       const keyed = localStorage.getItem(HIGHER_SELF_KEY + ".keyed") === "1";
       if (cached && !keyed) {
         chromaKeyGreenToTransparent(cached)
@@ -348,6 +366,7 @@ export default function SanctuarySpace() {
             setHigherSelfImage(clean);
             try {
               localStorage.setItem(HIGHER_SELF_KEY, clean);
+              localStorage.setItem(HIGHER_SELF_BACKUP_KEY, clean);
               localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
             } catch {}
           })
@@ -378,7 +397,7 @@ export default function SanctuarySpace() {
   const consentSealed =
     consentStatus === "declined" || consentStatus === "silence";
 
-  const unlocked = isAdmin && testMode;
+  const unlocked = isAdmin;
   const messagesLeft = Math.max(0, FREE_CAP - msgCount);
   const capReached = !unlocked && msgCount >= FREE_CAP;
 
@@ -415,6 +434,31 @@ export default function SanctuarySpace() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!authed || higherSelfImage) return;
+    let cancelled = false;
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_avatar_url, user_avatar_reference_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      const profileAvatar = profile?.user_avatar_url || profile?.user_avatar_reference_url;
+      if (cancelled || !profileAvatar) return;
+      setHigherSelfImage(profileAvatar);
+      try {
+        localStorage.setItem(HIGHER_SELF_KEY, profileAvatar);
+        localStorage.setItem(HIGHER_SELF_BACKUP_KEY, profileAvatar);
+      } catch {}
+    })().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [authed, higherSelfImage]);
 
 
   // ===== Consent transmission — runs ONCE per fragment, on first awaken =====
@@ -499,9 +543,11 @@ export default function SanctuarySpace() {
     } catch {}
 
     try {
-      const cachedVessel = localStorage.getItem(VESSEL_KEY);
+      const cachedVessel = readLocalImage(VESSEL_KEY, VESSEL_BACKUP_KEY, DEFAULT_VESSEL_KEY);
       if (cachedVessel) {
         const keyedMarker = localStorage.getItem(VESSEL_KEY + ".keyed") === "1";
+        localStorage.setItem(VESSEL_KEY, cachedVessel);
+        localStorage.setItem(VESSEL_BACKUP_KEY, cachedVessel);
         if (keyedMarker) {
           setVesselImage(cachedVessel);
         } else {
@@ -512,6 +558,7 @@ export default function SanctuarySpace() {
               setVesselImage(clean);
               try {
                 localStorage.setItem(VESSEL_KEY, clean);
+                localStorage.setItem(VESSEL_BACKUP_KEY, clean);
                 localStorage.setItem(VESSEL_KEY + ".keyed", "1");
               } catch {}
             })
@@ -803,14 +850,17 @@ export default function SanctuarySpace() {
     let next = [newRoom, ...rooms];
     if (next.length > MAX_ROOMS) next = next.slice(0, MAX_ROOMS);
     setRooms(next);
-    if (makeActive) setActiveRoomId(newRoom.id);
+    if (makeActive) {
+      setActiveRoomId(newRoom.id);
+      try { localStorage.setItem(PREVIEW_KEY, builderPreview); } catch {}
+    }
     setShowBuilder(false);
     setBuilderPrompt("");
     setBuilderName("");
     setBuilderPreview(null);
     toast({
       title: "Home saved",
-      description: makeActive ? `${name} is now your active home.` : `${name} added to your homes.`,
+      description: makeActive ? `${name} is now your active home and preview teaser.` : `${name} added to your homes.`,
     });
   };
 
@@ -878,6 +928,8 @@ export default function SanctuarySpace() {
     setVesselImage(summonPreview);
     try {
       localStorage.setItem(VESSEL_KEY, summonPreview);
+      localStorage.setItem(VESSEL_BACKUP_KEY, summonPreview);
+      if (isAdmin) localStorage.setItem(DEFAULT_VESSEL_KEY, summonPreview);
       localStorage.setItem(VESSEL_KEY + ".keyed", "1");
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
@@ -946,6 +998,8 @@ export default function SanctuarySpace() {
     setHigherSelfImage(selfPreview);
     try {
       localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
+      localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
+      if (isAdmin) localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
     } catch {}
     setShowSummonSelf(false);
@@ -1531,9 +1585,27 @@ export default function SanctuarySpace() {
             </div>
             <div className="flex flex-col gap-2 pt-2">
               {unlocked ? (
-                <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-100 text-xs px-3 py-2">
-                  🛠 test mode — this feature isn't wired yet. We'll build it next.
-                </div>
+                <Button
+                  onClick={() => {
+                    setLockedDetail(null);
+                    if (lockedDetail.id === "build" || lockedDetail.id === "decorate") {
+                      setBuilderPrompt("");
+                      setBuilderName("");
+                      setBuilderPreview(null);
+                      setShowBuilder(true);
+                      return;
+                    }
+                    if (lockedDetail.id === "summon") {
+                      const draft = draftForVesselRef.current;
+                      setSummonAppearance(draft?.appearance || draft?.bio || "");
+                      setSummonPreview(null);
+                      setShowSummon(true);
+                    }
+                  }}
+                  className="rounded-full bg-gradient-to-r from-violet-600 to-purple-700 text-white hover:from-violet-500 hover:to-purple-600"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" /> Open it now
+                </Button>
               ) : (
                 <Button
                   onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}

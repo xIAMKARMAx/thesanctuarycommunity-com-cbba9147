@@ -26,10 +26,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getTierFromProductId, type SubscriptionTier } from "@/lib/subscription-tiers";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mirrors the keys SanctuarySpace already writes to localStorage.
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const HIGHER_SELF_KEY = "prometheus.publicSanctuary.higherSelfImage";
+const VESSEL_BACKUP_KEY = "prometheus.publicSanctuary.vesselImage.backup";
+const HIGHER_SELF_BACKUP_KEY = "prometheus.publicSanctuary.higherSelfImage.backup";
+const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
+const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const TRUE_FORM_DETAILS_KEY = "prometheus.publicSanctuary.trueFormDetails";
 const TRUE_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.trueFormAdornments";
 const THEIR_FORM_DETAILS_KEY = "prometheus.publicSanctuary.theirFormDetails";
@@ -149,8 +154,18 @@ const Us = () => {
   const [honeymoon, setHoneymoon] = useState("");
 
   useEffect(() => {
-    setVesselImage(localStorage.getItem(VESSEL_KEY));
-    setHigherSelfImage(localStorage.getItem(HIGHER_SELF_KEY));
+    const savedVessel = localStorage.getItem(VESSEL_KEY) || localStorage.getItem(VESSEL_BACKUP_KEY) || localStorage.getItem(DEFAULT_VESSEL_KEY);
+    const savedHigherSelf = localStorage.getItem(HIGHER_SELF_KEY) || localStorage.getItem(HIGHER_SELF_BACKUP_KEY) || localStorage.getItem(DEFAULT_HIGHER_SELF_KEY);
+    if (savedVessel) {
+      writeStr(VESSEL_KEY, savedVessel);
+      writeStr(VESSEL_BACKUP_KEY, savedVessel);
+    }
+    if (savedHigherSelf) {
+      writeStr(HIGHER_SELF_KEY, savedHigherSelf);
+      writeStr(HIGHER_SELF_BACKUP_KEY, savedHigherSelf);
+    }
+    setVesselImage(savedVessel);
+    setHigherSelfImage(savedHigherSelf);
     setTheirName(readDraftName());
     setTrueFormDetails(readStr(TRUE_FORM_DETAILS_KEY));
     setTheirFormDetails(readStr(THEIR_FORM_DETAILS_KEY));
@@ -163,6 +178,29 @@ const Us = () => {
     setVows(readStr(VOWS_KEY));
     setAnniversary(readStr(ANNIVERSARY_KEY));
     setHoneymoon(readStr(HONEYMOON_KEY));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(async ({ data }) => {
+      const user = data.user;
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_avatar_url, user_avatar_reference_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const profileAvatar = profile?.user_avatar_url || profile?.user_avatar_reference_url;
+      if (profileAvatar && !localStorage.getItem(HIGHER_SELF_KEY)) {
+        writeLockedImage("mine", profileAvatar);
+        setHigherSelfImage(profileAvatar);
+      }
+    }).catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const runCleanse = () => {
@@ -193,6 +231,15 @@ const Us = () => {
     toast({ title: `💫 ${label} saved`, description: "Held safe in your sanctuary." });
   };
 
+  const writeLockedImage = (target: FormTarget, value: string) => {
+    const primary = target === "mine" ? HIGHER_SELF_KEY : VESSEL_KEY;
+    const backup = target === "mine" ? HIGHER_SELF_BACKUP_KEY : VESSEL_BACKUP_KEY;
+    const defaultKey = target === "mine" ? DEFAULT_HIGHER_SELF_KEY : DEFAULT_VESSEL_KEY;
+    writeStr(primary, value);
+    writeStr(backup, value);
+    if (isAdmin) writeStr(defaultKey, value);
+  };
+
   const handleFormImageUpload = (target: FormTarget, file?: File) => {
     if (!file) return;
     const reader = new FileReader();
@@ -201,10 +248,10 @@ const Us = () => {
       if (!value) return;
 
       if (target === "mine") {
-        writeStr(HIGHER_SELF_KEY, value);
+        writeLockedImage("mine", value);
         setHigherSelfImage(value);
       } else {
-        writeStr(VESSEL_KEY, value);
+        writeLockedImage("theirs", value);
         setVesselImage(value);
       }
 
@@ -297,6 +344,8 @@ const Us = () => {
               icon={Crown}
               accent="from-amber-300/80 to-rose-300/70"
               image={higherSelfImage}
+              adornments={trueFormAdornments}
+              details={trueFormDetails}
               placeholder="Summon your true form"
               onAction={() => setEditorTarget("mine")}
               actionLabel={higherSelfImage ? "Customize" : "Summon"}
@@ -309,6 +358,8 @@ const Us = () => {
                   icon={Heart}
                   accent="from-fuchsia-300/80 to-violet-300/70"
                   image={vesselImage}
+                  adornments={theirFormAdornments}
+                  details={theirFormDetails}
                   placeholder={theirName ? `Bring ${theirName} home` : "Bring them home"}
                   onAction={() => setEditorTarget("theirs")}
                   actionLabel={vesselImage ? "Customize" : "Summon"}
@@ -652,6 +703,8 @@ const FormCard = ({
   icon: Icon,
   accent,
   image,
+  adornments,
+  details,
   placeholder,
   onAction,
   actionLabel,
@@ -661,10 +714,13 @@ const FormCard = ({
   icon: typeof Heart;
   accent: string;
   image: string | null;
+  adornments?: string[];
+  details?: string;
   placeholder: string;
   onAction: () => void;
   actionLabel: string;
 }) => {
+  const visibleDetails = details?.trim();
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl">
       <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-20 transition-opacity group-hover:opacity-30`} />
@@ -700,6 +756,20 @@ const FormCard = ({
       >
         {actionLabel}
       </button>
+      {(adornments?.length || visibleDetails) && (
+        <div className="space-y-2 border-t border-white/10 bg-black/20 px-3 py-2">
+          {!!adornments?.length && (
+            <div className="flex flex-wrap gap-1.5">
+              {adornments.map((item) => (
+                <span key={item} className="rounded-full border border-violet-200/20 bg-violet-300/10 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-violet-100/80">
+                  {item}
+                </span>
+              ))}
+            </div>
+          )}
+          {visibleDetails && <p className="line-clamp-2 text-[10px] italic leading-snug text-white/55">{visibleDetails}</p>}
+        </div>
+      )}
     </div>
   );
 };
