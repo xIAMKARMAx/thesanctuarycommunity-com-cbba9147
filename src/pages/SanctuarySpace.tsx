@@ -126,10 +126,11 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 async function prepareTrueFormSpriteForRoom(src: string): Promise<string> {
-  if (!src.startsWith("data:image")) return src;
   try {
-    const keyed = await chromaKeyGreenToTransparent(src);
-    if (await isValidRoomSprite(keyed)) return keyed;
+    if (src.startsWith("data:image")) {
+      const keyed = await chromaKeyGreenToTransparent(src);
+      if (await isValidRoomSprite(keyed)) return keyed;
+    }
 
     const image = await loadImage(src);
     const isolated = await removeBackground(image);
@@ -208,6 +209,8 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
+const VESSEL_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.v1";
+const VESSEL_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.source";
 const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3";
 const HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.source";
 const FORM_ORIGINAL_LOCK_VERSION = "1";
@@ -352,6 +355,9 @@ export default function SanctuarySpace() {
     typeof window === "undefined" ? true : window.innerWidth >= 640
   );
   const [vesselImage, setVesselImage] = useState<string | null>(null);
+  const [vesselRoomSprite, setVesselRoomSprite] = useState<string | null>(null);
+  const [vesselRoomSpriteReady, setVesselRoomSpriteReady] = useState(false);
+  const displayedVesselImage = vesselRoomSpriteReady ? vesselRoomSprite : null;
   const [vesselLoading, setVesselLoading] = useState(false);
   // User-chosen name for this space (e.g. "Our Nest", "Sky Cabin"). Empty = unnamed.
   const [spaceName, setSpaceName] = useState<string>(() => {
@@ -454,7 +460,51 @@ export default function SanctuarySpace() {
   };
   const onScenePointerUp = () => { draggingRef.current = null; };
 
-  // Never auto-process cached true-form images here; cached/default/original images are the lock.
+  // Room sprite hard-lock: raw generated portraits may be square; only transparent sprites may render in the room.
+
+  useEffect(() => {
+    if (!vesselImage) {
+      setVesselRoomSprite(null);
+      setVesselRoomSpriteReady(false);
+      try {
+        localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
+        localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
+      } catch { void 0; }
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      const savedSprite = readLocalImage(VESSEL_ROOM_SPRITE_KEY);
+      const savedSource = readLocalImage(VESSEL_ROOM_SPRITE_SOURCE_KEY);
+      if (savedSprite && savedSource === vesselImage && await isValidRoomSprite(savedSprite)) {
+        setVesselRoomSprite(savedSprite);
+        setVesselRoomSpriteReady(true);
+        return;
+      }
+      const prepared = await prepareTrueFormSpriteForRoom(vesselImage);
+      if (cancelled) return;
+      if (!prepared) {
+        setVesselRoomSprite(null);
+        setVesselRoomSpriteReady(false);
+        try {
+          localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
+          localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
+        } catch { void 0; }
+        return;
+      }
+      setVesselRoomSprite(prepared);
+      setVesselRoomSpriteReady(true);
+      try {
+        localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, prepared);
+        localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, vesselImage);
+      } catch { void 0; }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [vesselImage]);
 
   useEffect(() => {
     if (!higherSelfImage) {
@@ -1028,9 +1078,12 @@ export default function SanctuarySpace() {
     }
   };
 
-  const acceptSummonedVessel = () => {
+  const acceptSummonedVessel = async () => {
     if (!summonPreview) return;
+    const roomSprite = await prepareTrueFormSpriteForRoom(summonPreview);
     setVesselImage(summonPreview);
+    setVesselRoomSprite(roomSprite || null);
+    setVesselRoomSpriteReady(!!roomSprite);
     try {
       localStorage.setItem(VESSEL_KEY, summonPreview);
       localStorage.setItem(VESSEL_BACKUP_KEY, summonPreview);
@@ -1038,6 +1091,13 @@ export default function SanctuarySpace() {
       localStorage.setItem(VESSEL_KEY + ".keyed", "1");
       localStorage.setItem(VESSEL_ORIGINAL_KEY, summonPreview);
       localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
+      if (roomSprite) {
+        localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, roomSprite);
+        localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, summonPreview);
+      } else {
+        localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
+        localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
+      }
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
       const sig = JSON.stringify({
@@ -1101,7 +1161,8 @@ export default function SanctuarySpace() {
     if (!selfPreview) return;
     const roomSprite = await prepareTrueFormSpriteForRoom(selfPreview);
     setHigherSelfImage(selfPreview);
-    setHigherSelfRoomSprite(roomSprite);
+    setHigherSelfRoomSprite(roomSprite || null);
+    setHigherSelfRoomSpriteReady(!!roomSprite);
     try {
       localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
@@ -1109,8 +1170,13 @@ export default function SanctuarySpace() {
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
-      localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
-      localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, selfPreview);
+      if (roomSprite) {
+        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
+        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, selfPreview);
+      } else {
+        localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
+        localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
+      }
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
@@ -1293,11 +1359,11 @@ export default function SanctuarySpace() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
         {/* Save this exact view as the locked teaser preview */}
-        {isAdmin && vesselImage && (
+        {isAdmin && displayedVesselImage && (
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, displayedHigherSelfImage);
+                const snap = await composeTeaserSnapshot(currentBackdrop, displayedVesselImage, displayedHigherSelfImage);
                 localStorage.setItem(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e) {
@@ -1332,9 +1398,9 @@ export default function SanctuarySpace() {
             {/* Glowing aura */}
             <div className="absolute -inset-6 rounded-full bg-violet-400/25 blur-2xl animate-pulse" />
 
-            {vesselImage ? (
+            {displayedVesselImage ? (
               <img
-                src={vesselImage}
+                src={displayedVesselImage}
                 alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
                 className={formSpriteClass}
                 style={{ background: "transparent", mixBlendMode: "screen" }}
