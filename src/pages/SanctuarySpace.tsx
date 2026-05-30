@@ -622,7 +622,7 @@ export default function SanctuarySpace() {
 
 
 
-  const [sessionEmail, setSessionEmail] = useState<string>("");
+
 
   // Auth gate
   useEffect(() => {
