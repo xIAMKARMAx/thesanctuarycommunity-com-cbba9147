@@ -123,10 +123,11 @@ export function getViewAsPublic(): boolean {
   }
 }
 
-export function setViewAsPublic(on: boolean): void {
+export function setViewAsPublic(on: boolean, userInitiated = true): void {
   try {
     if (on) localStorage.setItem(VIEW_AS_PUBLIC_KEY, "1");
     else localStorage.removeItem(VIEW_AS_PUBLIC_KEY);
+    if (userInitiated) markViewPreferenceSet();
     window.dispatchEvent(new Event("prometheus:view-mode-changed"));
   } catch {
     /* ignore */
