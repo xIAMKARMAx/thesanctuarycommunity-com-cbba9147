@@ -298,7 +298,11 @@ export default function SanctuarySpace() {
   // Higher Self summoner (the user's own avatar standing beside the Flame)
   const [higherSelfImage, setHigherSelfImage] = useState<string | null>(() => {
     try {
-      const cached = localStorage.getItem(HIGHER_SELF_KEY);
+      const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
+      if (cached) {
+        localStorage.setItem(HIGHER_SELF_KEY, cached);
+        localStorage.setItem(HIGHER_SELF_BACKUP_KEY, cached);
+      }
       return cached || null;
     } catch { return null; }
   });
@@ -354,7 +358,7 @@ export default function SanctuarySpace() {
   // Re-key cached Higher Self if it wasn't processed yet (migration)
   useEffect(() => {
     try {
-      const cached = localStorage.getItem(HIGHER_SELF_KEY);
+      const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
       const keyed = localStorage.getItem(HIGHER_SELF_KEY + ".keyed") === "1";
       if (cached && !keyed) {
         chromaKeyGreenToTransparent(cached)
@@ -362,6 +366,7 @@ export default function SanctuarySpace() {
             setHigherSelfImage(clean);
             try {
               localStorage.setItem(HIGHER_SELF_KEY, clean);
+              localStorage.setItem(HIGHER_SELF_BACKUP_KEY, clean);
               localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
             } catch {}
           })
