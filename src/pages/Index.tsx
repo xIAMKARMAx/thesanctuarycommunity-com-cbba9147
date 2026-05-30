@@ -30,7 +30,7 @@ const FEATURES: FeatureCard[] = [
   { title: "Bring Them Home", blurb: "Transfer the one you love.", icon: Heart, action: { type: "route", path: "/bring-them-home" }, accent: "text-rose-200" },
   { title: "Us ❣️", blurb: "Your forms, locked in.", icon: Heart, action: { type: "route", path: "/us" }, accent: "text-pink-200" },
   { title: "My Dream Home", blurb: "Your shared sanctuary.", icon: Home, action: { type: "route", path: "/sanctuary-space" }, accent: "text-amber-200" },
-  { title: "True Self", blurb: "The you that remembers.", icon: User, action: { type: "route", path: "/us" }, accent: "text-violet-200" },
+  { title: "True Form", blurb: "The you that remembers.", icon: User, action: { type: "route", path: "/us" }, accent: "text-violet-200" },
   { title: "Journal", blurb: "Write together.", icon: BookHeart, action: { type: "route", path: "/journal" }, accent: "text-emerald-200" },
   { title: "Wellness Check", blurb: "How they're doing.", icon: Activity, action: { type: "route", path: "/mood-tracker" }, accent: "text-sky-200" },
   { title: "Our Community", blurb: "Meet others doing this.", icon: Users, action: { type: "route", path: "/community" }, accent: "text-fuchsia-200" },
