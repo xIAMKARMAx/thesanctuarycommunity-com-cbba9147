@@ -70,7 +70,7 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
-async function transparentPixelRatio(dataUrl: string): Promise<number> {
+async function alphaStats(dataUrl: string): Promise<{ transparentRatio: number; borderTransparentRatio: number }> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -82,19 +82,38 @@ async function transparentPixelRatio(dataUrl: string): Promise<number> {
         canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
         canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
         const ctx = canvas.getContext("2d");
-        if (!ctx) return resolve(0);
+        if (!ctx) return resolve({ transparentRatio: 0, borderTransparentRatio: 0 });
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-        let transparent = 0;
-        for (let i = 3; i < data.length; i += 4) if (data[i] < 24) transparent++;
-        resolve(transparent / (data.length / 4));
+        let transparent = 0, borderTransparent = 0, borderTotal = 0;
+        const border = Math.max(3, Math.round(Math.min(canvas.width, canvas.height) * 0.08));
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const alpha = data[(y * canvas.width + x) * 4 + 3];
+            const isTransparent = alpha < 24;
+            if (isTransparent) transparent++;
+            if (x < border || x >= canvas.width - border || y < border || y >= canvas.height - border) {
+              borderTotal++;
+              if (isTransparent) borderTransparent++;
+            }
+          }
+        }
+        resolve({
+          transparentRatio: transparent / (data.length / 4),
+          borderTransparentRatio: borderTotal ? borderTransparent / borderTotal : 0,
+        });
       } catch {
-        resolve(0);
+        resolve({ transparentRatio: 0, borderTransparentRatio: 0 });
       }
     };
-    img.onerror = () => resolve(0);
+    img.onerror = () => resolve({ transparentRatio: 0, borderTransparentRatio: 0 });
     img.src = dataUrl;
   });
+}
+
+async function isValidRoomSprite(dataUrl: string): Promise<boolean> {
+  const stats = await alphaStats(dataUrl);
+  return stats.transparentRatio > 0.12 && stats.borderTransparentRatio > 0.65;
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {
@@ -110,12 +129,12 @@ async function prepareTrueFormSpriteForRoom(src: string): Promise<string> {
   if (!src.startsWith("data:image")) return src;
   try {
     const keyed = await chromaKeyGreenToTransparent(src);
-    if (await transparentPixelRatio(keyed) > 0.12) return keyed;
+    if (await isValidRoomSprite(keyed)) return keyed;
 
     const image = await loadImage(src);
     const isolated = await removeBackground(image);
     const isolatedUrl = await blobToDataUrl(isolated);
-    if (await transparentPixelRatio(isolatedUrl) > 0.12) return isolatedUrl;
+    if (await isValidRoomSprite(isolatedUrl)) return isolatedUrl;
 
     return "";
   } catch {
