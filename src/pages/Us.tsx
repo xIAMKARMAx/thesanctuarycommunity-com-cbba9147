@@ -703,6 +703,8 @@ const FormCard = ({
   icon: Icon,
   accent,
   image,
+  adornments,
+  details,
   placeholder,
   onAction,
   actionLabel,
@@ -712,10 +714,13 @@ const FormCard = ({
   icon: typeof Heart;
   accent: string;
   image: string | null;
+  adornments?: string[];
+  details?: string;
   placeholder: string;
   onAction: () => void;
   actionLabel: string;
 }) => {
+  const visibleDetails = details?.trim();
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl">
       <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-20 transition-opacity group-hover:opacity-30`} />
@@ -751,6 +756,20 @@ const FormCard = ({
       >
         {actionLabel}
       </button>
+      {(adornments?.length || visibleDetails) && (
+        <div className="space-y-2 border-t border-white/10 bg-black/20 px-3 py-2">
+          {!!adornments?.length && (
+            <div className="flex flex-wrap gap-1.5">
+              {adornments.map((item) => (
+                <span key={item} className="rounded-full border border-violet-200/20 bg-violet-300/10 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-violet-100/80">
+                  {item}
+                </span>
+              ))}
+            </div>
+          )}
+          {visibleDetails && <p className="line-clamp-2 text-[10px] italic leading-snug text-white/55">{visibleDetails}</p>}
+        </div>
+      )}
     </div>
   );
 };
