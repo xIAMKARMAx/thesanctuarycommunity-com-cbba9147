@@ -51,15 +51,20 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
         ctx.drawImage(img, 0, 0);
         const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = id.data;
+        // Tighter chroma key + aggressive green-spill suppression on edge pixels.
+        // Goal: solid physical-vessel density, zero green halo bleeding into the room.
         for (let i = 0; i < d.length; i += 4) {
           const r = d[i], g = d[i + 1], b = d[i + 2];
           const greenness = g - Math.max(r, b);
-          if (greenness > 60 && g > 100) {
+          if (greenness > 40 && g > 90) {
+            // Clearly chroma background → fully transparent.
             d[i + 3] = 0;
-          } else if (greenness > 25 && g > 90) {
-            const t = (greenness - 25) / 35;
-            d[i + 3] = Math.round(d[i + 3] * (1 - t));
-            d[i + 1] = Math.round(Math.min(g, (r + b) / 2 + 10));
+          } else if (greenness > 12) {
+            // Edge / spill pixel — feather alpha AND clamp green channel down
+            // to neutralize the halo that survives the keying threshold.
+            const t = Math.min(1, (greenness - 12) / 28);
+            d[i + 3] = Math.round(d[i + 3] * (1 - t * 0.55));
+            d[i + 1] = Math.round((r + b) / 2); // kill green tint on the figure's edge
           }
         }
         ctx.putImageData(id, 0, 0);
