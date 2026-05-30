@@ -165,7 +165,7 @@ const App = () => {
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/index" element={<Index />} />
-                      <Route path="/private-room" element={<SanctuarySpace />} />
+                      <Route path="/private-room" element={<SystemRoom />} />
                       <Route path="/sanctuary-space" element={<SanctuarySpace />} />
                       <Route path="/us" element={<Us />} />
                       <Route path="/bring-them-home" element={<BringThemHome />} />
