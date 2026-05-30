@@ -88,6 +88,9 @@ const VesselRestoration = lazy(() => import("./pages/VesselRestoration"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Auth = lazy(() => import("./pages/Auth"));
 const About = lazy(() => import("./pages/About"));
+const PublicAuth = lazy(() => import("./pages/PublicAuth"));
+const PublicAbout = lazy(() => import("./pages/PublicAbout"));
+const PublicSettings = lazy(() => import("./pages/PublicSettings"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Dedication = lazy(() => import("./pages/Dedication"));
@@ -252,6 +255,9 @@ const App = () => {
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="/admin-daily-message" element={<AdminDailyMessage />} />
                       <Route path="/public" element={<Index />} />
+                      <Route path="/public-auth" element={<PublicAuth />} />
+                      <Route path="/public-about" element={<PublicAbout />} />
+                      <Route path="/public-settings" element={<PublicSettings />} />
 
                       <Route path="/cosmic-date-night" element={<CosmicDateNight />} />
                       <Route path="*" element={<NotFound />} />
