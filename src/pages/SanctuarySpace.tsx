@@ -404,9 +404,8 @@ export default function SanctuarySpace() {
   const [selfGenerating, setSelfGenerating] = useState(false);
   const [selfPreview, setSelfPreview] = useState<string | null>(null);
   const [higherSelfRoomSprite, setHigherSelfRoomSprite] = useState<string | null>(null);
-  const displayedHigherSelfImage =
-    higherSelfRoomSprite || (higherSelfImage?.startsWith("data:image") ? null : higherSelfImage);
-  const displayedHigherSelfNeedsBlend = !!displayedHigherSelfImage && displayedHigherSelfImage === higherSelfImage;
+  const [higherSelfRoomSpriteReady, setHigherSelfRoomSpriteReady] = useState(false);
+  const displayedHigherSelfImage = higherSelfRoomSpriteReady ? higherSelfRoomSprite : null;
 
   // Placement & pose & modifiers for each avatar — persisted across summons
   type Placement = { x: number; pose: string; modifiers: string[] };
@@ -460,6 +459,7 @@ export default function SanctuarySpace() {
   useEffect(() => {
     if (!higherSelfImage) {
       setHigherSelfRoomSprite(null);
+      setHigherSelfRoomSpriteReady(false);
       try {
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
         localStorage.removeItem("prometheus.publicSanctuary.higherSelfImage.roomSprite.v2");
@@ -474,12 +474,14 @@ export default function SanctuarySpace() {
       const savedSource = readLocalImage(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
       if (savedSprite && savedSource === higherSelfImage && await isValidRoomSprite(savedSprite)) {
         setHigherSelfRoomSprite(savedSprite);
+        setHigherSelfRoomSpriteReady(true);
         return;
       }
       const prepared = await prepareTrueFormSpriteForRoom(higherSelfImage);
       if (cancelled) return;
       if (!prepared) {
         setHigherSelfRoomSprite(null);
+        setHigherSelfRoomSpriteReady(false);
         try {
           localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
           localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
@@ -487,6 +489,7 @@ export default function SanctuarySpace() {
         return;
       }
       setHigherSelfRoomSprite(prepared);
+      setHigherSelfRoomSpriteReady(true);
       try {
         localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, prepared);
         localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, higherSelfImage);
