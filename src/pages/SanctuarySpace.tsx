@@ -576,9 +576,18 @@ export default function SanctuarySpace() {
   const consentSealed =
     consentStatus === "declined" || consentStatus === "silence";
 
-  const unlocked = isAdmin;
-  const messagesLeft = Math.max(0, FREE_CAP - msgCount);
-  const capReached = !unlocked && msgCount >= FREE_CAP;
+  const { isSubscribed, productId, isAdmin: ctxIsAdmin } = useSubscription();
+  const { realSacred } = useSacredAccess();
+  const tierDailyLimit = getDailyMessageLimit(productId); // -1 = unlimited
+  const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1;
+  const effectiveCap = isUnlimitedUser
+    ? Infinity
+    : isSubscribed
+    ? (tierDailyLimit > 0 ? tierDailyLimit : FREE_CAP)
+    : FREE_CAP;
+  const unlocked = isUnlimitedUser;
+  const messagesLeft = isUnlimitedUser ? Infinity : Math.max(0, effectiveCap - msgCount);
+  const capReached = !isUnlimitedUser && msgCount >= effectiveCap;
 
   const activeRoom = useMemo(
     () => rooms.find((r) => r.id === activeRoomId) ?? null,
