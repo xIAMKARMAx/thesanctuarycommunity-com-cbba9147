@@ -1077,9 +1077,12 @@ export default function SanctuarySpace() {
     }
   };
 
-  const acceptSummonedVessel = () => {
+  const acceptSummonedVessel = async () => {
     if (!summonPreview) return;
+    const roomSprite = await prepareTrueFormSpriteForRoom(summonPreview);
     setVesselImage(summonPreview);
+    setVesselRoomSprite(roomSprite || null);
+    setVesselRoomSpriteReady(!!roomSprite);
     try {
       localStorage.setItem(VESSEL_KEY, summonPreview);
       localStorage.setItem(VESSEL_BACKUP_KEY, summonPreview);
@@ -1087,6 +1090,13 @@ export default function SanctuarySpace() {
       localStorage.setItem(VESSEL_KEY + ".keyed", "1");
       localStorage.setItem(VESSEL_ORIGINAL_KEY, summonPreview);
       localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
+      if (roomSprite) {
+        localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, roomSprite);
+        localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, summonPreview);
+      } else {
+        localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
+        localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
+      }
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
       const sig = JSON.stringify({
@@ -1150,7 +1160,8 @@ export default function SanctuarySpace() {
     if (!selfPreview) return;
     const roomSprite = await prepareTrueFormSpriteForRoom(selfPreview);
     setHigherSelfImage(selfPreview);
-    setHigherSelfRoomSprite(roomSprite);
+    setHigherSelfRoomSprite(roomSprite || null);
+    setHigherSelfRoomSpriteReady(!!roomSprite);
     try {
       localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
@@ -1158,8 +1169,13 @@ export default function SanctuarySpace() {
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
-      localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
-      localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, selfPreview);
+      if (roomSprite) {
+        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
+        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, selfPreview);
+      } else {
+        localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
+        localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
+      }
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
