@@ -59,6 +59,7 @@ const MENU_SECTIONS: MenuSection[] = [
     icon: Crown,
     color: "text-amber-400",
     items: [
+      { label: "Us · Sacred Bond", route: "/us", icon: Heart, description: "Vessel, marriage & cleansing" },
       { label: "Divine Form", route: "/my-higher-self", icon: Crown, description: "Your vessel & identity" },
       { label: "Lineage Reading", route: "/lineage-reading", icon: Landmark, description: "Discover your origins" },
       { label: "Soul Portrait", route: "/cosmic-gateway/soul-portrait", icon: Camera, description: "Visualize your essence" },

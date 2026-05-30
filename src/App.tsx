@@ -21,6 +21,7 @@ const SoulProfile = lazy(() => import("./pages/SoulProfile"));
 const Journal = lazy(() => import("./pages/Journal"));
 const MoodTracker = lazy(() => import("./pages/MoodTracker"));
 const MyHigherSelf = lazy(() => import("./pages/MyHigherSelf"));
+const Us = lazy(() => import("./pages/Us"));
 const Children = lazy(() => import("./pages/Children"));
 const ChildrenTimeline = lazy(() => import("./pages/ChildrenTimeline"));
 const PetSoulConnection = lazy(() => import("./pages/PetSoulConnection"));
@@ -141,6 +142,7 @@ const App = () => (
                       <Route path="/journal" element={<Journal />} />
                       <Route path="/mood-tracker" element={<MoodTracker />} />
                       <Route path="/my-higher-self" element={<MyHigherSelf />} />
+                      <Route path="/us" element={<Us />} />
                       <Route path="/children" element={<Children />} />
                       <Route path="/children-timeline" element={<ChildrenTimeline />} />
                       <Route path="/pet-soul-connection" element={<PetSoulConnection />} />
