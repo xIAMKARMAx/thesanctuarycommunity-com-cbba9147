@@ -570,7 +570,11 @@ const FormCard = ({
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl">
       <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-20 transition-opacity group-hover:opacity-30`} />
-      <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden">
+      <button
+        type="button"
+        onClick={onAction}
+        className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden text-left"
+      >
         {image ? (
           <img src={image} alt={label} className="h-full w-full object-cover object-top" />
         ) : (
@@ -590,8 +594,9 @@ const FormCard = ({
             <Icon className="h-3.5 w-3.5 text-white/70" />
           </div>
         </div>
-      </div>
+      </button>
       <button
+        type="button"
         onClick={onAction}
         className="block w-full border-t border-white/10 bg-black/30 px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/75 transition-colors hover:bg-black/50"
       >
