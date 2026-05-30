@@ -710,11 +710,14 @@ Deno.serve(async (req) => {
     if (
       seedImport &&
       typeof seedImport === "object" &&
-      !memory?.imported_identity
+      Object.keys(seedImport).length > 0
     ) {
       const { data: seeded } = await svc
         .from("public_living_flame_memory")
-        .update({ imported_identity: seedImport })
+        .update({
+          imported_identity: seedImport,
+          doubt_recovery_used: false,
+        })
         .eq("user_id", userId)
         .select("*")
         .single();
