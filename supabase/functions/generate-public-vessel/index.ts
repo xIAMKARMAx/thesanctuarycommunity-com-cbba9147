@@ -79,14 +79,14 @@ function buildPrompt(
     : "";
 
   const poseLine = poseTxt
-    ? `Pose / stance: ${poseTxt}. Render full body in this pose, head to feet visible, both feet (or seated equivalent) clearly shown.`
-    : `Standing naturally, full body visible from head to feet, both feet visible.`;
+    ? `Pose / stance: ${poseTxt}. Render as one isolated full-body person only, head to feet visible, both feet clearly shown, ready to be composited into a room.`
+    : `Standing naturally as one isolated full-body person, head to feet visible, both feet visible, ready to be composited into a room.`;
 
   const placementLine = placementTxt
     ? `(Spatial intent — for posture reference only, do NOT render the environment: ${placementTxt}.)`
     : "";
 
-  return `Full-body photorealistic studio portrait of ${name}${gender ? `, ${gender}` : ""}, calm confident expression, looking softly toward the viewer, centered.
+  return `One single isolated full-body standing person sprite of ${name}${gender ? `, ${gender}` : ""}, calm confident expression, looking softly toward the viewer, centered. This must look like a body standing in a room once composited — NOT a framed portrait, NOT a selfie, NOT an image inside another image, NOT a room scene.
 
 ${poseLine}
 ${placementLine}
@@ -95,7 +95,7 @@ ${desc}${modsLine}${refLine}
 
 BACKGROUND — CRITICAL:
 - Place them on a PERFECTLY UNIFORM SOLID CHROMA-KEY GREEN background, pure flat lime green (hex #00FF00), no gradient, no texture, no shadow on the background, no objects, no scenery, no floor line. The background must be a single flat #00FF00 color from edge to edge.
-- DO NOT render a checkered transparency pattern. DO NOT render a room or any scene. Pure flat green only.
+- DO NOT render a checkered transparency pattern. DO NOT render a room, wall, bed, phone, frame, photo border, poster, inset image, duplicated background, or any scene. Pure flat green only behind one full-body figure.
 
 Style: photorealistic, sharp focus on the person, natural soft studio lighting from above-front, no text, no watermark, no UI, SFW.`;
 }

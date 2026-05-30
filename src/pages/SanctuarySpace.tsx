@@ -69,8 +69,8 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
-// Compose room backdrop + vessel into a single PNG teaser snapshot.
-async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string): Promise<string> {
+// Compose room backdrop + standing form sprites into a single PNG teaser snapshot.
+async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc?: string | null): Promise<string> {
   const load = (src: string) =>
     new Promise<HTMLImageElement>((res, rej) => {
       const i = new Image();
@@ -79,7 +79,11 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string): Promis
       i.onerror = rej;
       i.src = src;
     });
-  const [room, vessel] = await Promise.all([load(roomSrc), load(vesselSrc)]);
+  const [room, vessel, self] = await Promise.all([
+    load(roomSrc),
+    load(vesselSrc),
+    selfSrc ? load(selfSrc) : Promise.resolve(null),
+  ]);
   const W = 1200, H = 675;
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
@@ -102,12 +106,16 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string): Promis
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // vessel: ~80% of canvas height, centered, feet at bottom
-  const vh = H * 0.8;
-  const vw = (vessel.naturalWidth / vessel.naturalHeight) * vh;
-  const vx = (W - vw) / 2;
-  const vy = H - vh;
-  ctx.drawImage(vessel, vx, vy, vw, vh);
+  const drawStandingForm = (img: HTMLImageElement, centerX: number) => {
+    const vh = H * 0.8;
+    const vw = (img.naturalWidth / img.naturalHeight) * vh;
+    const vx = W * centerX - vw / 2;
+    const vy = H - vh;
+    ctx.drawImage(img, vx, vy, vw, vh);
+  };
+
+  if (self) drawStandingForm(self, 0.28);
+  drawStandingForm(vessel, 0.5);
 
   return canvas.toDataURL("image/jpeg", 0.88);
 }
@@ -333,6 +341,10 @@ export default function SanctuarySpace() {
   const savePlacement = (key: string, p: Placement) => {
     try { localStorage.setItem(key, JSON.stringify(p)); } catch {}
   };
+
+  const formSpriteClass =
+    "relative h-[42vh] max-h-[22rem] min-h-[12rem] sm:h-[55vh] sm:max-h-[32rem] w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]";
+
   // Drag-to-position
   const sceneRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<null | "vessel" | "self">(null);
@@ -1187,7 +1199,7 @@ export default function SanctuarySpace() {
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage);
+                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, higherSelfImage);
                 localStorage.setItem(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e) {
@@ -1226,7 +1238,7 @@ export default function SanctuarySpace() {
               <img
                 src={vesselImage}
                 alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
-                className="relative h-56 sm:h-80 w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]"
+                className={formSpriteClass}
                 style={{ background: "transparent" }}
                 draggable={false}
               />
@@ -1384,7 +1396,7 @@ export default function SanctuarySpace() {
               <img
                 src={higherSelfImage}
                 alt="My True Form"
-                className="relative h-56 sm:h-80 w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]"
+                className={formSpriteClass}
                 style={{ background: "transparent" }}
                 draggable={false}
               />
