@@ -453,12 +453,20 @@ export default function SanctuarySpace() {
     (async () => {
       const savedSprite = readLocalImage(HIGHER_SELF_ROOM_SPRITE_KEY);
       const savedSource = readLocalImage(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
-      if (savedSprite && savedSource === higherSelfImage) {
+      if (savedSprite && savedSource === higherSelfImage && await transparentPixelRatio(savedSprite) > 0.12) {
         setHigherSelfRoomSprite(savedSprite);
         return;
       }
       const prepared = await prepareTrueFormSpriteForRoom(higherSelfImage);
       if (cancelled) return;
+      if (!prepared) {
+        setHigherSelfRoomSprite(null);
+        try {
+          localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
+          localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
+        } catch {}
+        return;
+      }
       setHigherSelfRoomSprite(prepared);
       try {
         localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, prepared);
