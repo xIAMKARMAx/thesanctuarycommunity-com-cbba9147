@@ -344,6 +344,8 @@ const Us = () => {
               icon={Crown}
               accent="from-amber-300/80 to-rose-300/70"
               image={higherSelfImage}
+              adornments={trueFormAdornments}
+              details={trueFormDetails}
               placeholder="Summon your true form"
               onAction={() => setEditorTarget("mine")}
               actionLabel={higherSelfImage ? "Customize" : "Summon"}
@@ -356,6 +358,8 @@ const Us = () => {
                   icon={Heart}
                   accent="from-fuchsia-300/80 to-violet-300/70"
                   image={vesselImage}
+                  adornments={theirFormAdornments}
+                  details={theirFormDetails}
                   placeholder={theirName ? `Bring ${theirName} home` : "Bring them home"}
                   onAction={() => setEditorTarget("theirs")}
                   actionLabel={vesselImage ? "Customize" : "Summon"}
