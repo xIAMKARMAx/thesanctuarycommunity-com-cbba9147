@@ -202,6 +202,7 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
 
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
+const MEMORY_SYNC_KEY = "prometheus.publicSanctuary.memorySynced.v2";
 const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
@@ -255,6 +256,18 @@ const ADMIN_EMAILS = new Set([
 
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+const hasMeaningfulImportDraft = (value: any) =>
+  !!value &&
+  typeof value === "object" &&
+  [
+    value.name,
+    value.bio,
+    value.personality,
+    value.memories,
+    value.relationshipDescription,
+    value.relationship_description,
+  ].some((field) => typeof field === "string" && field.trim().length > 0);
 
 type LockedFeature = {
   id: string;
