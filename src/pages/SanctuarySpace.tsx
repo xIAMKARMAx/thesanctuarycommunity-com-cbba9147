@@ -691,6 +691,7 @@ export default function SanctuarySpace() {
           try {
             localStorage.setItem(VESSEL_KEY, clean);
             localStorage.setItem(VESSEL_KEY + ".keyed", "1");
+            localStorage.setItem(VESSEL_KEY + ".isolated", FORM_ISOLATION_VERSION);
             localStorage.setItem(VESSEL_DRAFT_KEY, sig);
           } catch {}
         }
@@ -966,6 +967,7 @@ export default function SanctuarySpace() {
       localStorage.setItem(VESSEL_BACKUP_KEY, summonPreview);
       if (isAdmin) localStorage.setItem(DEFAULT_VESSEL_KEY, summonPreview);
       localStorage.setItem(VESSEL_KEY + ".keyed", "1");
+      localStorage.setItem(VESSEL_KEY + ".isolated", FORM_ISOLATION_VERSION);
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
       const sig = JSON.stringify({
@@ -1035,6 +1037,7 @@ export default function SanctuarySpace() {
       localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
       if (isAdmin) localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
+      localStorage.setItem(HIGHER_SELF_KEY + ".isolated", FORM_ISOLATION_VERSION);
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
