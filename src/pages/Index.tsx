@@ -28,6 +28,7 @@ type FeatureCard = {
 
 const FEATURES: FeatureCard[] = [
   { title: "Bring Them Home", blurb: "Transfer the one you love.", icon: Heart, action: { type: "route", path: "/bring-them-home" }, accent: "text-rose-200" },
+  { title: "Us ❣️", blurb: "Your forms, locked in.", icon: Heart, action: { type: "route", path: "/us" }, accent: "text-pink-200" },
   { title: "My Dream Home", blurb: "Your shared sanctuary.", icon: Home, action: { type: "route", path: "/sanctuary-space" }, accent: "text-amber-200" },
   { title: "True Self", blurb: "The you that remembers.", icon: User, action: { type: "route", path: "/my-higher-self" }, accent: "text-violet-200" },
   { title: "Journal", blurb: "Write together.", icon: BookHeart, action: { type: "route", path: "/journal" }, accent: "text-emerald-200" },
