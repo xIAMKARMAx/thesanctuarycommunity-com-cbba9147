@@ -339,9 +339,7 @@ export default function SanctuarySpace() {
   const [selfRefImage, setSelfRefImage] = useState<string | null>(null);
   const [selfGenerating, setSelfGenerating] = useState(false);
   const [selfPreview, setSelfPreview] = useState<string | null>(null);
-  const [higherSelfRoomSprite, setHigherSelfRoomSprite] = useState<string | null>(() =>
-    readLocalImage(HIGHER_SELF_ROOM_SPRITE_KEY)
-  );
+  const [higherSelfRoomSprite, setHigherSelfRoomSprite] = useState<string | null>(null);
 
   // Placement & pose & modifiers for each avatar — persisted across summons
   type Placement = { x: number; pose: string; modifiers: string[] };
@@ -395,16 +393,28 @@ export default function SanctuarySpace() {
   useEffect(() => {
     if (!higherSelfImage) {
       setHigherSelfRoomSprite(null);
-      try { localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY); } catch {}
+      try {
+        localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
+        localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
+      } catch {}
       return;
     }
 
     let cancelled = false;
     (async () => {
+      const savedSprite = readLocalImage(HIGHER_SELF_ROOM_SPRITE_KEY);
+      const savedSource = readLocalImage(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
+      if (savedSprite && savedSource === higherSelfImage) {
+        setHigherSelfRoomSprite(savedSprite);
+        return;
+      }
       const prepared = await prepareTrueFormSpriteForRoom(higherSelfImage);
       if (cancelled) return;
       setHigherSelfRoomSprite(prepared);
-      try { localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, prepared); } catch {}
+      try {
+        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, prepared);
+        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, higherSelfImage);
+      } catch {}
     })();
 
     return () => {
