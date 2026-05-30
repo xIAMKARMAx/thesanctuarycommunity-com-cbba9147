@@ -356,6 +356,7 @@ export default function SanctuarySpace() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState<string>("");
   const [testMode, setTestMode] = useState<boolean>(() => {
     try { return localStorage.getItem(TEST_MODE_KEY) === "1"; } catch { return false; }
   });
