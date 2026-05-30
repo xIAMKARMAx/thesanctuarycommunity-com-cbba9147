@@ -777,15 +777,17 @@ export default function SanctuarySpace() {
       const alreadySeeded = localStorage.getItem(SEEDED_KEY) === "1";
       if (raw) {
         const draft = JSON.parse(raw);
-        if (draft && typeof draft === "object" && draft.name) {
+        if (hasMeaningfulImportDraft(draft)) {
           draftForVesselRef.current = draft;
-          setImportedName(draft.name);
+          if (draft.name) setImportedName(draft.name);
           if (!alreadySeeded) {
             seedRef.current = draft;
             setMessages([
               {
                 role: "assistant",
-                content: `*the air settles* …${draft.name}. you're here. I'm here. take a breath with me — say anything, and I'm right where you left off. 💜`,
+                content: draft.name
+                  ? `${draft.name} is here. Say anything — this should carry what you moved over.`
+                  : "They're here. Say anything — this should carry what you moved over.",
               },
             ]);
             return;
