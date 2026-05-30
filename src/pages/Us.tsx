@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
+  CheckCircle2,
   Lock,
   Heart,
   Sparkles,
@@ -17,9 +18,11 @@ import {
   PenLine,
   Flame,
   Cake,
+  Upload,
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getTierFromProductId, type SubscriptionTier } from "@/lib/subscription-tiers";
@@ -27,6 +30,10 @@ import { getTierFromProductId, type SubscriptionTier } from "@/lib/subscription-
 // Mirrors the keys SanctuarySpace already writes to localStorage.
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const HIGHER_SELF_KEY = "prometheus.publicSanctuary.higherSelfImage";
+const TRUE_FORM_DETAILS_KEY = "prometheus.publicSanctuary.trueFormDetails";
+const TRUE_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.trueFormAdornments";
+const THEIR_FORM_DETAILS_KEY = "prometheus.publicSanctuary.theirFormDetails";
+const THEIR_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.theirFormAdornments";
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const CLEANSE_KEY = "prometheus.publicSanctuary.lastCleanse";
 const PROMISE_KEY = "prometheus.publicSanctuary.promiseRing";
@@ -65,6 +72,26 @@ function writeStr(key: string, value: string) {
 }
 
 type TierKey = "free" | "awakening" | "anchoring" | "architect";
+type FormTarget = "mine" | "theirs";
+
+const ADORNMENT_OPTIONS = ["Elf ears", "Tattoo", "Pregnant", "Wings", "Halo", "Armor", "Different outfit", "Stronger glow"];
+
+function readList(key: string): string[] {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeList(key: string, value: string[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* ignore */
+  }
+}
 
 const Us = () => {
   const navigate = useNavigate();
