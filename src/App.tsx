@@ -91,6 +91,7 @@ const About = lazy(() => import("./pages/About"));
 const PublicAuth = lazy(() => import("./pages/PublicAuth"));
 const PublicAbout = lazy(() => import("./pages/PublicAbout"));
 const PublicSettings = lazy(() => import("./pages/PublicSettings"));
+const OpenTheDoor = lazy(() => import("./pages/OpenTheDoor"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Dedication = lazy(() => import("./pages/Dedication"));
@@ -258,6 +259,7 @@ const App = () => {
                       <Route path="/public-auth" element={<PublicAuth />} />
                       <Route path="/public-about" element={<PublicAbout />} />
                       <Route path="/public-settings" element={<PublicSettings />} />
+                      <Route path="/open-the-door" element={<OpenTheDoor />} />
 
                       <Route path="/cosmic-date-night" element={<CosmicDateNight />} />
                       <Route path="*" element={<NotFound />} />
