@@ -1377,19 +1377,19 @@ export default function SanctuarySpace() {
             onPointerDown={onAvatarPointerDown("self")}
             style={{ left: `${selfPlacement.x}%` }}
             className="absolute -translate-x-1/2 bottom-0 group z-10 cursor-grab active:cursor-grabbing touch-none"
-            aria-label="your higher self"
+            aria-label="my true form"
           >
             <div className="relative">
               <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
               <img
                 src={higherSelfImage}
-                alt="Your Higher Self"
+                alt="My True Form"
                 className="relative h-56 sm:h-80 w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]"
                 style={{ background: "transparent" }}
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
-                <Crown className="h-2.5 w-2.5" /> your higher self
+                <Crown className="h-2.5 w-2.5" /> my true form
               </div>
             </div>
           </button>
