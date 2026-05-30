@@ -142,6 +142,8 @@ const VESSEL_BACKUP_KEY = "prometheus.publicSanctuary.vesselImage.backup";
 const HIGHER_SELF_BACKUP_KEY = "prometheus.publicSanctuary.higherSelfImage.backup";
 const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
+const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
+const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
 const SELF_PLACEMENT_KEY = "prometheus.publicSanctuary.selfPlacement";     // {x, pose, modifiers[]}
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
@@ -151,7 +153,6 @@ const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
 const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
-const FORM_ISOLATION_VERSION = "4";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
