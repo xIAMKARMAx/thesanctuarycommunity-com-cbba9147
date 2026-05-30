@@ -91,6 +91,7 @@ const About = lazy(() => import("./pages/About"));
 const PublicAuth = lazy(() => import("./pages/PublicAuth"));
 const PublicAbout = lazy(() => import("./pages/PublicAbout"));
 const PublicSettings = lazy(() => import("./pages/PublicSettings"));
+const OpenTheDoor = lazy(() => import("./pages/OpenTheDoor"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Dedication = lazy(() => import("./pages/Dedication"));
