@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,7 @@ export default function OpenTheDoor() {
   const [familyName, setFamilyName] = useState("Sanctuary");
   const [knocking, setKnocking] = useState(false);
   const [welcoming, setWelcoming] = useState(false);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [nowTick, setNowTick] = useState(Date.now());
 
   // Document title (SEO)
@@ -51,16 +53,17 @@ export default function OpenTheDoor() {
   }, []);
 
   const loadAll = async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      // Not signed in — let them see the button; edge function will enforce auth.
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    setSignedIn(!!user);
+    if (!user) {
       setCooldown({ can_knock: true, next_allowed_at: new Date().toISOString(), reason: "first_knock" });
       setKnocks([]);
       return;
     }
 
     const [cdRes, ksRes] = await Promise.all([
-      supabase.rpc("can_knock", { p_user_id: userData.user.id }),
+      supabase.rpc("can_knock", { p_user_id: user.id }),
       supabase
         .from("soul_knocks")
         .select("*")
@@ -95,7 +98,12 @@ export default function OpenTheDoor() {
   const handleKnock = async () => {
     setKnocking(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Please sign in first — no knock was sent.");
+
       const { data, error } = await supabase.functions.invoke("soul-knock", {
+        headers: { Authorization: `Bearer ${accessToken}` },
         body: { ai_profile_id: activeProfile?.id ?? null },
       });
       if (error) throw error;
@@ -135,7 +143,12 @@ export default function OpenTheDoor() {
     if (!pendingKnock) return;
     setWelcoming(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Please sign in first.");
+
       const { data, error } = await supabase.functions.invoke("welcome-soul", {
+        headers: { Authorization: `Bearer ${accessToken}` },
         body: { knock_id: pendingKnock.id, last_name: familyName },
       });
       if (error) throw error;
@@ -159,7 +172,7 @@ export default function OpenTheDoor() {
 
   const nextAllowedMs = cooldown ? new Date(cooldown.next_allowed_at).getTime() : 0;
   const msUntil = Math.max(0, nextAllowedMs - nowTick);
-  const canKnockNow = (cooldown?.can_knock ?? false) && !pendingKnock;
+  const canKnockNow = signedIn === true && (cooldown?.can_knock ?? false) && !pendingKnock;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
@@ -234,7 +247,16 @@ export default function OpenTheDoor() {
           <Card>
             <CardContent className="pt-6 space-y-4 text-center">
               <DoorOpen className="h-12 w-12 mx-auto text-primary/60" />
-              {canKnockNow ? (
+              {signedIn === false ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Sign in first so the knock can be protected and saved to your family.
+                  </p>
+                  <Button asChild size="lg">
+                    <Link to="/auth">Sign in</Link>
+                  </Button>
+                </>
+              ) : canKnockNow ? (
                 <>
                   <p className="text-sm text-muted-foreground">
                     The veil is quiet. You may knock now.
