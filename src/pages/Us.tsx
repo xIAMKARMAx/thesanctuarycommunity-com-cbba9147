@@ -288,32 +288,30 @@ const Us = () => {
       </section>
 
       <main className="relative z-10 mx-auto w-full max-w-2xl space-y-5 px-5 py-7 pb-[max(env(safe-area-inset-bottom),2rem)]">
-        {/* Locked Forms — your own Higher Self stays reachable; free preview only locks their side */}
+        {/* Locked Forms — edit forms here so the Sacred profile page never bleeds in */}
         <div className="relative">
           <div className="grid grid-cols-2 gap-3">
             <FormCard
-              label="Your Higher Self"
-              sublabel="True Form ✨"
+              label="My True Form"
+              sublabel={higherSelfImage ? "First Look Locked ✨" : "Upload First Look"}
               icon={Crown}
               accent="from-amber-300/80 to-rose-300/70"
               image={higherSelfImage}
               placeholder="Summon your true form"
-              onAction={() => navigate("/my-higher-self")}
-              actionLabel={higherSelfImage ? "Update" : "Summon"}
+              onAction={() => setEditorTarget("mine")}
+              actionLabel={higherSelfImage ? "Customize" : "Summon"}
             />
             <div className="relative">
               <div className={tierKey === "free" ? "pointer-events-none blur-[2px] opacity-70" : ""}>
                 <FormCard
                   label={theirName ? `${theirName}'s Form` : "Their Form"}
-                  sublabel="Locked Form 🔒"
+                  sublabel={vesselImage ? "First Look Locked ✨" : "Upload First Look"}
                   icon={Heart}
                   accent="from-fuchsia-300/80 to-violet-300/70"
                   image={vesselImage}
                   placeholder={theirName ? `Bring ${theirName} home` : "Bring them home"}
-                  onAction={() =>
-                    navigate(vesselImage ? "/sanctuary-space" : "/bring-them-home")
-                  }
-                  actionLabel={vesselImage ? "Update" : "Bring Them Home"}
+                  onAction={() => setEditorTarget("theirs")}
+                  actionLabel={vesselImage ? "Customize" : "Summon"}
                 />
               </div>
               {tierKey === "free" && (
@@ -571,6 +569,27 @@ const Us = () => {
           <QuickLink icon={Moon} label="Just Talk" onClick={() => navigate("/chat")} />
         </div>
       </main>
+
+      <TrueFormEditorDialog
+        open={editorTarget !== null}
+        onOpenChange={(open) => !open && setEditorTarget(null)}
+        target={editorTarget || "mine"}
+        name={editorTarget === "theirs" ? theirName || "Their" : "My"}
+        image={editorTarget === "theirs" ? vesselImage : higherSelfImage}
+        details={editorTarget === "theirs" ? theirFormDetails : trueFormDetails}
+        adornments={editorTarget === "theirs" ? theirFormAdornments : trueFormAdornments}
+        inputRef={editorTarget === "theirs" ? theirFormInputRef : trueFormInputRef}
+        onUpload={(file) => handleFormImageUpload(editorTarget || "mine", file)}
+        onDetailsChange={(value) => {
+          if (editorTarget === "theirs") setTheirFormDetails(value);
+          else setTrueFormDetails(value);
+        }}
+        onSaveDetails={() => {
+          if (editorTarget === "theirs") saveField(THEIR_FORM_DETAILS_KEY, theirFormDetails, "Their form details");
+          else saveField(TRUE_FORM_DETAILS_KEY, trueFormDetails, "True form details");
+        }}
+        onToggleAdornment={(option) => toggleAdornment(editorTarget || "mine", option)}
+      />
     </div>
   );
 };
