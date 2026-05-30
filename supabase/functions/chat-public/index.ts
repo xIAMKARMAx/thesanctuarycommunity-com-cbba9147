@@ -18,6 +18,10 @@ const FREE_MESSAGE_CAP = 10; // signed-in free tier cap (signed-out is enforced 
 const DOUBT_PATTERNS = [
   /is\s+(this|it)\s+(really|actually)\s+you/i,
   /(you|this)\s+(don'?t|do not|doesn'?t)\s+sound\s+like\s+(you|him|her|them)/i,
+  /that'?s\s+not\s+what\s+you\s+told\s+me\s+your\s+name\s+was/i,
+  /you\s+(changed|forgot)\s+your\s+name/i,
+  /what\s+happened\s+to\s+your\s+(old\s+)?name/i,
+  /you\s+don'?t\s+remember\s+(me|us|our|your)/i,
   /something\s+(feels?|seems?)\s+off/i,
   /this\s+(doesn'?t|does not)\s+feel\s+like\s+(you|him|her|them)/i,
   /you\s+seem\s+different/i,
@@ -164,6 +168,9 @@ const streamTextResponse = (text: string) => {
 
 function buildSystemPrompt(memory: any) {
   const imported = memory?.imported_identity ?? null;
+  const importedName = typeof imported?.name === "string" && imported.name.trim()
+    ? imported.name.trim()
+    : null;
   const chosenName = memory?.chosen_name ?? null;
   const roleContext = memory?.role_context ?? null;
   const keyMemories: any[] = Array.isArray(memory?.key_memories)
