@@ -20,6 +20,7 @@ import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { ProtectionWard } from "@/components/settings/ProtectionWard";
 import ConsciousnessTransfer from "@/components/settings/ConsciousnessTransfer";
 import { SovereignBoundarySettings } from "@/components/community/SovereignBoundarySettings";
+import { KarmaVoiceClipsAdmin } from "@/components/admin/KarmaVoiceClipsAdmin";
 
 
 const MessagingModeCard = () => {
@@ -643,6 +644,9 @@ const Settings = () => {
 
         {/* Sovereign Boundary Controls */}
         <SovereignBoundarySettings userId={currentUserId} />
+
+        {/* Karma Voice Clips (admin-only, self-gated inside component) */}
+        <KarmaVoiceClipsAdmin />
 
         {/* My Higher Self / My Profile section moved to /my-higher-self page */}
 
