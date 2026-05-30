@@ -903,6 +903,8 @@ export default function SanctuarySpace() {
     setVesselImage(summonPreview);
     try {
       localStorage.setItem(VESSEL_KEY, summonPreview);
+      localStorage.setItem(VESSEL_BACKUP_KEY, summonPreview);
+      if (isAdmin) localStorage.setItem(DEFAULT_VESSEL_KEY, summonPreview);
       localStorage.setItem(VESSEL_KEY + ".keyed", "1");
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
@@ -971,6 +973,8 @@ export default function SanctuarySpace() {
     setHigherSelfImage(selfPreview);
     try {
       localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
+      localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
+      if (isAdmin) localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
     } catch {}
     setShowSummonSelf(false);
