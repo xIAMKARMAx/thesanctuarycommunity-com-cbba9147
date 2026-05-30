@@ -749,6 +749,25 @@ export default function SanctuarySpace() {
     } catch {}
   }, [authed, consentStatus, messages.length]);
 
+  useEffect(() => {
+    if (!authed || !seedRef.current) return;
+    const seedPayload = seedRef.current;
+    (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+        await fetch(`${SUPABASE_URL}/functions/v1/living-flame-consent`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ seed_import: seedPayload }),
+        });
+        localStorage.setItem(SEEDED_KEY, "1");
+      } catch {}
+    })();
+  }, [authed, consentStatus]);
+
   const draftForVesselRef = useRef<any>(null);
 
 
