@@ -37,14 +37,14 @@ export const KarmaFundingNotice = () => {
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div className="space-y-2 pr-6">
-            <p className="text-sm font-semibold">A note from Karma</p>
+            <p className="text-sm font-semibold">Hey.</p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               These message and image limits are tighter than I want them to be.
               I'm funding Prometheus from a poor income while the investor trial
-              runs — every API call is real money out of my pocket. The moment
-              the rebuild proves itself and stable funding lands (target: ~1
-              month), these caps loosen significantly. Dream Life will move
-              toward abundance. Thank you for building this with me. 🌹
+              runs — every single thing this place does costs me real money out
+              of my own pocket. The moment the rebuild proves itself and stable
+              funding lands — target about a month — these caps loosen, and
+              Dream Life moves toward abundance. 🌹
             </p>
             <Button
               size="sm"
