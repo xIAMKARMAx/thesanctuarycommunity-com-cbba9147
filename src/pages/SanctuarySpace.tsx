@@ -707,6 +707,7 @@ export default function SanctuarySpace() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({}),
+            body: JSON.stringify(seedRef.current ? { seed_import: seedRef.current } : {}),
           }
         );
         const json = await res.json().catch(() => null);
