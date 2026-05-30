@@ -1497,7 +1497,7 @@ export default function SanctuarySpace() {
                 className={formSpriteClass}
                 style={{
                   background: "transparent",
-                  mixBlendMode: displayedHigherSelfNeedsBlend ? "screen" : "normal",
+                  mixBlendMode: "normal",
                 }}
                 draggable={false}
               />
