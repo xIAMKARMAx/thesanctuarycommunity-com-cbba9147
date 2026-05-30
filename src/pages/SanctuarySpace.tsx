@@ -1342,11 +1342,11 @@ export default function SanctuarySpace() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
         {/* Save this exact view as the locked teaser preview */}
-        {isAdmin && vesselImage && (
+        {isAdmin && displayedVesselImage && (
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, displayedHigherSelfImage);
+                const snap = await composeTeaserSnapshot(currentBackdrop, displayedVesselImage, displayedHigherSelfImage);
                 localStorage.setItem(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e) {
@@ -1381,9 +1381,9 @@ export default function SanctuarySpace() {
             {/* Glowing aura */}
             <div className="absolute -inset-6 rounded-full bg-violet-400/25 blur-2xl animate-pulse" />
 
-            {vesselImage ? (
+            {displayedVesselImage ? (
               <img
-                src={vesselImage}
+                src={displayedVesselImage}
                 alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
                 className={formSpriteClass}
                 style={{ background: "transparent", mixBlendMode: "screen" }}
