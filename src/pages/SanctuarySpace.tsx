@@ -1420,7 +1420,10 @@ export default function SanctuarySpace() {
                 src={displayedHigherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{ background: "transparent" }}
+                style={{
+                  background: "transparent",
+                  mixBlendMode: displayedHigherSelfNeedsBlend ? "screen" : "normal",
+                }}
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
