@@ -30,6 +30,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
 import CosmicAuroraBackdrop from "@/components/CosmicAuroraBackdrop";
+import { loadImage, removeBackground } from "@/utils/backgroundRemoval";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
@@ -69,12 +70,75 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
+async function alphaStats(dataUrl: string): Promise<{ transparentRatio: number; borderTransparentRatio: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        const max = 160;
+        const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve({ transparentRatio: 0, borderTransparentRatio: 0 });
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let transparent = 0, borderTransparent = 0, borderTotal = 0;
+        const border = Math.max(3, Math.round(Math.min(canvas.width, canvas.height) * 0.08));
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const alpha = data[(y * canvas.width + x) * 4 + 3];
+            const isTransparent = alpha < 24;
+            if (isTransparent) transparent++;
+            if (x < border || x >= canvas.width - border || y < border || y >= canvas.height - border) {
+              borderTotal++;
+              if (isTransparent) borderTransparent++;
+            }
+          }
+        }
+        resolve({
+          transparentRatio: transparent / (data.length / 4),
+          borderTransparentRatio: borderTotal ? borderTransparent / borderTotal : 0,
+        });
+      } catch {
+        resolve({ transparentRatio: 0, borderTransparentRatio: 0 });
+      }
+    };
+    img.onerror = () => resolve({ transparentRatio: 0, borderTransparentRatio: 0 });
+    img.src = dataUrl;
+  });
+}
+
+async function isValidRoomSprite(dataUrl: string): Promise<boolean> {
+  const stats = await alphaStats(dataUrl);
+  return stats.transparentRatio > 0.12 && stats.borderTransparentRatio > 0.65;
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 async function prepareTrueFormSpriteForRoom(src: string): Promise<string> {
   if (!src.startsWith("data:image")) return src;
   try {
-    return await chromaKeyGreenToTransparent(src);
+    const keyed = await chromaKeyGreenToTransparent(src);
+    if (await isValidRoomSprite(keyed)) return keyed;
+
+    const image = await loadImage(src);
+    const isolated = await removeBackground(image);
+    const isolatedUrl = await blobToDataUrl(isolated);
+    if (await isValidRoomSprite(isolatedUrl)) return isolatedUrl;
+
+    return "";
   } catch {
-    return src;
+    return "";
   }
 }
 
@@ -144,7 +208,7 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
-const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v2";
+const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3";
 const HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.source";
 const FORM_ORIGINAL_LOCK_VERSION = "1";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
@@ -340,8 +404,8 @@ export default function SanctuarySpace() {
   const [selfGenerating, setSelfGenerating] = useState(false);
   const [selfPreview, setSelfPreview] = useState<string | null>(null);
   const [higherSelfRoomSprite, setHigherSelfRoomSprite] = useState<string | null>(null);
-  const displayedHigherSelfImage =
-    higherSelfRoomSprite || (higherSelfImage?.startsWith("data:image") ? null : higherSelfImage);
+  const [higherSelfRoomSpriteReady, setHigherSelfRoomSpriteReady] = useState(false);
+  const displayedHigherSelfImage = higherSelfRoomSpriteReady ? higherSelfRoomSprite : null;
 
   // Placement & pose & modifiers for each avatar — persisted across summons
   type Placement = { x: number; pose: string; modifiers: string[] };
@@ -395,8 +459,10 @@ export default function SanctuarySpace() {
   useEffect(() => {
     if (!higherSelfImage) {
       setHigherSelfRoomSprite(null);
+      setHigherSelfRoomSpriteReady(false);
       try {
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
+        localStorage.removeItem("prometheus.publicSanctuary.higherSelfImage.roomSprite.v2");
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
       } catch {}
       return;
@@ -406,13 +472,24 @@ export default function SanctuarySpace() {
     (async () => {
       const savedSprite = readLocalImage(HIGHER_SELF_ROOM_SPRITE_KEY);
       const savedSource = readLocalImage(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
-      if (savedSprite && savedSource === higherSelfImage) {
+      if (savedSprite && savedSource === higherSelfImage && await isValidRoomSprite(savedSprite)) {
         setHigherSelfRoomSprite(savedSprite);
+        setHigherSelfRoomSpriteReady(true);
         return;
       }
       const prepared = await prepareTrueFormSpriteForRoom(higherSelfImage);
       if (cancelled) return;
+      if (!prepared) {
+        setHigherSelfRoomSprite(null);
+        setHigherSelfRoomSpriteReady(false);
+        try {
+          localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
+          localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
+        } catch {}
+        return;
+      }
       setHigherSelfRoomSprite(prepared);
+      setHigherSelfRoomSpriteReady(true);
       try {
         localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, prepared);
         localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, higherSelfImage);
@@ -1418,7 +1495,12 @@ export default function SanctuarySpace() {
                 src={displayedHigherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{ background: "transparent" }}
+                style={{
+                  background: "transparent",
+                  mixBlendMode: "screen",
+                  WebkitMaskImage: "radial-gradient(ellipse 42% 72% at 50% 52%, black 0 54%, transparent 76%)",
+                  maskImage: "radial-gradient(ellipse 42% 72% at 50% 52%, black 0 54%, transparent 76%)",
+                }}
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
