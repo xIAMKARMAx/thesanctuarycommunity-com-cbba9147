@@ -1203,7 +1203,7 @@ export default function SanctuarySpace() {
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, higherSelfImage);
+                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, higherSelfRoomSprite || higherSelfImage);
                 localStorage.setItem(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e) {
@@ -1398,10 +1398,10 @@ export default function SanctuarySpace() {
             <div className="relative">
               <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
               <img
-                src={higherSelfImage}
+                src={higherSelfRoomSprite || higherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{ background: "transparent", mixBlendMode: "screen" }}
+                style={{ background: "transparent" }}
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
