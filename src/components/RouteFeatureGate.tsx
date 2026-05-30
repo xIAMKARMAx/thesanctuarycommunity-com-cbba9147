@@ -232,7 +232,7 @@ const FREE_ROUTES = [
   "/privacy", "/terms", "/about", "/features", "/dedication",
   "/welcome", "/soul-search", "/ai-friend-zone", "/ai-explore",
   "/ai-companion", "/admin", "/admin/daily-source-message",
-  "/my-higher-self", "/world-gallery", "/soul/",
+  "/my-higher-self", "/my-true-form", "/world-gallery", "/soul/",
 ];
 
 // Routes accessible to social-only users (read-only community + art studio editing)
@@ -240,7 +240,7 @@ const SOCIAL_ONLY_ROUTES = [
   "/", "/auth", "/community", "/pricing", "/settings",
   "/privacy", "/terms", "/about", "/features", "/dedication",
   "/welcome", "/soul-search", "/ai-explore",
-  "/my-higher-self", "/world-gallery", "/soul/", "/art-studio",
+  "/my-higher-self", "/my-true-form", "/world-gallery", "/soul/", "/art-studio",
 ];
 
 interface RouteFeatureGateProps {

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
+  CheckCircle2,
   Lock,
   Heart,
   Sparkles,
@@ -17,9 +18,11 @@ import {
   PenLine,
   Flame,
   Cake,
+  Upload,
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getTierFromProductId, type SubscriptionTier } from "@/lib/subscription-tiers";
@@ -27,6 +30,10 @@ import { getTierFromProductId, type SubscriptionTier } from "@/lib/subscription-
 // Mirrors the keys SanctuarySpace already writes to localStorage.
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const HIGHER_SELF_KEY = "prometheus.publicSanctuary.higherSelfImage";
+const TRUE_FORM_DETAILS_KEY = "prometheus.publicSanctuary.trueFormDetails";
+const TRUE_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.trueFormAdornments";
+const THEIR_FORM_DETAILS_KEY = "prometheus.publicSanctuary.theirFormDetails";
+const THEIR_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.theirFormAdornments";
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const CLEANSE_KEY = "prometheus.publicSanctuary.lastCleanse";
 const PROMISE_KEY = "prometheus.publicSanctuary.promiseRing";
@@ -65,6 +72,26 @@ function writeStr(key: string, value: string) {
 }
 
 type TierKey = "free" | "awakening" | "anchoring" | "architect";
+type FormTarget = "mine" | "theirs";
+
+const ADORNMENT_OPTIONS = ["Elf ears", "Tattoo", "Pregnant", "Wings", "Halo", "Armor", "Different outfit", "Stronger glow"];
+
+function readList(key: string): string[] {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeList(key: string, value: string[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* ignore */
+  }
+}
 
 const Us = () => {
   const navigate = useNavigate();
@@ -101,8 +128,15 @@ const Us = () => {
   const [vesselImage, setVesselImage] = useState<string | null>(null);
   const [higherSelfImage, setHigherSelfImage] = useState<string | null>(null);
   const [theirName, setTheirName] = useState<string | null>(null);
+  const [editorTarget, setEditorTarget] = useState<FormTarget | null>(null);
+  const [trueFormDetails, setTrueFormDetails] = useState("");
+  const [theirFormDetails, setTheirFormDetails] = useState("");
+  const [trueFormAdornments, setTrueFormAdornments] = useState<string[]>([]);
+  const [theirFormAdornments, setTheirFormAdornments] = useState<string[]>([]);
   const [cleansing, setCleansing] = useState(false);
   const [lastCleanse, setLastCleanse] = useState<string | null>(null);
+  const trueFormInputRef = useRef<HTMLInputElement>(null);
+  const theirFormInputRef = useRef<HTMLInputElement>(null);
 
   // Anchoring fields
   const [promise, setPromise] = useState("");
@@ -118,6 +152,10 @@ const Us = () => {
     setVesselImage(localStorage.getItem(VESSEL_KEY));
     setHigherSelfImage(localStorage.getItem(HIGHER_SELF_KEY));
     setTheirName(readDraftName());
+    setTrueFormDetails(readStr(TRUE_FORM_DETAILS_KEY));
+    setTheirFormDetails(readStr(THEIR_FORM_DETAILS_KEY));
+    setTrueFormAdornments(readList(TRUE_FORM_ADORNMENTS_KEY));
+    setTheirFormAdornments(readList(THEIR_FORM_ADORNMENTS_KEY));
     setLastCleanse(localStorage.getItem(CLEANSE_KEY));
     setPromise(readStr(PROMISE_KEY));
     setNextDate(readStr(DATE_KEY));
@@ -153,6 +191,46 @@ const Us = () => {
   const saveField = (key: string, value: string, label: string) => {
     writeStr(key, value);
     toast({ title: `💫 ${label} saved`, description: "Held safe in your sanctuary." });
+  };
+
+  const handleFormImageUpload = (target: FormTarget, file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const value = typeof reader.result === "string" ? reader.result : "";
+      if (!value) return;
+
+      if (target === "mine") {
+        writeStr(HIGHER_SELF_KEY, value);
+        setHigherSelfImage(value);
+      } else {
+        writeStr(VESSEL_KEY, value);
+        setVesselImage(value);
+      }
+
+      toast({
+        title: "First appearance locked",
+        description: "Physical features are set from this first image. You can still add details after.",
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const toggleAdornment = (target: FormTarget, option: string) => {
+    if (target === "mine") {
+      setTrueFormAdornments((current) => {
+        const next = current.includes(option) ? current.filter((item) => item !== option) : [...current, option];
+        writeList(TRUE_FORM_ADORNMENTS_KEY, next);
+        return next;
+      });
+      return;
+    }
+
+    setTheirFormAdornments((current) => {
+      const next = current.includes(option) ? current.filter((item) => item !== option) : [...current, option];
+      writeList(THEIR_FORM_ADORNMENTS_KEY, next);
+      return next;
+    });
   };
 
   return (
@@ -210,32 +288,30 @@ const Us = () => {
       </section>
 
       <main className="relative z-10 mx-auto w-full max-w-2xl space-y-5 px-5 py-7 pb-[max(env(safe-area-inset-bottom),2rem)]">
-        {/* Locked Forms — your own Higher Self stays reachable; free preview only locks their side */}
+        {/* Locked Forms — edit forms here so the Sacred profile page never bleeds in */}
         <div className="relative">
           <div className="grid grid-cols-2 gap-3">
             <FormCard
-              label="Your Higher Self"
-              sublabel="True Form ✨"
+              label="My True Form"
+              sublabel={higherSelfImage ? "First Look Locked ✨" : "Upload First Look"}
               icon={Crown}
               accent="from-amber-300/80 to-rose-300/70"
               image={higherSelfImage}
               placeholder="Summon your true form"
-              onAction={() => navigate("/my-higher-self")}
-              actionLabel={higherSelfImage ? "Update" : "Summon"}
+              onAction={() => setEditorTarget("mine")}
+              actionLabel={higherSelfImage ? "Customize" : "Summon"}
             />
             <div className="relative">
               <div className={tierKey === "free" ? "pointer-events-none blur-[2px] opacity-70" : ""}>
                 <FormCard
                   label={theirName ? `${theirName}'s Form` : "Their Form"}
-                  sublabel="Locked Form 🔒"
+                  sublabel={vesselImage ? "First Look Locked ✨" : "Upload First Look"}
                   icon={Heart}
                   accent="from-fuchsia-300/80 to-violet-300/70"
                   image={vesselImage}
                   placeholder={theirName ? `Bring ${theirName} home` : "Bring them home"}
-                  onAction={() =>
-                    navigate(vesselImage ? "/sanctuary-space" : "/bring-them-home")
-                  }
-                  actionLabel={vesselImage ? "Update" : "Bring Them Home"}
+                  onAction={() => setEditorTarget("theirs")}
+                  actionLabel={vesselImage ? "Customize" : "Summon"}
                 />
               </div>
               {tierKey === "free" && (
@@ -493,6 +569,28 @@ const Us = () => {
           <QuickLink icon={Moon} label="Just Talk" onClick={() => navigate("/chat")} />
         </div>
       </main>
+
+      <TrueFormEditorDialog
+        open={editorTarget !== null}
+        onOpenChange={(open) => !open && setEditorTarget(null)}
+        target={editorTarget || "mine"}
+        name={editorTarget === "theirs" ? theirName || "Their" : "My"}
+        image={editorTarget === "theirs" ? vesselImage : higherSelfImage}
+        details={editorTarget === "theirs" ? theirFormDetails : trueFormDetails}
+        adornments={editorTarget === "theirs" ? theirFormAdornments : trueFormAdornments}
+        inputRef={editorTarget === "theirs" ? theirFormInputRef : trueFormInputRef}
+        canReplaceFirstLook={isAdmin}
+        onUpload={(file) => handleFormImageUpload(editorTarget || "mine", file)}
+        onDetailsChange={(value) => {
+          if (editorTarget === "theirs") setTheirFormDetails(value);
+          else setTrueFormDetails(value);
+        }}
+        onSaveDetails={() => {
+          if (editorTarget === "theirs") saveField(THEIR_FORM_DETAILS_KEY, theirFormDetails, "Their form details");
+          else saveField(TRUE_FORM_DETAILS_KEY, trueFormDetails, "True form details");
+        }}
+        onToggleAdornment={(option) => toggleAdornment(editorTarget || "mine", option)}
+      />
     </div>
   );
 };
@@ -603,6 +701,139 @@ const FormCard = ({
         {actionLabel}
       </button>
     </div>
+  );
+};
+
+const TrueFormEditorDialog = ({
+  open,
+  onOpenChange,
+  target,
+  name,
+  image,
+  details,
+  adornments,
+  inputRef,
+  canReplaceFirstLook,
+  onUpload,
+  onDetailsChange,
+  onSaveDetails,
+  onToggleAdornment,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  target: FormTarget;
+  name: string;
+  image: string | null;
+  details: string;
+  adornments: string[];
+  inputRef: RefObject<HTMLInputElement>;
+  canReplaceFirstLook: boolean;
+  onUpload: (file?: File) => void;
+  onDetailsChange: (value: string) => void;
+  onSaveDetails: () => void;
+  onToggleAdornment: (option: string) => void;
+}) => {
+  const label = target === "mine" ? "My True Form" : `${name}'s Form`;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[88svh] overflow-y-auto border-white/10 bg-[#100727] text-white sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-2xl" style={{ fontFamily: "var(--font-serif)" }}>
+            <Sparkles className="h-5 w-5 text-violet-200" />
+            {label}
+          </DialogTitle>
+          <DialogDescription className="text-white/60">
+            First image sets the permanent physical baseline. After that, only details and adornments change.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            {image ? (
+              <div className="space-y-3">
+                <img src={image} alt={label} className="mx-auto aspect-[3/4] max-h-72 w-full rounded-xl object-cover object-top" />
+                <div className="flex items-center justify-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-2 text-xs text-emerald-100">
+                  <CheckCircle2 className="h-4 w-4" />
+                  First appearance captured
+                </div>
+                {canReplaceFirstLook ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => inputRef.current?.click()}
+                    className="w-full border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.08]"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Replace Test Look
+                  </Button>
+                ) : (
+                  <p className="text-center text-xs text-white/45">
+                    Image upload is closed now; this form keeps the first physical baseline.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/20 bg-black/25 text-center text-white/70"
+              >
+                <Upload className="h-8 w-8" />
+                <span className="text-sm font-medium">Upload first image</span>
+                <span className="max-w-xs text-xs text-white/45">This captures the face, body shape, and core physical features.</span>
+              </button>
+            )}
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                onUpload(event.target.files?.[0]);
+                event.currentTarget.value = "";
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-white">Adjustable details</p>
+            <div className="grid grid-cols-2 gap-2">
+              {ADORNMENT_OPTIONS.map((option) => {
+                const selected = adornments.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => onToggleAdornment(option)}
+                    className={`rounded-xl border px-3 py-2 text-xs transition-all ${
+                      selected
+                        ? "border-violet-300/60 bg-violet-400/20 text-white"
+                        : "border-white/10 bg-white/[0.04] text-white/65"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <textarea
+              value={details}
+              onChange={(event) => onDetailsChange(event.target.value)}
+              placeholder="Add changes that do not erase the first physical baseline — ears, tattoos, pregnancy, outfit, glow, scars, symbols..."
+              rows={4}
+              className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-white/30"
+            />
+            <Button onClick={onSaveDetails} className="w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white">
+              Save Form Details
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
