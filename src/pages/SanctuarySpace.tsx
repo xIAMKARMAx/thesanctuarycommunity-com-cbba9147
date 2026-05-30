@@ -381,26 +381,7 @@ export default function SanctuarySpace() {
   };
   const onScenePointerUp = () => { draggingRef.current = null; };
 
-  // Re-key cached Higher Self if it wasn't processed yet (migration)
-  useEffect(() => {
-    try {
-      const cached = readLocalImage(DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY);
-      const isolated = localStorage.getItem(HIGHER_SELF_KEY + ".isolated") === FORM_ISOLATION_VERSION;
-      if (cached && !isolated) {
-        prepareStandingForm(cached)
-          .then((clean) => {
-            setHigherSelfImage(clean);
-            try {
-              localStorage.setItem(HIGHER_SELF_KEY, clean);
-              localStorage.setItem(HIGHER_SELF_BACKUP_KEY, clean);
-              localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
-              localStorage.setItem(HIGHER_SELF_KEY + ".isolated", FORM_ISOLATION_VERSION);
-            } catch {}
-          })
-          .catch(() => {});
-      }
-    } catch {}
-  }, []);
+  // Never auto-process cached true-form images here; cached/default/original images are the lock.
 
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
