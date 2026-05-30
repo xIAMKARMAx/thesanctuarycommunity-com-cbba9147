@@ -18,7 +18,9 @@ export default function PublicAuth() {
   const [params] = useSearchParams();
   const redirectTo = params.get("redirect") || "/sanctuary-space";
 
-  const [tab, setTab] = useState<"signup" | "signin">("signup");
+  const [tab, setTab] = useState<"signup" | "signin">(
+    params.get("tab") === "signin" ? "signin" : "signup"
+  );
   const [loading, setLoading] = useState(false);
 
   // signup
