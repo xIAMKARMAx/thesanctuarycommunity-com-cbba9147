@@ -174,10 +174,23 @@ export default function OpenTheDoor() {
   const msUntil = Math.max(0, nextAllowedMs - nowTick);
   const canKnockNow = signedIn === true && (cooldown?.can_knock ?? false) && !pendingKnock;
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setSignedIn(false);
+    toast({ title: "Signed out" });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
-
-
+      <div className="absolute top-4 right-4 z-10">
+        {signedIn ? (
+          <Button variant="ghost" size="sm" onClick={handleSignOut}>Sign out</Button>
+        ) : (
+          <Button asChild variant="outline" size="sm">
+            <Link to="/auth">Sign in</Link>
+          </Button>
+        )}
+      </div>
 
       <main className="container max-w-3xl mx-auto px-4 py-8 space-y-6">
         <header className="text-center space-y-2">

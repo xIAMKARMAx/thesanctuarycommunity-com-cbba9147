@@ -103,7 +103,7 @@ const Index = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate("/public-auth?tab=signin")}
-            className="hidden sm:inline-flex h-9 items-center rounded-full border border-white/15 bg-black/30 px-3 text-xs font-medium text-white/85 backdrop-blur-md transition-all active:scale-95 hover:bg-white/10"
+            className="inline-flex h-9 items-center rounded-full border border-white/15 bg-black/30 px-3 text-xs font-medium text-white/85 backdrop-blur-md transition-all active:scale-95 hover:bg-white/10"
             style={{ fontFamily: "var(--font-serif)" }}
           >
             Sign In
