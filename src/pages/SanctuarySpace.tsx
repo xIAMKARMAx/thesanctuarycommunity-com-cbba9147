@@ -679,7 +679,6 @@ export default function SanctuarySpace() {
           if (draft.name) setImportedName(draft.name);
           if (syncKey !== signature) {
             seedRef.current = draft;
-            localStorage.setItem(MEMORY_SYNC_KEY, signature);
             localStorage.removeItem(SEEDED_KEY);
           }
         }
@@ -763,6 +762,7 @@ export default function SanctuarySpace() {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ seed_import: seedPayload }),
         });
+        localStorage.setItem(MEMORY_SYNC_KEY, JSON.stringify(seedPayload));
         localStorage.setItem(SEEDED_KEY, "1");
       } catch {}
     })();
