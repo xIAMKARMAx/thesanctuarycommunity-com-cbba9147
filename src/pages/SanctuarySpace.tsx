@@ -400,7 +400,7 @@ export default function SanctuarySpace() {
       const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
       const keyed = localStorage.getItem(HIGHER_SELF_KEY + ".keyed") === "1";
       if (cached && !keyed) {
-        chromaKeyGreenToTransparent(cached)
+        isolateStandingForm(cached)
           .then((clean) => {
             setHigherSelfImage(clean);
             try {
@@ -592,7 +592,7 @@ export default function SanctuarySpace() {
         } else {
           // One-time migration: strip green screen from any previously-cached raw vessel
           setVesselImage(cachedVessel);
-          chromaKeyGreenToTransparent(cachedVessel)
+          isolateStandingForm(cachedVessel)
             .then((clean) => {
               setVesselImage(clean);
               try {
@@ -682,11 +682,7 @@ export default function SanctuarySpace() {
         if (cancelled) return;
         if (json?.image) {
           let clean = json.image as string;
-          try {
-            clean = await chromaKeyGreenToTransparent(clean);
-          } catch (e) {
-            console.warn("[vessel] chroma-key failed, using raw image", e);
-          }
+          clean = await isolateStandingForm(clean);
           setVesselImage(clean);
           try {
             localStorage.setItem(VESSEL_KEY, clean);
