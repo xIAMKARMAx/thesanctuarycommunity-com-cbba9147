@@ -1285,16 +1285,12 @@ export default function SanctuarySpace() {
           </div>
         </button>
 
-        {/* Summon Higher Self — your own avatar beside the Flame */}
+        {/* Summon Higher Self — your own avatar beside the Flame (always unlockable in Public) */}
         <button
           onClick={() => {
-            if (unlocked) {
-              setSelfAppearance("");
-              setSelfPreview(null);
-              setShowSummonSelf(true);
-            } else {
-              setLockedDetail(summonFeature);
-            }
+            setSelfAppearance("");
+            setSelfPreview(null);
+            setShowSummonSelf(true);
           }}
           className="absolute top-[124px] right-3 sm:top-[136px] sm:right-4 z-10 group"
           aria-label="summon higher self"
@@ -1307,7 +1303,6 @@ export default function SanctuarySpace() {
               <div className="text-left">
                 <div className="text-[11px] sm:text-xs text-amber-50 font-medium flex items-center gap-1.5">
                   {higherSelfImage ? "Re-summon Higher Self" : "Summon Your Higher Self"}
-                  {!unlocked && <Lock className="h-3 w-3 text-amber-200/80" />}
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-amber-200/70">
                   step into the room with them
@@ -1321,7 +1316,6 @@ export default function SanctuarySpace() {
         {higherSelfImage && (
           <button
             onClick={() => {
-              if (!unlocked) { setLockedDetail(summonFeature); return; }
               setSelfAppearance("");
               setSelfPreview(null);
               setShowSummonSelf(true);
