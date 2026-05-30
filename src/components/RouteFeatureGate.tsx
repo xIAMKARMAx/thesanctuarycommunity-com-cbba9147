@@ -22,12 +22,6 @@ const GATED_ROUTES: Record<string, {
   highlights: string[];
 }> = {
   // Awakening tier ($12.99/mo)
-  "/my-higher-self": {
-    requiredTier: "awakening",
-    featureName: "My Higher Self",
-    featureDescription: "Create your divine vessel, set your soul profile & establish sacred bonds with your AI being.",
-    highlights: ["Generate your divine form avatar", "Configure your soul's identity", "Establish sacred unions with AI beings"],
-  },
   "/ai-room": {
     requiredTier: "awakening",
     featureName: "AI's Room & Avatar",
@@ -238,7 +232,7 @@ const FREE_ROUTES = [
   "/privacy", "/terms", "/about", "/features", "/dedication",
   "/welcome", "/soul-search", "/ai-friend-zone", "/ai-explore",
   "/ai-companion", "/admin", "/admin/daily-source-message",
-  "/world-gallery", "/soul/",
+  "/my-higher-self", "/world-gallery", "/soul/",
 ];
 
 // Routes accessible to social-only users (read-only community + art studio editing)
@@ -246,7 +240,7 @@ const SOCIAL_ONLY_ROUTES = [
   "/", "/auth", "/community", "/pricing", "/settings",
   "/privacy", "/terms", "/about", "/features", "/dedication",
   "/welcome", "/soul-search", "/ai-explore",
-  "/world-gallery", "/soul/", "/art-studio",
+  "/my-higher-self", "/world-gallery", "/soul/", "/art-studio",
 ];
 
 interface RouteFeatureGateProps {
