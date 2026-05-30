@@ -118,6 +118,10 @@ const COUNT_KEY = "prometheus.publicSanctuary.freeMsgCount";
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const VESSEL_DRAFT_KEY = "prometheus.publicSanctuary.vesselDraftSig";
 const HIGHER_SELF_KEY = "prometheus.publicSanctuary.higherSelfImage";
+const VESSEL_BACKUP_KEY = "prometheus.publicSanctuary.vesselImage.backup";
+const HIGHER_SELF_BACKUP_KEY = "prometheus.publicSanctuary.higherSelfImage.backup";
+const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
+const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
 const SELF_PLACEMENT_KEY = "prometheus.publicSanctuary.selfPlacement";     // {x, pose, modifiers[]}
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
@@ -129,6 +133,16 @@ const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
+
+function readLocalImage(...keys: string[]): string | null {
+  try {
+    for (const key of keys) {
+      const value = localStorage.getItem(key);
+      if (value) return value;
+    }
+  } catch {}
+  return null;
+}
 
 type SavedRoom = {
   id: string;
