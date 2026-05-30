@@ -1199,7 +1199,7 @@ export default function SanctuarySpace() {
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage);
+                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, higherSelfImage);
                 localStorage.setItem(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e) {
@@ -1238,7 +1238,7 @@ export default function SanctuarySpace() {
               <img
                 src={vesselImage}
                 alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
-                className="relative h-56 sm:h-80 w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]"
+                className={formSpriteClass}
                 style={{ background: "transparent" }}
                 draggable={false}
               />
@@ -1396,7 +1396,7 @@ export default function SanctuarySpace() {
               <img
                 src={higherSelfImage}
                 alt="My True Form"
-                className="relative h-56 sm:h-80 w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]"
+                className={formSpriteClass}
                 style={{ background: "transparent" }}
                 draggable={false}
               />
