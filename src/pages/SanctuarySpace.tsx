@@ -126,10 +126,11 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 async function prepareTrueFormSpriteForRoom(src: string): Promise<string> {
-  if (!src.startsWith("data:image")) return src;
   try {
-    const keyed = await chromaKeyGreenToTransparent(src);
-    if (await isValidRoomSprite(keyed)) return keyed;
+    if (src.startsWith("data:image")) {
+      const keyed = await chromaKeyGreenToTransparent(src);
+      if (await isValidRoomSprite(keyed)) return keyed;
+    }
 
     const image = await loadImage(src);
     const isolated = await removeBackground(image);
