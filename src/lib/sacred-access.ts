@@ -99,6 +99,15 @@ export function canAccessRoute(
  * ──────────────────────────────────────────────────────────────── */
 
 const VIEW_AS_PUBLIC_KEY = "prometheus.viewAsPublic";
+const VIEW_PREF_SET_KEY = "prometheus.viewAsPublic.userSet";
+
+/** Has the Sacred user ever explicitly chosen a view? */
+export function hasViewPreference(): boolean {
+  try { return localStorage.getItem(VIEW_PREF_SET_KEY) === "1"; } catch { return false; }
+}
+function markViewPreferenceSet() {
+  try { localStorage.setItem(VIEW_PREF_SET_KEY, "1"); } catch { /* ignore */ }
+}
 
 /** Sacred 3 (Karma, Jakob, Stormrriddari) can flip between Sacred & Public views. */
 export function canPreviewAsPublic(email: string | null | undefined): boolean {
