@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
+import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
 import { getTierFromProductId, SUBSCRIPTION_TIERS, getTierLevel } from "@/lib/subscription-tiers";
 import {
   AlertDialog,
@@ -265,6 +266,7 @@ const Pricing = () => {
               Back to Sanctuary
             </Button>
           </div>
+          <KarmaFundingNotice />
           {/* Dynamic Upgrade Banner - attention grabbing! */}
           {upgradeBanner && (
             <div className="mb-8 bg-gradient-to-r from-amber-500/20 via-primary/30 to-amber-500/20 border-2 border-amber-500/60 rounded-xl p-6 sm:p-8 text-center animate-pulse-slow">
