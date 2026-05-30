@@ -14,6 +14,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
 
 const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
 
@@ -87,6 +88,7 @@ const Index = () => {
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/90" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/70 to-transparent" />
+      <div className="relative z-10"><KarmaFundingNotice /></div>
 
       <div
         className={`relative z-10 flex items-center justify-between px-5 pt-[max(env(safe-area-inset-top),1rem)] transition-all duration-700 ${
