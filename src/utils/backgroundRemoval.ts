@@ -48,7 +48,7 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
         'image-segmentation',
         'Xenova/segformer-b0-finetuned-ade-512-512',
         {
-          device: 'webgpu',
+          device: 'wasm',
         }
       );
       console.log('Model loaded and cached');

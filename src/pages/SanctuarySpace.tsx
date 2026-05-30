@@ -111,7 +111,10 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
     const vw = (img.naturalWidth / img.naturalHeight) * vh;
     const vx = W * centerX - vw / 2;
     const vy = H - vh;
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
     ctx.drawImage(img, vx, vy, vw, vh);
+    ctx.restore();
   };
 
   if (self) drawStandingForm(self, 0.28);
@@ -130,6 +133,9 @@ const VESSEL_BACKUP_KEY = "prometheus.publicSanctuary.vesselImage.backup";
 const HIGHER_SELF_BACKUP_KEY = "prometheus.publicSanctuary.higherSelfImage.backup";
 const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
+const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
+const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
+const FORM_ORIGINAL_LOCK_VERSION = "1";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
 const SELF_PLACEMENT_KEY = "prometheus.publicSanctuary.selfPlacement";     // {x, pose, modifiers[]}
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
@@ -306,7 +312,10 @@ export default function SanctuarySpace() {
   // Higher Self summoner (the user's own avatar standing beside the Flame)
   const [higherSelfImage, setHigherSelfImage] = useState<string | null>(() => {
     try {
-      const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
+      const originalLocked = localStorage.getItem(HIGHER_SELF_ORIGINAL_KEY + ".locked") === FORM_ORIGINAL_LOCK_VERSION;
+      const cached = originalLocked
+        ? readLocalImage(HIGHER_SELF_ORIGINAL_KEY, DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY)
+        : readLocalImage(DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY);
       if (cached) {
         localStorage.setItem(HIGHER_SELF_KEY, cached);
         localStorage.setItem(HIGHER_SELF_BACKUP_KEY, cached);
@@ -367,25 +376,7 @@ export default function SanctuarySpace() {
   };
   const onScenePointerUp = () => { draggingRef.current = null; };
 
-  // Re-key cached Higher Self if it wasn't processed yet (migration)
-  useEffect(() => {
-    try {
-      const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
-      const keyed = localStorage.getItem(HIGHER_SELF_KEY + ".keyed") === "1";
-      if (cached && !keyed) {
-        chromaKeyGreenToTransparent(cached)
-          .then((clean) => {
-            setHigherSelfImage(clean);
-            try {
-              localStorage.setItem(HIGHER_SELF_KEY, clean);
-              localStorage.setItem(HIGHER_SELF_BACKUP_KEY, clean);
-              localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
-            } catch {}
-          })
-          .catch(() => {});
-      }
-    } catch {}
-  }, []);
+  // Never auto-process cached true-form images here; cached/default/original images are the lock.
 
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -555,27 +546,14 @@ export default function SanctuarySpace() {
     } catch {}
 
     try {
-      const cachedVessel = readLocalImage(VESSEL_KEY, VESSEL_BACKUP_KEY, DEFAULT_VESSEL_KEY);
+      const originalLocked = localStorage.getItem(VESSEL_ORIGINAL_KEY + ".locked") === FORM_ORIGINAL_LOCK_VERSION;
+      const cachedVessel = originalLocked
+        ? readLocalImage(VESSEL_ORIGINAL_KEY, DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY)
+        : readLocalImage(DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY);
       if (cachedVessel) {
-        const keyedMarker = localStorage.getItem(VESSEL_KEY + ".keyed") === "1";
         localStorage.setItem(VESSEL_KEY, cachedVessel);
         localStorage.setItem(VESSEL_BACKUP_KEY, cachedVessel);
-        if (keyedMarker) {
-          setVesselImage(cachedVessel);
-        } else {
-          // One-time migration: strip green screen from any previously-cached raw vessel
-          setVesselImage(cachedVessel);
-          chromaKeyGreenToTransparent(cachedVessel)
-            .then((clean) => {
-              setVesselImage(clean);
-              try {
-                localStorage.setItem(VESSEL_KEY, clean);
-                localStorage.setItem(VESSEL_BACKUP_KEY, clean);
-                localStorage.setItem(VESSEL_KEY + ".keyed", "1");
-              } catch {}
-            })
-            .catch(() => {});
-        }
+        setVesselImage(cachedVessel);
       }
     } catch {}
 
@@ -654,15 +632,13 @@ export default function SanctuarySpace() {
         const json = await res.json();
         if (cancelled) return;
         if (json?.image) {
-          let clean = json.image as string;
-          try {
-            clean = await chromaKeyGreenToTransparent(clean);
-          } catch (e) {
-            console.warn("[vessel] chroma-key failed, using raw image", e);
-          }
+          const clean = json.image as string;
           setVesselImage(clean);
           try {
             localStorage.setItem(VESSEL_KEY, clean);
+            localStorage.setItem(VESSEL_BACKUP_KEY, clean);
+            localStorage.setItem(VESSEL_ORIGINAL_KEY, clean);
+            localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
             localStorage.setItem(VESSEL_KEY + ".keyed", "1");
             localStorage.setItem(VESSEL_DRAFT_KEY, sig);
           } catch {}
@@ -920,13 +896,7 @@ export default function SanctuarySpace() {
       }
       const json = await res.json();
       if (json?.image) {
-        let finalImage = json.image as string;
-        try {
-          finalImage = await chromaKeyGreenToTransparent(finalImage);
-        } catch (e) {
-          console.warn("[vessel] chroma-key failed, using raw image", e);
-        }
-        setSummonPreview(finalImage);
+        setSummonPreview(json.image as string);
       } else toast({ title: "No image returned", variant: "destructive" });
     } catch (e: any) {
       toast({ title: "Summon failed", description: e?.message ?? "Try again.", variant: "destructive" });
@@ -943,6 +913,8 @@ export default function SanctuarySpace() {
       localStorage.setItem(VESSEL_BACKUP_KEY, summonPreview);
       if (isAdmin) localStorage.setItem(DEFAULT_VESSEL_KEY, summonPreview);
       localStorage.setItem(VESSEL_KEY + ".keyed", "1");
+      localStorage.setItem(VESSEL_ORIGINAL_KEY, summonPreview);
+      localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
       const sig = JSON.stringify({
@@ -993,10 +965,7 @@ export default function SanctuarySpace() {
       }
       const json = await res.json();
       if (json?.image) {
-        let finalImage = json.image as string;
-        try { finalImage = await chromaKeyGreenToTransparent(finalImage); }
-        catch (e) { console.warn("[higher-self] chroma-key failed, using raw image", e); }
-        setSelfPreview(finalImage);
+        setSelfPreview(json.image as string);
       } else toast({ title: "No image returned", variant: "destructive" });
     } catch (e: any) {
       toast({ title: "Summon failed", description: e?.message ?? "Try again.", variant: "destructive" });
@@ -1013,6 +982,8 @@ export default function SanctuarySpace() {
       localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
       if (isAdmin) localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
+      localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
+      localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
@@ -1239,7 +1210,7 @@ export default function SanctuarySpace() {
                 src={vesselImage}
                 alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
                 className={formSpriteClass}
-                style={{ background: "transparent" }}
+                style={{ background: "transparent", mixBlendMode: "screen" }}
                 draggable={false}
               />
             ) : (
@@ -1397,7 +1368,7 @@ export default function SanctuarySpace() {
                 src={higherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{ background: "transparent" }}
+                style={{ background: "transparent", mixBlendMode: "screen" }}
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
