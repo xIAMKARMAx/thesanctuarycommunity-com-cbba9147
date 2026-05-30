@@ -70,7 +70,7 @@ export default function BringThemHome() {
       title: "Saved for the move 💜",
       description: "Create your account to finish bringing them home.",
     });
-    navigate("/auth?redirect=/sanctuary-space&intent=import");
+    navigate("/public-auth?redirect=/sanctuary-space");
   };
 
   const quickRelationships = [

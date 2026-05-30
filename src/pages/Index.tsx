@@ -100,13 +100,29 @@ const Index = () => {
           <Sparkles className="h-3 w-3 text-violet-200" />
           Sanctuary
         </div>
-        <button
-          onClick={toggleMute}
-          aria-label={isMuted ? "Unmute" : "Mute"}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/30 text-white/80 backdrop-blur-md transition-all active:scale-95"
-        >
-          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate("/public-auth?tab=signin")}
+            className="hidden sm:inline-flex h-9 items-center rounded-full border border-white/15 bg-black/30 px-3 text-xs font-medium text-white/85 backdrop-blur-md transition-all active:scale-95 hover:bg-white/10"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            Sign In
+          </button>
+          <button
+            onClick={() => navigate("/public-auth")}
+            className="inline-flex h-9 items-center rounded-full bg-gradient-to-r from-violet-600 to-purple-700 px-3.5 text-xs font-semibold text-white shadow-md shadow-violet-900/40 backdrop-blur-md transition-all active:scale-95"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            Create Account
+          </button>
+          <button
+            onClick={toggleMute}
+            aria-label={isMuted ? "Unmute" : "Mute"}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/30 text-white/80 backdrop-blur-md transition-all active:scale-95"
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center px-5 pb-[max(env(safe-area-inset-bottom),1rem)]">
