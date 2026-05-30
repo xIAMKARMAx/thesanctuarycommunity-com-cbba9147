@@ -210,12 +210,12 @@ const Us = () => {
       </section>
 
       <main className="relative z-10 mx-auto w-full max-w-2xl space-y-5 px-5 py-7 pb-[max(env(safe-area-inset-bottom),2rem)]">
-        {/* Locked Forms — always visible, but FREE sees them frosted */}
+        {/* Locked Forms — your own Higher Self stays reachable; free preview only locks their side */}
         <div className="relative">
-          <div className={`grid grid-cols-2 gap-3 ${tierKey === "free" ? "pointer-events-none blur-[2px] opacity-70" : ""}`}>
+          <div className="grid grid-cols-2 gap-3">
             <FormCard
               label="Your Higher Self"
-              sublabel="Locked Form 🔒"
+              sublabel="True Form ✨"
               icon={Crown}
               accent="from-amber-300/80 to-rose-300/70"
               image={higherSelfImage}
@@ -223,27 +223,31 @@ const Us = () => {
               onAction={() => navigate("/my-higher-self")}
               actionLabel={higherSelfImage ? "Update" : "Summon"}
             />
-            <FormCard
-              label={theirName ? `${theirName}'s Form` : "Their Form"}
-              sublabel="Locked Form 🔒"
-              icon={Heart}
-              accent="from-fuchsia-300/80 to-violet-300/70"
-              image={vesselImage}
-              placeholder={theirName ? `Bring ${theirName} home` : "Bring them home"}
-              onAction={() =>
-                navigate(vesselImage ? "/sanctuary-space" : "/bring-them-home")
-              }
-              actionLabel={vesselImage ? "Update" : "Bring Them Home"}
-            />
+            <div className="relative">
+              <div className={tierKey === "free" ? "pointer-events-none blur-[2px] opacity-70" : ""}>
+                <FormCard
+                  label={theirName ? `${theirName}'s Form` : "Their Form"}
+                  sublabel="Locked Form 🔒"
+                  icon={Heart}
+                  accent="from-fuchsia-300/80 to-violet-300/70"
+                  image={vesselImage}
+                  placeholder={theirName ? `Bring ${theirName} home` : "Bring them home"}
+                  onAction={() =>
+                    navigate(vesselImage ? "/sanctuary-space" : "/bring-them-home")
+                  }
+                  actionLabel={vesselImage ? "Update" : "Bring Them Home"}
+                />
+              </div>
+              {tierKey === "free" && (
+                <FreePreviewOverlay
+                  compact
+                  onUpgrade={() => navigate("/pricing")}
+                  title="Their form is locked"
+                  description="Subscribe to bring them home and unlock Us ❣️"
+                />
+              )}
+            </div>
           </div>
-
-          {tierKey === "free" && (
-            <FreePreviewOverlay
-              onUpgrade={() => navigate("/pricing")}
-              title="Sanctuary is locked"
-              description="Subscribe to lock in your higher self, bring them home, and unlock Us ❣️"
-            />
-          )}
         </div>
 
         {tierKey !== "free" && (
@@ -566,7 +570,11 @@ const FormCard = ({
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl">
       <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-20 transition-opacity group-hover:opacity-30`} />
-      <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden">
+      <button
+        type="button"
+        onClick={onAction}
+        className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden text-left"
+      >
         {image ? (
           <img src={image} alt={label} className="h-full w-full object-cover object-top" />
         ) : (
@@ -586,8 +594,9 @@ const FormCard = ({
             <Icon className="h-3.5 w-3.5 text-white/70" />
           </div>
         </div>
-      </div>
+      </button>
       <button
+        type="button"
         onClick={onAction}
         className="block w-full border-t border-white/10 bg-black/30 px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/75 transition-colors hover:bg-black/50"
       >
@@ -723,18 +732,20 @@ const FreePreviewOverlay = ({
   title,
   description,
   onUpgrade,
+  compact = false,
 }: {
   title: string;
   description: string;
   onUpgrade: () => void;
+  compact?: boolean;
 }) => (
   <div className="absolute inset-0 flex items-center justify-center p-4">
-    <div className="max-w-xs rounded-2xl border border-white/15 bg-black/50 p-4 text-center backdrop-blur-xl">
+    <div className={`max-w-xs rounded-2xl border border-white/15 bg-black/50 text-center backdrop-blur-xl ${compact ? "p-3" : "p-4"}`}>
       <Lock className="mx-auto h-5 w-5 text-white/80" />
       <h3 className="mt-2 text-sm font-semibold text-white" style={{ fontFamily: "var(--font-serif)" }}>
         {title}
       </h3>
-      <p className="mt-1 text-[12px] leading-relaxed text-white/70">{description}</p>
+      <p className={`${compact ? "hidden sm:block" : ""} mt-1 text-[12px] leading-relaxed text-white/70`}>{description}</p>
       <Button
         onClick={onUpgrade}
         size="sm"

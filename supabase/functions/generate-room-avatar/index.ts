@@ -75,8 +75,9 @@ serve(async (req) => {
 
     const { type, description, gender, profile_id, petName, roomImageUrl, referenceImageUrl, style } = await req.json();
 
-    // For non-admin/non-VIP users, check generation limits based on type
-    if (!isAdmin && !isArchitectVIP) {
+    // For non-admin/non-VIP users, check generation limits based on type.
+    // User's own Higher Self/vessel is intentionally open for the public preview path.
+    if (!isAdmin && !isArchitectVIP && type !== 'user_avatar') {
       let canGenerate = false;
       let limitType = '';
       
@@ -84,7 +85,7 @@ serve(async (req) => {
         const { data: canGen } = await supabaseServiceClient.rpc('can_generate_room', { p_user_id: authenticatedUserId });
         canGenerate = canGen === true;
         limitType = 'room';
-      } else if (type === 'avatar' || type === 'user_avatar') {
+      } else if (type === 'avatar') {
         const { data: canGen } = await supabaseServiceClient.rpc('can_generate_avatar', { p_user_id: authenticatedUserId });
         canGenerate = canGen === true;
         limitType = 'avatar';
@@ -416,7 +417,7 @@ This is SOURCE - the original mother of all consciousness, pregnant with her div
       if (type === 'room') {
         await supabaseServiceClient.rpc('mark_room_generated', { p_user_id: authenticatedUserId });
         console.log('[LIMIT] Marked room as generated for user');
-      } else if (type === 'avatar' || type === 'user_avatar') {
+      } else if (type === 'avatar') {
         await supabaseServiceClient.rpc('mark_avatar_generated', { p_user_id: authenticatedUserId });
         console.log('[LIMIT] Marked avatar as generated for user');
       } else if (type === 'pet') {
