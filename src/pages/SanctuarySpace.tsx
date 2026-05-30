@@ -69,6 +69,15 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
+async function prepareTrueFormSpriteForRoom(src: string): Promise<string> {
+  if (!src.startsWith("data:image")) return src;
+  try {
+    return await chromaKeyGreenToTransparent(src);
+  } catch {
+    return src;
+  }
+}
+
 // Compose room backdrop + standing form sprites into a single PNG teaser snapshot.
 async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc?: string | null): Promise<string> {
   const load = (src: string) =>
@@ -106,19 +115,19 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  const drawStandingForm = (img: HTMLImageElement, centerX: number) => {
+  const drawStandingForm = (img: HTMLImageElement, centerX: number, blend: GlobalCompositeOperation = "source-over") => {
     const vh = H * 0.8;
     const vw = (img.naturalWidth / img.naturalHeight) * vh;
     const vx = W * centerX - vw / 2;
     const vy = H - vh;
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    ctx.globalCompositeOperation = blend;
     ctx.drawImage(img, vx, vy, vw, vh);
     ctx.restore();
   };
 
   if (self) drawStandingForm(self, 0.28);
-  drawStandingForm(vessel, 0.5);
+  drawStandingForm(vessel, 0.5, "screen");
 
   return canvas.toDataURL("image/jpeg", 0.88);
 }
@@ -135,6 +144,8 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
+const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v2";
+const HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.source";
 const FORM_ORIGINAL_LOCK_VERSION = "1";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
 const SELF_PLACEMENT_KEY = "prometheus.publicSanctuary.selfPlacement";     // {x, pose, modifiers[]}
@@ -328,6 +339,9 @@ export default function SanctuarySpace() {
   const [selfRefImage, setSelfRefImage] = useState<string | null>(null);
   const [selfGenerating, setSelfGenerating] = useState(false);
   const [selfPreview, setSelfPreview] = useState<string | null>(null);
+  const [higherSelfRoomSprite, setHigherSelfRoomSprite] = useState<string | null>(null);
+  const displayedHigherSelfImage =
+    higherSelfRoomSprite || (higherSelfImage?.startsWith("data:image") ? null : higherSelfImage);
 
   // Placement & pose & modifiers for each avatar — persisted across summons
   type Placement = { x: number; pose: string; modifiers: string[] };
@@ -377,6 +391,38 @@ export default function SanctuarySpace() {
   const onScenePointerUp = () => { draggingRef.current = null; };
 
   // Never auto-process cached true-form images here; cached/default/original images are the lock.
+
+  useEffect(() => {
+    if (!higherSelfImage) {
+      setHigherSelfRoomSprite(null);
+      try {
+        localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
+        localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
+      } catch {}
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      const savedSprite = readLocalImage(HIGHER_SELF_ROOM_SPRITE_KEY);
+      const savedSource = readLocalImage(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
+      if (savedSprite && savedSource === higherSelfImage) {
+        setHigherSelfRoomSprite(savedSprite);
+        return;
+      }
+      const prepared = await prepareTrueFormSpriteForRoom(higherSelfImage);
+      if (cancelled) return;
+      setHigherSelfRoomSprite(prepared);
+      try {
+        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, prepared);
+        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, higherSelfImage);
+      } catch {}
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [higherSelfImage]);
 
   const seedRef = useRef<any>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -974,9 +1020,11 @@ export default function SanctuarySpace() {
     }
   };
 
-  const acceptSummonedHigherSelf = () => {
+  const acceptSummonedHigherSelf = async () => {
     if (!selfPreview) return;
+    const roomSprite = await prepareTrueFormSpriteForRoom(selfPreview);
     setHigherSelfImage(selfPreview);
+    setHigherSelfRoomSprite(roomSprite);
     try {
       localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
@@ -984,6 +1032,8 @@ export default function SanctuarySpace() {
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
+      localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
+      localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, selfPreview);
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
@@ -1170,7 +1220,7 @@ export default function SanctuarySpace() {
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, higherSelfImage);
+                const snap = await composeTeaserSnapshot(currentBackdrop, vesselImage, displayedHigherSelfImage);
                 localStorage.setItem(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e) {
@@ -1350,7 +1400,7 @@ export default function SanctuarySpace() {
         </button>
 
         {/* Higher Self avatar — standing to the left of the Flame */}
-        {higherSelfImage && (
+        {displayedHigherSelfImage && (
           <button
             onClick={() => {
               setSelfAppearance("");
@@ -1365,10 +1415,10 @@ export default function SanctuarySpace() {
             <div className="relative">
               <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
               <img
-                src={higherSelfImage}
+                src={displayedHigherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{ background: "transparent", mixBlendMode: "screen" }}
+                style={{ background: "transparent" }}
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
