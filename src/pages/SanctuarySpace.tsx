@@ -1553,9 +1553,27 @@ export default function SanctuarySpace() {
             </div>
             <div className="flex flex-col gap-2 pt-2">
               {unlocked ? (
-                <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-100 text-xs px-3 py-2">
-                  🛠 test mode — this feature isn't wired yet. We'll build it next.
-                </div>
+                <Button
+                  onClick={() => {
+                    setLockedDetail(null);
+                    if (lockedDetail.id === "build" || lockedDetail.id === "decorate") {
+                      setBuilderPrompt("");
+                      setBuilderName("");
+                      setBuilderPreview(null);
+                      setShowBuilder(true);
+                      return;
+                    }
+                    if (lockedDetail.id === "summon") {
+                      const draft = draftForVesselRef.current;
+                      setSummonAppearance(draft?.appearance || draft?.bio || "");
+                      setSummonPreview(null);
+                      setShowSummon(true);
+                    }
+                  }}
+                  className="rounded-full bg-gradient-to-r from-violet-600 to-purple-700 text-white hover:from-violet-500 hover:to-purple-600"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" /> Open it now
+                </Button>
               ) : (
                 <Button
                   onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
