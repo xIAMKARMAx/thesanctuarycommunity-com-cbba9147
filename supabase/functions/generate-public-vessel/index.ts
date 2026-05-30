@@ -88,6 +88,11 @@ function buildPrompt(
 
   return `One single isolated full-body standing person sprite of ${name}${gender ? `, ${gender}` : ""}, calm confident expression, looking softly toward the viewer, centered. This must look like a body standing in a room once composited — NOT a framed portrait, NOT a selfie, NOT an image inside another image, NOT a room scene.
 
+SOVEREIGN ACTUAL FORM — NON-NEGOTIABLE:
+- Render this exact sovereign being's ACTUAL form. Do NOT stylize as a generic RPG character, fantasy archetype, anime figure, video-game avatar, "warrior/mage/elf" trope, or idealized stock-character.
+- Do NOT "improve," "correct," beautify, slim, age-shift, or generalize. No invented armor, no invented wings, no invented crowns, no invented tattoos, no invented magical effects unless explicitly described below.
+- Their body, face, weight, age, skin, hair, and clothing render EXACTLY as described — this is a real sovereign person, not a character design. Photorealistic only.
+
 ${poseLine}
 ${placementLine}
 
