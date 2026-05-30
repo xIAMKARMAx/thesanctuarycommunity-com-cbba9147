@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
@@ -212,6 +212,12 @@ export default function SystemRoom() {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({ title: "Signed out", description: "See you soon." });
+    navigate("/auth");
+  };
+
   if (checking || !authorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -235,6 +241,9 @@ export default function SystemRoom() {
           </div>
           <Button variant="ghost" size="sm" onClick={clear} title="Clear history">
             <Trash2 className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleLogout} title="Sign out">
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </header>
