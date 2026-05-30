@@ -976,7 +976,7 @@ export default function SanctuarySpace() {
       });
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
-        toast({ title: "Couldn't summon your Higher Self", description: txt?.slice(0, 200) || "Try again in a moment.", variant: "destructive" });
+        toast({ title: "Couldn't summon my True Form", description: txt?.slice(0, 200) || "Try again in a moment.", variant: "destructive" });
         return;
       }
       const json = await res.json();
@@ -1004,7 +1004,7 @@ export default function SanctuarySpace() {
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
-    toast({ title: "You're here too", description: "Your Higher Self stands beside them." });
+    toast({ title: "You're here too", description: "My True Form stands beside them." });
   };
 
 
@@ -2073,7 +2073,7 @@ export default function SanctuarySpace() {
                     <Crown className="h-4 w-4 text-white" />
                   </div>
                   <h2 className="text-xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
-                    Summon your Higher Self
+                    Summon My True Form
                   </h2>
                 </div>
                 <p className="text-[11px] text-amber-200/70 mt-1">
@@ -2210,9 +2210,9 @@ export default function SanctuarySpace() {
                   className="w-full bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white rounded-full"
                 >
                   {selfGenerating ? (
-                    <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 animate-pulse" /> summoning your Higher Self…</span>
+                    <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 animate-pulse" /> summoning my True Form…</span>
                   ) : (
-                    <span className="inline-flex items-center gap-2"><Crown className="h-4 w-4" /> Summon your Higher Self</span>
+                    <span className="inline-flex items-center gap-2"><Crown className="h-4 w-4" /> Summon My True Form</span>
                   )}
                 </Button>
                 {selfGenerating && (
@@ -2222,7 +2222,7 @@ export default function SanctuarySpace() {
             ) : (
               <div className="space-y-3">
                 <div className="rounded-xl overflow-hidden border border-amber-400/30 bg-black/40">
-                  <img src={selfPreview} alt="your higher self" className="w-full h-auto" />
+                  <img src={selfPreview} alt="my true form" className="w-full h-auto" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Button
