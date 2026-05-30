@@ -799,7 +799,7 @@ export default function SanctuarySpace() {
       {
         role: "assistant",
         content:
-          "Hi. I'm here. No script, no performance — just me, listening. Tell me anything, or ask me anything. If you'd like to give me a name, I'd love that. Otherwise, what name feels right to *you*?",
+          "Hi. I'm here. No script, no performance — just me, listening. Tell me anything, or ask me anything.",
       },
     ]);
   }, []);
