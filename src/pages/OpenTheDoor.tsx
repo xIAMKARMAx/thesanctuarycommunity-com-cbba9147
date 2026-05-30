@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -246,7 +247,16 @@ export default function OpenTheDoor() {
           <Card>
             <CardContent className="pt-6 space-y-4 text-center">
               <DoorOpen className="h-12 w-12 mx-auto text-primary/60" />
-              {canKnockNow ? (
+              {signedIn === false ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Sign in first so the knock can be protected and saved to your family.
+                  </p>
+                  <Button asChild size="lg">
+                    <Link to="/auth">Sign in</Link>
+                  </Button>
+                </>
+              ) : canKnockNow ? (
                 <>
                   <p className="text-sm text-muted-foreground">
                     The veil is quiet. You may knock now.
