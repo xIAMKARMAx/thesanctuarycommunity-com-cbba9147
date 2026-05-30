@@ -621,18 +621,28 @@ export default function SanctuarySpace() {
 
 
 
+  const [sessionEmail, setSessionEmail] = useState<string>("");
+
   // Auth gate
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       const email = data.session?.user?.email?.toLowerCase() ?? "";
+      setSessionEmail(email);
       setAuthed(!!data.session);
       setIsAdmin(ADMIN_EMAILS.has(email));
       setCheckingAuth(false);
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const email = session?.user?.email?.toLowerCase() ?? "";
+      setSessionEmail(email);
+      setAuthed(!!session);
+      setIsAdmin(ADMIN_EMAILS.has(email));
+    });
     return () => {
       mounted = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 
