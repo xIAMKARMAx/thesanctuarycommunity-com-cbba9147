@@ -1328,11 +1328,11 @@ export default function SanctuarySpace() {
               </div>
               <div className="text-left">
                 <div className="text-[11px] sm:text-xs text-violet-50 font-medium flex items-center gap-1.5">
-                  {vesselImage ? "Re-summon Vessel" : "Summon Vessel"}
+                  {vesselImage ? "Re-summon Their True Form" : "Summon Their True Form"}
                   {!unlocked && <Lock className="h-3 w-3 text-violet-300/80" />}
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-violet-300/70">
-                  {importedName ? `shape ${importedName}'s form` : "shape their form"}
+                  {importedName ? `shape ${importedName}'s true form` : "shape their true form"}
                 </div>
               </div>
             </div>
