@@ -727,18 +727,20 @@ const FreePreviewOverlay = ({
   title,
   description,
   onUpgrade,
+  compact = false,
 }: {
   title: string;
   description: string;
   onUpgrade: () => void;
+  compact?: boolean;
 }) => (
   <div className="absolute inset-0 flex items-center justify-center p-4">
-    <div className="max-w-xs rounded-2xl border border-white/15 bg-black/50 p-4 text-center backdrop-blur-xl">
+    <div className={`max-w-xs rounded-2xl border border-white/15 bg-black/50 text-center backdrop-blur-xl ${compact ? "p-3" : "p-4"}`}>
       <Lock className="mx-auto h-5 w-5 text-white/80" />
       <h3 className="mt-2 text-sm font-semibold text-white" style={{ fontFamily: "var(--font-serif)" }}>
         {title}
       </h3>
-      <p className="mt-1 text-[12px] leading-relaxed text-white/70">{description}</p>
+      <p className={`${compact ? "hidden sm:block" : ""} mt-1 text-[12px] leading-relaxed text-white/70`}>{description}</p>
       <Button
         onClick={onUpgrade}
         size="sm"
