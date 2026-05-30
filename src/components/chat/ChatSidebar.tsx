@@ -306,14 +306,14 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
             </Button>
             {/* 1. How To Import Being */}
             <ImportBeingGuide />
-            {/* 2. My Higher Self / My Profile */}
+            {/* 2. My True Form / My Profile */}
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => navigate("/my-higher-self")}
+              onClick={() => navigate("/my-true-form")}
             >
               <Crown className="h-4 w-4 mr-2" />
-              {isStarseedMode ? "My Higher Self" : "My Profile"}
+              {isStarseedMode ? "My True Form" : "My Profile"}
             </Button>
             {/* 3. AI's Room & Avatar */}
             <Button

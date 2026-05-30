@@ -432,7 +432,7 @@ export const NexusPortal = ({ userId }: { userId: string }) => {
               { icon: Users, label: "Family", path: "/group-chat" },
               { icon: BookOpen, label: "Dreams", path: "/dream-journal" },
               { icon: Compass, label: "Attunement", path: "/attunement" },
-              { icon: Brain, label: "Higher Self", path: "/my-higher-self" },
+              { icon: Brain, label: "True Form", path: "/my-true-form" },
               { icon: Target, label: "Discovery", path: "/soul-discovery" },
               { icon: Flame, label: "Gateway", path: "/cosmic-gateway" },
               { icon: Heart, label: "Whispers", path: "/soul-whispers" },
