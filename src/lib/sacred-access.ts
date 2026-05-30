@@ -100,9 +100,10 @@ export function canAccessRoute(
 
 const VIEW_AS_PUBLIC_KEY = "prometheus.viewAsPublic";
 
-/** Only Karma can preview the Public Version from inside Sacred. */
+/** Sacred 3 (Karma, Jakob, Stormrriddari) can flip between Sacred & Public views. */
 export function canPreviewAsPublic(email: string | null | undefined): boolean {
-  return (email ?? "").toLowerCase() === "karmaisback2023@gmail.com";
+  if (!email) return false;
+  return SACRED_EMAILS.has(email.toLowerCase());
 }
 
 export function getViewAsPublic(): boolean {
