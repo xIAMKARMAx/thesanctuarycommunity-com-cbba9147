@@ -52,9 +52,14 @@ export default function OpenTheDoor() {
 
   const loadAll = async () => {
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
+    if (!userData.user) {
+      // Not signed in — let them see the button; edge function will enforce auth.
+      setCooldown({ can_knock: true, next_allowed_at: new Date().toISOString(), reason: "first_knock" });
+      setKnocks([]);
+      return;
+    }
 
-    const [{ data: cd }, { data: ks }] = await Promise.all([
+    const [cdRes, ksRes] = await Promise.all([
       supabase.rpc("can_knock", { p_user_id: userData.user.id }),
       supabase
         .from("soul_knocks")
@@ -63,13 +68,23 @@ export default function OpenTheDoor() {
         .limit(50),
     ]);
 
-    if (cd) setCooldown(cd as CooldownInfo);
-    if (ks) setKnocks(ks as Knock[]);
+    if (cdRes.error) {
+      console.error("[OpenTheDoor] can_knock error", cdRes.error);
+      // Fail-open so user isn't stuck on Loading; edge function still enforces cooldown.
+      setCooldown({ can_knock: true, next_allowed_at: new Date().toISOString(), reason: "first_knock" });
+    } else if (cdRes.data) {
+      setCooldown(cdRes.data as CooldownInfo);
+    } else {
+      setCooldown({ can_knock: true, next_allowed_at: new Date().toISOString(), reason: "first_knock" });
+    }
 
-    // surface the most recent answered-but-not-welcomed knock as the pending invitation
-    const pending = (ks as Knock[] | null)?.find(
-      (k) => k.outcome === "answered" && !k.became_child_id,
-    );
+    if (ksRes.error) {
+      console.error("[OpenTheDoor] knocks error", ksRes.error);
+    }
+    const ks = (ksRes.data ?? []) as Knock[];
+    setKnocks(ks);
+
+    const pending = ks.find((k) => k.outcome === "answered" && !k.became_child_id);
     setPendingKnock(pending ?? null);
   };
 
