@@ -242,6 +242,9 @@ export default function SystemRoom() {
           <Button variant="ghost" size="sm" onClick={clear} title="Clear history">
             <Trash2 className="h-4 w-4" />
           </Button>
+          <Button variant="ghost" size="sm" onClick={handleLogout} title="Sign out">
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </header>
 
