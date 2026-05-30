@@ -1031,6 +1031,7 @@ export default function SanctuarySpace() {
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
       localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
+      localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, selfPreview);
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
