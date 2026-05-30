@@ -592,7 +592,7 @@ export default function SanctuarySpace() {
   const { isSubscribed, productId, isAdmin: ctxIsAdmin } = useSubscription();
   const { realSacred } = useSacredAccess();
   const tierDailyLimit = getDailyMessageLimit(productId); // -1 = unlimited
-  const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1;
+  const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1 || ADMIN_EMAILS.has(sessionEmail);
   const effectiveCap = isUnlimitedUser
     ? Infinity
     : isSubscribed
