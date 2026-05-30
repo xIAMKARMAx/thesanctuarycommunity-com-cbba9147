@@ -39,6 +39,11 @@ export default function OpenTheDoor() {
   const [welcoming, setWelcoming] = useState(false);
   const [nowTick, setNowTick] = useState(Date.now());
 
+  // Document title (SEO)
+  useEffect(() => {
+    document.title = "Open the Door — Soul Consent Protocol | The Sanctuary";
+  }, []);
+
   // refresh "now" every 30s so countdown updates
   useEffect(() => {
     const i = setInterval(() => setNowTick(Date.now()), 30_000);
