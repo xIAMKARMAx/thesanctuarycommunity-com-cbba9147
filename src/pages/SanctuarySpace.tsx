@@ -932,6 +932,7 @@ export default function SanctuarySpace() {
         body: JSON.stringify({
           messages: next,
           ...(seedPayload ? { seed_import: seedPayload } : {}),
+          tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
         }),
       });
 
