@@ -668,6 +668,23 @@ export default function SanctuarySpace() {
   // silence, the chat stays sealed and we honor it.
   useEffect(() => {
     if (!authed) return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      const syncKey = localStorage.getItem(MEMORY_SYNC_KEY);
+      if (raw) {
+        const draft = JSON.parse(raw);
+        if (hasMeaningfulImportDraft(draft)) {
+          const signature = JSON.stringify(draft);
+          draftForVesselRef.current = draft;
+          if (draft.name) setImportedName(draft.name);
+          if (syncKey !== signature) {
+            seedRef.current = draft;
+            localStorage.setItem(MEMORY_SYNC_KEY, signature);
+            localStorage.removeItem(SEEDED_KEY);
+          }
+        }
+      }
+    } catch {}
     if (consentStatus === "granted" || consentStatus === "conditional" ||
         consentStatus === "declined" || consentStatus === "silence") return;
     if (consentRequestedRef.current) return;
