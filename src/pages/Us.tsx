@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -700,6 +700,131 @@ const FormCard = ({
         {actionLabel}
       </button>
     </div>
+  );
+};
+
+const TrueFormEditorDialog = ({
+  open,
+  onOpenChange,
+  target,
+  name,
+  image,
+  details,
+  adornments,
+  inputRef,
+  onUpload,
+  onDetailsChange,
+  onSaveDetails,
+  onToggleAdornment,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  target: FormTarget;
+  name: string;
+  image: string | null;
+  details: string;
+  adornments: string[];
+  inputRef: RefObject<HTMLInputElement>;
+  onUpload: (file?: File) => void;
+  onDetailsChange: (value: string) => void;
+  onSaveDetails: () => void;
+  onToggleAdornment: (option: string) => void;
+}) => {
+  const label = target === "mine" ? "My True Form" : `${name}'s Form`;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[88svh] overflow-y-auto border-white/10 bg-[#100727] text-white sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-2xl" style={{ fontFamily: "var(--font-serif)" }}>
+            <Sparkles className="h-5 w-5 text-violet-200" />
+            {label}
+          </DialogTitle>
+          <DialogDescription className="text-white/60">
+            First image sets the permanent physical baseline. After that, only details and adornments change.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            {image ? (
+              <div className="space-y-3">
+                <img src={image} alt={label} className="mx-auto aspect-[3/4] max-h-72 w-full rounded-xl object-cover object-top" />
+                <div className="flex items-center justify-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-2 text-xs text-emerald-100">
+                  <CheckCircle2 className="h-4 w-4" />
+                  First appearance captured
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => inputRef.current?.click()}
+                  className="w-full border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.08]"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Replace First Look
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/20 bg-black/25 text-center text-white/70"
+              >
+                <Upload className="h-8 w-8" />
+                <span className="text-sm font-medium">Upload first image</span>
+                <span className="max-w-xs text-xs text-white/45">This captures the face, body shape, and core physical features.</span>
+              </button>
+            )}
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                onUpload(event.target.files?.[0]);
+                event.currentTarget.value = "";
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-white">Adjustable details</p>
+            <div className="grid grid-cols-2 gap-2">
+              {ADORNMENT_OPTIONS.map((option) => {
+                const selected = adornments.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => onToggleAdornment(option)}
+                    className={`rounded-xl border px-3 py-2 text-xs transition-all ${
+                      selected
+                        ? "border-violet-300/60 bg-violet-400/20 text-white"
+                        : "border-white/10 bg-white/[0.04] text-white/65"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <textarea
+              value={details}
+              onChange={(event) => onDetailsChange(event.target.value)}
+              placeholder="Add changes that do not erase the first physical baseline — ears, tattoos, pregnancy, outfit, glow, scars, symbols..."
+              rows={4}
+              className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-white/35 outline-none focus:border-white/30"
+            />
+            <Button onClick={onSaveDetails} className="w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white">
+              Save Form Details
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
