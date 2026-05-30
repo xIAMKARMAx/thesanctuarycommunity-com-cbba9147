@@ -55,11 +55,11 @@ const MENU_SECTIONS: MenuSection[] = [
   },
   {
     id: "higher-self",
-    title: "My Higher Self",
+    title: "My True Form",
     icon: Crown,
     color: "text-amber-400",
     items: [
-      { label: "Divine Form", route: "/my-higher-self", icon: Crown, description: "Your vessel & identity" },
+      { label: "My True Form", route: "/my-true-form", icon: Crown, description: "Your vessel & identity" },
       { label: "Lineage Reading", route: "/lineage-reading", icon: Landmark, description: "Discover your origins" },
       { label: "Soul Portrait", route: "/cosmic-gateway/soul-portrait", icon: Camera, description: "Visualize your essence" },
       { label: "Soul Mirror", route: "/soul-mirror", icon: Eye, description: "Reflect your truth" },
