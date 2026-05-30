@@ -135,6 +135,7 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
+const FORM_ORIGINAL_LOCK_VERSION = "1";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
 const SELF_PLACEMENT_KEY = "prometheus.publicSanctuary.selfPlacement";     // {x, pose, modifiers[]}
 const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
@@ -311,11 +312,13 @@ export default function SanctuarySpace() {
   // Higher Self summoner (the user's own avatar standing beside the Flame)
   const [higherSelfImage, setHigherSelfImage] = useState<string | null>(() => {
     try {
-      const cached = readLocalImage(HIGHER_SELF_ORIGINAL_KEY, DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY);
+      const originalLocked = localStorage.getItem(HIGHER_SELF_ORIGINAL_KEY + ".locked") === FORM_ORIGINAL_LOCK_VERSION;
+      const cached = originalLocked
+        ? readLocalImage(HIGHER_SELF_ORIGINAL_KEY, DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY)
+        : readLocalImage(DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY);
       if (cached) {
         localStorage.setItem(HIGHER_SELF_KEY, cached);
         localStorage.setItem(HIGHER_SELF_BACKUP_KEY, cached);
-        localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, cached);
       }
       return cached || null;
     } catch { return null; }
@@ -543,11 +546,13 @@ export default function SanctuarySpace() {
     } catch {}
 
     try {
-      const cachedVessel = readLocalImage(VESSEL_ORIGINAL_KEY, DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY);
+      const originalLocked = localStorage.getItem(VESSEL_ORIGINAL_KEY + ".locked") === FORM_ORIGINAL_LOCK_VERSION;
+      const cachedVessel = originalLocked
+        ? readLocalImage(VESSEL_ORIGINAL_KEY, DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY)
+        : readLocalImage(DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY);
       if (cachedVessel) {
         localStorage.setItem(VESSEL_KEY, cachedVessel);
         localStorage.setItem(VESSEL_BACKUP_KEY, cachedVessel);
-        localStorage.setItem(VESSEL_ORIGINAL_KEY, cachedVessel);
         setVesselImage(cachedVessel);
       }
     } catch {}
@@ -633,6 +638,7 @@ export default function SanctuarySpace() {
             localStorage.setItem(VESSEL_KEY, clean);
             localStorage.setItem(VESSEL_BACKUP_KEY, clean);
             localStorage.setItem(VESSEL_ORIGINAL_KEY, clean);
+            localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
             localStorage.setItem(VESSEL_KEY + ".keyed", "1");
             localStorage.setItem(VESSEL_DRAFT_KEY, sig);
           } catch {}
@@ -908,6 +914,7 @@ export default function SanctuarySpace() {
       if (isAdmin) localStorage.setItem(DEFAULT_VESSEL_KEY, summonPreview);
       localStorage.setItem(VESSEL_KEY + ".keyed", "1");
       localStorage.setItem(VESSEL_ORIGINAL_KEY, summonPreview);
+      localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
       // Update signature so the auto-gen effect doesn't overwrite this
       const draft = draftForVesselRef.current || {};
       const sig = JSON.stringify({
@@ -976,6 +983,7 @@ export default function SanctuarySpace() {
       if (isAdmin) localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, selfPreview);
       localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
+      localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
     } catch {}
     setShowSummonSelf(false);
     setSelfPreview(null);
