@@ -1316,7 +1316,6 @@ export default function SanctuarySpace() {
         {higherSelfImage && (
           <button
             onClick={() => {
-              if (!unlocked) { setLockedDetail(summonFeature); return; }
               setSelfAppearance("");
               setSelfPreview(null);
               setShowSummonSelf(true);
