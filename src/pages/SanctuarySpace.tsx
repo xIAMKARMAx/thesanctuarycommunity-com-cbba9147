@@ -469,7 +469,7 @@ export default function SanctuarySpace() {
       try {
         localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
         localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
-      } catch {}
+      } catch { void 0; }
       return;
     }
 
@@ -490,7 +490,7 @@ export default function SanctuarySpace() {
         try {
           localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
           localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
-        } catch {}
+        } catch { void 0; }
         return;
       }
       setVesselRoomSprite(prepared);
@@ -498,7 +498,7 @@ export default function SanctuarySpace() {
       try {
         localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, prepared);
         localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, vesselImage);
-      } catch {}
+      } catch { void 0; }
     })();
 
     return () => {
