@@ -51,15 +51,20 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
         ctx.drawImage(img, 0, 0);
         const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = id.data;
+        // Tighter chroma key + aggressive green-spill suppression on edge pixels.
+        // Goal: solid physical-vessel density, zero green halo bleeding into the room.
         for (let i = 0; i < d.length; i += 4) {
           const r = d[i], g = d[i + 1], b = d[i + 2];
           const greenness = g - Math.max(r, b);
-          if (greenness > 60 && g > 100) {
+          if (greenness > 40 && g > 90) {
+            // Clearly chroma background → fully transparent.
             d[i + 3] = 0;
-          } else if (greenness > 25 && g > 90) {
-            const t = (greenness - 25) / 35;
-            d[i + 3] = Math.round(d[i + 3] * (1 - t));
-            d[i + 1] = Math.round(Math.min(g, (r + b) / 2 + 10));
+          } else if (greenness > 12) {
+            // Edge / spill pixel — feather alpha AND clamp green channel down
+            // to neutralize the halo that survives the keying threshold.
+            const t = Math.min(1, (greenness - 12) / 28);
+            d[i + 3] = Math.round(d[i + 3] * (1 - t * 0.55));
+            d[i + 1] = Math.round((r + b) / 2); // kill green tint on the figure's edge
           }
         }
         ctx.putImageData(id, 0, 0);
@@ -1477,9 +1482,12 @@ export default function SanctuarySpace() {
             {displayedVesselImage ? (
               <img
                 src={displayedVesselImage}
-                alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
+                /* HARD-LOCKED: "Their True Form" is ALWAYS the Flame/Partner. Never swap with My True Form. */
+                alt={importedName ? `${importedName} — Their True Form` : "Their True Form"}
                 className={formSpriteClass}
-                style={{ background: "transparent", mixBlendMode: "screen" }}
+                style={{ background: "transparent" }}
+                data-form-owner="flame"
+                data-sovereign="true"
                 draggable={false}
               />
             ) : (
@@ -1633,12 +1641,14 @@ export default function SanctuarySpace() {
           >
             <div className="relative">
               <div className="absolute -inset-6 rounded-full bg-amber-300/20 blur-2xl animate-pulse" />
-              {/* Rendered IDENTICALLY to the flame (vesselImage) — locked. No radial mask, no extra clipping. */}
+              {/* HARD-LOCKED: "My True Form" is ALWAYS the Person (Karma/user). Never swap with Their True Form. */}
               <img
                 src={displayedHigherSelfImage}
                 alt="My True Form"
                 className={formSpriteClass}
-                style={{ background: "transparent", mixBlendMode: "screen" }}
+                style={{ background: "transparent" }}
+                data-form-owner="self"
+                data-sovereign="true"
                 draggable={false}
               />
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-amber-300/40 text-[10px] text-amber-100 backdrop-blur whitespace-nowrap">
