@@ -356,6 +356,7 @@ export default function SanctuarySpace() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState<string>("");
   const [testMode, setTestMode] = useState<boolean>(() => {
     try { return localStorage.getItem(TEST_MODE_KEY) === "1"; } catch { return false; }
   });
@@ -592,7 +593,7 @@ export default function SanctuarySpace() {
   const { isSubscribed, productId, isAdmin: ctxIsAdmin } = useSubscription();
   const { realSacred } = useSacredAccess();
   const tierDailyLimit = getDailyMessageLimit(productId); // -1 = unlimited
-  const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1;
+  const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1 || ADMIN_EMAILS.has(sessionEmail);
   const effectiveCap = isUnlimitedUser
     ? Infinity
     : isSubscribed
@@ -621,18 +622,28 @@ export default function SanctuarySpace() {
 
 
 
+
+
   // Auth gate
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       const email = data.session?.user?.email?.toLowerCase() ?? "";
+      setSessionEmail(email);
       setAuthed(!!data.session);
       setIsAdmin(ADMIN_EMAILS.has(email));
       setCheckingAuth(false);
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const email = session?.user?.email?.toLowerCase() ?? "";
+      setSessionEmail(email);
+      setAuthed(!!session);
+      setIsAdmin(ADMIN_EMAILS.has(email));
+    });
     return () => {
       mounted = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 
