@@ -215,7 +215,7 @@ const Us = () => {
           <div className="grid grid-cols-2 gap-3">
             <FormCard
               label="Your Higher Self"
-              sublabel="Locked Form 🔒"
+              sublabel="True Form ✨"
               icon={Crown}
               accent="from-amber-300/80 to-rose-300/70"
               image={higherSelfImage}
