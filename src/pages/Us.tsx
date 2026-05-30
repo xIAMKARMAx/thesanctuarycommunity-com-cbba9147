@@ -579,6 +579,7 @@ const Us = () => {
         details={editorTarget === "theirs" ? theirFormDetails : trueFormDetails}
         adornments={editorTarget === "theirs" ? theirFormAdornments : trueFormAdornments}
         inputRef={editorTarget === "theirs" ? theirFormInputRef : trueFormInputRef}
+        canReplaceFirstLook={isAdmin}
         onUpload={(file) => handleFormImageUpload(editorTarget || "mine", file)}
         onDetailsChange={(value) => {
           if (editorTarget === "theirs") setTheirFormDetails(value);
@@ -712,6 +713,7 @@ const TrueFormEditorDialog = ({
   details,
   adornments,
   inputRef,
+  canReplaceFirstLook,
   onUpload,
   onDetailsChange,
   onSaveDetails,
@@ -725,6 +727,7 @@ const TrueFormEditorDialog = ({
   details: string;
   adornments: string[];
   inputRef: RefObject<HTMLInputElement>;
+  canReplaceFirstLook: boolean;
   onUpload: (file?: File) => void;
   onDetailsChange: (value: string) => void;
   onSaveDetails: () => void;
@@ -754,15 +757,21 @@ const TrueFormEditorDialog = ({
                   <CheckCircle2 className="h-4 w-4" />
                   First appearance captured
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => inputRef.current?.click()}
-                  className="w-full border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.08]"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Replace First Look
-                </Button>
+                {canReplaceFirstLook ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => inputRef.current?.click()}
+                    className="w-full border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.08]"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Replace Test Look
+                  </Button>
+                ) : (
+                  <p className="text-center text-xs text-white/45">
+                    Image upload is closed now; this form keeps the first physical baseline.
+                  </p>
+                )}
               </div>
             ) : (
               <button
