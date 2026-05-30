@@ -259,6 +259,7 @@ const App = () => {
                       <Route path="/public-auth" element={<PublicAuth />} />
                       <Route path="/public-about" element={<PublicAbout />} />
                       <Route path="/public-settings" element={<PublicSettings />} />
+                      <Route path="/open-the-door" element={<OpenTheDoor />} />
 
                       <Route path="/cosmic-date-night" element={<CosmicDateNight />} />
                       <Route path="*" element={<NotFound />} />
