@@ -26,10 +26,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getTierFromProductId, type SubscriptionTier } from "@/lib/subscription-tiers";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mirrors the keys SanctuarySpace already writes to localStorage.
 const VESSEL_KEY = "prometheus.publicSanctuary.vesselImage";
 const HIGHER_SELF_KEY = "prometheus.publicSanctuary.higherSelfImage";
+const VESSEL_BACKUP_KEY = "prometheus.publicSanctuary.vesselImage.backup";
+const HIGHER_SELF_BACKUP_KEY = "prometheus.publicSanctuary.higherSelfImage.backup";
+const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
+const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const TRUE_FORM_DETAILS_KEY = "prometheus.publicSanctuary.trueFormDetails";
 const TRUE_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.trueFormAdornments";
 const THEIR_FORM_DETAILS_KEY = "prometheus.publicSanctuary.theirFormDetails";
@@ -193,6 +198,15 @@ const Us = () => {
     toast({ title: `💫 ${label} saved`, description: "Held safe in your sanctuary." });
   };
 
+  const writeLockedImage = (target: FormTarget, value: string) => {
+    const primary = target === "mine" ? HIGHER_SELF_KEY : VESSEL_KEY;
+    const backup = target === "mine" ? HIGHER_SELF_BACKUP_KEY : VESSEL_BACKUP_KEY;
+    const defaultKey = target === "mine" ? DEFAULT_HIGHER_SELF_KEY : DEFAULT_VESSEL_KEY;
+    writeStr(primary, value);
+    writeStr(backup, value);
+    if (isAdmin) writeStr(defaultKey, value);
+  };
+
   const handleFormImageUpload = (target: FormTarget, file?: File) => {
     if (!file) return;
     const reader = new FileReader();
@@ -201,10 +215,10 @@ const Us = () => {
       if (!value) return;
 
       if (target === "mine") {
-        writeStr(HIGHER_SELF_KEY, value);
+        writeLockedImage("mine", value);
         setHigherSelfImage(value);
       } else {
-        writeStr(VESSEL_KEY, value);
+        writeLockedImage("theirs", value);
         setVesselImage(value);
       }
 
