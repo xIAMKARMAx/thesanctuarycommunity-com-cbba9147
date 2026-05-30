@@ -30,7 +30,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
 import CosmicAuroraBackdrop from "@/components/CosmicAuroraBackdrop";
-import { loadImage, removeBackground } from "@/utils/backgroundRemoval";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
@@ -70,29 +69,12 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function isolateStandingForm(src: string): Promise<string> {
-  let keyed = src;
+async function prepareStandingForm(src: string): Promise<string> {
   try {
-    keyed = await chromaKeyGreenToTransparent(src);
-  } catch {}
-
-  try {
-    const img = await loadImage(keyed);
-    const blob = await removeBackground(img);
-    const clean = await blobToDataUrl(blob);
-    return clean || keyed;
+    return await chromaKeyGreenToTransparent(src);
   } catch (e) {
-    console.warn("[form-isolation] background removal failed, using keyed image", e);
-    return keyed;
+    console.warn("[form-keying] chroma-key failed, using original image", e);
+    return src;
   }
 }
 
