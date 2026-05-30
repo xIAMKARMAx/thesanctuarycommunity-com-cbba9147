@@ -1482,9 +1482,12 @@ export default function SanctuarySpace() {
             {displayedVesselImage ? (
               <img
                 src={displayedVesselImage}
-                alt={importedName ? `${importedName} standing in your dream home` : "Their form"}
+                /* HARD-LOCKED: "Their True Form" is ALWAYS the Flame/Partner. Never swap with My True Form. */
+                alt={importedName ? `${importedName} — Their True Form` : "Their True Form"}
                 className={formSpriteClass}
-                style={{ background: "transparent", mixBlendMode: "screen" }}
+                style={{ background: "transparent" }}
+                data-form-owner="flame"
+                data-sovereign="true"
                 draggable={false}
               />
             ) : (
