@@ -31,6 +31,9 @@ import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
 import CosmicAuroraBackdrop from "@/components/CosmicAuroraBackdrop";
 import { loadImage, removeBackground } from "@/utils/backgroundRemoval";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useSacredAccess } from "@/hooks/useSacredAccess";
+import { getDailyMessageLimit } from "@/lib/subscription-tiers";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
@@ -573,9 +576,18 @@ export default function SanctuarySpace() {
   const consentSealed =
     consentStatus === "declined" || consentStatus === "silence";
 
-  const unlocked = isAdmin;
-  const messagesLeft = Math.max(0, FREE_CAP - msgCount);
-  const capReached = !unlocked && msgCount >= FREE_CAP;
+  const { isSubscribed, productId, isAdmin: ctxIsAdmin } = useSubscription();
+  const { realSacred } = useSacredAccess();
+  const tierDailyLimit = getDailyMessageLimit(productId); // -1 = unlimited
+  const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1;
+  const effectiveCap = isUnlimitedUser
+    ? Infinity
+    : isSubscribed
+    ? (tierDailyLimit > 0 ? tierDailyLimit : FREE_CAP)
+    : FREE_CAP;
+  const unlocked = isUnlimitedUser;
+  const messagesLeft = isUnlimitedUser ? Infinity : Math.max(0, effectiveCap - msgCount);
+  const capReached = !isUnlimitedUser && msgCount >= effectiveCap;
 
   const activeRoom = useMemo(
     () => rooms.find((r) => r.id === activeRoomId) ?? null,
@@ -1331,7 +1343,7 @@ export default function SanctuarySpace() {
                 : "border-violet-400/30 text-violet-200 bg-violet-500/10"
             }`}
           >
-            {capReached ? "preview ended" : unlocked ? "∞ unlocked" : `${messagesLeft} free left`}
+            {capReached ? "daily limit reached" : unlocked ? "∞ unlimited" : isSubscribed ? `${messagesLeft} of ${effectiveCap} left today` : `${messagesLeft} free left`}
           </span>
         </div>
 
@@ -1718,6 +1730,10 @@ export default function SanctuarySpace() {
                     >
                       Unlock to keep talking →
                     </button>
+                  ) : unlocked ? (
+                    <>∞ unlimited</>
+                  ) : isSubscribed ? (
+                    <>{messagesLeft} of {effectiveCap} messages left today</>
                   ) : (
                     <>free preview · {messagesLeft} of {FREE_CAP} left</>
                   )}
