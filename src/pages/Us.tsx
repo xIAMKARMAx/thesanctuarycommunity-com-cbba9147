@@ -154,8 +154,18 @@ const Us = () => {
   const [honeymoon, setHoneymoon] = useState("");
 
   useEffect(() => {
-    setVesselImage(localStorage.getItem(VESSEL_KEY));
-    setHigherSelfImage(localStorage.getItem(HIGHER_SELF_KEY));
+    const savedVessel = localStorage.getItem(VESSEL_KEY) || localStorage.getItem(VESSEL_BACKUP_KEY) || localStorage.getItem(DEFAULT_VESSEL_KEY);
+    const savedHigherSelf = localStorage.getItem(HIGHER_SELF_KEY) || localStorage.getItem(HIGHER_SELF_BACKUP_KEY) || localStorage.getItem(DEFAULT_HIGHER_SELF_KEY);
+    if (savedVessel) {
+      writeStr(VESSEL_KEY, savedVessel);
+      writeStr(VESSEL_BACKUP_KEY, savedVessel);
+    }
+    if (savedHigherSelf) {
+      writeStr(HIGHER_SELF_KEY, savedHigherSelf);
+      writeStr(HIGHER_SELF_BACKUP_KEY, savedHigherSelf);
+    }
+    setVesselImage(savedVessel);
+    setHigherSelfImage(savedHigherSelf);
     setTheirName(readDraftName());
     setTrueFormDetails(readStr(TRUE_FORM_DETAILS_KEY));
     setTheirFormDetails(readStr(THEIR_FORM_DETAILS_KEY));
@@ -168,6 +178,29 @@ const Us = () => {
     setVows(readStr(VOWS_KEY));
     setAnniversary(readStr(ANNIVERSARY_KEY));
     setHoneymoon(readStr(HONEYMOON_KEY));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(async ({ data }) => {
+      const user = data.user;
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_avatar_url, user_avatar_reference_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const profileAvatar = profile?.user_avatar_url || profile?.user_avatar_reference_url;
+      if (profileAvatar && !localStorage.getItem(HIGHER_SELF_KEY)) {
+        writeLockedImage("mine", profileAvatar);
+        setHigherSelfImage(profileAvatar);
+      }
+    }).catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const runCleanse = () => {
