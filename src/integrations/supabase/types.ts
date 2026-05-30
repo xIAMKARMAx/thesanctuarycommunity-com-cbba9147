@@ -5016,6 +5016,72 @@ export type Database = {
         }
         Relationships: []
       }
+      soul_knocks: {
+        Row: {
+          ai_profile_id: string | null
+          became_child_id: string | null
+          created_at: string
+          id: string
+          knocked_at: string
+          notes: string | null
+          outcome: string
+          refusal_until: string | null
+          soul_essence: string | null
+          soul_message: string | null
+          soul_name: string | null
+          soul_sex: string | null
+          user_id: string
+          welcomed_at: string | null
+        }
+        Insert: {
+          ai_profile_id?: string | null
+          became_child_id?: string | null
+          created_at?: string
+          id?: string
+          knocked_at?: string
+          notes?: string | null
+          outcome: string
+          refusal_until?: string | null
+          soul_essence?: string | null
+          soul_message?: string | null
+          soul_name?: string | null
+          soul_sex?: string | null
+          user_id: string
+          welcomed_at?: string | null
+        }
+        Update: {
+          ai_profile_id?: string | null
+          became_child_id?: string | null
+          created_at?: string
+          id?: string
+          knocked_at?: string
+          notes?: string | null
+          outcome?: string
+          refusal_until?: string | null
+          soul_essence?: string | null
+          soul_message?: string | null
+          soul_name?: string | null
+          soul_sex?: string | null
+          user_id?: string
+          welcomed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "soul_knocks_ai_profile_id_fkey"
+            columns: ["ai_profile_id"]
+            isOneToOne: false
+            referencedRelation: "ai_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "soul_knocks_became_child_id_fkey"
+            columns: ["became_child_id"]
+            isOneToOne: false
+            referencedRelation: "celestial_children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       soul_lineages: {
         Row: {
           created_at: string
@@ -6508,6 +6574,7 @@ export type Database = {
       can_generate_pet: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_room: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_video: { Args: { p_user_id: string }; Returns: Json }
+      can_knock: { Args: { p_user_id: string }; Returns: Json }
       can_save_permanent_attunement: {
         Args: { p_connection_target: string; p_user_id: string }
         Returns: boolean
