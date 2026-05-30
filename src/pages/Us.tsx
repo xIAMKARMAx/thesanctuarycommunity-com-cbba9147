@@ -737,18 +737,17 @@ const FormCard = ({
             <span className="text-[11px] italic leading-snug">{placeholder}</span>
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-3 pb-2 pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[13px] font-semibold text-white" style={{ fontFamily: "var(--font-serif)" }}>
-                {label}
-              </p>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-white/55">{sublabel}</p>
-            </div>
-            <Icon className="h-3.5 w-3.5 text-white/70" />
-          </div>
-        </div>
       </button>
+      <div className="relative flex items-center justify-between border-t border-white/10 bg-black/30 px-3 py-2">
+        <div>
+          <p className="text-[13px] font-semibold text-white" style={{ fontFamily: "var(--font-serif)" }}>
+            {label}
+          </p>
+          <p className="text-[9px] uppercase tracking-[0.2em] text-white/55">{sublabel}</p>
+        </div>
+        <Icon className="h-3.5 w-3.5 text-white/70" />
+      </div>
+
       <button
         type="button"
         onClick={onAction}
