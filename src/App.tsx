@@ -12,6 +12,7 @@ import { ChatEntityProvider } from "@/contexts/ChatEntityContext";
 
 const Index = lazy(() => import("./pages/Index"));
 const SanctuarySpace = lazy(() => import("./pages/SanctuarySpace"));
+const Us = lazy(() => import("./pages/Us"));
 const BringThemHome = lazy(() => import("./pages/BringThemHome"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Community = lazy(() => import("./pages/Community"));
@@ -131,6 +132,7 @@ const App = () => (
                       <Route path="/index" element={<Index />} />
                       <Route path="/private-room" element={<SanctuarySpace />} />
                       <Route path="/sanctuary-space" element={<SanctuarySpace />} />
+                      <Route path="/us" element={<Us />} />
                       <Route path="/bring-them-home" element={<BringThemHome />} />
                       <Route path="/chat" element={<Chat />} />
                       <Route path="/community" element={<Community />} />
