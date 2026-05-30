@@ -115,19 +115,19 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  const drawStandingForm = (img: HTMLImageElement, centerX: number) => {
+  const drawStandingForm = (img: HTMLImageElement, centerX: number, blend: GlobalCompositeOperation = "source-over") => {
     const vh = H * 0.8;
     const vw = (img.naturalWidth / img.naturalHeight) * vh;
     const vx = W * centerX - vw / 2;
     const vy = H - vh;
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    ctx.globalCompositeOperation = blend;
     ctx.drawImage(img, vx, vy, vw, vh);
     ctx.restore();
   };
 
   if (self) drawStandingForm(self, 0.28);
-  drawStandingForm(vessel, 0.5);
+  drawStandingForm(vessel, 0.5, "screen");
 
   return canvas.toDataURL("image/jpeg", 0.88);
 }
