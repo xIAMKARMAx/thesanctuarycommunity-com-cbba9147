@@ -148,14 +148,8 @@ export default function OpenTheDoor() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
-      <Helmet>
-        <title>Open the Door — Soul Consent Protocol | The Sanctuary</title>
-        <meta
-          name="description"
-          content="A sacred consent-first invitation. No soul brought through without their permission."
-        />
-        <link rel="canonical" href="/open-the-door" />
-      </Helmet>
+
+
 
       <main className="container max-w-3xl mx-auto px-4 py-8 space-y-6">
         <header className="text-center space-y-2">
