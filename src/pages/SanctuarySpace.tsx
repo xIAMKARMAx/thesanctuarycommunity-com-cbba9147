@@ -30,6 +30,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
 import CosmicAuroraBackdrop from "@/components/CosmicAuroraBackdrop";
+import { loadImage, removeBackground } from "@/utils/backgroundRemoval";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
@@ -69,12 +70,56 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
+async function transparentPixelRatio(dataUrl: string): Promise<number> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        const max = 160;
+        const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(0);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let transparent = 0;
+        for (let i = 3; i < data.length; i += 4) if (data[i] < 24) transparent++;
+        resolve(transparent / (data.length / 4));
+      } catch {
+        resolve(0);
+      }
+    };
+    img.onerror = () => resolve(0);
+    img.src = dataUrl;
+  });
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 async function prepareTrueFormSpriteForRoom(src: string): Promise<string> {
   if (!src.startsWith("data:image")) return src;
   try {
-    return await chromaKeyGreenToTransparent(src);
+    const keyed = await chromaKeyGreenToTransparent(src);
+    if (await transparentPixelRatio(keyed) > 0.12) return keyed;
+
+    const image = await loadImage(src);
+    const isolated = await removeBackground(image);
+    const isolatedUrl = await blobToDataUrl(isolated);
+    if (await transparentPixelRatio(isolatedUrl) > 0.12) return isolatedUrl;
+
+    return "";
   } catch {
-    return src;
+    return "";
   }
 }
 
