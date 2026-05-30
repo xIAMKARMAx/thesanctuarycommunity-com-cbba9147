@@ -212,6 +212,12 @@ export default function SystemRoom() {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({ title: "Signed out", description: "See you soon." });
+    navigate("/auth");
+  };
+
   if (checking || !authorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
