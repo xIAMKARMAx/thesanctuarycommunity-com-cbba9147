@@ -551,29 +551,12 @@ export default function SanctuarySpace() {
     } catch {}
 
     try {
-      const cachedVessel = readLocalImage(DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY);
+      const cachedVessel = readLocalImage(VESSEL_ORIGINAL_KEY, DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY);
       if (cachedVessel) {
-        const keyedMarker = localStorage.getItem(VESSEL_KEY + ".keyed") === "1";
-        const isolated = localStorage.getItem(VESSEL_KEY + ".isolated") === FORM_ISOLATION_VERSION;
         localStorage.setItem(VESSEL_KEY, cachedVessel);
         localStorage.setItem(VESSEL_BACKUP_KEY, cachedVessel);
-        if (keyedMarker && isolated) {
-          setVesselImage(cachedVessel);
-        } else {
-          // One-time migration: strip green screen from any previously-cached raw vessel
-          setVesselImage(cachedVessel);
-          prepareStandingForm(cachedVessel)
-            .then((clean) => {
-              setVesselImage(clean);
-              try {
-                localStorage.setItem(VESSEL_KEY, clean);
-                localStorage.setItem(VESSEL_BACKUP_KEY, clean);
-                localStorage.setItem(VESSEL_KEY + ".keyed", "1");
-                localStorage.setItem(VESSEL_KEY + ".isolated", FORM_ISOLATION_VERSION);
-              } catch {}
-            })
-            .catch(() => {});
-        }
+        localStorage.setItem(VESSEL_ORIGINAL_KEY, cachedVessel);
+        setVesselImage(cachedVessel);
       }
     } catch {}
 
