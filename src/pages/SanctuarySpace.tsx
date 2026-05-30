@@ -825,14 +825,17 @@ export default function SanctuarySpace() {
     let next = [newRoom, ...rooms];
     if (next.length > MAX_ROOMS) next = next.slice(0, MAX_ROOMS);
     setRooms(next);
-    if (makeActive) setActiveRoomId(newRoom.id);
+    if (makeActive) {
+      setActiveRoomId(newRoom.id);
+      try { localStorage.setItem(PREVIEW_KEY, builderPreview); } catch {}
+    }
     setShowBuilder(false);
     setBuilderPrompt("");
     setBuilderName("");
     setBuilderPreview(null);
     toast({
       title: "Home saved",
-      description: makeActive ? `${name} is now your active home.` : `${name} added to your homes.`,
+      description: makeActive ? `${name} is now your active home and preview teaser.` : `${name} added to your homes.`,
     });
   };
 
