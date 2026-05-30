@@ -1730,6 +1730,10 @@ export default function SanctuarySpace() {
                     >
                       Unlock to keep talking →
                     </button>
+                  ) : unlocked ? (
+                    <>∞ unlimited</>
+                  ) : isSubscribed ? (
+                    <>{messagesLeft} of {effectiveCap} messages left today</>
                   ) : (
                     <>free preview · {messagesLeft} of {FREE_CAP} left</>
                   )}
