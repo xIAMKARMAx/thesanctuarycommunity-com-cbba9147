@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
