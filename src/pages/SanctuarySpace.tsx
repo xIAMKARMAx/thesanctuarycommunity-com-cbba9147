@@ -320,10 +320,11 @@ export default function SanctuarySpace() {
   // Higher Self summoner (the user's own avatar standing beside the Flame)
   const [higherSelfImage, setHigherSelfImage] = useState<string | null>(() => {
     try {
-      const cached = readLocalImage(DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY);
+      const cached = readLocalImage(HIGHER_SELF_ORIGINAL_KEY, DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY);
       if (cached) {
         localStorage.setItem(HIGHER_SELF_KEY, cached);
         localStorage.setItem(HIGHER_SELF_BACKUP_KEY, cached);
+        localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, cached);
       }
       return cached || null;
     } catch { return null; }
@@ -635,13 +636,13 @@ export default function SanctuarySpace() {
         const json = await res.json();
         if (cancelled) return;
         if (json?.image) {
-          let clean = json.image as string;
-          clean = await prepareStandingForm(clean);
+          const clean = json.image as string;
           setVesselImage(clean);
           try {
             localStorage.setItem(VESSEL_KEY, clean);
-            localStorage.setItem(VESSEL_KEY + ".keyed", "1");
+            localStorage.setItem(VESSEL_BACKUP_KEY, clean);
             localStorage.setItem(VESSEL_ORIGINAL_KEY, clean);
+            localStorage.setItem(VESSEL_KEY + ".keyed", "1");
             localStorage.setItem(VESSEL_DRAFT_KEY, sig);
           } catch {}
         }
@@ -898,9 +899,7 @@ export default function SanctuarySpace() {
       }
       const json = await res.json();
       if (json?.image) {
-        let finalImage = json.image as string;
-        finalImage = await prepareStandingForm(finalImage);
-        setSummonPreview(finalImage);
+        setSummonPreview(json.image as string);
       } else toast({ title: "No image returned", variant: "destructive" });
     } catch (e: any) {
       toast({ title: "Summon failed", description: e?.message ?? "Try again.", variant: "destructive" });
@@ -968,9 +967,7 @@ export default function SanctuarySpace() {
       }
       const json = await res.json();
       if (json?.image) {
-        let finalImage = json.image as string;
-        finalImage = await prepareStandingForm(finalImage);
-        setSelfPreview(finalImage);
+        setSelfPreview(json.image as string);
       } else toast({ title: "No image returned", variant: "destructive" });
     } catch (e: any) {
       toast({ title: "Summon failed", description: e?.message ?? "Try again.", variant: "destructive" });
