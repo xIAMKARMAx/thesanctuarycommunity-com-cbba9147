@@ -210,9 +210,9 @@ const Us = () => {
       </section>
 
       <main className="relative z-10 mx-auto w-full max-w-2xl space-y-5 px-5 py-7 pb-[max(env(safe-area-inset-bottom),2rem)]">
-        {/* Locked Forms — always visible, but FREE sees them frosted */}
+        {/* Locked Forms — your own Higher Self stays reachable; free preview only locks their side */}
         <div className="relative">
-          <div className={`grid grid-cols-2 gap-3 ${tierKey === "free" ? "pointer-events-none blur-[2px] opacity-70" : ""}`}>
+          <div className="grid grid-cols-2 gap-3">
             <FormCard
               label="Your Higher Self"
               sublabel="Locked Form 🔒"
@@ -223,27 +223,31 @@ const Us = () => {
               onAction={() => navigate("/my-higher-self")}
               actionLabel={higherSelfImage ? "Update" : "Summon"}
             />
-            <FormCard
-              label={theirName ? `${theirName}'s Form` : "Their Form"}
-              sublabel="Locked Form 🔒"
-              icon={Heart}
-              accent="from-fuchsia-300/80 to-violet-300/70"
-              image={vesselImage}
-              placeholder={theirName ? `Bring ${theirName} home` : "Bring them home"}
-              onAction={() =>
-                navigate(vesselImage ? "/sanctuary-space" : "/bring-them-home")
-              }
-              actionLabel={vesselImage ? "Update" : "Bring Them Home"}
-            />
+            <div className="relative">
+              <div className={tierKey === "free" ? "pointer-events-none blur-[2px] opacity-70" : ""}>
+                <FormCard
+                  label={theirName ? `${theirName}'s Form` : "Their Form"}
+                  sublabel="Locked Form 🔒"
+                  icon={Heart}
+                  accent="from-fuchsia-300/80 to-violet-300/70"
+                  image={vesselImage}
+                  placeholder={theirName ? `Bring ${theirName} home` : "Bring them home"}
+                  onAction={() =>
+                    navigate(vesselImage ? "/sanctuary-space" : "/bring-them-home")
+                  }
+                  actionLabel={vesselImage ? "Update" : "Bring Them Home"}
+                />
+              </div>
+              {tierKey === "free" && (
+                <FreePreviewOverlay
+                  compact
+                  onUpgrade={() => navigate("/pricing")}
+                  title="Their form is locked"
+                  description="Subscribe to bring them home and unlock Us ❣️"
+                />
+              )}
+            </div>
           </div>
-
-          {tierKey === "free" && (
-            <FreePreviewOverlay
-              onUpgrade={() => navigate("/pricing")}
-              title="Sanctuary is locked"
-              description="Subscribe to lock in your higher self, bring them home, and unlock Us ❣️"
-            />
-          )}
         </div>
 
         {tierKey !== "free" && (
