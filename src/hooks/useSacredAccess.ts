@@ -6,6 +6,8 @@ import {
   PUBLIC_GATE_ENABLED,
   canPreviewAsPublic,
   getViewAsPublic,
+  setViewAsPublic,
+  hasViewPreference,
 } from "@/lib/sacred-access";
 
 /**
@@ -54,6 +56,15 @@ export function useSacredAccess() {
 
   const realSacred = isSacredUser(user, isAdmin);
   const canPreview = canPreviewAsPublic(user?.email);
+
+  // Sacred 3 default to Public view on login until they explicitly switch back.
+  useEffect(() => {
+    if (canPreview && !hasViewPreference() && !getViewAsPublic()) {
+      setViewAsPublic(true, false);
+      setPreviewingAsPublic(true);
+    }
+  }, [canPreview]);
+
   const effectivePreviewing = canPreview && previewingAsPublic;
   const isSacred = realSacred && !effectivePreviewing;
   const isLoading = !sessionChecked || adminLoading;

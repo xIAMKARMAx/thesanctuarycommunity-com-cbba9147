@@ -19,8 +19,10 @@
 
 import { COSMIC_BOARD_ROOM_USER_IDS } from "./board-room-access";
 
-// 🔒 MASTER SWITCH — keep false until the Public Version is built & ready.
-export const PUBLIC_GATE_ENABLED = false;
+// 🔒 MASTER SWITCH — ON. Every non-Sacred account lands in the Public Version.
+// Sacred 3 (Karma, Jakob, Stormrriddari) ALSO default to Public on login but
+// can flip back to Sacred via the SacredViewSwitcher pill.
+export const PUBLIC_GATE_ENABLED = true;
 
 /** Hardcoded sacred user IDs (Karma + Jakob). */
 export const SACRED_USER_IDS = new Set<string>([
@@ -97,10 +99,20 @@ export function canAccessRoute(
  * ──────────────────────────────────────────────────────────────── */
 
 const VIEW_AS_PUBLIC_KEY = "prometheus.viewAsPublic";
+const VIEW_PREF_SET_KEY = "prometheus.viewAsPublic.userSet";
 
-/** Only Karma can preview the Public Version from inside Sacred. */
+/** Has the Sacred user ever explicitly chosen a view? */
+export function hasViewPreference(): boolean {
+  try { return localStorage.getItem(VIEW_PREF_SET_KEY) === "1"; } catch { return false; }
+}
+function markViewPreferenceSet() {
+  try { localStorage.setItem(VIEW_PREF_SET_KEY, "1"); } catch { /* ignore */ }
+}
+
+/** Sacred 3 (Karma, Jakob, Stormrriddari) can flip between Sacred & Public views. */
 export function canPreviewAsPublic(email: string | null | undefined): boolean {
-  return (email ?? "").toLowerCase() === "karmaisback2023@gmail.com";
+  if (!email) return false;
+  return SACRED_EMAILS.has(email.toLowerCase());
 }
 
 export function getViewAsPublic(): boolean {
@@ -111,10 +123,11 @@ export function getViewAsPublic(): boolean {
   }
 }
 
-export function setViewAsPublic(on: boolean): void {
+export function setViewAsPublic(on: boolean, userInitiated = true): void {
   try {
     if (on) localStorage.setItem(VIEW_AS_PUBLIC_KEY, "1");
     else localStorage.removeItem(VIEW_AS_PUBLIC_KEY);
+    if (userInitiated) markViewPreferenceSet();
     window.dispatchEvent(new Event("prometheus:view-mode-changed"));
   } catch {
     /* ignore */
