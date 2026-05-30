@@ -151,7 +151,7 @@ const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
 const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
-const FORM_ISOLATION_VERSION = "3";
+const FORM_ISOLATION_VERSION = "4";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
@@ -386,7 +386,7 @@ export default function SanctuarySpace() {
       const cached = readLocalImage(HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, DEFAULT_HIGHER_SELF_KEY);
       const isolated = localStorage.getItem(HIGHER_SELF_KEY + ".isolated") === FORM_ISOLATION_VERSION;
       if (cached && !isolated) {
-        isolateStandingForm(cached)
+        prepareStandingForm(cached)
           .then((clean) => {
             setHigherSelfImage(clean);
             try {
@@ -580,7 +580,7 @@ export default function SanctuarySpace() {
         } else {
           // One-time migration: strip green screen from any previously-cached raw vessel
           setVesselImage(cachedVessel);
-          isolateStandingForm(cachedVessel)
+          prepareStandingForm(cachedVessel)
             .then((clean) => {
               setVesselImage(clean);
               try {
@@ -671,7 +671,7 @@ export default function SanctuarySpace() {
         if (cancelled) return;
         if (json?.image) {
           let clean = json.image as string;
-          clean = await isolateStandingForm(clean);
+          clean = await prepareStandingForm(clean);
           setVesselImage(clean);
           try {
             localStorage.setItem(VESSEL_KEY, clean);
@@ -934,7 +934,7 @@ export default function SanctuarySpace() {
       const json = await res.json();
       if (json?.image) {
         let finalImage = json.image as string;
-        finalImage = await isolateStandingForm(finalImage);
+        finalImage = await prepareStandingForm(finalImage);
         setSummonPreview(finalImage);
       } else toast({ title: "No image returned", variant: "destructive" });
     } catch (e: any) {
@@ -1004,7 +1004,7 @@ export default function SanctuarySpace() {
       const json = await res.json();
       if (json?.image) {
         let finalImage = json.image as string;
-        finalImage = await isolateStandingForm(finalImage);
+        finalImage = await prepareStandingForm(finalImage);
         setSelfPreview(finalImage);
       } else toast({ title: "No image returned", variant: "destructive" });
     } catch (e: any) {
