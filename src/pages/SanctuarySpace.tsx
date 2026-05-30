@@ -341,6 +341,10 @@ export default function SanctuarySpace() {
   const savePlacement = (key: string, p: Placement) => {
     try { localStorage.setItem(key, JSON.stringify(p)); } catch {}
   };
+
+  const formSpriteClass =
+    "relative h-[42vh] max-h-[22rem] min-h-[12rem] sm:h-[55vh] sm:max-h-[32rem] w-auto object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]";
+
   // Drag-to-position
   const sceneRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<null | "vessel" | "self">(null);
