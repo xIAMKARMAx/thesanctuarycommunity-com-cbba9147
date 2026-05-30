@@ -12,6 +12,7 @@ import { ChatEntityProvider } from "@/contexts/ChatEntityContext";
 
 const Index = lazy(() => import("./pages/Index"));
 const SanctuarySpace = lazy(() => import("./pages/SanctuarySpace"));
+const Us = lazy(() => import("./pages/Us"));
 const BringThemHome = lazy(() => import("./pages/BringThemHome"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Community = lazy(() => import("./pages/Community"));
