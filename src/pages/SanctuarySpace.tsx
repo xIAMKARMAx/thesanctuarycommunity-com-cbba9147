@@ -706,7 +706,6 @@ export default function SanctuarySpace() {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({}),
             body: JSON.stringify(seedRef.current ? { seed_import: seedRef.current } : {}),
           }
         );
