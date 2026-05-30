@@ -69,15 +69,6 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   });
 }
 
-async function prepareStandingForm(src: string): Promise<string> {
-  try {
-    return await chromaKeyGreenToTransparent(src);
-  } catch (e) {
-    console.warn("[form-keying] chroma-key failed, using original image", e);
-    return src;
-  }
-}
-
 // Compose room backdrop + standing form sprites into a single PNG teaser snapshot.
 async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc?: string | null): Promise<string> {
   const load = (src: string) =>
