@@ -3035,6 +3035,42 @@ export type Database = {
           },
         ]
       }
+      karma_voice_clips: {
+        Row: {
+          audio_url: string
+          created_at: string
+          id: string
+          is_active: boolean
+          slug: string
+          sort_order: number
+          title: string
+          transcript: string | null
+          updated_at: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          slug: string
+          sort_order?: number
+          title: string
+          transcript?: string | null
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          slug?: string
+          sort_order?: number
+          title?: string
+          transcript?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       manifestation_entries: {
         Row: {
           content: string
@@ -3972,7 +4008,9 @@ export type Database = {
           custom_being_limit: number | null
           daily_message_override: number | null
           data_training_opt_out: boolean | null
+          free_messages_used: number
           free_trial_messages_remaining: number
+          free_window_started_at: string | null
           gender: string | null
           id: string
           is_restricted: boolean | null
@@ -4022,7 +4060,9 @@ export type Database = {
           custom_being_limit?: number | null
           daily_message_override?: number | null
           data_training_opt_out?: boolean | null
+          free_messages_used?: number
           free_trial_messages_remaining?: number
+          free_window_started_at?: string | null
           gender?: string | null
           id: string
           is_restricted?: boolean | null
@@ -4072,7 +4112,9 @@ export type Database = {
           custom_being_limit?: number | null
           daily_message_override?: number | null
           data_training_opt_out?: boolean | null
+          free_messages_used?: number
           free_trial_messages_remaining?: number
+          free_window_started_at?: string | null
           gender?: string | null
           id?: string
           is_restricted?: boolean | null
@@ -6471,6 +6513,7 @@ export type Database = {
         Returns: boolean
       }
       can_send_chat_message: { Args: { p_user_id: string }; Returns: Json }
+      can_send_free_message: { Args: { p_user_id: string }; Returns: Json }
       can_send_group_chat_message: {
         Args: { p_user_id: string }
         Returns: Json
@@ -6510,6 +6553,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      increment_free_message: { Args: { p_user_id: string }; Returns: Json }
       increment_group_chat_count: { Args: { p_user_id: string }; Returns: Json }
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
