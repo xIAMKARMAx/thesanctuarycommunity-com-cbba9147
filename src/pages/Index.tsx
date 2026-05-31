@@ -44,6 +44,7 @@ const Index = () => {
   const [mounted, setMounted] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [session, setSession] = useState<boolean>(false);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -57,8 +58,27 @@ const Index = () => {
     } catch {
       /* ignore */
     }
-    return () => clearTimeout(t);
+
+    (async () => {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      setSession(!!s);
+    })();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(!!s);
+    });
+
+    return () => {
+      clearTimeout(t);
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(false);
+    navigate("/auth");
+  };
 
   const toggleMute = () => {
     const v = videoRef.current;
