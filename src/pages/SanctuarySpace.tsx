@@ -1532,13 +1532,14 @@ export default function SanctuarySpace() {
             onClick={async () => {
               try {
                 const snap = await composeTeaserSnapshot(currentBackdrop, displayedVesselImage, displayedHigherSelfImage);
-                localStorage.setItem(PREVIEW_KEY, snap);
+                setLocalLargeImage(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e: any) {
                 console.error("teaser save failed", e);
                 toast({ title: "Couldn't save", description: e?.message || "Try again in a moment.", variant: "destructive" });
               }
             }}
+
 
             className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-violet-300/40 text-[11px] text-violet-100 backdrop-blur transition"
             title="Save this exact view as the locked preview shown to non-subscribers"
