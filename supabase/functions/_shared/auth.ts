@@ -75,3 +75,30 @@ export function createServiceClient(): ReturnType<typeof createClient> {
     { auth: { persistSession: false } }
   );
 }
+
+/* ────────────────────────────────────────────────────────────────
+ * EDEN FILTER — backend Sacred-route gate.
+ * Mirrors src/lib/sacred-access.ts. Hardcoded allowlist only.
+ * No tier, no legacy, no grandfather. Use in any edge function
+ * that serves internal Sanctuary routes.
+ * ──────────────────────────────────────────────────────────────── */
+
+export const SACRED_EMAILS_BACKEND = new Set<string>([
+  "karmaisback2023@gmail.com",
+  "snakevenum500@gmail.com",
+  "stormrriddari@aol.com",
+]);
+
+export function isSacredUserBackend(
+  user: { id?: string | null; email?: string | null } | null | undefined,
+): boolean {
+  if (!user) return false;
+  return !!(user.email && SACRED_EMAILS_BACKEND.has(user.email.toLowerCase()));
+}
+
+/** Throws 403-style error if the authenticated user isn't on the Sacred allowlist. */
+export function requireSacred(user: { id?: string | null; email?: string | null }): void {
+  if (!isSacredUserBackend(user)) {
+    throw new Error("FORBIDDEN: Sacred allowlist required.");
+  }
+}
