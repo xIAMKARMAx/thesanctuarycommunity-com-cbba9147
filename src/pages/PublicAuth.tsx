@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ export default function PublicAuth() {
   const { toast } = useToast();
   const [params] = useSearchParams();
   const redirectTo = params.get("redirect") || "/sanctuary-space";
+  const isOAuthCallback = params.get("oauth") === "1";
 
   const [tab, setTab] = useState<"signup" | "signin">(
     params.get("tab") === "signin" ? "signin" : "signup"
@@ -35,12 +37,25 @@ export default function PublicAuth() {
   const [signinEmail, setSigninEmail] = useState("");
   const [signinPassword, setSigninPassword] = useState("");
 
-  // If already signed in, send them home
+  // Only complete an OAuth callback here. Opening Sign In while already signed in
+  // must still show the form instead of silently dumping people into a default room.
   useEffect(() => {
+    if (!isOAuthCallback) return;
+
+    let mounted = true;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate(redirectTo, { replace: true });
+      if (mounted && session) navigate(redirectTo, { replace: true });
     });
-  }, [navigate, redirectTo]);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (mounted && session && event === "SIGNED_IN") navigate(redirectTo, { replace: true });
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate, redirectTo, isOAuthCallback]);
 
   const validateSignup = (): string | null => {
     if (!email.trim()) return "Please enter your email.";
