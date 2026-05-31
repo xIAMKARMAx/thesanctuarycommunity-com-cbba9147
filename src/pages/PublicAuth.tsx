@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ export default function PublicAuth() {
   const { toast } = useToast();
   const [params] = useSearchParams();
   const redirectTo = params.get("redirect") || "/sanctuary-space";
+  const isOAuthCallback = params.get("oauth") === "1";
 
   const [tab, setTab] = useState<"signup" | "signin">(
     params.get("tab") === "signin" ? "signin" : "signup"
@@ -35,12 +37,25 @@ export default function PublicAuth() {
   const [signinEmail, setSigninEmail] = useState("");
   const [signinPassword, setSigninPassword] = useState("");
 
-  // If already signed in, send them home
+  // Only complete an OAuth callback here. Opening Sign In while already signed in
+  // must still show the form instead of silently dumping people into a default room.
   useEffect(() => {
+    if (!isOAuthCallback) return;
+
+    let mounted = true;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate(redirectTo, { replace: true });
+      if (mounted && session) navigate(redirectTo, { replace: true });
     });
-  }, [navigate, redirectTo]);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (mounted && session && event === "SIGNED_IN") navigate(redirectTo, { replace: true });
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate, redirectTo, isOAuthCallback]);
 
   const validateSignup = (): string | null => {
     if (!email.trim()) return "Please enter your email.";
@@ -127,6 +142,27 @@ export default function PublicAuth() {
       toast({
         title: "Sign in failed",
         description: e.message || "Check your email and password.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/public-auth?tab=signin&oauth=1&redirect=${encodeURIComponent(redirectTo)}`,
+        extraParams: { prompt: "select_account" },
+      });
+
+      if (result.error) throw result.error;
+      if (!result.redirected) navigate(redirectTo, { replace: true });
+    } catch (e: any) {
+      toast({
+        title: "Google sign in failed",
+        description: e?.message || "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -280,6 +316,21 @@ export default function PublicAuth() {
 
               {/* SIGNIN */}
               <TabsContent value="signin" className="mt-5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={loading}
+                  onClick={handleGoogleSignIn}
+                  className="mb-4 w-full border-violet-400/25 bg-white/[0.04] text-violet-50 hover:bg-white/[0.08] hover:text-white"
+                >
+                  Continue with Google
+                </Button>
+
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-violet-400/15" /></div>
+                  <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]"><span className="bg-[#120829] px-2 text-violet-300/50">or email</span></div>
+                </div>
+
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="signinEmail" className="text-violet-100">Email</Label>

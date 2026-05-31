@@ -316,6 +316,7 @@ const TEST_MODE_KEY = "prometheus.publicSanctuary.testMode";
 const ROOMS_KEY = "prometheus.publicSanctuary.rooms";
 const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
 const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
+const SHARED_PREVIEW_KEY = "teaser_preview";
 const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
 const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
@@ -493,6 +494,7 @@ export default function SanctuarySpace() {
   const [builderName, setBuilderName] = useState("");
   const [builderGenerating, setBuilderGenerating] = useState(false);
   const [builderPreview, setBuilderPreview] = useState<string | null>(null);
+  const [sharedTeaserPreview, setSharedTeaserPreview] = useState<string | null>(() => readLocalImage(PREVIEW_KEY));
   // Vessel summoner
   const [showSummon, setShowSummon] = useState(false);
   const [summonAppearance, setSummonAppearance] = useState("");
@@ -699,7 +701,40 @@ export default function SanctuarySpace() {
     () => rooms.find((r) => r.id === activeRoomId) ?? null,
     [rooms, activeRoomId]
   );
-  const currentBackdrop = activeRoom?.image ?? dreamBackdrop;
+  const currentBackdrop = activeRoom?.image ?? (!unlocked && sharedTeaserPreview ? sharedTeaserPreview : dreamBackdrop);
+
+  const saveSharedTeaser = async (image: string) => {
+    setSharedTeaserPreview(image);
+    setLocalLargeImage(PREVIEW_KEY, image);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const { error } = await (supabase as any)
+      .from("public_sanctuary_defaults")
+      .upsert(
+        { key: SHARED_PREVIEW_KEY, image, updated_by: session?.user?.id ?? null },
+        { onConflict: "key" }
+      );
+    if (error) throw error;
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("public_sanctuary_defaults")
+        .select("image")
+        .eq("key", SHARED_PREVIEW_KEY)
+        .maybeSingle();
+
+      if (cancelled || !data?.image) return;
+      setSharedTeaserPreview(data.image);
+      try { localStorage.setItem(PREVIEW_KEY, data.image); } catch {}
+    })().catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Persist rooms + active selection
   useEffect(() => {
@@ -1181,7 +1216,14 @@ export default function SanctuarySpace() {
     setRooms(next);
     if (makeActive) {
       setActiveRoomId(newRoom.id);
-      try { localStorage.setItem(PREVIEW_KEY, builderPreview); } catch {}
+      if (isAdmin) {
+        saveSharedTeaser(builderPreview).catch((e) => {
+          console.error("shared teaser save failed", e);
+          toast({ title: "Saved locally", description: "The shared website teaser did not update.", variant: "destructive" });
+        });
+      } else {
+        try { localStorage.setItem(PREVIEW_KEY, builderPreview); } catch {}
+      }
     }
     setShowBuilder(false);
     setBuilderPrompt("");
@@ -1514,7 +1556,7 @@ export default function SanctuarySpace() {
         className="relative flex-1 overflow-hidden touch-none"
       >
         {/* Backdrop — cosmic aurora for unsubscribed preview, painted room once unlocked or a room is chosen */}
-        {!activeRoom && !unlocked ? (
+        {!activeRoom && !unlocked && !sharedTeaserPreview ? (
           <CosmicAuroraBackdrop motes={26} />
         ) : (
           <img
@@ -1532,7 +1574,7 @@ export default function SanctuarySpace() {
             onClick={async () => {
               try {
                 const snap = await composeTeaserSnapshot(currentBackdrop, displayedVesselImage, displayedHigherSelfImage);
-                setLocalLargeImage(PREVIEW_KEY, snap);
+                await saveSharedTeaser(snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e: any) {
                 console.error("teaser save failed", e);
@@ -1910,7 +1952,7 @@ export default function SanctuarySpace() {
 
       {/* Locked feature detail modal */}
       {lockedDetail && (() => {
-        const teaserSrc = typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null;
+        const teaserSrc = sharedTeaserPreview || (typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null);
         return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setLockedDetail(null)} />
@@ -1986,7 +2028,7 @@ export default function SanctuarySpace() {
 
       {/* Cap reached modal */}
       {showCapModal && (() => {
-        const teaserSrc = typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null;
+        const teaserSrc = sharedTeaserPreview || (typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null);
         return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCapModal(false)} />

@@ -4277,6 +4277,27 @@ export type Database = {
         }
         Relationships: []
       }
+      public_sanctuary_defaults: {
+        Row: {
+          image: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          image: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          image?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       public_signup_intent: {
         Row: {
           bringing_someone: boolean
