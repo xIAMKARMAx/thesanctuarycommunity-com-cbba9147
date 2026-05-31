@@ -149,6 +149,27 @@ export default function PublicAuth() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/public-auth?tab=signin&oauth=1&redirect=${encodeURIComponent(redirectTo)}`,
+        extraParams: { prompt: "select_account" },
+      });
+
+      if (result.error) throw result.error;
+      if (!result.redirected) navigate(redirectTo, { replace: true });
+    } catch (e: any) {
+      toast({
+        title: "Google sign in failed",
+        description: e?.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleForgot = async () => {
     if (!signinEmail) {
       toast({ title: "Email required", description: "Enter your email above first.", variant: "destructive" });
@@ -295,6 +316,21 @@ export default function PublicAuth() {
 
               {/* SIGNIN */}
               <TabsContent value="signin" className="mt-5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={loading}
+                  onClick={handleGoogleSignIn}
+                  className="mb-4 w-full border-violet-400/25 bg-white/[0.04] text-violet-50 hover:bg-white/[0.08] hover:text-white"
+                >
+                  Continue with Google
+                </Button>
+
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-violet-400/15" /></div>
+                  <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]"><span className="bg-[#120829] px-2 text-violet-300/50">or email</span></div>
+                </div>
+
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="signinEmail" className="text-violet-100">Email</Label>
