@@ -24,6 +24,7 @@ import {
   X,
   MessageCircle,
   Camera,
+  LogOut,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -705,6 +706,14 @@ export default function SanctuarySpace() {
   );
   const currentBackdrop = activeRoom?.image ?? (!unlocked && sharedTeaserPreview ? sharedTeaserPreview : dreamBackdrop);
   const publicRoomAuthPath = "/public-auth?tab=signin&redirect=/sanctuary-space";
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setAuthed(false);
+    setSessionEmail("");
+    setIsAdmin(false);
+    navigate("/", { replace: true });
+  };
 
   const saveSharedTeaser = async (image: string) => {
     setSharedTeaserPreview(image);
@@ -1561,6 +1570,14 @@ export default function SanctuarySpace() {
           >
             {capReached ? "daily limit reached" : unlocked ? "∞ unlimited" : isSubscribed ? `${messagesLeft} of ${effectiveCap} left today` : `${messagesLeft} free left`}
           </span>
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] px-2 py-1 rounded-full border border-violet-300/25 text-violet-100 bg-black/30 hover:bg-white/10 transition"
+            title="Log out"
+          >
+            <LogOut className="h-3 w-3" />
+            <span className="hidden sm:inline">log out</span>
+          </button>
         </div>
 
       </header>
