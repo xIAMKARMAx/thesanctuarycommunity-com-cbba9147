@@ -188,7 +188,7 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
     safeSelf ? load(safeSelf) : Promise.resolve(null),
   ]);
 
-  const W = 1200, H = 675;
+  const W = 960, H = 540;
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
@@ -224,8 +224,73 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
   if (self) drawStandingForm(self, 0.28);
   drawStandingForm(vessel, 0.5, "screen");
 
-  return canvas.toDataURL("image/jpeg", 0.88);
+  return canvas.toDataURL("image/jpeg", 0.72);
 }
+
+// Save large value into localStorage, with progressive cleanup of known-bulky stale keys
+// and re-compression of data-URL images if the quota is still exceeded.
+function setLocalLargeImage(key: string, dataUrl: string): void {
+  const tryWrite = (value: string) => {
+    localStorage.setItem(key, value);
+  };
+
+  const recompress = (value: string, quality: number, maxW: number): Promise<string> =>
+    new Promise((resolve) => {
+      if (!value.startsWith("data:image")) return resolve(value);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.naturalWidth);
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        const cx = c.getContext("2d");
+        if (!cx) return resolve(value);
+        cx.drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => resolve(value);
+      img.src = value;
+    });
+
+  const purgeStale = () => {
+    // Drop bulky non-essential cached blobs first; keep originals & active vessel/self.
+    const expendable = [
+      "prometheus.publicSanctuary.vesselImage.roomSprite.v1",
+      "prometheus.publicSanctuary.vesselImage.roomSprite.source",
+      "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3",
+      "prometheus.publicSanctuary.higherSelfImage.roomSprite.source",
+      "prometheus.publicSanctuary.vesselImage.backup",
+      "prometheus.publicSanctuary.higherSelfImage.backup",
+      key, // remove old teaser too
+    ];
+    for (const k of expendable) {
+      try { localStorage.removeItem(k); } catch {}
+    }
+  };
+
+  try {
+    tryWrite(dataUrl);
+    return;
+  } catch {}
+
+  purgeStale();
+  try {
+    tryWrite(dataUrl);
+    return;
+  } catch {}
+
+  // Last resort: recompress to 720w / q0.55, then 480w / q0.45
+  recompress(dataUrl, 0.55, 720).then((smaller) => {
+    try { tryWrite(smaller); return; } catch {}
+    recompress(smaller, 0.45, 480).then((tiny) => {
+      try { tryWrite(tiny); } catch (e) {
+        throw e;
+      }
+    });
+  });
+}
+
 
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const SEEDED_KEY = "prometheus.publicSanctuary.importSeeded";
@@ -1467,13 +1532,14 @@ export default function SanctuarySpace() {
             onClick={async () => {
               try {
                 const snap = await composeTeaserSnapshot(currentBackdrop, displayedVesselImage, displayedHigherSelfImage);
-                localStorage.setItem(PREVIEW_KEY, snap);
+                setLocalLargeImage(PREVIEW_KEY, snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e: any) {
                 console.error("teaser save failed", e);
                 toast({ title: "Couldn't save", description: e?.message || "Try again in a moment.", variant: "destructive" });
               }
             }}
+
 
             className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-violet-300/40 text-[11px] text-violet-100 backdrop-blur transition"
             title="Save this exact view as the locked preview shown to non-subscribers"
