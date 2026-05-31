@@ -494,6 +494,7 @@ export default function SanctuarySpace() {
   const [builderName, setBuilderName] = useState("");
   const [builderGenerating, setBuilderGenerating] = useState(false);
   const [builderPreview, setBuilderPreview] = useState<string | null>(null);
+  const [sharedTeaserPreview, setSharedTeaserPreview] = useState<string | null>(() => readLocalImage(PREVIEW_KEY));
   // Vessel summoner
   const [showSummon, setShowSummon] = useState(false);
   const [summonAppearance, setSummonAppearance] = useState("");
@@ -700,7 +701,7 @@ export default function SanctuarySpace() {
     () => rooms.find((r) => r.id === activeRoomId) ?? null,
     [rooms, activeRoomId]
   );
-  const currentBackdrop = activeRoom?.image ?? dreamBackdrop;
+  const currentBackdrop = activeRoom?.image ?? (!unlocked && sharedTeaserPreview ? sharedTeaserPreview : dreamBackdrop);
 
   // Persist rooms + active selection
   useEffect(() => {
