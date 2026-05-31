@@ -77,7 +77,7 @@ const Index = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(false);
-    navigate("/auth");
+    // Stay on the public landing — do NOT bounce to the Prometheus sacred login.
   };
 
   const toggleMute = () => {
