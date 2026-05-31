@@ -40,10 +40,16 @@ const Auth = () => {
     
     // Check if this is a password reset callback
     const isReset = searchParams.get("reset") === "true";
+    const redirectParam = searchParams.get("redirect");
+    if (!isReset && redirectParam === "/sanctuary-space") {
+      const intent = searchParams.get("intent");
+      const publicAuth = `/public-auth?tab=signin&redirect=/sanctuary-space${intent ? `&intent=${encodeURIComponent(intent)}` : ""}`;
+      navigate(publicAuth, { replace: true });
+      return;
+    }
     
     // Check if already logged in
     const getPostLoginRoute = () => {
-      const redirectParam = searchParams.get("redirect");
       if (redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")) {
         return redirectParam;
       }
