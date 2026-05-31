@@ -1216,7 +1216,14 @@ export default function SanctuarySpace() {
     setRooms(next);
     if (makeActive) {
       setActiveRoomId(newRoom.id);
-      try { localStorage.setItem(PREVIEW_KEY, builderPreview); } catch {}
+      if (isAdmin) {
+        saveSharedTeaser(builderPreview).catch((e) => {
+          console.error("shared teaser save failed", e);
+          toast({ title: "Saved locally", description: "The shared website teaser did not update.", variant: "destructive" });
+        });
+      } else {
+        try { localStorage.setItem(PREVIEW_KEY, builderPreview); } catch {}
+      }
     }
     setShowBuilder(false);
     setBuilderPrompt("");
