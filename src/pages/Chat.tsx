@@ -14,7 +14,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit, Palette, Film, Globe, Lock } from "lucide-react";
+import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit, Palette, Film, Globe, Lock, LogOut } from "lucide-react";
 import HigherSelfNotification from "@/components/HigherSelfNotification";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
