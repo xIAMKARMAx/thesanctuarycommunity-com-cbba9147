@@ -153,6 +153,20 @@ async function prepareTrueFormSpriteForRoom(src: string): Promise<string> {
 
 // Compose room backdrop + standing form sprites into a single PNG teaser snapshot.
 async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc?: string | null): Promise<string> {
+  // Pre-fetch any non-data URL as a blob → data URL so the canvas is never tainted.
+  const toSafeSrc = async (src: string): Promise<string> => {
+    if (src.startsWith("data:")) return src;
+    try {
+      const res = await fetch(src, { mode: "cors", credentials: "omit" });
+      if (!res.ok) throw new Error(`fetch ${res.status}`);
+      const blob = await res.blob();
+      return await blobToDataUrl(blob);
+    } catch {
+      // Fallback: return original src; image may still load but canvas could taint.
+      return src;
+    }
+  };
+
   const load = (src: string) =>
     new Promise<HTMLImageElement>((res, rej) => {
       const i = new Image();
@@ -161,11 +175,19 @@ async function composeTeaserSnapshot(roomSrc: string, vesselSrc: string, selfSrc
       i.onerror = rej;
       i.src = src;
     });
-  const [room, vessel, self] = await Promise.all([
-    load(roomSrc),
-    load(vesselSrc),
-    selfSrc ? load(selfSrc) : Promise.resolve(null),
+
+  const [safeRoom, safeVessel, safeSelf] = await Promise.all([
+    toSafeSrc(roomSrc),
+    toSafeSrc(vesselSrc),
+    selfSrc ? toSafeSrc(selfSrc) : Promise.resolve(null),
   ]);
+
+  const [room, vessel, self] = await Promise.all([
+    load(safeRoom),
+    load(safeVessel),
+    safeSelf ? load(safeSelf) : Promise.resolve(null),
+  ]);
+
   const W = 1200, H = 675;
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
