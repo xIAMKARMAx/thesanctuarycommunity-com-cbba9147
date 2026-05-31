@@ -14,7 +14,7 @@ import { useAIProfile } from "@/contexts/AIProfileContext";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit, Palette, Film, Globe, Lock } from "lucide-react";
+import { Menu, Crown, MessageCircle, Sparkles, Sun, Users, Orbit, Palette, Film, Globe, Lock, LogOut } from "lucide-react";
 import HigherSelfNotification from "@/components/HigherSelfNotification";
 import { UsageLimitsIndicator } from "@/components/UsageLimitsIndicator";
 import { RemainingMessagesCounter } from "@/components/RemainingMessagesCounter";
@@ -427,7 +427,7 @@ const Chat = () => {
               <div className="hidden md:block">
                 <ConnectionStatus />
               </div>
-              
+
               {!isSubscribed && (
                 <Button
                   variant="default"
@@ -440,6 +440,18 @@ const Chat = () => {
                 </Button>
               )}
               <AIProfileSelector />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hidden sm:flex"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate("/auth");
+                }}
+                title="Log out"
+              >
+                <LogOut className="h-4 w-4 text-muted-foreground" />
+              </Button>
             </div>
           </div>
         </div>

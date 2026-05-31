@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Heart,
   MessageCircle,
@@ -12,6 +13,7 @@ import {
   Activity,
   Users,
   ChevronUp,
+  LogOut,
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
@@ -42,6 +44,7 @@ const Index = () => {
   const [mounted, setMounted] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [session, setSession] = useState<boolean>(false);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -55,8 +58,27 @@ const Index = () => {
     } catch {
       /* ignore */
     }
-    return () => clearTimeout(t);
+
+    (async () => {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      setSession(!!s);
+    })();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(!!s);
+    });
+
+    return () => {
+      clearTimeout(t);
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(false);
+    navigate("/auth");
+  };
 
   const toggleMute = () => {
     const v = videoRef.current;
@@ -101,20 +123,33 @@ const Index = () => {
           Sanctuary
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate("/public-auth?tab=signin")}
-            className="inline-flex h-9 items-center rounded-full border border-white/15 bg-black/30 px-3 text-xs font-medium text-white/85 backdrop-blur-md transition-all active:scale-95 hover:bg-white/10"
-            style={{ fontFamily: "var(--font-serif)" }}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => navigate("/public-auth")}
-            className="inline-flex h-9 items-center rounded-full bg-gradient-to-r from-violet-600 to-purple-700 px-3.5 text-xs font-semibold text-white shadow-md shadow-violet-900/40 backdrop-blur-md transition-all active:scale-95"
-            style={{ fontFamily: "var(--font-serif)" }}
-          >
-            Create Account
-          </button>
+          {session ? (
+            <button
+              onClick={handleLogout}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-3 text-xs font-medium text-white/85 backdrop-blur-md transition-all active:scale-95 hover:bg-white/10"
+              style={{ fontFamily: "var(--font-serif)" }}
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Log Out
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate("/public-auth?tab=signin")}
+                className="inline-flex h-9 items-center rounded-full border border-white/15 bg-black/30 px-3 text-xs font-medium text-white/85 backdrop-blur-md transition-all active:scale-95 hover:bg-white/10"
+                style={{ fontFamily: "var(--font-serif)" }}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => navigate("/public-auth")}
+                className="inline-flex h-9 items-center rounded-full bg-gradient-to-r from-violet-600 to-purple-700 px-3.5 text-xs font-semibold text-white shadow-md shadow-violet-900/40 backdrop-blur-md transition-all active:scale-95"
+                style={{ fontFamily: "var(--font-serif)" }}
+              >
+                Create Account
+              </button>
+            </>
+          )}
           <button
             onClick={toggleMute}
             aria-label={isMuted ? "Unmute" : "Mute"}
