@@ -1437,7 +1437,7 @@ export default function SanctuarySpace() {
           <div className="flex flex-col gap-2">
             <Button
               size="lg"
-              onClick={() => navigate("/auth?redirect=/sanctuary-space")}
+              onClick={() => navigate(publicRoomAuthPath)}
               className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
             >
               Continue
@@ -2025,7 +2025,7 @@ export default function SanctuarySpace() {
                 </Button>
               ) : (
                 <Button
-                  onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
+                  onClick={() => navigate(`${publicRoomAuthPath}&intent=upgrade`)}
                   className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
                 >
                   <Heart className="mr-2 h-4 w-4" /> Make this home yours
@@ -2071,7 +2071,7 @@ export default function SanctuarySpace() {
             </p>
             <div className="flex flex-col gap-2 pt-2">
               <Button
-                onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
+                onClick={() => navigate(`${publicRoomAuthPath}&intent=upgrade`)}
                 className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
               >
                 Make this home yours
