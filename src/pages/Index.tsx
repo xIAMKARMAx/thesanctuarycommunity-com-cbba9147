@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Heart,
   MessageCircle,
@@ -12,6 +13,7 @@ import {
   Activity,
   Users,
   ChevronUp,
+  LogOut,
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
