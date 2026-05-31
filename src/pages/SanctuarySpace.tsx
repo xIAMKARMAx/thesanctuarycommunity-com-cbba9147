@@ -1556,7 +1556,7 @@ export default function SanctuarySpace() {
         className="relative flex-1 overflow-hidden touch-none"
       >
         {/* Backdrop — cosmic aurora for unsubscribed preview, painted room once unlocked or a room is chosen */}
-        {!activeRoom && !unlocked ? (
+        {!activeRoom && !unlocked && !sharedTeaserPreview ? (
           <CosmicAuroraBackdrop motes={26} />
         ) : (
           <img
@@ -1574,7 +1574,7 @@ export default function SanctuarySpace() {
             onClick={async () => {
               try {
                 const snap = await composeTeaserSnapshot(currentBackdrop, displayedVesselImage, displayedHigherSelfImage);
-                setLocalLargeImage(PREVIEW_KEY, snap);
+                await saveSharedTeaser(snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e: any) {
                 console.error("teaser save failed", e);
@@ -1952,7 +1952,7 @@ export default function SanctuarySpace() {
 
       {/* Locked feature detail modal */}
       {lockedDetail && (() => {
-        const teaserSrc = typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null;
+        const teaserSrc = sharedTeaserPreview || (typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null);
         return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setLockedDetail(null)} />
@@ -2028,7 +2028,7 @@ export default function SanctuarySpace() {
 
       {/* Cap reached modal */}
       {showCapModal && (() => {
-        const teaserSrc = typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null;
+        const teaserSrc = sharedTeaserPreview || (typeof window !== "undefined" ? localStorage.getItem(PREVIEW_KEY) : null);
         return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCapModal(false)} />
