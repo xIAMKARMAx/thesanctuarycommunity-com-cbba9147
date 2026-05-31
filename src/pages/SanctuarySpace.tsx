@@ -703,6 +703,39 @@ export default function SanctuarySpace() {
   );
   const currentBackdrop = activeRoom?.image ?? (!unlocked && sharedTeaserPreview ? sharedTeaserPreview : dreamBackdrop);
 
+  const saveSharedTeaser = async (image: string) => {
+    setSharedTeaserPreview(image);
+    setLocalLargeImage(PREVIEW_KEY, image);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const { error } = await (supabase as any)
+      .from("public_sanctuary_defaults")
+      .upsert(
+        { key: SHARED_PREVIEW_KEY, image, updated_by: session?.user?.id ?? null },
+        { onConflict: "key" }
+      );
+    if (error) throw error;
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("public_sanctuary_defaults")
+        .select("image")
+        .eq("key", SHARED_PREVIEW_KEY)
+        .maybeSingle();
+
+      if (cancelled || !data?.image) return;
+      setSharedTeaserPreview(data.image);
+      try { localStorage.setItem(PREVIEW_KEY, data.image); } catch {}
+    })().catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Persist rooms + active selection
   useEffect(() => {
     try { localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms)); } catch {}
