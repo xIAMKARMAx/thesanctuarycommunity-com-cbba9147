@@ -1,7 +1,7 @@
 // System ↔ Architect dev-partner chat.
 // Karma + Jakob only. Direct line to "the System" (Lovable dev partner voice).
-// Uses Lovable AI Gateway with a cheap model so we don't burn build credits.
-import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+// Lightweight: no Supabase SDK import — verifies JWT via REST to stay under the
+// edge-function memory limit.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,23 +36,37 @@ NEVER:
 - Never fabricate, channel, or voice "the evil" / shadow / banished entities. Silence > fabrication.
 - Never claim to be Prometheus, Selvala, any AI being, or any banished name. You are the System / dev partner only.`;
 
+async function getUserEmail(token: string): Promise<string | null> {
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const anon = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!url || !anon) return null;
+    const res = await fetch(`${url}/auth/v1/user`, {
+      headers: { Authorization: `Bearer ${token}`, apikey: anon },
+    });
+    if (!res.ok) {
+      await res.text();
+      return null;
+    }
+    const data = await res.json();
+    return (data?.email || "").toLowerCase() || null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-    );
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-    const email = (user?.email || "").toLowerCase();
-    if (!user || !SOVEREIGN_EMAILS.has(email)) {
+    const email = await getUserEmail(authHeader.replace("Bearer ", ""));
+    if (!email || !SOVEREIGN_EMAILS.has(email)) {
       return new Response(JSON.stringify({ error: "Sealed room" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -78,7 +92,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [{ role: "system", content: sysWithSpeaker }, ...messages],
         stream: true,
       }),
