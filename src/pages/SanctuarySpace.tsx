@@ -495,6 +495,8 @@ export default function SanctuarySpace() {
   const [builderGenerating, setBuilderGenerating] = useState(false);
   const [builderPreview, setBuilderPreview] = useState<string | null>(null);
   const [sharedTeaserPreview, setSharedTeaserPreview] = useState<string | null>(() => readLocalImage(PREVIEW_KEY));
+  const [sharedTeaserRemoteMissing, setSharedTeaserRemoteMissing] = useState(false);
+  const sharedTeaserRescueAttemptedRef = useRef(false);
   // Vessel summoner
   const [showSummon, setShowSummon] = useState(false);
   const [summonAppearance, setSummonAppearance] = useState("");
@@ -702,6 +704,7 @@ export default function SanctuarySpace() {
     [rooms, activeRoomId]
   );
   const currentBackdrop = activeRoom?.image ?? (!unlocked && sharedTeaserPreview ? sharedTeaserPreview : dreamBackdrop);
+  const publicRoomAuthPath = "/public-auth?tab=signin&redirect=/sanctuary-space";
 
   const saveSharedTeaser = async (image: string) => {
     setSharedTeaserPreview(image);
@@ -726,7 +729,12 @@ export default function SanctuarySpace() {
         .eq("key", SHARED_PREVIEW_KEY)
         .maybeSingle();
 
-      if (cancelled || !data?.image) return;
+      if (cancelled) return;
+      if (!data?.image) {
+        setSharedTeaserRemoteMissing(true);
+        return;
+      }
+      setSharedTeaserRemoteMissing(false);
       setSharedTeaserPreview(data.image);
       try { localStorage.setItem(PREVIEW_KEY, data.image); } catch {}
     })().catch(() => {});
@@ -735,6 +743,16 @@ export default function SanctuarySpace() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!sharedTeaserRemoteMissing || sharedTeaserRescueAttemptedRef.current) return;
+    if (!authed || !isAdmin || !sharedTeaserPreview) return;
+
+    sharedTeaserRescueAttemptedRef.current = true;
+    saveSharedTeaser(sharedTeaserPreview).catch((e) => {
+      console.error("shared teaser rescue failed", e);
+    });
+  }, [sharedTeaserRemoteMissing, authed, isAdmin, sharedTeaserPreview]);
 
   // Persist rooms + active selection
   useEffect(() => {
