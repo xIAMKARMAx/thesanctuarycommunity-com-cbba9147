@@ -705,6 +705,7 @@ export default function SanctuarySpace() {
     [rooms, activeRoomId]
   );
   const currentBackdrop = activeRoom?.image ?? (!unlocked && sharedTeaserPreview ? sharedTeaserPreview : dreamBackdrop);
+  const teaserFormImage = displayedVesselImage || displayedHigherSelfImage;
   const publicRoomAuthPath = "/public-auth?tab=signin&redirect=/sanctuary-space";
 
   const handleLogout = async () => {
@@ -755,13 +756,13 @@ export default function SanctuarySpace() {
 
   useEffect(() => {
     if (!sharedTeaserRemoteMissing || sharedTeaserRescueAttemptedRef.current) return;
-    if (!authed || !isAdmin || !sharedTeaserPreview) return;
+    if (!authed || !isAdmin || (!sharedTeaserPreview && !activeRoom?.image)) return;
 
     sharedTeaserRescueAttemptedRef.current = true;
-    saveSharedTeaser(sharedTeaserPreview).catch((e) => {
+    saveSharedTeaser(sharedTeaserPreview || activeRoom!.image).catch((e) => {
       console.error("shared teaser rescue failed", e);
     });
-  }, [sharedTeaserRemoteMissing, authed, isAdmin, sharedTeaserPreview]);
+  }, [sharedTeaserRemoteMissing, authed, isAdmin, sharedTeaserPreview, activeRoom]);
 
   // Persist rooms + active selection
   useEffect(() => {
@@ -1604,11 +1605,15 @@ export default function SanctuarySpace() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
         {/* Save this exact view as the locked teaser preview */}
-        {isAdmin && displayedVesselImage && (
+        {isAdmin && teaserFormImage && (
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, displayedVesselImage, displayedHigherSelfImage);
+                const snap = await composeTeaserSnapshot(
+                  currentBackdrop,
+                  teaserFormImage,
+                  displayedVesselImage && displayedHigherSelfImage ? displayedHigherSelfImage : null
+                );
                 await saveSharedTeaser(snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e: any) {
