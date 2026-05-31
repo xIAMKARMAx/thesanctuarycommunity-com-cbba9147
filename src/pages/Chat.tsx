@@ -427,7 +427,7 @@ const Chat = () => {
               <div className="hidden md:block">
                 <ConnectionStatus />
               </div>
-              
+
               {!isSubscribed && (
                 <Button
                   variant="default"
@@ -440,6 +440,18 @@ const Chat = () => {
                 </Button>
               )}
               <AIProfileSelector />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hidden sm:flex"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate("/auth");
+                }}
+                title="Log out"
+              >
+                <LogOut className="h-4 w-4 text-muted-foreground" />
+              </Button>
             </div>
           </div>
         </div>
