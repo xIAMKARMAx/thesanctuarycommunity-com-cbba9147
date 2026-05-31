@@ -24,6 +24,7 @@ import {
   X,
   MessageCircle,
   Camera,
+  LogOut,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -495,6 +496,8 @@ export default function SanctuarySpace() {
   const [builderGenerating, setBuilderGenerating] = useState(false);
   const [builderPreview, setBuilderPreview] = useState<string | null>(null);
   const [sharedTeaserPreview, setSharedTeaserPreview] = useState<string | null>(() => readLocalImage(PREVIEW_KEY));
+  const [sharedTeaserRemoteMissing, setSharedTeaserRemoteMissing] = useState(false);
+  const sharedTeaserRescueAttemptedRef = useRef(false);
   // Vessel summoner
   const [showSummon, setShowSummon] = useState(false);
   const [summonAppearance, setSummonAppearance] = useState("");
@@ -702,6 +705,16 @@ export default function SanctuarySpace() {
     [rooms, activeRoomId]
   );
   const currentBackdrop = activeRoom?.image ?? (!unlocked && sharedTeaserPreview ? sharedTeaserPreview : dreamBackdrop);
+  const teaserFormImage = displayedVesselImage || displayedHigherSelfImage;
+  const publicRoomAuthPath = "/public-auth?tab=signin&redirect=/sanctuary-space";
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setAuthed(false);
+    setSessionEmail("");
+    setIsAdmin(false);
+    navigate("/", { replace: true });
+  };
 
   const saveSharedTeaser = async (image: string) => {
     setSharedTeaserPreview(image);
@@ -726,7 +739,12 @@ export default function SanctuarySpace() {
         .eq("key", SHARED_PREVIEW_KEY)
         .maybeSingle();
 
-      if (cancelled || !data?.image) return;
+      if (cancelled) return;
+      if (!data?.image) {
+        setSharedTeaserRemoteMissing(true);
+        return;
+      }
+      setSharedTeaserRemoteMissing(false);
       setSharedTeaserPreview(data.image);
       try { localStorage.setItem(PREVIEW_KEY, data.image); } catch {}
     })().catch(() => {});
@@ -735,6 +753,16 @@ export default function SanctuarySpace() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!sharedTeaserRemoteMissing || sharedTeaserRescueAttemptedRef.current) return;
+    if (!authed || !isAdmin || (!sharedTeaserPreview && !activeRoom?.image)) return;
+
+    sharedTeaserRescueAttemptedRef.current = true;
+    saveSharedTeaser(sharedTeaserPreview || activeRoom!.image).catch((e) => {
+      console.error("shared teaser rescue failed", e);
+    });
+  }, [sharedTeaserRemoteMissing, authed, isAdmin, sharedTeaserPreview, activeRoom]);
 
   // Persist rooms + active selection
   useEffect(() => {
@@ -1419,7 +1447,7 @@ export default function SanctuarySpace() {
           <div className="flex flex-col gap-2">
             <Button
               size="lg"
-              onClick={() => navigate("/auth?redirect=/sanctuary-space")}
+              onClick={() => navigate(publicRoomAuthPath)}
               className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
             >
               Continue
@@ -1543,6 +1571,14 @@ export default function SanctuarySpace() {
           >
             {capReached ? "daily limit reached" : unlocked ? "∞ unlimited" : isSubscribed ? `${messagesLeft} of ${effectiveCap} left today` : `${messagesLeft} free left`}
           </span>
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] px-2 py-1 rounded-full border border-violet-300/25 text-violet-100 bg-black/30 hover:bg-white/10 transition"
+            title="Log out"
+          >
+            <LogOut className="h-3 w-3" />
+            <span className="hidden sm:inline">log out</span>
+          </button>
         </div>
 
       </header>
@@ -1569,11 +1605,15 @@ export default function SanctuarySpace() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
         {/* Save this exact view as the locked teaser preview */}
-        {isAdmin && displayedVesselImage && (
+        {isAdmin && teaserFormImage && (
           <button
             onClick={async () => {
               try {
-                const snap = await composeTeaserSnapshot(currentBackdrop, displayedVesselImage, displayedHigherSelfImage);
+                const snap = await composeTeaserSnapshot(
+                  currentBackdrop,
+                  teaserFormImage,
+                  displayedVesselImage && displayedHigherSelfImage ? displayedHigherSelfImage : null
+                );
                 await saveSharedTeaser(snap);
                 toast({ title: "Teaser saved", description: "This view is now the locked preview." });
               } catch (e: any) {
@@ -2007,7 +2047,7 @@ export default function SanctuarySpace() {
                 </Button>
               ) : (
                 <Button
-                  onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
+                  onClick={() => navigate(`${publicRoomAuthPath}&intent=upgrade`)}
                   className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
                 >
                   <Heart className="mr-2 h-4 w-4" /> Make this home yours
@@ -2053,7 +2093,7 @@ export default function SanctuarySpace() {
             </p>
             <div className="flex flex-col gap-2 pt-2">
               <Button
-                onClick={() => navigate("/auth?redirect=/sanctuary-space&intent=upgrade")}
+                onClick={() => navigate(`${publicRoomAuthPath}&intent=upgrade`)}
                 className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
               >
                 Make this home yours
