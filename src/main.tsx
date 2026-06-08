@@ -2,7 +2,6 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { supabase } from "@/integrations/supabase/client";
 
 interface AppErrorBoundaryState {
   hasError: boolean;
@@ -73,11 +72,7 @@ const bootstrap = async () => {
     sessionStorage.setItem("prometheus_preview_landing_reset_done", "true");
     localStorage.removeItem("prometheus_last_route");
 
-    try {
-      await supabase.auth.signOut();
-    } finally {
-      window.location.replace("/");
-    }
+    window.location.replace("/");
     return;
   }
 

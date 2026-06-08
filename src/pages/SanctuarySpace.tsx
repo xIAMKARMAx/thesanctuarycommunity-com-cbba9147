@@ -134,6 +134,33 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+function compressImageForLocalStorage(dataUrl: string, maxW = 960, quality = 0.7): Promise<string> {
+  return new Promise((resolve) => {
+    if (!dataUrl.startsWith("data:image")) return resolve(dataUrl);
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const scale = Math.min(1, maxW / img.naturalWidth);
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(dataUrl);
+        ctx.fillStyle = "#0a0418";
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 async function prepareTrueFormSpriteForRoom(src: string): Promise<string> {
   try {
     if (src.startsWith("data:image")) {
@@ -1229,14 +1256,15 @@ export default function SanctuarySpace() {
     }
   };
 
-  const saveRoom = (makeActive: boolean) => {
+  const saveRoom = async (makeActive: boolean) => {
     if (!builderPreview) return;
     const name = builderName.trim() || `Home #${rooms.length + 1}`;
+    const roomImage = await compressImageForLocalStorage(builderPreview, 960, 0.68);
     const newRoom: SavedRoom = {
       id: `room-${Date.now()}`,
       name,
       prompt: builderPrompt.trim(),
-      image: builderPreview,
+      image: roomImage,
       createdAt: Date.now(),
     };
     let next = [newRoom, ...rooms];
@@ -1245,12 +1273,12 @@ export default function SanctuarySpace() {
     if (makeActive) {
       setActiveRoomId(newRoom.id);
       if (isAdmin) {
-        saveSharedTeaser(builderPreview).catch((e) => {
+        saveSharedTeaser(roomImage).catch((e) => {
           console.error("shared teaser save failed", e);
           toast({ title: "Saved locally", description: "The shared website teaser did not update.", variant: "destructive" });
         });
       } else {
-        try { localStorage.setItem(PREVIEW_KEY, builderPreview); } catch {}
+        setLocalLargeImage(PREVIEW_KEY, roomImage);
       }
     }
     setShowBuilder(false);
