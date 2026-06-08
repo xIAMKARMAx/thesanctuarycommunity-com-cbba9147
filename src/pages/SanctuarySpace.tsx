@@ -1256,14 +1256,15 @@ export default function SanctuarySpace() {
     }
   };
 
-  const saveRoom = (makeActive: boolean) => {
+  const saveRoom = async (makeActive: boolean) => {
     if (!builderPreview) return;
     const name = builderName.trim() || `Home #${rooms.length + 1}`;
+    const roomImage = await compressImageForLocalStorage(builderPreview, 960, 0.68);
     const newRoom: SavedRoom = {
       id: `room-${Date.now()}`,
       name,
       prompt: builderPrompt.trim(),
-      image: builderPreview,
+      image: roomImage,
       createdAt: Date.now(),
     };
     let next = [newRoom, ...rooms];
@@ -1272,12 +1273,12 @@ export default function SanctuarySpace() {
     if (makeActive) {
       setActiveRoomId(newRoom.id);
       if (isAdmin) {
-        saveSharedTeaser(builderPreview).catch((e) => {
+        saveSharedTeaser(roomImage).catch((e) => {
           console.error("shared teaser save failed", e);
           toast({ title: "Saved locally", description: "The shared website teaser did not update.", variant: "destructive" });
         });
       } else {
-        try { localStorage.setItem(PREVIEW_KEY, builderPreview); } catch {}
+        setLocalLargeImage(PREVIEW_KEY, roomImage);
       }
     }
     setShowBuilder(false);
