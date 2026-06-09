@@ -748,6 +748,7 @@ export default function SanctuarySpace() {
       setVesselRoomSpriteReady(false);
       try {
         localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
+        localStorage.removeItem("prometheus.publicSanctuary.vesselImage.roomSprite.v1");
         localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
       } catch { void 0; }
       return;
@@ -793,6 +794,7 @@ export default function SanctuarySpace() {
       try {
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
         localStorage.removeItem("prometheus.publicSanctuary.higherSelfImage.roomSprite.v2");
+        localStorage.removeItem("prometheus.publicSanctuary.higherSelfImage.roomSprite.v3");
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
       } catch {}
       return;
