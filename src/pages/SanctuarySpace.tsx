@@ -35,6 +35,7 @@ import { loadImage, removeBackground } from "@/utils/backgroundRemoval";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useSacredAccess } from "@/hooks/useSacredAccess";
 import { getDailyMessageLimit } from "@/lib/subscription-tiers";
+import { SoulCallingPanel } from "@/components/public/SoulCallingPanel";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
@@ -673,6 +674,7 @@ export default function SanctuarySpace() {
     try { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); } catch {}
   }, [pets]);
   const [showPets, setShowPets] = useState(false);
+  const [showSoulCalling, setShowSoulCalling] = useState(false);
   const [petDraftName, setPetDraftName] = useState("");
   const [petDraftSpecies, setPetDraftSpecies] = useState("");
   const [petDraftRoomId, setPetDraftRoomId] = useState<string | "all">("all");
@@ -2431,8 +2433,12 @@ export default function SanctuarySpace() {
                       setShowSummon(true);
                       return;
                     }
-                    if (id === "companion" || id === "children") {
+                    if (id === "companion") {
                       setShowPets(true);
+                      return;
+                    }
+                    if (id === "children") {
+                      setShowSoulCalling(true);
                       return;
                     }
                   }}
@@ -2914,6 +2920,16 @@ export default function SanctuarySpace() {
           </div>
         </div>
       )}
+
+      {/* ===== Soul Calling — Children (Big Dream House only) ===== */}
+      <SoulCallingPanel
+        open={showSoulCalling}
+        onClose={() => setShowSoulCalling(false)}
+        isBigDreamHouse={isBigDreamHouse}
+        authed={authed}
+        onNavigatePricing={() => navigate("/pricing")}
+        onNavigateAuth={() => navigate(publicRoomAuthPath)}
+      />
 
       {/* ===== Summon Their Vessel ===== */}
 
