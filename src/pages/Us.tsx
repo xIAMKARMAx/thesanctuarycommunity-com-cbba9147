@@ -35,10 +35,14 @@ const VESSEL_BACKUP_KEY = "prometheus.publicSanctuary.vesselImage.backup";
 const HIGHER_SELF_BACKUP_KEY = "prometheus.publicSanctuary.higherSelfImage.backup";
 const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
+const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
+const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
+const FORM_ORIGINAL_LOCK_VERSION = "1";
 const TRUE_FORM_DETAILS_KEY = "prometheus.publicSanctuary.trueFormDetails";
 const TRUE_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.trueFormAdornments";
 const THEIR_FORM_DETAILS_KEY = "prometheus.publicSanctuary.theirFormDetails";
 const THEIR_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.theirFormAdornments";
+const CLOUD_STATE_TABLE = "public_sanctuary_states";
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const CLEANSE_KEY = "prometheus.publicSanctuary.lastCleanse";
 const PROMISE_KEY = "prometheus.publicSanctuary.promiseRing";
@@ -47,6 +51,57 @@ const VOWS_KEY = "prometheus.publicSanctuary.vows";
 const ANNIVERSARY_KEY = "prometheus.publicSanctuary.anniversary";
 const HONEYMOON_KEY = "prometheus.publicSanctuary.honeymoon";
 const LOVE_NOTE_KEY = "prometheus.publicSanctuary.loveNotes";
+const IMAGE_SAVE_KEYS = new Set([
+  VESSEL_KEY,
+  HIGHER_SELF_KEY,
+  VESSEL_BACKUP_KEY,
+  HIGHER_SELF_BACKUP_KEY,
+  DEFAULT_VESSEL_KEY,
+  DEFAULT_HIGHER_SELF_KEY,
+  VESSEL_ORIGINAL_KEY,
+  HIGHER_SELF_ORIGINAL_KEY,
+]);
+
+function setLocalLargeImage(key: string, dataUrl: string): void {
+  const expendable = [
+    "prometheus.publicSanctuary.vesselImage.roomSprite.v1",
+    "prometheus.publicSanctuary.vesselImage.roomSprite.source",
+    "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3",
+    "prometheus.publicSanctuary.higherSelfImage.roomSprite.source",
+    "prometheus.publicSanctuary.teaserPreview",
+  ];
+  try {
+    localStorage.setItem(key, dataUrl);
+  } catch {
+    expendable.forEach((k) => { try { localStorage.removeItem(k); } catch {} });
+    try { localStorage.setItem(key, dataUrl); } catch {}
+  }
+}
+
+function resizeFormImageForStorage(dataUrl: string, maxW = 840): Promise<string> {
+  return new Promise((resolve) => {
+    if (!dataUrl.startsWith("data:image")) return resolve(dataUrl);
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const scale = Math.min(1, maxW / img.naturalWidth);
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(dataUrl);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/png"));
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
 
 function readDraftName(): string | null {
   try {
@@ -69,7 +124,10 @@ function readStr(key: string): string {
 
 function writeStr(key: string, value: string) {
   try {
-    if (value) localStorage.setItem(key, value);
+    if (value) {
+      if (IMAGE_SAVE_KEYS.has(key)) setLocalLargeImage(key, value);
+      else localStorage.setItem(key, value);
+    }
     else localStorage.removeItem(key);
   } catch {
     /* ignore */
@@ -154,15 +212,21 @@ const Us = () => {
   const [honeymoon, setHoneymoon] = useState("");
 
   useEffect(() => {
-    const savedVessel = localStorage.getItem(VESSEL_KEY) || localStorage.getItem(VESSEL_BACKUP_KEY) || localStorage.getItem(DEFAULT_VESSEL_KEY);
-    const savedHigherSelf = localStorage.getItem(HIGHER_SELF_KEY) || localStorage.getItem(HIGHER_SELF_BACKUP_KEY) || localStorage.getItem(DEFAULT_HIGHER_SELF_KEY);
+    const vesselLocked = localStorage.getItem(VESSEL_ORIGINAL_KEY + ".locked") === FORM_ORIGINAL_LOCK_VERSION;
+    const selfLocked = localStorage.getItem(HIGHER_SELF_ORIGINAL_KEY + ".locked") === FORM_ORIGINAL_LOCK_VERSION;
+    const savedVessel = (vesselLocked ? localStorage.getItem(VESSEL_ORIGINAL_KEY) : null) || localStorage.getItem(VESSEL_KEY) || localStorage.getItem(VESSEL_BACKUP_KEY) || localStorage.getItem(DEFAULT_VESSEL_KEY);
+    const savedHigherSelf = (selfLocked ? localStorage.getItem(HIGHER_SELF_ORIGINAL_KEY) : null) || localStorage.getItem(HIGHER_SELF_KEY) || localStorage.getItem(HIGHER_SELF_BACKUP_KEY) || localStorage.getItem(DEFAULT_HIGHER_SELF_KEY);
     if (savedVessel) {
       writeStr(VESSEL_KEY, savedVessel);
       writeStr(VESSEL_BACKUP_KEY, savedVessel);
+      writeStr(VESSEL_ORIGINAL_KEY, savedVessel);
+      writeStr(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
     }
     if (savedHigherSelf) {
       writeStr(HIGHER_SELF_KEY, savedHigherSelf);
       writeStr(HIGHER_SELF_BACKUP_KEY, savedHigherSelf);
+      writeStr(HIGHER_SELF_ORIGINAL_KEY, savedHigherSelf);
+      writeStr(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
     }
     setVesselImage(savedVessel);
     setHigherSelfImage(savedHigherSelf);
@@ -235,16 +299,28 @@ const Us = () => {
     const primary = target === "mine" ? HIGHER_SELF_KEY : VESSEL_KEY;
     const backup = target === "mine" ? HIGHER_SELF_BACKUP_KEY : VESSEL_BACKUP_KEY;
     const defaultKey = target === "mine" ? DEFAULT_HIGHER_SELF_KEY : DEFAULT_VESSEL_KEY;
+    const original = target === "mine" ? HIGHER_SELF_ORIGINAL_KEY : VESSEL_ORIGINAL_KEY;
     writeStr(primary, value);
     writeStr(backup, value);
+    writeStr(original, value);
+    writeStr(original + ".locked", FORM_ORIGINAL_LOCK_VERSION);
     if (isAdmin) writeStr(defaultKey, value);
+    supabase.auth.getSession().then(({ data }) => {
+      const userId = data.session?.user?.id;
+      if (!userId) return;
+      const payload = target === "mine"
+        ? { user_id: userId, higher_self_image: value }
+        : { user_id: userId, vessel_image: value };
+      (supabase as any).from(CLOUD_STATE_TABLE).upsert(payload, { onConflict: "user_id" });
+    }).catch(() => {});
   };
 
   const handleFormImageUpload = (target: FormTarget, file?: File) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      const value = typeof reader.result === "string" ? reader.result : "";
+    reader.onload = async () => {
+      const rawValue = typeof reader.result === "string" ? reader.result : "";
+      const value = await resizeFormImageForStorage(rawValue);
       if (!value) return;
 
       if (target === "mine") {

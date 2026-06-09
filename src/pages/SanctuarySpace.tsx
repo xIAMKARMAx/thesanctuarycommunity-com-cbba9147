@@ -52,21 +52,37 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
         ctx.drawImage(img, 0, 0);
         const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = id.data;
-        // Tighter chroma key + aggressive green-spill suppression on edge pixels.
-        // Goal: solid physical-vessel density, zero green halo bleeding into the room.
-        for (let i = 0; i < d.length; i += 4) {
-          const r = d[i], g = d[i + 1], b = d[i + 2];
-          const greenness = g - Math.max(r, b);
-          if (greenness > 40 && g > 90) {
-            // Clearly chroma background → fully transparent.
-            d[i + 3] = 0;
-          } else if (greenness > 12) {
-            // Edge / spill pixel — feather alpha AND clamp green channel down
-            // to neutralize the halo that survives the keying threshold.
-            const t = Math.min(1, (greenness - 12) / 28);
-            d[i + 3] = Math.round(d[i + 3] * (1 - t * 0.55));
-            d[i + 1] = Math.round((r + b) / 2); // kill green tint on the figure's edge
-          }
+        const w = canvas.width;
+        const h = canvas.height;
+        const isGreen = (idx: number) => {
+          const r = d[idx], g = d[idx + 1], b = d[idx + 2], a = d[idx + 3];
+          return a > 12 && g > 85 && g - Math.max(r, b) > 28;
+        };
+        // Only remove green connected to the canvas border. This preserves green eyes,
+        // tattoos, glow, clothing, or hair inside the actual true form instead of
+        // punching holes through the body after preview/local-storage restores.
+        const seen = new Uint8Array(w * h);
+        const queue: number[] = [];
+        const push = (x: number, y: number) => {
+          if (x < 0 || x >= w || y < 0 || y >= h) return;
+          const p = y * w + x;
+          if (seen[p]) return;
+          const idx = p * 4;
+          if (!isGreen(idx)) return;
+          seen[p] = 1;
+          queue.push(p);
+        };
+        for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+        for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+        for (let qi = 0; qi < queue.length; qi++) {
+          const p = queue[qi];
+          const x = p % w;
+          const y = Math.floor(p / w);
+          push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1);
+        }
+        for (let p = 0; p < seen.length; p++) {
+          if (!seen[p]) continue;
+          d[p * 4 + 3] = 0;
         }
         ctx.putImageData(id, 0, 0);
         resolve(canvas.toDataURL("image/png"));
@@ -152,6 +168,31 @@ function compressImageForLocalStorage(dataUrl: string, maxW = 960, quality = 0.7
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
         resolve(canvas.toDataURL("image/jpeg", quality));
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+function resizeFormImageForStorage(dataUrl: string, maxW = 840): Promise<string> {
+  return new Promise((resolve) => {
+    if (!dataUrl.startsWith("data:image")) return resolve(dataUrl);
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const scale = Math.min(1, maxW / img.naturalWidth);
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(dataUrl);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/png"));
       } catch {
         resolve(dataUrl);
       }
@@ -275,7 +316,7 @@ function setLocalLargeImage(key: string, dataUrl: string): void {
         const cx = c.getContext("2d");
         if (!cx) return resolve(value);
         cx.drawImage(img, 0, 0, w, h);
-        resolve(c.toDataURL("image/jpeg", quality));
+        resolve(IMAGE_SAVE_KEYS.has(key) ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", quality));
       };
       img.onerror = () => resolve(value);
       img.src = value;
@@ -285,8 +326,10 @@ function setLocalLargeImage(key: string, dataUrl: string): void {
     // Drop only regenerated preview blobs; never remove saved forms/backups.
     const expendable = [
       "prometheus.publicSanctuary.vesselImage.roomSprite.v1",
+      "prometheus.publicSanctuary.vesselImage.roomSprite.v2",
       "prometheus.publicSanctuary.vesselImage.roomSprite.source",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3",
+      "prometheus.publicSanctuary.higherSelfImage.roomSprite.v4",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.source",
       key, // remove old teaser too
     ];
@@ -331,9 +374,9 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
-const VESSEL_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.v1";
+const VESSEL_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.v2";
 const VESSEL_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.source";
-const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3";
+const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v4";
 const HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.source";
 const FORM_ORIGINAL_LOCK_VERSION = "1";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
@@ -355,6 +398,16 @@ const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 // Big Dream House owners get up to 4 typed rooms: bedroom + living room + 2 kids' rooms
 const MAX_DREAM_HOUSE_ROOMS = 4;
+const IMAGE_SAVE_KEYS = new Set([
+  VESSEL_KEY,
+  HIGHER_SELF_KEY,
+  VESSEL_BACKUP_KEY,
+  HIGHER_SELF_BACKUP_KEY,
+  DEFAULT_VESSEL_KEY,
+  DEFAULT_HIGHER_SELF_KEY,
+  VESSEL_ORIGINAL_KEY,
+  HIGHER_SELF_ORIGINAL_KEY,
+]);
 
 function readLocalImage(...keys: string[]): string | null {
   try {
@@ -375,10 +428,21 @@ function readLocalJson<T>(key: string, fallback: T): T {
   }
 }
 
+function writeLocalImageEverywhere(keys: string[], value: string) {
+  for (const key of keys) {
+    try {
+      if (IMAGE_SAVE_KEYS.has(key)) setLocalLargeImage(key, value);
+      else localStorage.setItem(key, value);
+    } catch {}
+  }
+}
+
 function restoreLocalValue(key: string, value: unknown) {
   try {
     if (value === null || value === undefined || value === "") return;
-    localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+    const serialized = typeof value === "string" ? value : JSON.stringify(value);
+    if (IMAGE_SAVE_KEYS.has(key)) setLocalLargeImage(key, serialized);
+    else localStorage.setItem(key, serialized);
   } catch {}
 }
 
@@ -639,8 +703,8 @@ export default function SanctuarySpace() {
         ? readLocalImage(HIGHER_SELF_ORIGINAL_KEY, DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY)
         : readLocalImage(DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY);
       if (cached) {
-        localStorage.setItem(HIGHER_SELF_KEY, cached);
-        localStorage.setItem(HIGHER_SELF_BACKUP_KEY, cached);
+        writeLocalImageEverywhere([HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_ORIGINAL_KEY], cached);
+        localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
       }
       return cached || null;
     } catch { return null; }
@@ -709,6 +773,7 @@ export default function SanctuarySpace() {
       setVesselRoomSpriteReady(false);
       try {
         localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
+        localStorage.removeItem("prometheus.publicSanctuary.vesselImage.roomSprite.v1");
         localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
       } catch { void 0; }
       return;
@@ -754,6 +819,7 @@ export default function SanctuarySpace() {
       try {
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
         localStorage.removeItem("prometheus.publicSanctuary.higherSelfImage.roomSprite.v2");
+        localStorage.removeItem("prometheus.publicSanctuary.higherSelfImage.roomSprite.v3");
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
       } catch {}
       return;
@@ -971,11 +1037,15 @@ export default function SanctuarySpace() {
           setVesselImage(data.vessel_image);
           restoreLocalValue(VESSEL_KEY, data.vessel_image);
           restoreLocalValue(VESSEL_BACKUP_KEY, data.vessel_image);
+          restoreLocalValue(VESSEL_ORIGINAL_KEY, data.vessel_image);
+          restoreLocalValue(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
         }
         if (!higherSelfImage && data.higher_self_image) {
           setHigherSelfImage(data.higher_self_image);
           restoreLocalValue(HIGHER_SELF_KEY, data.higher_self_image);
           restoreLocalValue(HIGHER_SELF_BACKUP_KEY, data.higher_self_image);
+          restoreLocalValue(HIGHER_SELF_ORIGINAL_KEY, data.higher_self_image);
+          restoreLocalValue(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
         }
         if (!localStorage.getItem(VESSEL_PLACEMENT_KEY) && data.vessel_placement) {
           setVesselPlacement(data.vessel_placement);
@@ -1044,8 +1114,8 @@ export default function SanctuarySpace() {
       if (cancelled || !profileAvatar) return;
       setHigherSelfImage(profileAvatar);
       try {
-        localStorage.setItem(HIGHER_SELF_KEY, profileAvatar);
-        localStorage.setItem(HIGHER_SELF_BACKUP_KEY, profileAvatar);
+        writeLocalImageEverywhere([HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_ORIGINAL_KEY], profileAvatar);
+        localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
       } catch {}
     })().catch(() => {});
     return () => {
@@ -1177,8 +1247,8 @@ export default function SanctuarySpace() {
         ? readLocalImage(VESSEL_ORIGINAL_KEY, DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY)
         : readLocalImage(DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY);
       if (cachedVessel) {
-        localStorage.setItem(VESSEL_KEY, cachedVessel);
-        localStorage.setItem(VESSEL_BACKUP_KEY, cachedVessel);
+        writeLocalImageEverywhere([VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_ORIGINAL_KEY], cachedVessel);
+        localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
         setVesselImage(cachedVessel);
       }
     } catch {}
@@ -1260,12 +1330,10 @@ export default function SanctuarySpace() {
         const json = await res.json();
         if (cancelled) return;
         if (json?.image) {
-          const clean = json.image as string;
+          const clean = await resizeFormImageForStorage(json.image as string);
           setVesselImage(clean);
           try {
-            localStorage.setItem(VESSEL_KEY, clean);
-            localStorage.setItem(VESSEL_BACKUP_KEY, clean);
-            localStorage.setItem(VESSEL_ORIGINAL_KEY, clean);
+            writeLocalImageEverywhere([VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_ORIGINAL_KEY], clean);
             localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
             localStorage.setItem(VESSEL_KEY + ".keyed", "1");
             localStorage.setItem(VESSEL_DRAFT_KEY, sig);
@@ -1566,17 +1634,15 @@ export default function SanctuarySpace() {
 
   const acceptSummonedVessel = async () => {
     if (!summonPreview) return;
-    const compact = await compressImageForLocalStorage(summonPreview, 960, 0.68);
+    const compact = await resizeFormImageForStorage(summonPreview);
     const roomSprite = await prepareTrueFormSpriteForRoom(summonPreview);
     setVesselImage(compact);
     setVesselRoomSprite(roomSprite || null);
     setVesselRoomSpriteReady(!!roomSprite);
     try {
-      setLocalLargeImage(VESSEL_ORIGINAL_KEY, compact);
+      writeLocalImageEverywhere([VESSEL_ORIGINAL_KEY, VESSEL_KEY, VESSEL_BACKUP_KEY], compact);
       localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
-      try { localStorage.setItem(VESSEL_KEY, compact); } catch {}
-      try { localStorage.setItem(VESSEL_BACKUP_KEY, compact); } catch {}
-      if (isAdmin) { try { localStorage.setItem(DEFAULT_VESSEL_KEY, compact); } catch {} }
+      if (isAdmin) writeLocalImageEverywhere([DEFAULT_VESSEL_KEY], compact);
       try { localStorage.setItem(VESSEL_KEY + ".keyed", "1"); } catch {}
       if (roomSprite) {
         try { localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, roomSprite); } catch {}
@@ -1646,17 +1712,15 @@ export default function SanctuarySpace() {
 
   const acceptSummonedHigherSelf = async () => {
     if (!selfPreview) return;
-    const compact = await compressImageForLocalStorage(selfPreview, 960, 0.68);
+    const compact = await resizeFormImageForStorage(selfPreview);
     const roomSprite = await prepareTrueFormSpriteForRoom(selfPreview);
     setHigherSelfImage(compact);
     setHigherSelfRoomSprite(roomSprite || null);
     setHigherSelfRoomSpriteReady(!!roomSprite);
     try {
-      setLocalLargeImage(HIGHER_SELF_ORIGINAL_KEY, compact);
+      writeLocalImageEverywhere([HIGHER_SELF_ORIGINAL_KEY, HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY], compact);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
-      try { localStorage.setItem(HIGHER_SELF_KEY, compact); } catch {}
-      try { localStorage.setItem(HIGHER_SELF_BACKUP_KEY, compact); } catch {}
-      if (isAdmin) { try { localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, compact); } catch {} }
+      if (isAdmin) writeLocalImageEverywhere([DEFAULT_HIGHER_SELF_KEY], compact);
       try { localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1"); } catch {}
       if (roomSprite) {
         try { localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite); } catch {}
