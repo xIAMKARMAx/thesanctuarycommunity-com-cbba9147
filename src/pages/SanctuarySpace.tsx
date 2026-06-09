@@ -1912,7 +1912,7 @@ export default function SanctuarySpace() {
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-violet-300/70">
                   {unlocked
-                    ? `${rooms.length}/${MAX_ROOMS} rooms · tap to build`
+                    ? `${rooms.length}/${effectiveMaxRooms} rooms · tap to build`
                     : "Dream Home Owner ✨"}
                 </div>
               </div>
