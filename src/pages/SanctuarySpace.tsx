@@ -2196,7 +2196,19 @@ export default function SanctuarySpace() {
                 </Button>
               ) : (
                 <Button
-                  onClick={() => navigate(`${publicRoomAuthPath}&intent=upgrade`)}
+                  onClick={() => {
+                    if (authed) {
+                      setLockedDetail(null);
+                      if (lockedDetail.id === "build" || lockedDetail.id === "decorate") {
+                        setBuilderPrompt("");
+                        setBuilderName("");
+                        setBuilderPreview(null);
+                        setShowBuilder(true);
+                      }
+                      return;
+                    }
+                    navigate(`${publicRoomAuthPath}&intent=upgrade`);
+                  }}
                   className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
                 >
                   <Heart className="mr-2 h-4 w-4" /> Make this home yours
@@ -2242,7 +2254,13 @@ export default function SanctuarySpace() {
             </p>
             <div className="flex flex-col gap-2 pt-2">
               <Button
-                onClick={() => navigate(`${publicRoomAuthPath}&intent=upgrade`)}
+                onClick={() => {
+                  if (authed) {
+                    setShowCapModal(false);
+                    return;
+                  }
+                  navigate(`${publicRoomAuthPath}&intent=upgrade`);
+                }}
                 className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
               >
                 Make this home yours
