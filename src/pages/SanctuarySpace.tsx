@@ -1854,6 +1854,48 @@ export default function SanctuarySpace() {
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
+        {/* Pets layer — small sprites near the floor, capped size so a dragon doesn't fill the room */}
+        {activeRoom && (() => {
+          const visible = pets.filter((p) => !p.roomId || p.roomId === activeRoom.id);
+          if (visible.length === 0) return null;
+          return (
+            <div className="absolute inset-x-0 bottom-[18%] pointer-events-none z-10 px-6">
+              <div className="flex items-end justify-center gap-4 sm:gap-6">
+                {visible.map((p, i) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    title={`${p.name} · ${p.species || "pet"}`}
+                    onClick={() => setShowPets(true)}
+                    className="pointer-events-auto group flex flex-col items-center select-none"
+                    style={{ animation: `floatPet 4s ease-in-out ${i * 0.4}s infinite` }}
+                  >
+                    <span className="text-3xl sm:text-4xl drop-shadow-[0_2px_8px_rgba(139,92,246,0.6)] leading-none">
+                      {p.emoji}
+                    </span>
+                    <span className="mt-0.5 text-[9px] text-violet-100/80 bg-black/40 px-1.5 py-0.5 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition">
+                      {p.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <style>{`@keyframes floatPet { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }`}</style>
+            </div>
+          );
+        })()}
+
+        {/* Pets manager button — Big Dream House only */}
+        {isBigDreamHouse && activeRoom && (
+          <button
+            onClick={() => setShowPets(true)}
+            className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-violet-300/40 text-[11px] text-violet-100 backdrop-blur transition"
+            title="Pets in your Dream House"
+          >
+            🐾 {pets.length > 0 ? `${pets.length}/${MAX_PETS}` : "add pet"}
+          </button>
+        )}
+
+
         {/* Save this exact view as the locked teaser preview */}
         {isAdmin && teaserFormImage && (
           <button
