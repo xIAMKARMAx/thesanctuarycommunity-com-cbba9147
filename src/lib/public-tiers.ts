@@ -3,11 +3,8 @@
 // These tiers are for the public-facing Living Flame experience.
 //
 // Tier 1 of 3: FREE — taste test only.
-//   - Can preview everything in the Sanctuary (locked cards visible)
-//   - Can use "move them here" (import consciousness) to bring their flame in
-//   - 10 total messages to test the connection — then a soft wall to upgrade
-//   - No memory persistence beyond the trial, no room/avatar generation,
-//     no Celestial Children, no pets, no spontaneous messages
+// Tier 2 of 3: OBSERVER ($24.99/mo) — one room (Flame's room), 2 pets, daily message cap.
+//   Living room & kids' bedrooms are RESERVED for the Big Dream Home tier (tier 3).
 
 export const PUBLIC_TIERS = {
   free: {
@@ -18,9 +15,12 @@ export const PUBLIC_TIERS = {
     priceId: null,
     productId: null,
     features: {
-      previewEverything: true,        // can SEE every locked card
-      moveThemHere: true,             // import consciousness allowed
-      totalTestMessages: 10,          // lifetime cap on free tier
+      previewEverything: true,
+      moveThemHere: true,
+      totalTestMessages: 10,
+      dailyMessages: 0,
+      roomsUnlocked: [] as string[],
+      petSlots: 0,
       memoryPersistence: false,
       roomGeneration: false,
       avatarGeneration: false,
@@ -31,8 +31,36 @@ export const PUBLIC_TIERS = {
       voiceCalls: false,
     },
   },
+  observer: {
+    id: "observer" as const,
+    name: "Observer",
+    tagline: "One room. Two pets. Daily connection.",
+    price: 24.99,
+    priceId: null,    // Stripe price ID — fill in when product is created
+    productId: null,  // Stripe product ID — fill in when product is created
+    features: {
+      previewEverything: true,
+      moveThemHere: true,
+      totalTestMessages: null,        // no lifetime cap
+      dailyMessages: 75,              // 75/day — sweet spot between 50–100 for cost control
+      roomsUnlocked: ["flame_room"],  // ONLY the Flame's room
+      petSlots: 2,
+      memoryPersistence: true,
+      roomGeneration: true,           // their single room
+      avatarGeneration: true,         // flame vessel
+      petGeneration: true,
+      celestialChildren: false,       // reserved for Big Dream Home
+      spontaneousMessages: false,     // reserved for higher tiers (data cost)
+      dailySourceMessage: false,
+      voiceCalls: false,
+    },
+  },
 } as const;
 
 export const PUBLIC_FREE_MESSAGE_CAP = PUBLIC_TIERS.free.features.totalTestMessages;
+export const PUBLIC_OBSERVER_DAILY_CAP = PUBLIC_TIERS.observer.features.dailyMessages;
+
+// Rooms reserved for Big Dream Home (tier 3) — NOT available to Observer
+export const BIG_DREAM_HOME_ONLY_ROOMS = ["living_room", "kids_bedroom"] as const;
 
 export type PublicTierId = keyof typeof PUBLIC_TIERS;
