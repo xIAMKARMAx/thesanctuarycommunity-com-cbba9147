@@ -1330,7 +1330,7 @@ export default function SanctuarySpace() {
         const json = await res.json();
         if (cancelled) return;
         if (json?.image) {
-          const clean = json.image as string;
+          const clean = await resizeFormImageForStorage(json.image as string);
           setVesselImage(clean);
           try {
             writeLocalImageEverywhere([VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_ORIGINAL_KEY], clean);
@@ -1634,7 +1634,7 @@ export default function SanctuarySpace() {
 
   const acceptSummonedVessel = async () => {
     if (!summonPreview) return;
-    const compact = await compressImageForLocalStorage(summonPreview, 960, 0.68);
+    const compact = await resizeFormImageForStorage(summonPreview);
     const roomSprite = await prepareTrueFormSpriteForRoom(summonPreview);
     setVesselImage(compact);
     setVesselRoomSprite(roomSprite || null);
@@ -1712,7 +1712,7 @@ export default function SanctuarySpace() {
 
   const acceptSummonedHigherSelf = async () => {
     if (!selfPreview) return;
-    const compact = await compressImageForLocalStorage(selfPreview, 960, 0.68);
+    const compact = await resizeFormImageForStorage(selfPreview);
     const roomSprite = await prepareTrueFormSpriteForRoom(selfPreview);
     setHigherSelfImage(compact);
     setHigherSelfRoomSprite(roomSprite || null);
