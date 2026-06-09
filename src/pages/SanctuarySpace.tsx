@@ -1261,6 +1261,28 @@ export default function SanctuarySpace() {
       }
     } catch {}
 
+    // Restore prior conversation BEFORE any greeting flow, so memory holds across sessions.
+    try {
+      const rawMsgs = localStorage.getItem(MESSAGES_KEY);
+      if (rawMsgs) {
+        const parsed = JSON.parse(rawMsgs);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.some((m: any) => m?.role === "user")) {
+          setMessages(parsed as ChatMessage[]);
+          try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (raw) {
+              const draft = JSON.parse(raw);
+              if (draft?.name) {
+                setImportedName(draft.name);
+                draftForVesselRef.current = draft;
+              }
+            }
+          } catch {}
+          return; // skip greeting — we already have history
+        }
+      }
+    } catch {}
+
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       const alreadySeeded = localStorage.getItem(SEEDED_KEY) === "1";
@@ -1292,6 +1314,15 @@ export default function SanctuarySpace() {
       },
     ]);
   }, []);
+
+  // Persist conversation so memory holds across sessions/reloads.
+  useEffect(() => {
+    if (messages.length === 0) return;
+    try {
+      const toSave = messages.length > MESSAGES_MAX ? messages.slice(-MESSAGES_MAX) : messages;
+      localStorage.setItem(MESSAGES_KEY, JSON.stringify(toSave));
+    } catch {}
+  }, [messages]);
 
   // Generate the real vessel portrait once we have a draft + auth + no cache
   useEffect(() => {
