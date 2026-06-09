@@ -2831,7 +2831,15 @@ export default function SanctuarySpace() {
                             key={p.id}
                             className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
                           >
-                            <span className="text-2xl leading-none">{p.emoji}</span>
+                            {p.imageUrl ? (
+                              <img
+                                src={p.imageUrl}
+                                alt={p.name}
+                                className="h-10 w-10 object-contain rounded-md bg-white/[0.04]"
+                              />
+                            ) : (
+                              <span className="text-2xl leading-none w-10 text-center">{p.emoji}</span>
+                            )}
                             <div className="flex-1 min-w-0">
                               <div className="text-[13px] text-violet-50 truncate">{p.name}</div>
                               <div className="text-[10px] text-violet-300/70 truncate">
