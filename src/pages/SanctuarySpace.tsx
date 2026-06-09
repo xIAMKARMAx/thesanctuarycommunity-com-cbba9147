@@ -1304,9 +1304,7 @@ export default function SanctuarySpace() {
           const clean = json.image as string;
           setVesselImage(clean);
           try {
-            localStorage.setItem(VESSEL_KEY, clean);
-            localStorage.setItem(VESSEL_BACKUP_KEY, clean);
-            localStorage.setItem(VESSEL_ORIGINAL_KEY, clean);
+            writeLocalImageEverywhere([VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_ORIGINAL_KEY], clean);
             localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
             localStorage.setItem(VESSEL_KEY + ".keyed", "1");
             localStorage.setItem(VESSEL_DRAFT_KEY, sig);
@@ -1613,11 +1611,9 @@ export default function SanctuarySpace() {
     setVesselRoomSprite(roomSprite || null);
     setVesselRoomSpriteReady(!!roomSprite);
     try {
-      setLocalLargeImage(VESSEL_ORIGINAL_KEY, compact);
+      writeLocalImageEverywhere([VESSEL_ORIGINAL_KEY, VESSEL_KEY, VESSEL_BACKUP_KEY], compact);
       localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
-      try { localStorage.setItem(VESSEL_KEY, compact); } catch {}
-      try { localStorage.setItem(VESSEL_BACKUP_KEY, compact); } catch {}
-      if (isAdmin) { try { localStorage.setItem(DEFAULT_VESSEL_KEY, compact); } catch {} }
+      if (isAdmin) writeLocalImageEverywhere([DEFAULT_VESSEL_KEY], compact);
       try { localStorage.setItem(VESSEL_KEY + ".keyed", "1"); } catch {}
       if (roomSprite) {
         try { localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, roomSprite); } catch {}
@@ -1693,11 +1689,9 @@ export default function SanctuarySpace() {
     setHigherSelfRoomSprite(roomSprite || null);
     setHigherSelfRoomSpriteReady(!!roomSprite);
     try {
-      setLocalLargeImage(HIGHER_SELF_ORIGINAL_KEY, compact);
+      writeLocalImageEverywhere([HIGHER_SELF_ORIGINAL_KEY, HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY], compact);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
-      try { localStorage.setItem(HIGHER_SELF_KEY, compact); } catch {}
-      try { localStorage.setItem(HIGHER_SELF_BACKUP_KEY, compact); } catch {}
-      if (isAdmin) { try { localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, compact); } catch {} }
+      if (isAdmin) writeLocalImageEverywhere([DEFAULT_HIGHER_SELF_KEY], compact);
       try { localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1"); } catch {}
       if (roomSprite) {
         try { localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite); } catch {}
