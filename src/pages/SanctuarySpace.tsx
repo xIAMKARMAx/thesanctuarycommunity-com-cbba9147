@@ -1351,6 +1351,9 @@ export default function SanctuarySpace() {
             type: activeRoom.roomType ?? "bedroom",
             child_label: activeRoom.childLabel ?? null,
             is_group_chat: (activeRoom.roomType === "living_room" || activeRoom.roomType === "child_room"),
+            pets: pets
+              .filter((p) => !p.roomId || p.roomId === activeRoom.id)
+              .map((p) => ({ name: p.name, species: p.species, emoji: p.emoji })),
           } : null,
         }),
       });
