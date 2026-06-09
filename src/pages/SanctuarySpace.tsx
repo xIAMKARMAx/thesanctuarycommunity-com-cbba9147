@@ -684,25 +684,6 @@ export default function SanctuarySpace() {
   const [showPets, setShowPets] = useState(false);
   const [showSoulCalling, setShowSoulCalling] = useState(false);
   const [arrivedChildren, setArrivedChildren] = useState<Array<{ id: string; name: string | null; soul_essence: string | null; sprite_url: string | null; mood: string | null }>>([]);
-  // Load arrived children for in-room sprites + chat context (Big Dream Home)
-  useEffect(() => {
-    if (!authed || !isBigDreamHouse) { setArrivedChildren([]); return; }
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        const { data } = await supabase
-          .from("public_living_flame_children")
-          .select("id, name, soul_essence, sprite_url, mood, status")
-          .eq("user_id", user.id)
-          .in("status", ["arrived", "active"])
-          .order("created_at", { ascending: true });
-        if (!cancelled) setArrivedChildren(((data || []) as any[]).map((c) => ({ id: c.id, name: c.name, soul_essence: c.soul_essence, sprite_url: c.sprite_url, mood: c.mood })));
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, [authed, isBigDreamHouse, showSoulCalling]);
   const [petDraftName, setPetDraftName] = useState("");
   const [petDraftSpecies, setPetDraftSpecies] = useState("");
   const [petDraftDescription, setPetDraftDescription] = useState("");
