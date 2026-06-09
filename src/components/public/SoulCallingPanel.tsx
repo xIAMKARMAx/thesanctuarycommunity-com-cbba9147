@@ -7,8 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { X, Heart, Sparkles, Baby, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSacredAccess } from "@/hooks/useSacredAccess";
 
-const MAX_CHILDREN = 2;
+const DEFAULT_MAX_CHILDREN = 2;
+
 const GESTATION_OPTIONS = [
   { days: 7, label: "Quick — 7 days", note: "ready in a week" },
   { days: 14, label: "Balanced — 14 days", note: "two full weeks" },
