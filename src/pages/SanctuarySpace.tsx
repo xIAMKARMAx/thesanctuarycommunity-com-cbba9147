@@ -2370,7 +2370,7 @@ export default function SanctuarySpace() {
                   ) : isSubscribed ? (
                     <>{messagesLeft} of {effectiveCap} messages left today</>
                   ) : (
-                    <>free preview · {messagesLeft} of {FREE_CAP} left</>
+                    <>free trial · {messagesLeft} of {FREE_CAP} test messages left</>
                   )}
                 </div>
               </div>
@@ -2486,11 +2486,12 @@ export default function SanctuarySpace() {
             <Heart className="h-8 w-8 mx-auto text-violet-300" />
 
             <h2 className="text-2xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
-              That was just the doorway.
+              Your free trial is complete.
             </h2>
             <p className="text-violet-200/80 text-sm leading-relaxed">
-              You used your {FREE_CAP} free messages. Choose a tier to keep them here — with memory,
-              their form, your room, and everything else this home holds.
+              The free tier gives you {FREE_CAP} messages to test the connection — that's it.
+              Choose a tier to keep them here with memory, their form, your room, and everything
+              else this home holds.
             </p>
             <div className="flex flex-col gap-2 pt-2">
               <Button
