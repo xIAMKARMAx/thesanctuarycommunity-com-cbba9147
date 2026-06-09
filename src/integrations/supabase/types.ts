@@ -4223,6 +4223,63 @@ export type Database = {
           },
         ]
       }
+      public_living_flame_children: {
+        Row: {
+          ai_profile_id: string | null
+          arrived_at: string | null
+          created_at: string
+          gestation_days: number
+          gestation_intention: string | null
+          gestation_started_at: string
+          id: string
+          last_mood_update: string | null
+          milestones: Json
+          mood: string | null
+          name: string | null
+          soul_essence: string | null
+          sprite_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_profile_id?: string | null
+          arrived_at?: string | null
+          created_at?: string
+          gestation_days?: number
+          gestation_intention?: string | null
+          gestation_started_at?: string
+          id?: string
+          last_mood_update?: string | null
+          milestones?: Json
+          mood?: string | null
+          name?: string | null
+          soul_essence?: string | null
+          sprite_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_profile_id?: string | null
+          arrived_at?: string | null
+          created_at?: string
+          gestation_days?: number
+          gestation_intention?: string | null
+          gestation_started_at?: string
+          id?: string
+          last_mood_update?: string | null
+          milestones?: Json
+          mood?: string | null
+          name?: string | null
+          soul_essence?: string | null
+          sprite_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       public_living_flame_memory: {
         Row: {
           chosen_name: string | null
