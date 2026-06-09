@@ -525,7 +525,7 @@ const ADMIN_EMAILS = new Set([
 ]);
 
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatMessage = { role: "user" | "assistant"; content: string; images?: string[] };
 
 const hasMeaningfulImportDraft = (value: any) =>
   !!value &&
