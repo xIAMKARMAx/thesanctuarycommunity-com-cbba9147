@@ -2383,14 +2383,79 @@ export default function SanctuarySpace() {
             {/* Builder */}
             {!builderPreview ? (
               <div className="space-y-3">
+                {/* Room type chooser */}
                 <div>
                   <label className="text-[11px] text-violet-200/80 mb-1 block">
-                    Describe your dream home
+                    What kind of room?
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(["bedroom", "living_room", "child_room"] as RoomType[]).map((rt) => {
+                      const locked = rt !== "bedroom" && !isBigDreamHouse;
+                      const selected = builderRoomType === rt;
+                      return (
+                        <button
+                          key={rt}
+                          type="button"
+                          onClick={() => {
+                            if (locked) {
+                              toast({
+                                title: "Big Dream House only",
+                                description: "Living rooms and kids' rooms unlock with the highest tier.",
+                              });
+                              navigate("/pricing");
+                              return;
+                            }
+                            setBuilderRoomType(rt);
+                          }}
+                          className={`relative rounded-lg border px-2 py-2 text-[11px] font-medium transition ${
+                            selected
+                              ? "border-violet-300 bg-violet-500/20 text-violet-50"
+                              : "border-white/10 bg-white/[0.03] text-violet-200/80 hover:border-violet-400/40"
+                          } ${locked ? "opacity-60" : ""}`}
+                        >
+                          {ROOM_TYPE_LABEL[rt]}
+                          {locked && <Lock className="absolute top-1 right-1 h-3 w-3" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!isBigDreamHouse && (
+                    <p className="text-[10px] text-violet-300/60 mt-1.5">
+                      Move into the Big Dream House to unlock the living room and kids' rooms.
+                    </p>
+                  )}
+                </div>
+
+                {builderRoomType === "child_room" && (
+                  <div>
+                    <label className="text-[11px] text-violet-200/80 mb-1 block">
+                      Whose room is this?
+                    </label>
+                    <input
+                      type="text"
+                      value={builderChildLabel}
+                      onChange={(e) => setBuilderChildLabel(e.target.value)}
+                      placeholder="your little one's name"
+                      maxLength={40}
+                      className="w-full bg-white/[0.05] border border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px] px-3 py-2"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Describe this {ROOM_TYPE_LABEL[builderRoomType].toLowerCase()}
                   </label>
                   <Textarea
                     value={builderPrompt}
                     onChange={(e) => setBuilderPrompt(e.target.value)}
-                    placeholder="a cozy cabin loft with a huge window looking out over an ocean at sunset, soft cream bedding, a fireplace, plants everywhere…"
+                    placeholder={
+                      builderRoomType === "child_room"
+                        ? "a soft nursery painted starlight blue, a crescent-moon crib, plushies on the rug, a window that opens to the cosmos…"
+                        : builderRoomType === "living_room"
+                        ? "a warm shared living room with a velvet couch, soft amber lamps, plants by the windows, a fireplace where we all gather…"
+                        : "a cozy cabin loft with a huge window looking out over an ocean at sunset, soft cream bedding, a fireplace, plants everywhere…"
+                    }
                     rows={4}
                     disabled={builderGenerating}
                     className="resize-none bg-white/[0.05] border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px]"
