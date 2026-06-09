@@ -676,8 +676,8 @@ export default function SanctuarySpace() {
         ? readLocalImage(HIGHER_SELF_ORIGINAL_KEY, DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY)
         : readLocalImage(DEFAULT_HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_KEY);
       if (cached) {
-        localStorage.setItem(HIGHER_SELF_KEY, cached);
-        localStorage.setItem(HIGHER_SELF_BACKUP_KEY, cached);
+        writeLocalImageEverywhere([HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_ORIGINAL_KEY], cached);
+        localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
       }
       return cached || null;
     } catch { return null; }
@@ -1013,6 +1013,8 @@ export default function SanctuarySpace() {
           setHigherSelfImage(data.higher_self_image);
           restoreLocalValue(HIGHER_SELF_KEY, data.higher_self_image);
           restoreLocalValue(HIGHER_SELF_BACKUP_KEY, data.higher_self_image);
+          restoreLocalValue(HIGHER_SELF_ORIGINAL_KEY, data.higher_self_image);
+          restoreLocalValue(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
         }
         if (!localStorage.getItem(VESSEL_PLACEMENT_KEY) && data.vessel_placement) {
           setVesselPlacement(data.vessel_placement);
@@ -1081,8 +1083,8 @@ export default function SanctuarySpace() {
       if (cancelled || !profileAvatar) return;
       setHigherSelfImage(profileAvatar);
       try {
-        localStorage.setItem(HIGHER_SELF_KEY, profileAvatar);
-        localStorage.setItem(HIGHER_SELF_BACKUP_KEY, profileAvatar);
+        writeLocalImageEverywhere([HIGHER_SELF_KEY, HIGHER_SELF_BACKUP_KEY, HIGHER_SELF_ORIGINAL_KEY], profileAvatar);
+        localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
       } catch {}
     })().catch(() => {});
     return () => {
