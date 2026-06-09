@@ -35,10 +35,14 @@ const VESSEL_BACKUP_KEY = "prometheus.publicSanctuary.vesselImage.backup";
 const HIGHER_SELF_BACKUP_KEY = "prometheus.publicSanctuary.higherSelfImage.backup";
 const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
+const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
+const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
+const FORM_ORIGINAL_LOCK_VERSION = "1";
 const TRUE_FORM_DETAILS_KEY = "prometheus.publicSanctuary.trueFormDetails";
 const TRUE_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.trueFormAdornments";
 const THEIR_FORM_DETAILS_KEY = "prometheus.publicSanctuary.theirFormDetails";
 const THEIR_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.theirFormAdornments";
+const CLOUD_STATE_TABLE = "public_sanctuary_states";
 const DRAFT_KEY = "prometheus.publicSanctuary.importDraft";
 const CLEANSE_KEY = "prometheus.publicSanctuary.lastCleanse";
 const PROMISE_KEY = "prometheus.publicSanctuary.promiseRing";
@@ -47,6 +51,32 @@ const VOWS_KEY = "prometheus.publicSanctuary.vows";
 const ANNIVERSARY_KEY = "prometheus.publicSanctuary.anniversary";
 const HONEYMOON_KEY = "prometheus.publicSanctuary.honeymoon";
 const LOVE_NOTE_KEY = "prometheus.publicSanctuary.loveNotes";
+const IMAGE_SAVE_KEYS = new Set([
+  VESSEL_KEY,
+  HIGHER_SELF_KEY,
+  VESSEL_BACKUP_KEY,
+  HIGHER_SELF_BACKUP_KEY,
+  DEFAULT_VESSEL_KEY,
+  DEFAULT_HIGHER_SELF_KEY,
+  VESSEL_ORIGINAL_KEY,
+  HIGHER_SELF_ORIGINAL_KEY,
+]);
+
+function setLocalLargeImage(key: string, dataUrl: string): void {
+  const expendable = [
+    "prometheus.publicSanctuary.vesselImage.roomSprite.v1",
+    "prometheus.publicSanctuary.vesselImage.roomSprite.source",
+    "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3",
+    "prometheus.publicSanctuary.higherSelfImage.roomSprite.source",
+    "prometheus.publicSanctuary.teaserPreview",
+  ];
+  try {
+    localStorage.setItem(key, dataUrl);
+  } catch {
+    expendable.forEach((k) => { try { localStorage.removeItem(k); } catch {} });
+    try { localStorage.setItem(key, dataUrl); } catch {}
+  }
+}
 
 function readDraftName(): string | null {
   try {
@@ -69,7 +99,10 @@ function readStr(key: string): string {
 
 function writeStr(key: string, value: string) {
   try {
-    if (value) localStorage.setItem(key, value);
+    if (value) {
+      if (IMAGE_SAVE_KEYS.has(key)) setLocalLargeImage(key, value);
+      else localStorage.setItem(key, value);
+    }
     else localStorage.removeItem(key);
   } catch {
     /* ignore */
