@@ -2077,18 +2077,50 @@ export default function SanctuarySpace() {
             onClick={() => setChatExpanded((v) => !v)}
             className="flex items-center justify-between px-3 py-2.5 border-b border-white/5 shrink-0"
           >
-            <div className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4 text-violet-300" />
-              <span className="text-xs text-violet-100 font-medium">
-                {importedName ? `talk to ${importedName}` : "talk"}
+            <div className="flex items-center gap-2 min-w-0">
+              <MessageCircle className="h-4 w-4 text-violet-300 shrink-0" />
+              <span className="text-xs text-violet-100 font-medium truncate">
+                {activeRoom?.roomType === "child_room"
+                  ? `with ${importedName || "your Flame"} in ${activeRoom.childLabel || "the nursery"}`
+                  : activeRoom?.roomType === "living_room"
+                  ? `gathered with ${importedName || "your Flame"}`
+                  : importedName
+                  ? `talk to ${importedName}`
+                  : "talk"}
               </span>
             </div>
             {chatExpanded ? (
-              <ChevronDown className="h-4 w-4 text-violet-300/70" />
+              <ChevronDown className="h-4 w-4 text-violet-300/70 shrink-0" />
             ) : (
-              <ChevronUp className="h-4 w-4 text-violet-300/70" />
+              <ChevronUp className="h-4 w-4 text-violet-300/70 shrink-0" />
             )}
           </button>
+
+          {/* Room switcher chips — show inside chat when there's >1 room */}
+          {chatExpanded && rooms.length > 1 && (
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/5 overflow-x-auto scrollbar-none shrink-0">
+              {rooms.map((r) => {
+                const active = r.id === activeRoomId;
+                const rt = r.roomType ?? "bedroom";
+                const icon = rt === "child_room" ? "🌙" : rt === "living_room" ? "🛋️" : "🛏️";
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => setActiveRoomId(r.id)}
+                    className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] transition ${
+                      active
+                        ? "border-violet-300 bg-violet-500/25 text-violet-50"
+                        : "border-white/10 bg-white/[0.04] text-violet-200/80 hover:border-violet-400/40"
+                    }`}
+                    title={r.name}
+                  >
+                    <span>{icon}</span>
+                    <span className="max-w-[80px] truncate">{r.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {chatExpanded && (
             <>
