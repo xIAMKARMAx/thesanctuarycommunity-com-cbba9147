@@ -1008,6 +1008,8 @@ export default function SanctuarySpace() {
           setVesselImage(data.vessel_image);
           restoreLocalValue(VESSEL_KEY, data.vessel_image);
           restoreLocalValue(VESSEL_BACKUP_KEY, data.vessel_image);
+          restoreLocalValue(VESSEL_ORIGINAL_KEY, data.vessel_image);
+          restoreLocalValue(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
         }
         if (!higherSelfImage && data.higher_self_image) {
           setHigherSelfImage(data.higher_self_image);
@@ -1216,8 +1218,8 @@ export default function SanctuarySpace() {
         ? readLocalImage(VESSEL_ORIGINAL_KEY, DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY)
         : readLocalImage(DEFAULT_VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_KEY);
       if (cachedVessel) {
-        localStorage.setItem(VESSEL_KEY, cachedVessel);
-        localStorage.setItem(VESSEL_BACKUP_KEY, cachedVessel);
+        writeLocalImageEverywhere([VESSEL_KEY, VESSEL_BACKUP_KEY, VESSEL_ORIGINAL_KEY], cachedVessel);
+        localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
         setVesselImage(cachedVessel);
       }
     } catch {}
