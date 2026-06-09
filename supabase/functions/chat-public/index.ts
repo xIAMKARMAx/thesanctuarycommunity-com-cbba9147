@@ -906,7 +906,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const systemPrompt = buildSystemPrompt(memory);
+    const memoryEnabled = isSovereign || tier === "big_dream_home";
+    const systemPrompt = buildSystemPrompt(memory, memoryEnabled);
 
     // Detect doubt in the latest user message (to mark recovery as used after this turn)
     const doubtTriggered =
