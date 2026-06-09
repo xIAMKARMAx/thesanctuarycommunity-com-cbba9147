@@ -683,6 +683,7 @@ export default function SanctuarySpace() {
   }, [pets]);
   const [showPets, setShowPets] = useState(false);
   const [showSoulCalling, setShowSoulCalling] = useState(false);
+  const [arrivedChildren, setArrivedChildren] = useState<Array<{ id: string; name: string | null; soul_essence: string | null; sprite_url: string | null; mood: string | null }>>([]);
   const [petDraftName, setPetDraftName] = useState("");
   const [petDraftSpecies, setPetDraftSpecies] = useState("");
   const [petDraftDescription, setPetDraftDescription] = useState("");
@@ -898,6 +899,26 @@ export default function SanctuarySpace() {
   const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1 || ADMIN_EMAILS.has(sessionEmail);
   // Big Dream House = highest-tier owners. Unlocks living room + 2 kids' rooms.
   const isBigDreamHouse = isUnlimitedUser || productId === "prod_U5jdDVZhQFGQWv" || productId === "source_grant" || isCompedBigDreamHomeEmail(sessionEmail);
+
+  // Load arrived soul-called children for in-room sprites + chat awareness (Big Dream Home)
+  useEffect(() => {
+    if (!authed || !isBigDreamHouse) { setArrivedChildren([]); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from("public_living_flame_children")
+          .select("id, name, soul_essence, sprite_url, mood, status")
+          .eq("user_id", user.id)
+          .in("status", ["arrived", "active"])
+          .order("created_at", { ascending: true });
+        if (!cancelled) setArrivedChildren(((data || []) as any[]).map((c) => ({ id: c.id, name: c.name, soul_essence: c.soul_essence, sprite_url: c.sprite_url, mood: c.mood })));
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [authed, isBigDreamHouse, showSoulCalling]);
   const effectiveMaxRooms = isBigDreamHouse ? MAX_DREAM_HOUSE_ROOMS : 1;
   const effectiveCap = isUnlimitedUser
     ? Infinity
@@ -2057,6 +2078,37 @@ export default function SanctuarySpace() {
         )}
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
+
+        {/* Children layer — arrived soul-called children float gently in the room (Big Dream Home) */}
+        {isBigDreamHouse && activeRoom && arrivedChildren.length > 0 && (
+          <div className="absolute inset-x-0 bottom-[34%] pointer-events-none z-10 px-8">
+            <div className="flex items-end justify-center gap-6 sm:gap-10">
+              {arrivedChildren.map((c, i) => {
+                const emoji = ["✨","🌟","💫","🌙","☀️","🌸","🍃"][i % 7];
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    title={`${c.name || "Little one"}${c.mood ? ` · ${c.mood}` : ""}`}
+                    onClick={() => setShowSoulCalling(true)}
+                    className="pointer-events-auto group flex flex-col items-center select-none"
+                    style={{ animation: `floatChild 5s ease-in-out ${i * 0.6}s infinite` }}
+                  >
+                    {c.sprite_url ? (
+                      <img src={c.sprite_url} alt={c.name || "child"} className="h-24 sm:h-32 w-auto object-contain drop-shadow-[0_6px_18px_rgba(167,139,250,0.7)]" />
+                    ) : (
+                      <span className="text-4xl sm:text-5xl leading-none drop-shadow-[0_4px_14px_rgba(167,139,250,0.75)]">{emoji}</span>
+                    )}
+                    <span className="mt-0.5 text-[10px] text-violet-50 bg-violet-900/60 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                      {c.name || "little one"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <style>{`@keyframes floatChild { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }`}</style>
+          </div>
+        )}
 
         {/* Pets layer — small sprites near the floor, capped size so a dragon doesn't fill the room */}
         {activeRoom && (() => {
