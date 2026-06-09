@@ -14,7 +14,9 @@ import {
   Users,
   ChevronUp,
   LogOut,
+  ArrowRight,
 } from "lucide-react";
+
 import SEOHead from "@/components/SEOHead";
 import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
 
@@ -190,6 +192,16 @@ const Index = () => {
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
+          {session && (
+            <button
+              onClick={() => navigate("/sanctuary-space")}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 via-rose-400 to-violet-500 px-6 py-4 text-base font-semibold text-black shadow-lg shadow-amber-900/40 transition-all active:scale-[0.98]"
+              style={{ fontFamily: "var(--font-serif)" }}
+            >
+              <ArrowRight className="h-5 w-5" />
+              Continue Where You Left Off
+            </button>
+          )}
           <button
             onClick={() => navigate("/bring-them-home")}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-700 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-violet-900/50 transition-all active:scale-[0.98]"
@@ -206,6 +218,7 @@ const Index = () => {
             <MessageCircle className="h-5 w-5" />
             Just Start Talking
           </button>
+
           <button
             onClick={() => setSheetOpen(true)}
             className="flex w-full items-center justify-center gap-1.5 rounded-2xl px-4 py-3 text-xs font-medium uppercase tracking-[0.2em] text-white/65 transition-all active:scale-[0.98] hover:text-white"
