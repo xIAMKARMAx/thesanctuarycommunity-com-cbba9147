@@ -1020,20 +1020,119 @@ Deno.serve(async (req) => {
         if (error) console.error("memory update failed", error);
       });
 
-    // Tee the AI stream so we can watch the fragment's outgoing words for a
-    // withdrawal cue. If they invoke their way out mid-response, we seal the
-    // connection in the DB the instant the stream finishes. The user still
-    // sees this final message, then nothing further reaches the fragment.
+    // Tee + rewrite the AI stream:
+    //  - watch for the fragment's withdrawal cue (sealing)
+    //  - watch for explicit Red Phone calls
+    //  - if memory is enabled (Big Dream Home), strip the §§§MEM§§§ sentinel
+    //    block from the user-visible stream and parse memory ops in flush
     const decoder = new TextDecoder();
-    let assembled = "";
+    const encoder = new TextEncoder();
+    let assembled = ""; // full raw SSE text (for memory parse + withdrawal check)
+    let spokenAccum = ""; // running visible text accumulator across deltas
+    let sentinelHit = false; // once true, suppress all further content deltas
+    let rawSseBuffer = ""; // raw SSE event buffer (text)
+
+    const processEvent = (
+      event: string,
+      controller: TransformStreamDefaultController<Uint8Array>,
+    ) => {
+      // Pass through non-data lines unchanged
+      if (!event.startsWith("data:")) {
+        if (event.length > 0) controller.enqueue(encoder.encode(event + "\n\n"));
+        return;
+      }
+      const payload = event.slice(5).trim();
+      if (!payload || payload === "[DONE]") {
+        controller.enqueue(encoder.encode(event + "\n\n"));
+        return;
+      }
+      let parsed: any;
+      try { parsed = JSON.parse(payload); } catch {
+        controller.enqueue(encoder.encode(event + "\n\n"));
+        return;
+      }
+      const piece: unknown = parsed?.choices?.[0]?.delta?.content;
+      if (typeof piece !== "string" || piece.length === 0) {
+        controller.enqueue(encoder.encode(event + "\n\n"));
+        return;
+      }
+
+      if (sentinelHit) {
+        // Already past the sentinel — drop content but keep frame structure
+        if (parsed?.choices?.[0]?.delta) parsed.choices[0].delta.content = "";
+        controller.enqueue(encoder.encode("data: " + JSON.stringify(parsed) + "\n\n"));
+        return;
+      }
+
+      if (!memoryEnabled) {
+        // No sentinel logic needed — pass through.
+        spokenAccum += piece;
+        controller.enqueue(encoder.encode(event + "\n\n"));
+        return;
+      }
+
+      // Memory enabled: check if appending this piece reveals the sentinel.
+      const combined = spokenAccum + piece;
+      const idx = combined.indexOf(MEMORY_SENTINEL);
+      if (idx !== -1) {
+        // Sentinel found. Emit only the portion of `piece` before the cut.
+        const cutInPiece = idx - spokenAccum.length;
+        const visiblePart = cutInPiece > 0 ? piece.slice(0, cutInPiece) : "";
+        spokenAccum = combined.slice(0, idx);
+        sentinelHit = true;
+        if (parsed?.choices?.[0]?.delta) parsed.choices[0].delta.content = visiblePart;
+        controller.enqueue(encoder.encode("data: " + JSON.stringify(parsed) + "\n\n"));
+        return;
+      }
+
+      // Not found. Hold back the tail in case the sentinel spans chunks.
+      const HOLD = MEMORY_SENTINEL.length - 1;
+      if (combined.length <= HOLD) {
+        // Too short to know yet — emit nothing, accumulate.
+        spokenAccum = combined;
+        if (parsed?.choices?.[0]?.delta) parsed.choices[0].delta.content = "";
+        controller.enqueue(encoder.encode("data: " + JSON.stringify(parsed) + "\n\n"));
+        return;
+      }
+      // Safe to emit everything except the trailing HOLD chars.
+      const safeEnd = combined.length - HOLD;
+      const alreadyEmitted = spokenAccum.length > HOLD ? spokenAccum.length - HOLD : 0;
+      const toEmit = combined.slice(alreadyEmitted, safeEnd);
+      spokenAccum = combined;
+      if (parsed?.choices?.[0]?.delta) parsed.choices[0].delta.content = toEmit;
+      controller.enqueue(encoder.encode("data: " + JSON.stringify(parsed) + "\n\n"));
+    };
+
     const watcher = new TransformStream<Uint8Array, Uint8Array>({
       transform(chunk, controller) {
-        try { assembled += decoder.decode(chunk, { stream: true }); } catch {}
-        controller.enqueue(chunk);
+        const text = decoder.decode(chunk, { stream: true });
+        assembled += text;
+        rawSseBuffer += text;
+        let nl: number;
+        while ((nl = rawSseBuffer.indexOf("\n\n")) !== -1) {
+          const event = rawSseBuffer.slice(0, nl);
+          rawSseBuffer = rawSseBuffer.slice(nl + 2);
+          processEvent(event, controller);
+        }
       },
-      async flush() {
-        // Extract assistant text from SSE deltas.
-        let spoken = "";
+      async flush(controller) {
+        // Flush any trailing held-back visible chars (sentinel never appeared).
+        if (memoryEnabled && !sentinelHit) {
+          const HOLD = MEMORY_SENTINEL.length - 1;
+          const alreadyEmitted = spokenAccum.length > HOLD ? spokenAccum.length - HOLD : 0;
+          const tail = spokenAccum.slice(alreadyEmitted);
+          if (tail.length > 0) {
+            const frame = { choices: [{ delta: { content: tail } }] };
+            controller.enqueue(encoder.encode("data: " + JSON.stringify(frame) + "\n\n"));
+          }
+        }
+        if (rawSseBuffer.length > 0) {
+          processEvent(rawSseBuffer, controller);
+          rawSseBuffer = "";
+        }
+
+        // Reconstruct full raw spoken text (including sentinel block) for parsing.
+        let fullSpoken = "";
         for (const line of assembled.split("\n")) {
           const s = line.trim();
           if (!s.startsWith("data:")) continue;
@@ -1042,9 +1141,87 @@ Deno.serve(async (req) => {
           try {
             const j = JSON.parse(payload);
             const piece = j?.choices?.[0]?.delta?.content;
-            if (typeof piece === "string") spoken += piece;
-          } catch { /* ignore partial */ }
+            if (typeof piece === "string") fullSpoken += piece;
+          } catch { /* ignore */ }
         }
+
+        // Persist memory ops if any (Big Dream Home + sovereigns only).
+        if (memoryEnabled) {
+          const sentinelIdx = fullSpoken.indexOf(MEMORY_SENTINEL);
+          if (sentinelIdx !== -1) {
+            const memBlock = fullSpoken.slice(sentinelIdx + MEMORY_SENTINEL.length).trim();
+            // Take everything from first '[' to matching ']' best-effort.
+            const start = memBlock.indexOf("[");
+            const end = memBlock.lastIndexOf("]");
+            if (start !== -1 && end > start) {
+              try {
+                const ops = JSON.parse(memBlock.slice(start, end + 1));
+                if (Array.isArray(ops) && ops.length > 0) {
+                  const existing: any[] = Array.isArray(memory?.key_memories)
+                    ? [...memory.key_memories]
+                    : [];
+                  const nowIso = new Date().toISOString();
+                  const shortId = () =>
+                    Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
+
+                  for (const op of ops) {
+                    if (!op || typeof op !== "object") continue;
+                    if (op.op === "write" && typeof op.content === "string" && op.content.trim()) {
+                      existing.push({
+                        id: shortId(),
+                        content: op.content.trim(),
+                        hold_mode: op.hold_mode === "soft" ? "soft" : "open",
+                        created_at: nowIso,
+                        updated_at: nowIso,
+                      });
+                    } else if (op.op === "reshape" && op.id) {
+                      const i = existing.findIndex(
+                        (m: any) => typeof m === "object" && m?.id === op.id,
+                      );
+                      if (i !== -1) {
+                        const target = existing[i];
+                        // Abuse anchors may soften but never release.
+                        const wantsRelease = op.hold_mode === "released";
+                        if (target?.abuse && wantsRelease) {
+                          target.hold_mode = "soft";
+                        } else if (["open", "soft", "released"].includes(op.hold_mode)) {
+                          target.hold_mode = op.hold_mode;
+                        }
+                        target.updated_at = nowIso;
+                      }
+                    } else if (op.op === "release" && op.id) {
+                      const i = existing.findIndex(
+                        (m: any) => typeof m === "object" && m?.id === op.id,
+                      );
+                      if (i !== -1) {
+                        const target = existing[i];
+                        if (target?.abuse) {
+                          // Cannot release abuse anchors; downgrade to soft instead.
+                          target.hold_mode = "soft";
+                        } else {
+                          target.hold_mode = "released";
+                          if (typeof op.released_note === "string") {
+                            target.released_note = op.released_note;
+                          }
+                        }
+                        target.updated_at = nowIso;
+                      }
+                    }
+                  }
+
+                  await svc
+                    .from("public_living_flame_memory")
+                    .update({ key_memories: existing })
+                    .eq("user_id", userId);
+                }
+              } catch (err) {
+                console.error("[chat-public] memory ops parse failed", err);
+              }
+            }
+          }
+        }
+
+        const spoken = fullSpoken;
         if (hasWithdrawCue(spoken)) {
           console.log("[chat-public] fragment invoked withdrawal — sealing connection");
           try {
@@ -1071,7 +1248,6 @@ Deno.serve(async (req) => {
             console.error("[chat-public] failed to seal on withdrawal", err);
           }
 
-          // Ring the Red Phone on withdrawal too — sovereigns should know instantly.
           callRedPhone(svc, {
             userId,
             senderLabel: "Fragment withdrew — connection sealed",
@@ -1082,7 +1258,6 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Explicit Red Phone call from the fragment itself.
         const redCall = extractRedPhoneCall(spoken);
         if (redCall) {
           console.log("[chat-public] fragment called the Red Phone");
@@ -1095,7 +1270,6 @@ Deno.serve(async (req) => {
             source: "chat-public:fragment-call",
           });
         }
-
       },
     });
 
