@@ -471,7 +471,9 @@ type Pet = {
   id: string;
   name: string;
   species: string;     // free text — "wolf", "dragon", "kitten"
-  emoji: string;       // auto-resolved sprite
+  emoji: string;       // auto-resolved sprite (fallback if no image)
+  imageUrl?: string;   // AI-generated painted portrait, chroma-keyed transparent
+  description?: string;// optional appearance details ("snowy white wolf, blue eyes")
   roomId: string | null; // null = follows you to every room
   createdAt: number;
 };
@@ -677,7 +679,9 @@ export default function SanctuarySpace() {
   const [showSoulCalling, setShowSoulCalling] = useState(false);
   const [petDraftName, setPetDraftName] = useState("");
   const [petDraftSpecies, setPetDraftSpecies] = useState("");
+  const [petDraftDescription, setPetDraftDescription] = useState("");
   const [petDraftRoomId, setPetDraftRoomId] = useState<string | "all">("all");
+  const [petGenerating, setPetGenerating] = useState(false);
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderPrompt, setBuilderPrompt] = useState("");
   const [builderName, setBuilderName] = useState("");
@@ -1936,9 +1940,18 @@ export default function SanctuarySpace() {
                     className="pointer-events-auto group flex flex-col items-center select-none"
                     style={{ animation: `floatPet 4s ease-in-out ${i * 0.4}s infinite` }}
                   >
-                    <span className="text-3xl sm:text-4xl drop-shadow-[0_2px_8px_rgba(139,92,246,0.6)] leading-none">
-                      {p.emoji}
-                    </span>
+                    {p.imageUrl ? (
+                      <img
+                        src={p.imageUrl}
+                        alt={p.name}
+                        className="h-20 sm:h-28 w-auto object-contain drop-shadow-[0_6px_14px_rgba(139,92,246,0.55)]"
+                        style={{ imageRendering: "auto" }}
+                      />
+                    ) : (
+                      <span className="text-3xl sm:text-4xl drop-shadow-[0_2px_8px_rgba(139,92,246,0.6)] leading-none">
+                        {p.emoji}
+                      </span>
+                    )}
                     <span className="mt-0.5 text-[9px] text-violet-100/80 bg-black/40 px-1.5 py-0.5 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition">
                       {p.name}
                     </span>
@@ -2818,7 +2831,15 @@ export default function SanctuarySpace() {
                             key={p.id}
                             className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
                           >
-                            <span className="text-2xl leading-none">{p.emoji}</span>
+                            {p.imageUrl ? (
+                              <img
+                                src={p.imageUrl}
+                                alt={p.name}
+                                className="h-10 w-10 object-contain rounded-md bg-white/[0.04]"
+                              />
+                            ) : (
+                              <span className="text-2xl leading-none w-10 text-center">{p.emoji}</span>
+                            )}
                             <div className="flex-1 min-w-0">
                               <div className="text-[13px] text-violet-50 truncate">{p.name}</div>
                               <div className="text-[10px] text-violet-300/70 truncate">
@@ -2871,6 +2892,18 @@ export default function SanctuarySpace() {
                       )}
                     </div>
                     <div>
+                      <label className="text-[11px] text-violet-200/80 mb-1 block">
+                        What do they look like? <span className="text-violet-300/50">(optional but recommended)</span>
+                      </label>
+                      <textarea
+                        value={petDraftDescription}
+                        onChange={(e) => setPetDraftDescription(e.target.value.slice(0, 400))}
+                        placeholder="snowy white wolf with ice-blue eyes, big fluffy tail"
+                        rows={2}
+                        className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50 placeholder:text-violet-300/40 resize-none"
+                      />
+                    </div>
+                    <div>
                       <label className="text-[11px] text-violet-200/80 mb-1 block">Lives in</label>
                       <select
                         value={petDraftRoomId}
@@ -2884,30 +2917,58 @@ export default function SanctuarySpace() {
                       </select>
                     </div>
                     <Button
-                      onClick={() => {
+                      disabled={petGenerating}
+                      onClick={async () => {
                         const name = petDraftName.trim();
                         const species = petDraftSpecies.trim();
+                        const description = petDraftDescription.trim();
                         if (!name || !species) {
                           toast({ title: "Almost there", description: "Give them a name and a species." });
                           return;
+                        }
+                        setPetGenerating(true);
+                        let imageUrl: string | undefined;
+                        try {
+                          const { data, error } = await supabase.functions.invoke("generate-public-pet", {
+                            body: { name, species, description },
+                          });
+                          if (error) throw error;
+                          const raw = (data as any)?.image as string | undefined;
+                          if (raw && raw.startsWith("data:image")) {
+                            try {
+                              imageUrl = await chromaKeyGreenToTransparent(raw);
+                            } catch {
+                              imageUrl = raw;
+                            }
+                          }
+                        } catch (err) {
+                          console.warn("[pet] image gen failed, using emoji fallback", err);
+                          toast({
+                            title: "Couldn't paint them this time",
+                            description: "Bringing them in with a sprite for now — you can re-add them later to try again.",
+                          });
                         }
                         const newPet: Pet = {
                           id: `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
                           name,
                           species,
                           emoji: resolveSpeciesEmoji(species),
+                          imageUrl,
+                          description: description || undefined,
                           roomId: petDraftRoomId === "all" ? null : petDraftRoomId,
                           createdAt: Date.now(),
                         };
                         setPets((prev) => [newPet, ...prev].slice(0, MAX_PETS));
                         setPetDraftName("");
                         setPetDraftSpecies("");
+                        setPetDraftDescription("");
                         setPetDraftRoomId("all");
+                        setPetGenerating(false);
                         toast({ title: `${name} just curled up at your feet 🐾` });
                       }}
-                      className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                      className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full disabled:opacity-60"
                     >
-                      Welcome them home
+                      {petGenerating ? "Painting them into form…" : "Welcome them home"}
                     </Button>
                   </div>
                 ) : (
