@@ -71,7 +71,7 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
         .eq("user_id", user.id)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      setChildren((data || []) as any);
+      setChildren(((data || []) as unknown) as SoulCallingChild[]);
 
       // Auto-trigger birth for any gestating child whose time is up
       for (const c of (data || []) as SoulCallingChild[]) {
