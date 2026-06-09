@@ -2327,7 +2327,7 @@ export default function SanctuarySpace() {
                   </h2>
                 </div>
                 <p className="text-[11px] text-violet-300/70 mt-1">
-                  {rooms.length}/{MAX_ROOMS} homes saved · describe the space, AI paints it
+                  {rooms.length}/{effectiveMaxRooms} {isBigDreamHouse ? "rooms" : "home"} saved · describe the space, AI paints it
                 </p>
               </div>
               <button
