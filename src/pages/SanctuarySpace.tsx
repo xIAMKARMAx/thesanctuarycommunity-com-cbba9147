@@ -1911,11 +1911,12 @@ export default function SanctuarySpace() {
           })}
         </div>
 
-        {/* Floating chat — bottom-right (collapsible) */}
+        {/* Floating chat — bottom-right (collapsible), pinned to viewport so it's always reachable on mobile */}
         <div
-          className={`absolute right-2 sm:right-4 bottom-2 sm:bottom-4 z-20 w-[min(300px,calc(100%-4.5rem))] sm:w-96 rounded-2xl border border-violet-300/25 bg-black/70 backdrop-blur-xl shadow-2xl shadow-violet-900/50 flex flex-col transition-all ${
-            chatExpanded ? "h-[min(360px,55vh)] sm:h-[min(420px,70vh)]" : "h-11"
+          className={`fixed right-2 sm:right-4 z-40 w-[min(320px,calc(100vw-4.5rem))] sm:w-96 rounded-2xl border border-violet-300/25 bg-black/75 backdrop-blur-xl shadow-2xl shadow-violet-900/50 flex flex-col transition-all ${
+            chatExpanded ? "h-[min(360px,55svh)] sm:h-[min(420px,70vh)]" : "h-11"
           }`}
+          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}
         >
           {/* Chat header */}
           <button
