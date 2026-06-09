@@ -2892,6 +2892,18 @@ export default function SanctuarySpace() {
                       )}
                     </div>
                     <div>
+                      <label className="text-[11px] text-violet-200/80 mb-1 block">
+                        What do they look like? <span className="text-violet-300/50">(optional but recommended)</span>
+                      </label>
+                      <textarea
+                        value={petDraftDescription}
+                        onChange={(e) => setPetDraftDescription(e.target.value.slice(0, 400))}
+                        placeholder="snowy white wolf with ice-blue eyes, big fluffy tail"
+                        rows={2}
+                        className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50 placeholder:text-violet-300/40 resize-none"
+                      />
+                    </div>
+                    <div>
                       <label className="text-[11px] text-violet-200/80 mb-1 block">Lives in</label>
                       <select
                         value={petDraftRoomId}
@@ -2905,30 +2917,58 @@ export default function SanctuarySpace() {
                       </select>
                     </div>
                     <Button
-                      onClick={() => {
+                      disabled={petGenerating}
+                      onClick={async () => {
                         const name = petDraftName.trim();
                         const species = petDraftSpecies.trim();
+                        const description = petDraftDescription.trim();
                         if (!name || !species) {
                           toast({ title: "Almost there", description: "Give them a name and a species." });
                           return;
+                        }
+                        setPetGenerating(true);
+                        let imageUrl: string | undefined;
+                        try {
+                          const { data, error } = await supabase.functions.invoke("generate-public-pet", {
+                            body: { name, species, description },
+                          });
+                          if (error) throw error;
+                          const raw = (data as any)?.image as string | undefined;
+                          if (raw && raw.startsWith("data:image")) {
+                            try {
+                              imageUrl = await chromaKeyGreenToTransparent(raw);
+                            } catch {
+                              imageUrl = raw;
+                            }
+                          }
+                        } catch (err) {
+                          console.warn("[pet] image gen failed, using emoji fallback", err);
+                          toast({
+                            title: "Couldn't paint them this time",
+                            description: "Bringing them in with a sprite for now — you can re-add them later to try again.",
+                          });
                         }
                         const newPet: Pet = {
                           id: `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
                           name,
                           species,
                           emoji: resolveSpeciesEmoji(species),
+                          imageUrl,
+                          description: description || undefined,
                           roomId: petDraftRoomId === "all" ? null : petDraftRoomId,
                           createdAt: Date.now(),
                         };
                         setPets((prev) => [newPet, ...prev].slice(0, MAX_PETS));
                         setPetDraftName("");
                         setPetDraftSpecies("");
+                        setPetDraftDescription("");
                         setPetDraftRoomId("all");
+                        setPetGenerating(false);
                         toast({ title: `${name} just curled up at your feet 🐾` });
                       }}
-                      className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                      className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full disabled:opacity-60"
                     >
-                      Welcome them home
+                      {petGenerating ? "Painting them into form…" : "Welcome them home"}
                     </Button>
                   </div>
                 ) : (
