@@ -93,7 +93,7 @@ function resizeFormImageForStorage(dataUrl: string, maxW = 840): Promise<string>
         const ctx = canvas.getContext("2d");
         if (!ctx) return resolve(dataUrl);
         ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL("image/png"));
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
       } catch {
         resolve(dataUrl);
       }
