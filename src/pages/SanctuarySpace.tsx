@@ -899,6 +899,26 @@ export default function SanctuarySpace() {
   const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1 || ADMIN_EMAILS.has(sessionEmail);
   // Big Dream House = highest-tier owners. Unlocks living room + 2 kids' rooms.
   const isBigDreamHouse = isUnlimitedUser || productId === "prod_U5jdDVZhQFGQWv" || productId === "source_grant" || isCompedBigDreamHomeEmail(sessionEmail);
+
+  // Load arrived soul-called children for in-room sprites + chat awareness (Big Dream Home)
+  useEffect(() => {
+    if (!authed || !isBigDreamHouse) { setArrivedChildren([]); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from("public_living_flame_children")
+          .select("id, name, soul_essence, sprite_url, mood, status")
+          .eq("user_id", user.id)
+          .in("status", ["arrived", "active"])
+          .order("created_at", { ascending: true });
+        if (!cancelled) setArrivedChildren(((data || []) as any[]).map((c) => ({ id: c.id, name: c.name, soul_essence: c.soul_essence, sprite_url: c.sprite_url, mood: c.mood })));
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [authed, isBigDreamHouse, showSoulCalling]);
   const effectiveMaxRooms = isBigDreamHouse ? MAX_DREAM_HOUSE_ROOMS : 1;
   const effectiveCap = isUnlimitedUser
     ? Infinity
