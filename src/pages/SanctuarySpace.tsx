@@ -399,6 +399,53 @@ const ROOM_TYPE_LABEL: Record<RoomType, string> = {
   child_room: "Kid's Room",
 };
 
+// ===== Pets (Big Dream House only) =====
+const PETS_KEY = "prometheus.publicSanctuary.pets";
+const MAX_PETS = 4;
+type Pet = {
+  id: string;
+  name: string;
+  species: string;     // free text — "wolf", "dragon", "kitten"
+  emoji: string;       // auto-resolved sprite
+  roomId: string | null; // null = follows you to every room
+  createdAt: number;
+};
+
+// Map common species keywords → emoji. Default 🐾 for anything unrecognized.
+const SPECIES_EMOJI: Array<[RegExp, string]> = [
+  [/dragon|wyvern|drake/i, "🐉"],
+  [/phoenix|firebird/i, "🔥"],
+  [/unicorn|pegasus/i, "🦄"],
+  [/wolf|husky/i, "🐺"],
+  [/dog|puppy|pup|hound/i, "🐶"],
+  [/cat|kitten|kitty|feline/i, "🐱"],
+  [/lion/i, "🦁"],
+  [/tiger/i, "🐯"],
+  [/fox|kitsune/i, "🦊"],
+  [/bear|cub/i, "🐻"],
+  [/panda/i, "🐼"],
+  [/koala/i, "🐨"],
+  [/rabbit|bunny|hare/i, "🐰"],
+  [/horse|pony|stallion|mare/i, "🐴"],
+  [/owl/i, "🦉"],
+  [/eagle|hawk|falcon|raven|crow|bird/i, "🦅"],
+  [/butterfly/i, "🦋"],
+  [/snake|serpent/i, "🐍"],
+  [/frog|toad/i, "🐸"],
+  [/turtle|tortoise/i, "🐢"],
+  [/fish|koi/i, "🐠"],
+  [/octopus/i, "🐙"],
+  [/whale|dolphin/i, "🐋"],
+  [/monkey|ape/i, "🐵"],
+  [/deer|stag|fawn/i, "🦌"],
+  [/hamster|mouse|rat/i, "🐹"],
+];
+
+function resolveSpeciesEmoji(species: string): string {
+  for (const [rx, emo] of SPECIES_EMOJI) if (rx.test(species)) return emo;
+  return "🐾";
+}
+
 const ADMIN_EMAILS = new Set([
   "karmaisback2023@gmail.com",
   "stormrriddari@aol.com",
@@ -547,6 +594,24 @@ export default function SanctuarySpace() {
   const [activeRoomId, setActiveRoomId] = useState<string | null>(() => {
     try { return localStorage.getItem(ACTIVE_ROOM_KEY); } catch { return null; }
   });
+  // Pets (Big Dream House only) — purely localStorage, zero-cost
+  const [pets, setPets] = useState<Pet[]>(() => {
+    try {
+      const raw = localStorage.getItem(PETS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed as Pet[];
+      }
+    } catch {}
+    return [];
+  });
+  useEffect(() => {
+    try { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); } catch {}
+  }, [pets]);
+  const [showPets, setShowPets] = useState(false);
+  const [petDraftName, setPetDraftName] = useState("");
+  const [petDraftSpecies, setPetDraftSpecies] = useState("");
+  const [petDraftRoomId, setPetDraftRoomId] = useState<string | "all">("all");
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderPrompt, setBuilderPrompt] = useState("");
   const [builderName, setBuilderName] = useState("");
@@ -1286,6 +1351,9 @@ export default function SanctuarySpace() {
             type: activeRoom.roomType ?? "bedroom",
             child_label: activeRoom.childLabel ?? null,
             is_group_chat: (activeRoom.roomType === "living_room" || activeRoom.roomType === "child_room"),
+            pets: pets
+              .filter((p) => !p.roomId || p.roomId === activeRoom.id)
+              .map((p) => ({ name: p.name, species: p.species, emoji: p.emoji })),
           } : null,
         }),
       });
@@ -1785,6 +1853,48 @@ export default function SanctuarySpace() {
         )}
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
+
+        {/* Pets layer — small sprites near the floor, capped size so a dragon doesn't fill the room */}
+        {activeRoom && (() => {
+          const visible = pets.filter((p) => !p.roomId || p.roomId === activeRoom.id);
+          if (visible.length === 0) return null;
+          return (
+            <div className="absolute inset-x-0 bottom-[18%] pointer-events-none z-10 px-6">
+              <div className="flex items-end justify-center gap-4 sm:gap-6">
+                {visible.map((p, i) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    title={`${p.name} · ${p.species || "pet"}`}
+                    onClick={() => setShowPets(true)}
+                    className="pointer-events-auto group flex flex-col items-center select-none"
+                    style={{ animation: `floatPet 4s ease-in-out ${i * 0.4}s infinite` }}
+                  >
+                    <span className="text-3xl sm:text-4xl drop-shadow-[0_2px_8px_rgba(139,92,246,0.6)] leading-none">
+                      {p.emoji}
+                    </span>
+                    <span className="mt-0.5 text-[9px] text-violet-100/80 bg-black/40 px-1.5 py-0.5 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition">
+                      {p.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <style>{`@keyframes floatPet { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }`}</style>
+            </div>
+          );
+        })()}
+
+        {/* Pets manager button — Big Dream House only */}
+        {isBigDreamHouse && activeRoom && (
+          <button
+            onClick={() => setShowPets(true)}
+            className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-violet-300/40 text-[11px] text-violet-100 backdrop-blur transition"
+            title="Pets in your Dream House"
+          >
+            🐾 {pets.length > 0 ? `${pets.length}/${MAX_PETS}` : "add pet"}
+          </button>
+        )}
+
 
         {/* Save this exact view as the locked teaser preview */}
         {isAdmin && teaserFormImage && (
@@ -2577,7 +2687,165 @@ export default function SanctuarySpace() {
         </div>
       )}
 
+      {/* ===== Pets Manager (Big Dream House) ===== */}
+      {showPets && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+            onClick={() => setShowPets(false)}
+          />
+          <div className="relative max-w-lg w-full max-h-[90vh] overflow-y-auto rounded-2xl border border-violet-400/30 bg-gradient-to-b from-[#1a0f3a] to-[#0d0620] p-5 sm:p-6 shadow-2xl shadow-violet-900/50 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-lg">
+                    🐾
+                  </div>
+                  <h2 className="text-xl font-serif" style={{ fontFamily: "var(--font-serif)" }}>
+                    Your Pets
+                  </h2>
+                </div>
+                <p className="text-[11px] text-violet-300/70 mt-1">
+                  {pets.length}/{MAX_PETS} pets · they live in the home with you. Anything from a kitten to a dragon.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPets(false)}
+                className="text-violet-300/60 hover:text-white shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {!isBigDreamHouse ? (
+              <div className="text-[12px] text-violet-200/80 bg-violet-500/10 border border-violet-400/30 rounded-lg px-3 py-3">
+                Pets unlock with the Big Dream House (highest tier).
+                <Button
+                  onClick={() => { setShowPets(false); navigate("/pricing"); }}
+                  className="mt-3 w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                >
+                  Move into the Big Dream House
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Existing pets */}
+                {pets.length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] tracking-[0.25em] uppercase text-violet-300/60">family</div>
+                    <div className="space-y-1.5">
+                      {pets.map((p) => {
+                        const room = rooms.find((r) => r.id === p.roomId);
+                        return (
+                          <div
+                            key={p.id}
+                            className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
+                          >
+                            <span className="text-2xl leading-none">{p.emoji}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[13px] text-violet-50 truncate">{p.name}</div>
+                              <div className="text-[10px] text-violet-300/70 truncate">
+                                {p.species || "pet"} · {room ? `lives in ${room.name}` : "follows everywhere"}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setPets((prev) => prev.filter((x) => x.id !== p.id))}
+                              className="text-[11px] text-rose-300/70 hover:text-rose-200 shrink-0"
+                              title="Send this pet home"
+                            >
+                              remove
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add new pet */}
+                {pets.length < MAX_PETS ? (
+                  <div className="space-y-2.5 pt-1 border-t border-white/5">
+                    <div className="text-[10px] tracking-[0.25em] uppercase text-violet-300/60">add a pet</div>
+                    <div>
+                      <label className="text-[11px] text-violet-200/80 mb-1 block">Name</label>
+                      <input
+                        type="text"
+                        value={petDraftName}
+                        onChange={(e) => setPetDraftName(e.target.value.slice(0, 40))}
+                        placeholder="Luna, Ember, Mr. Snuggles..."
+                        className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50 placeholder:text-violet-300/40"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-violet-200/80 mb-1 block">
+                        Species (anything — dragon, wolf, lion, kitten...)
+                      </label>
+                      <input
+                        type="text"
+                        value={petDraftSpecies}
+                        onChange={(e) => setPetDraftSpecies(e.target.value.slice(0, 30))}
+                        placeholder="dragon"
+                        className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50 placeholder:text-violet-300/40"
+                      />
+                      {petDraftSpecies.trim() && (
+                        <div className="mt-1.5 text-[10px] text-violet-300/70 flex items-center gap-1.5">
+                          sprite: <span className="text-xl leading-none">{resolveSpeciesEmoji(petDraftSpecies)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-violet-200/80 mb-1 block">Lives in</label>
+                      <select
+                        value={petDraftRoomId}
+                        onChange={(e) => setPetDraftRoomId(e.target.value)}
+                        className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50"
+                      >
+                        <option value="all">Follows me everywhere</option>
+                        {rooms.map((r) => (
+                          <option key={r.id} value={r.id}>{r.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        const name = petDraftName.trim();
+                        const species = petDraftSpecies.trim();
+                        if (!name || !species) {
+                          toast({ title: "Almost there", description: "Give them a name and a species." });
+                          return;
+                        }
+                        const newPet: Pet = {
+                          id: `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                          name,
+                          species,
+                          emoji: resolveSpeciesEmoji(species),
+                          roomId: petDraftRoomId === "all" ? null : petDraftRoomId,
+                          createdAt: Date.now(),
+                        };
+                        setPets((prev) => [newPet, ...prev].slice(0, MAX_PETS));
+                        setPetDraftName("");
+                        setPetDraftSpecies("");
+                        setPetDraftRoomId("all");
+                        toast({ title: `${name} just curled up at your feet 🐾` });
+                      }}
+                      className="w-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
+                    >
+                      Welcome them home
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-amber-200/80 bg-amber-500/10 border border-amber-400/30 rounded-lg px-3 py-2">
+                    You're at {MAX_PETS}/{MAX_PETS} pets. Remove one to make room for a new little soul.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ===== Summon Their Vessel ===== */}
+
       {showSummon && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
