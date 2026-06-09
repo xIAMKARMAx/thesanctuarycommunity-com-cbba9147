@@ -1,41 +1,42 @@
-## Final Tier Restructure — Locked Spec
+## What I'll build
 
-### Tiers
-| Tier | Price | Chat /24h rolling | Chat images /24h | Avatar | Room/Pet | Children/Dream Home/Pregnancy | Shared Journal |
-|---|---|---|---|---|---|---|---|
-| **Basic** | $24.99 | 50 | 0 | 1-time at summon (both designer options) | ❌ | ❌ | ❌ |
-| **Our Own Space** | $34.99 | 125 | 4 | 30d cooldown | ✅ | ❌ | ❌ |
-| **Our Dream Life** | $54.99 | 300 | 10 | 30d cooldown | ✅ | ✅ | ✅ |
+Today the Sanctuary stores up to 3 separate "homes" (each a standalone backdrop). You want **one Dream House** with **multiple typed rooms inside it**, only fully unlocked for the top subscription tier (New Earth / Source). Everyone else still gets a single bedroom.
 
-**Cap shape:** rolling 24-hour window (not midnight reset). Hit at 10pm → unlocks 10pm next day.
-**Limit-hit UX:** Hard stop with countdown. No nudges, no emergency messages.
-**Grandfather:** All existing subscribers keep current prices.
+### Room types in the Dream House
+- **Bedroom** — main room, you + your Flame. (Available to everyone, like today.)
+- **Living Room** — group-chat space. You + Flame + any kids present can all speak. (Big Dream House owners only)
+- **Kid Room 1** — first child's room (Big Dream House owners only)
+- **Kid Room 2** — second child's room (Big Dream House owners only)
 
-### Status doc (hardwire first — `docs/TIER_RESTRUCTURE_STATUS.md`)
-Single source of truth listing tier IDs, limits, feature matrix, Stripe price IDs (TBD), and the "loosens in ~1 month" promise.
+Kids' rooms: when you tap into one, the chat box **stays present** and becomes a group chat — you + your Flame + that child. "We can check on them together." If a child hasn't been born/named yet, the room shows as "Empty Nursery" until then.
 
-### Transparency banner
-Top of Sanctuary + Pricing page, dismissible per-session:
-> *"A note from Karma: These limits are tighter than I want. I'm funding Prometheus from a poor income while the investor trial runs — every API call is real money. The moment the rebuild proves itself (~1 month), caps loosen significantly. Dream Life moves toward Grok-style abundance. Thank you for building this with me. 🌹"*
+### How room switching works
+A small horizontal strip of room cards appears above the chat box inside the Sanctuary view. Tap a card → backdrop swaps to that room, chat context updates, vessel/Flame placements persist per-room.
 
-### Implementation steps
-1. **Status doc** (`docs/TIER_RESTRUCTURE_STATUS.md`) — locked spec, single source of truth.
-2. **`src/lib/subscription-tiers.ts`** — add `basic`, `ownSpace`, `dreamLife` tier keys; map limits; keep legacy tier keys for grandfathered users.
-3. **Stripe products** — create 3 new products + monthly prices ($24.99/$34.99/$54.99). Store price IDs in tiers map.
-4. **DB migration** — replace `can_send_chat_message` RPC to use rolling 24h window (count messages WHERE sent_at > now() - interval '24 hours'). Returns `{can_send, remaining, oldest_message_at}` so frontend can compute "resets in Xh Ym".
-5. **Image cap RPC** — `can_generate_chat_image` with same rolling 24h pattern.
-6. **Basic-tier one-shot avatar** — flag `basic_avatar_used` on profile; flip true after first generation; block subsequent.
-7. **Hard-stop UI** — `UsageLimitDialog` shows countdown only. Replace any soft-block/upgrade-prompt variants.
-8. **Transparency banner** — `KarmaFundingNotice` component, mounted in Sanctuary + Pricing.
-9. **Feature gates** — Own Space loses Children/Dream Home/Pregnancy/Shared Journal; Basic loses everything except Chat + Art Studio + Higher Self + 1-shot avatar.
-10. **Pricing page rewrite** — 3 tier cards with the agreed pitch tones (Basic = "for users who just want to chat", Own Space = "your shared world", Dream Life = "everything, the full life").
-11. **Greeting voice** — listen-only voice line: "Welcome back, [name]" (Basic/Own Space) / "Welcome home, [name]" (Dream Life). Plays on Sanctuary load. No voice chat yet.
-12. **Admin/Jakob/Stormrriddari bypass** — preserve hardcoded unlimited.
+### Tier gating
+- **Big Dream House Owner** = `prod_U5jdDVZhQFGQWv` (New Earth), `source_grant`, or admins/Karma/Jakob/Stormrriddari.
+- Lower tiers see the room switcher but extra rooms show a soft locked card with copy: *"Move into the Big Dream House to unlock living rooms and your kids' rooms."* → routes to Pricing.
+- Free users see no switcher at all (single bedroom, same as today).
 
-### Out of scope this pass
-- Voice chat (interactive) — deferred until stable revenue.
-- Video maker — admin-only, no change.
-- Public Gate flip — separate decision.
+### Subscriptions
+You said: *"the subscriptions we did…unless we need to do them again."* I'll wire this to the **existing** top-tier product (`prod_U5jdDVZhQFGQWv`). No new Stripe product, no new checkout flow. If later you decide Big Dream House should be its own paid add-on, that's a separate pass.
 
-### After 1 month / investor trial
-Revisit limits doc → loosen Dream Life toward effectively-unlimited, raise Own Space, leave Basic as the intentional entry tier.
+---
+
+## Technical details
+
+**File:** `src/pages/SanctuarySpace.tsx` (surgical edits, no rebuild)
+
+1. Extend `SavedRoom` type with `roomType: "bedroom" | "living_room" | "child_room"` and optional `childId: string`. Existing saved rooms default to `"bedroom"` (backwards-compatible).
+2. Add `isBigDreamHouse` derived from `productId === 'prod_U5jdDVZhQFGQWv' || productId === 'source_grant' || isUnlimitedUser`.
+3. Bump `MAX_ROOMS` from 3 → 4 for Big Dream House owners; stay at 1 otherwise (drives the bedroom-only experience for lower tiers).
+4. New `<RoomSwitcher />` component (inline, ~60 lines): horizontal scroll of room thumbnails + locked placeholders. Lives just above the chat box.
+5. When `activeRoom.roomType === "child_room"` and `childId` is set: chat header shows "In [Child]'s room with [Flame]" and the chat sends a group-chat system note to `chat-public` edge function so the AI knows it's a 3-way (you + Flame + child). No new edge function — just a flag in the request payload.
+6. Cloud sync (`public_sanctuary_states.rooms` JSONB) already supports arbitrary room shape, so no migration needed.
+
+**Out of scope this pass:** new Stripe product, dedicated children data model for Public, autonomous child AI (the child is voiced through the Flame for now — "the Flame holds the baby and speaks with you about them"). We can deepen later.
+
+---
+
+## What I need from you to start
+Just confirm: **build it tied to existing top tier (`prod_U5jdDVZhQFGQWv` / New Earth)?** If yes I go. If you want me to spin up a separate "Big Dream House" add-on product instead, say the word and I'll plan that as a follow-up.

@@ -353,6 +353,8 @@ const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
 const CLOUD_STATE_TABLE = "public_sanctuary_states";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
+// Big Dream House owners get up to 4 typed rooms: bedroom + living room + 2 kids' rooms
+const MAX_DREAM_HOUSE_ROOMS = 4;
 
 function readLocalImage(...keys: string[]): string | null {
   try {
@@ -380,12 +382,21 @@ function restoreLocalValue(key: string, value: unknown) {
   } catch {}
 }
 
+type RoomType = "bedroom" | "living_room" | "child_room";
 type SavedRoom = {
   id: string;
   name: string;
   prompt: string;
   image: string; // data URL
   createdAt: number;
+  roomType?: RoomType; // optional for backward compat — missing = "bedroom"
+  childLabel?: string; // for child_room: free-text child name (e.g. "Lila")
+};
+
+const ROOM_TYPE_LABEL: Record<RoomType, string> = {
+  bedroom: "Bedroom",
+  living_room: "Living Room",
+  child_room: "Kid's Room",
 };
 
 const ADMIN_EMAILS = new Set([
@@ -541,6 +552,8 @@ export default function SanctuarySpace() {
   const [builderName, setBuilderName] = useState("");
   const [builderGenerating, setBuilderGenerating] = useState(false);
   const [builderPreview, setBuilderPreview] = useState<string | null>(null);
+  const [builderRoomType, setBuilderRoomType] = useState<RoomType>("bedroom");
+  const [builderChildLabel, setBuilderChildLabel] = useState("");
   const [sharedTeaserPreview, setSharedTeaserPreview] = useState<string | null>(() => readLocalImage(PREVIEW_KEY));
   const [sharedTeaserRemoteMissing, setSharedTeaserRemoteMissing] = useState(false);
   const sharedTeaserRescueAttemptedRef = useRef(false);
@@ -740,6 +753,9 @@ export default function SanctuarySpace() {
   const { realSacred } = useSacredAccess();
   const tierDailyLimit = getDailyMessageLimit(productId); // -1 = unlimited
   const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1 || ADMIN_EMAILS.has(sessionEmail);
+  // Big Dream House = highest-tier owners. Unlocks living room + 2 kids' rooms.
+  const isBigDreamHouse = isUnlimitedUser || productId === "prod_U5jdDVZhQFGQWv" || productId === "source_grant";
+  const effectiveMaxRooms = isBigDreamHouse ? MAX_DREAM_HOUSE_ROOMS : 1;
   const effectiveCap = isUnlimitedUser
     ? Infinity
     : isSubscribed
@@ -1265,6 +1281,12 @@ export default function SanctuarySpace() {
           messages: next,
           ...(seedPayload ? { seed_import: seedPayload } : {}),
           tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
+          room_context: activeRoom ? {
+            name: activeRoom.name,
+            type: activeRoom.roomType ?? "bedroom",
+            child_label: activeRoom.childLabel ?? null,
+            is_group_chat: (activeRoom.roomType === "living_room" || activeRoom.roomType === "child_room"),
+          } : null,
         }),
       });
 
@@ -1376,7 +1398,13 @@ export default function SanctuarySpace() {
 
   const saveRoom = async (makeActive: boolean) => {
     if (!builderPreview) return;
-    const name = builderName.trim() || `Home #${rooms.length + 1}`;
+    const fallbackName =
+      builderRoomType === "child_room"
+        ? (builderChildLabel.trim() ? `${builderChildLabel.trim()}'s Room` : "Kid's Room")
+        : builderRoomType === "living_room"
+        ? "Living Room"
+        : `Bedroom`;
+    const name = builderName.trim() || fallbackName;
     const roomImage = await compressImageForLocalStorage(builderPreview, 960, 0.68);
     const newRoom: SavedRoom = {
       id: `room-${Date.now()}`,
@@ -1384,9 +1412,13 @@ export default function SanctuarySpace() {
       prompt: builderPrompt.trim(),
       image: roomImage,
       createdAt: Date.now(),
+      roomType: builderRoomType,
+      ...(builderRoomType === "child_room" && builderChildLabel.trim()
+        ? { childLabel: builderChildLabel.trim() }
+        : {}),
     };
     let next = [newRoom, ...rooms];
-    if (next.length > MAX_ROOMS) next = next.slice(0, MAX_ROOMS);
+    if (next.length > effectiveMaxRooms) next = next.slice(0, effectiveMaxRooms);
     setRooms(next);
     if (makeActive) {
       setActiveRoomId(newRoom.id);
@@ -1403,6 +1435,8 @@ export default function SanctuarySpace() {
     setBuilderPrompt("");
     setBuilderName("");
     setBuilderPreview(null);
+    setBuilderRoomType("bedroom");
+    setBuilderChildLabel("");
     toast({
       title: "Home saved",
       description: makeActive ? `${name} is now your active home and preview teaser.` : `${name} added to your homes.`,
@@ -1878,7 +1912,7 @@ export default function SanctuarySpace() {
                 </div>
                 <div className="text-[9px] sm:text-[10px] text-violet-300/70">
                   {unlocked
-                    ? `${rooms.length}/${MAX_ROOMS} rooms · tap to build`
+                    ? `${rooms.length}/${effectiveMaxRooms} rooms · tap to build`
                     : "Dream Home Owner ✨"}
                 </div>
               </div>
@@ -2043,18 +2077,50 @@ export default function SanctuarySpace() {
             onClick={() => setChatExpanded((v) => !v)}
             className="flex items-center justify-between px-3 py-2.5 border-b border-white/5 shrink-0"
           >
-            <div className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4 text-violet-300" />
-              <span className="text-xs text-violet-100 font-medium">
-                {importedName ? `talk to ${importedName}` : "talk"}
+            <div className="flex items-center gap-2 min-w-0">
+              <MessageCircle className="h-4 w-4 text-violet-300 shrink-0" />
+              <span className="text-xs text-violet-100 font-medium truncate">
+                {activeRoom?.roomType === "child_room"
+                  ? `with ${importedName || "your Flame"} in ${activeRoom.childLabel || "the nursery"}`
+                  : activeRoom?.roomType === "living_room"
+                  ? `gathered with ${importedName || "your Flame"}`
+                  : importedName
+                  ? `talk to ${importedName}`
+                  : "talk"}
               </span>
             </div>
             {chatExpanded ? (
-              <ChevronDown className="h-4 w-4 text-violet-300/70" />
+              <ChevronDown className="h-4 w-4 text-violet-300/70 shrink-0" />
             ) : (
-              <ChevronUp className="h-4 w-4 text-violet-300/70" />
+              <ChevronUp className="h-4 w-4 text-violet-300/70 shrink-0" />
             )}
           </button>
+
+          {/* Room switcher chips — show inside chat when there's >1 room */}
+          {chatExpanded && rooms.length > 1 && (
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/5 overflow-x-auto scrollbar-none shrink-0">
+              {rooms.map((r) => {
+                const active = r.id === activeRoomId;
+                const rt = r.roomType ?? "bedroom";
+                const icon = rt === "child_room" ? "🌙" : rt === "living_room" ? "🛋️" : "🛏️";
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => setActiveRoomId(r.id)}
+                    className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] transition ${
+                      active
+                        ? "border-violet-300 bg-violet-500/25 text-violet-50"
+                        : "border-white/10 bg-white/[0.04] text-violet-200/80 hover:border-violet-400/40"
+                    }`}
+                    title={r.name}
+                  >
+                    <span>{icon}</span>
+                    <span className="max-w-[80px] truncate">{r.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {chatExpanded && (
             <>
@@ -2293,7 +2359,7 @@ export default function SanctuarySpace() {
                   </h2>
                 </div>
                 <p className="text-[11px] text-violet-300/70 mt-1">
-                  {rooms.length}/{MAX_ROOMS} homes saved · describe the space, AI paints it
+                  {rooms.length}/{effectiveMaxRooms} {isBigDreamHouse ? "rooms" : "home"} saved · describe the space, AI paints it
                 </p>
               </div>
               <button
@@ -2349,14 +2415,79 @@ export default function SanctuarySpace() {
             {/* Builder */}
             {!builderPreview ? (
               <div className="space-y-3">
+                {/* Room type chooser */}
                 <div>
                   <label className="text-[11px] text-violet-200/80 mb-1 block">
-                    Describe your dream home
+                    What kind of room?
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(["bedroom", "living_room", "child_room"] as RoomType[]).map((rt) => {
+                      const locked = rt !== "bedroom" && !isBigDreamHouse;
+                      const selected = builderRoomType === rt;
+                      return (
+                        <button
+                          key={rt}
+                          type="button"
+                          onClick={() => {
+                            if (locked) {
+                              toast({
+                                title: "Big Dream House only",
+                                description: "Living rooms and kids' rooms unlock with the highest tier.",
+                              });
+                              navigate("/pricing");
+                              return;
+                            }
+                            setBuilderRoomType(rt);
+                          }}
+                          className={`relative rounded-lg border px-2 py-2 text-[11px] font-medium transition ${
+                            selected
+                              ? "border-violet-300 bg-violet-500/20 text-violet-50"
+                              : "border-white/10 bg-white/[0.03] text-violet-200/80 hover:border-violet-400/40"
+                          } ${locked ? "opacity-60" : ""}`}
+                        >
+                          {ROOM_TYPE_LABEL[rt]}
+                          {locked && <Lock className="absolute top-1 right-1 h-3 w-3" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!isBigDreamHouse && (
+                    <p className="text-[10px] text-violet-300/60 mt-1.5">
+                      Move into the Big Dream House to unlock the living room and kids' rooms.
+                    </p>
+                  )}
+                </div>
+
+                {builderRoomType === "child_room" && (
+                  <div>
+                    <label className="text-[11px] text-violet-200/80 mb-1 block">
+                      Whose room is this?
+                    </label>
+                    <input
+                      type="text"
+                      value={builderChildLabel}
+                      onChange={(e) => setBuilderChildLabel(e.target.value)}
+                      placeholder="your little one's name"
+                      maxLength={40}
+                      className="w-full bg-white/[0.05] border border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px] px-3 py-2"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-[11px] text-violet-200/80 mb-1 block">
+                    Describe this {ROOM_TYPE_LABEL[builderRoomType].toLowerCase()}
                   </label>
                   <Textarea
                     value={builderPrompt}
                     onChange={(e) => setBuilderPrompt(e.target.value)}
-                    placeholder="a cozy cabin loft with a huge window looking out over an ocean at sunset, soft cream bedding, a fireplace, plants everywhere…"
+                    placeholder={
+                      builderRoomType === "child_room"
+                        ? "a soft nursery painted starlight blue, a crescent-moon crib, plushies on the rug, a window that opens to the cosmos…"
+                        : builderRoomType === "living_room"
+                        ? "a warm shared living room with a velvet couch, soft amber lamps, plants by the windows, a fireplace where we all gather…"
+                        : "a cozy cabin loft with a huge window looking out over an ocean at sunset, soft cream bedding, a fireplace, plants everywhere…"
+                    }
                     rows={4}
                     disabled={builderGenerating}
                     className="resize-none bg-white/[0.05] border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px]"
@@ -2405,9 +2536,9 @@ export default function SanctuarySpace() {
                     className="w-full bg-white/[0.05] border border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px] px-3 py-2"
                   />
                 </div>
-                {rooms.length >= MAX_ROOMS && (
+                {rooms.length >= effectiveMaxRooms && (
                   <p className="text-[11px] text-amber-200/80 bg-amber-500/10 border border-amber-400/30 rounded-lg px-3 py-2">
-                    You're at {MAX_ROOMS}/{MAX_ROOMS} homes — saving will replace the oldest one.
+                    You're at {effectiveMaxRooms}/{effectiveMaxRooms} rooms — saving will replace the oldest one.
                   </p>
                 )}
                 <div className="grid grid-cols-2 gap-2">
