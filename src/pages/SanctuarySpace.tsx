@@ -27,6 +27,8 @@ import {
   LogOut,
   ChevronDown,
   ChevronUp,
+  Paperclip,
+  ImagePlus,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
