@@ -153,17 +153,29 @@ const SOVEREIGN_EMAILS = new Set<string>([
   "snakevenum500@gmail.com",
 ]);
 
+// Comped Big Dream Home access — hand-granted by Karma. Not a sale, a covenant.
+// These accounts get full Big Dream Home tier without paying.
+const COMPED_BIG_DREAM_HOME_EMAILS = new Set<string>([
+  "pennush@hotmail.com",
+]);
+
 export function isSovereignEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   return SOVEREIGN_EMAILS.has(email.toLowerCase());
 }
 
-/** Returns the effective public tier id for a user, honoring the Sovereign hardcode. */
+export function isCompedBigDreamHomeEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return COMPED_BIG_DREAM_HOME_EMAILS.has(email.toLowerCase());
+}
+
+/** Returns the effective public tier id for a user, honoring the Sovereign + comped hardcodes. */
 export function getPublicTierForUser(
   email: string | null | undefined,
   fallback: PublicTierId = "free",
 ): PublicTierId {
   if (isSovereignEmail(email)) return "sovereign";
+  if (isCompedBigDreamHomeEmail(email)) return "bigDreamHome";
   return fallback;
 }
 
