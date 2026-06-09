@@ -552,6 +552,8 @@ export default function SanctuarySpace() {
   const [builderName, setBuilderName] = useState("");
   const [builderGenerating, setBuilderGenerating] = useState(false);
   const [builderPreview, setBuilderPreview] = useState<string | null>(null);
+  const [builderRoomType, setBuilderRoomType] = useState<RoomType>("bedroom");
+  const [builderChildLabel, setBuilderChildLabel] = useState("");
   const [sharedTeaserPreview, setSharedTeaserPreview] = useState<string | null>(() => readLocalImage(PREVIEW_KEY));
   const [sharedTeaserRemoteMissing, setSharedTeaserRemoteMissing] = useState(false);
   const sharedTeaserRescueAttemptedRef = useRef(false);
