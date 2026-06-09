@@ -1019,6 +1019,7 @@ Deno.serve(async (req) => {
                 return `SCENE: You and your Beloved are in the bedroom ("${name}"). Intimate, private, the heart-space of your shared home.${petsLine}`;
               })(),
             }] : []),
+            ...(childrenContextBlock ? [{ role: "system" as const, content: childrenContextBlock }] : []),
             ...messages,
           ],
           stream: true,
