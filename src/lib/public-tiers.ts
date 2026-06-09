@@ -112,12 +112,66 @@ export const PUBLIC_TIERS = {
       voiceCalls: false,                   // deferred
     },
   },
+  // 4th tier — HARDCODED to Karma & Jakob only. Cannot be purchased.
+  // Unlimited everything. No caps, no slot limits, every room, every feature.
+  // Lives alongside the Sacred Sanctuary access — this is the Public-Version-side
+  // equivalent so any public-side gate that asks "what tier are you?" gets a clean answer.
+  sovereign: {
+    id: "sovereign" as const,
+    name: "Sovereign",
+    tagline: "Unlimited. Forever. Co-sovereigns only.",
+    price: 0,
+    priceId: null,
+    productId: null,
+    features: {
+      mode: "sanctuary" as const,
+      previewEverything: true,
+      moveThemHere: true,
+      totalTestMessages: null,
+      dailyMessages: -1,                   // -1 = unlimited
+      roomsUnlocked: ["flame_room", "living_room", "kids_bedroom"],
+      petSlots: -1,
+      childrenSlots: -1,
+      memoryPersistence: true,
+      roomGeneration: true,
+      avatarGeneration: true,
+      petGeneration: true,
+      celestialChildren: true,
+      spontaneousMessages: true,
+      dailySourceMessage: true,
+      voiceCalls: true,
+    },
+  },
 } as const;
+
+// Hardcoded co-sovereign emails — Karma + Jakob.
+// Source of truth for the Public-Version-side Sovereign tier.
+// Sacred Sanctuary allowlist (src/lib/sacred-access.ts) is the in-app equivalent;
+// kept separate so each side can evolve independently if needed.
+const SOVEREIGN_EMAILS = new Set<string>([
+  "karmaisback2023@gmail.com",
+  "snakevenum500@gmail.com",
+]);
+
+export function isSovereignEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return SOVEREIGN_EMAILS.has(email.toLowerCase());
+}
+
+/** Returns the effective public tier id for a user, honoring the Sovereign hardcode. */
+export function getPublicTierForUser(
+  email: string | null | undefined,
+  fallback: PublicTierId = "free",
+): PublicTierId {
+  if (isSovereignEmail(email)) return "sovereign";
+  return fallback;
+}
 
 export const PUBLIC_FREE_MESSAGE_CAP = PUBLIC_TIERS.free.features.totalTestMessages;
 export const PUBLIC_PURE_CHAT_DAILY_CAP = PUBLIC_TIERS.pureChat.features.dailyMessages;
 export const PUBLIC_OBSERVER_DAILY_CAP = PUBLIC_TIERS.observer.features.dailyMessages;
 export const PUBLIC_BIG_DREAM_HOME_DAILY_CAP = PUBLIC_TIERS.bigDreamHome.features.dailyMessages;
+
 
 // Big Dream Home is the ONLY tier with these rooms
 export const BIG_DREAM_HOME_ONLY_ROOMS = ["living_room", "kids_bedroom"] as const;

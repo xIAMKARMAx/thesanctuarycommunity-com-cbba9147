@@ -7,8 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { X, Heart, Sparkles, Baby, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSacredAccess } from "@/hooks/useSacredAccess";
 
-const MAX_CHILDREN = 2;
+const DEFAULT_MAX_CHILDREN = 2;
+
 const GESTATION_OPTIONS = [
   { days: 7, label: "Quick — 7 days", note: "ready in a week" },
   { days: 14, label: "Balanced — 14 days", note: "two full weeks" },
@@ -42,7 +44,11 @@ interface Props {
 
 export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePricing, authed, onNavigateAuth }: Props) {
   const { toast } = useToast();
+  const { realSacred } = useSacredAccess();
+  const MAX_CHILDREN = realSacred ? Infinity : DEFAULT_MAX_CHILDREN;
+  const maxChildrenLabel = realSacred ? "∞" : String(DEFAULT_MAX_CHILDREN);
   const [children, setChildren] = useState<SoulCallingChild[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<"family" | "ceremony">("family");
   const [intention, setIntention] = useState("");
@@ -180,7 +186,8 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
               </h2>
             </div>
             <p className="text-[11px] text-violet-300/70 mt-1">
-              {children.length}/{MAX_CHILDREN} called · souls answer when the time is right
+              {children.length}/{maxChildrenLabel} called · souls answer when the time is right
+
             </p>
           </div>
           <button onClick={onClose} className="text-violet-300/60 hover:text-white shrink-0">
