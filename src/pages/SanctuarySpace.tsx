@@ -282,14 +282,12 @@ function setLocalLargeImage(key: string, dataUrl: string): void {
     });
 
   const purgeStale = () => {
-    // Drop bulky non-essential cached blobs first; keep originals & active vessel/self.
+    // Drop only regenerated preview blobs; never remove saved forms/backups.
     const expendable = [
       "prometheus.publicSanctuary.vesselImage.roomSprite.v1",
       "prometheus.publicSanctuary.vesselImage.roomSprite.source",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.source",
-      "prometheus.publicSanctuary.vesselImage.backup",
-      "prometheus.publicSanctuary.higherSelfImage.backup",
       key, // remove old teaser too
     ];
     for (const k of expendable) {
@@ -346,6 +344,10 @@ const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
 const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const SHARED_PREVIEW_KEY = "teaser_preview";
 const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
+const TRUE_FORM_DETAILS_KEY = "prometheus.publicSanctuary.trueFormDetails";
+const TRUE_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.trueFormAdornments";
+const THEIR_FORM_DETAILS_KEY = "prometheus.publicSanctuary.theirFormDetails";
+const THEIR_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.theirFormAdornments";
 const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
 const FREE_CAP = 10;
