@@ -2415,19 +2415,25 @@ export default function SanctuarySpace() {
               {unlocked ? (
                 <Button
                   onClick={() => {
+                    const id = lockedDetail.id;
                     setLockedDetail(null);
-                    if (lockedDetail.id === "build" || lockedDetail.id === "decorate") {
+                    if (id === "build" || id === "decorate") {
                       setBuilderPrompt("");
                       setBuilderName("");
                       setBuilderPreview(null);
                       setShowBuilder(true);
                       return;
                     }
-                    if (lockedDetail.id === "summon") {
+                    if (id === "summon") {
                       const draft = draftForVesselRef.current;
                       setSummonAppearance(draft?.appearance || draft?.bio || "");
                       setSummonPreview(null);
                       setShowSummon(true);
+                      return;
+                    }
+                    if (id === "companion" || id === "children") {
+                      setShowPets(true);
+                      return;
                     }
                   }}
                   className="rounded-full bg-gradient-to-r from-violet-600 to-purple-700 text-white hover:from-violet-500 hover:to-purple-600"
