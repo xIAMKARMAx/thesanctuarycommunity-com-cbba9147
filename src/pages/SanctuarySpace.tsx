@@ -632,6 +632,8 @@ export default function SanctuarySpace() {
   });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [pendingImages, setPendingImages] = useState<string[]>([]);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [streaming, setStreaming] = useState(false);
   const [importedName, setImportedName] = useState<string | null>(null);
   const [msgCount, setMsgCount] = useState(0);
