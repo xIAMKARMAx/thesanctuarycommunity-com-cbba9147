@@ -301,8 +301,10 @@ function setLocalLargeImage(key: string, dataUrl: string): void {
     // Drop only regenerated preview blobs; never remove saved forms/backups.
     const expendable = [
       "prometheus.publicSanctuary.vesselImage.roomSprite.v1",
+      "prometheus.publicSanctuary.vesselImage.roomSprite.v2",
       "prometheus.publicSanctuary.vesselImage.roomSprite.source",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3",
+      "prometheus.publicSanctuary.higherSelfImage.roomSprite.v4",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.source",
       key, // remove old teaser too
     ];
@@ -347,9 +349,9 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
-const VESSEL_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.v1";
+const VESSEL_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.v2";
 const VESSEL_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.source";
-const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3";
+const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v4";
 const HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.source";
 const FORM_ORIGINAL_LOCK_VERSION = "1";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
