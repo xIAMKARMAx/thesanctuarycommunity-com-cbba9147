@@ -793,7 +793,25 @@ export default function SanctuarySpace() {
 
   // Persist rooms + active selection
   useEffect(() => {
-    try { localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms)); } catch {}
+    const payload = JSON.stringify(rooms);
+    try {
+      localStorage.setItem(ROOMS_KEY, payload);
+    } catch {
+      // Quota exceeded — drop expendable cached blobs and retry
+      const expendable = [
+        VESSEL_ROOM_SPRITE_KEY,
+        VESSEL_ROOM_SPRITE_SOURCE_KEY,
+        HIGHER_SELF_ROOM_SPRITE_KEY,
+        HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY,
+        VESSEL_BACKUP_KEY,
+        HIGHER_SELF_BACKUP_KEY,
+        PREVIEW_KEY,
+      ];
+      for (const k of expendable) {
+        try { localStorage.removeItem(k); } catch {}
+      }
+      try { localStorage.setItem(ROOMS_KEY, payload); } catch {}
+    }
   }, [rooms]);
   useEffect(() => {
     try {
@@ -1346,20 +1364,21 @@ export default function SanctuarySpace() {
 
   const acceptSummonedVessel = async () => {
     if (!summonPreview) return;
+    const compact = await compressImageForLocalStorage(summonPreview, 960, 0.68);
     const roomSprite = await prepareTrueFormSpriteForRoom(summonPreview);
-    setVesselImage(summonPreview);
+    setVesselImage(compact);
     setVesselRoomSprite(roomSprite || null);
     setVesselRoomSpriteReady(!!roomSprite);
     try {
-      localStorage.setItem(VESSEL_KEY, summonPreview);
-      localStorage.setItem(VESSEL_BACKUP_KEY, summonPreview);
-      if (isAdmin) localStorage.setItem(DEFAULT_VESSEL_KEY, summonPreview);
-      localStorage.setItem(VESSEL_KEY + ".keyed", "1");
-      localStorage.setItem(VESSEL_ORIGINAL_KEY, summonPreview);
+      setLocalLargeImage(VESSEL_ORIGINAL_KEY, compact);
       localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
+      try { localStorage.setItem(VESSEL_KEY, compact); } catch {}
+      try { localStorage.setItem(VESSEL_BACKUP_KEY, compact); } catch {}
+      if (isAdmin) { try { localStorage.setItem(DEFAULT_VESSEL_KEY, compact); } catch {} }
+      try { localStorage.setItem(VESSEL_KEY + ".keyed", "1"); } catch {}
       if (roomSprite) {
-        localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, roomSprite);
-        localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, summonPreview);
+        try { localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, roomSprite); } catch {}
+        try { localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, compact); } catch {}
       } else {
         localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
         localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
@@ -1370,7 +1389,7 @@ export default function SanctuarySpace() {
         n: draft.name, g: draft.gender, b: draft.bio, p: draft.personality,
         a: summonAppearance.trim(),
       });
-      localStorage.setItem(VESSEL_DRAFT_KEY, sig);
+      try { localStorage.setItem(VESSEL_DRAFT_KEY, sig); } catch {}
     } catch {}
     setShowSummon(false);
     setSummonPreview(null);
@@ -1425,20 +1444,21 @@ export default function SanctuarySpace() {
 
   const acceptSummonedHigherSelf = async () => {
     if (!selfPreview) return;
+    const compact = await compressImageForLocalStorage(selfPreview, 960, 0.68);
     const roomSprite = await prepareTrueFormSpriteForRoom(selfPreview);
-    setHigherSelfImage(selfPreview);
+    setHigherSelfImage(compact);
     setHigherSelfRoomSprite(roomSprite || null);
     setHigherSelfRoomSpriteReady(!!roomSprite);
     try {
-      localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
-      localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
-      if (isAdmin) localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, selfPreview);
-      localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
-      localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
+      setLocalLargeImage(HIGHER_SELF_ORIGINAL_KEY, compact);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
+      try { localStorage.setItem(HIGHER_SELF_KEY, compact); } catch {}
+      try { localStorage.setItem(HIGHER_SELF_BACKUP_KEY, compact); } catch {}
+      if (isAdmin) { try { localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, compact); } catch {} }
+      try { localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1"); } catch {}
       if (roomSprite) {
-        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
-        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, selfPreview);
+        try { localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite); } catch {}
+        try { localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, compact); } catch {}
       } else {
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
