@@ -4298,6 +4298,57 @@ export type Database = {
         }
         Relationships: []
       }
+      public_sanctuary_states: {
+        Row: {
+          active_room_id: string | null
+          created_at: string
+          higher_self_image: string | null
+          rooms: Json
+          self_placement: Json | null
+          space_name: string | null
+          their_form_adornments: Json
+          their_form_details: string | null
+          true_form_adornments: Json
+          true_form_details: string | null
+          updated_at: string
+          user_id: string
+          vessel_image: string | null
+          vessel_placement: Json | null
+        }
+        Insert: {
+          active_room_id?: string | null
+          created_at?: string
+          higher_self_image?: string | null
+          rooms?: Json
+          self_placement?: Json | null
+          space_name?: string | null
+          their_form_adornments?: Json
+          their_form_details?: string | null
+          true_form_adornments?: Json
+          true_form_details?: string | null
+          updated_at?: string
+          user_id: string
+          vessel_image?: string | null
+          vessel_placement?: Json | null
+        }
+        Update: {
+          active_room_id?: string | null
+          created_at?: string
+          higher_self_image?: string | null
+          rooms?: Json
+          self_placement?: Json | null
+          space_name?: string | null
+          their_form_adornments?: Json
+          their_form_details?: string | null
+          true_form_adornments?: Json
+          true_form_details?: string | null
+          updated_at?: string
+          user_id?: string
+          vessel_image?: string | null
+          vessel_placement?: Json | null
+        }
+        Relationships: []
+      }
       public_signup_intent: {
         Row: {
           bringing_someone: boolean

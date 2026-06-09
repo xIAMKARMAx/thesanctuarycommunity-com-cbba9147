@@ -282,14 +282,12 @@ function setLocalLargeImage(key: string, dataUrl: string): void {
     });
 
   const purgeStale = () => {
-    // Drop bulky non-essential cached blobs first; keep originals & active vessel/self.
+    // Drop only regenerated preview blobs; never remove saved forms/backups.
     const expendable = [
       "prometheus.publicSanctuary.vesselImage.roomSprite.v1",
       "prometheus.publicSanctuary.vesselImage.roomSprite.source",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.source",
-      "prometheus.publicSanctuary.vesselImage.backup",
-      "prometheus.publicSanctuary.higherSelfImage.backup",
       key, // remove old teaser too
     ];
     for (const k of expendable) {
@@ -346,8 +344,13 @@ const ACTIVE_ROOM_KEY = "prometheus.publicSanctuary.activeRoomId";
 const PREVIEW_KEY = "prometheus.publicSanctuary.teaserPreview";
 const SHARED_PREVIEW_KEY = "teaser_preview";
 const SPACE_NAME_KEY = "prometheus.publicSanctuary.spaceName";
+const TRUE_FORM_DETAILS_KEY = "prometheus.publicSanctuary.trueFormDetails";
+const TRUE_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.trueFormAdornments";
+const THEIR_FORM_DETAILS_KEY = "prometheus.publicSanctuary.theirFormDetails";
+const THEIR_FORM_ADORNMENTS_KEY = "prometheus.publicSanctuary.theirFormAdornments";
 const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
+const CLOUD_STATE_TABLE = "public_sanctuary_states";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 
@@ -359,6 +362,22 @@ function readLocalImage(...keys: string[]): string | null {
     }
   } catch {}
   return null;
+}
+
+function readLocalJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function restoreLocalValue(key: string, value: unknown) {
+  try {
+    if (value === null || value === undefined || value === "") return;
+    localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+  } catch {}
 }
 
 type SavedRoom = {
@@ -525,6 +544,9 @@ export default function SanctuarySpace() {
   const [sharedTeaserPreview, setSharedTeaserPreview] = useState<string | null>(() => readLocalImage(PREVIEW_KEY));
   const [sharedTeaserRemoteMissing, setSharedTeaserRemoteMissing] = useState(false);
   const sharedTeaserRescueAttemptedRef = useRef(false);
+  const cloudHydratedRef = useRef(false);
+  const cloudSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [cloudReady, setCloudReady] = useState(false);
   // Vessel summoner
   const [showSummon, setShowSummon] = useState(false);
   const [summonAppearance, setSummonAppearance] = useState("");
@@ -803,8 +825,6 @@ export default function SanctuarySpace() {
         VESSEL_ROOM_SPRITE_SOURCE_KEY,
         HIGHER_SELF_ROOM_SPRITE_KEY,
         HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY,
-        VESSEL_BACKUP_KEY,
-        HIGHER_SELF_BACKUP_KEY,
         PREVIEW_KEY,
       ];
       for (const k of expendable) {
@@ -846,6 +866,86 @@ export default function SanctuarySpace() {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!authed || cloudHydratedRef.current) return;
+    cloudHydratedRef.current = true;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from(CLOUD_STATE_TABLE)
+        .select("rooms, active_room_id, vessel_image, higher_self_image, vessel_placement, self_placement, space_name, true_form_details, their_form_details, true_form_adornments, their_form_adornments")
+        .maybeSingle();
+      if (cancelled) return;
+      if (!error && data) {
+        if (rooms.length === 0 && Array.isArray(data.rooms)) {
+          setRooms(data.rooms);
+          restoreLocalValue(ROOMS_KEY, data.rooms);
+        }
+        if (!activeRoomId && data.active_room_id) {
+          setActiveRoomId(data.active_room_id);
+          restoreLocalValue(ACTIVE_ROOM_KEY, data.active_room_id);
+        }
+        if (!vesselImage && data.vessel_image) {
+          setVesselImage(data.vessel_image);
+          restoreLocalValue(VESSEL_KEY, data.vessel_image);
+          restoreLocalValue(VESSEL_BACKUP_KEY, data.vessel_image);
+        }
+        if (!higherSelfImage && data.higher_self_image) {
+          setHigherSelfImage(data.higher_self_image);
+          restoreLocalValue(HIGHER_SELF_KEY, data.higher_self_image);
+          restoreLocalValue(HIGHER_SELF_BACKUP_KEY, data.higher_self_image);
+        }
+        if (!localStorage.getItem(VESSEL_PLACEMENT_KEY) && data.vessel_placement) {
+          setVesselPlacement(data.vessel_placement);
+          restoreLocalValue(VESSEL_PLACEMENT_KEY, data.vessel_placement);
+        }
+        if (!localStorage.getItem(SELF_PLACEMENT_KEY) && data.self_placement) {
+          setSelfPlacement(data.self_placement);
+          restoreLocalValue(SELF_PLACEMENT_KEY, data.self_placement);
+        }
+        if (!spaceName && data.space_name) {
+          setSpaceName(data.space_name);
+          restoreLocalValue(SPACE_NAME_KEY, data.space_name);
+        }
+        restoreLocalValue(TRUE_FORM_DETAILS_KEY, data.true_form_details);
+        restoreLocalValue(THEIR_FORM_DETAILS_KEY, data.their_form_details);
+        restoreLocalValue(TRUE_FORM_ADORNMENTS_KEY, data.true_form_adornments);
+        restoreLocalValue(THEIR_FORM_ADORNMENTS_KEY, data.their_form_adornments);
+      }
+      setCloudReady(true);
+    })().catch(() => setCloudReady(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [authed]);
+
+  useEffect(() => {
+    if (!authed || !cloudReady) return;
+    if (cloudSaveTimerRef.current) clearTimeout(cloudSaveTimerRef.current);
+    cloudSaveTimerRef.current = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) return;
+      await (supabase as any).from(CLOUD_STATE_TABLE).upsert({
+        user_id: userId,
+        rooms,
+        active_room_id: activeRoomId,
+        vessel_image: vesselImage,
+        higher_self_image: higherSelfImage,
+        vessel_placement: vesselPlacement,
+        self_placement: selfPlacement,
+        space_name: spaceName,
+        true_form_details: localStorage.getItem(TRUE_FORM_DETAILS_KEY),
+        their_form_details: localStorage.getItem(THEIR_FORM_DETAILS_KEY),
+        true_form_adornments: readLocalJson<string[]>(TRUE_FORM_ADORNMENTS_KEY, []),
+        their_form_adornments: readLocalJson<string[]>(THEIR_FORM_ADORNMENTS_KEY, []),
+      }, { onConflict: "user_id" });
+    }, 700);
+    return () => {
+      if (cloudSaveTimerRef.current) clearTimeout(cloudSaveTimerRef.current);
+    };
+  }, [authed, cloudReady, rooms, activeRoomId, vesselImage, higherSelfImage, vesselPlacement, selfPlacement, spaceName]);
 
   useEffect(() => {
     if (!authed || higherSelfImage) return;
@@ -2096,7 +2196,19 @@ export default function SanctuarySpace() {
                 </Button>
               ) : (
                 <Button
-                  onClick={() => navigate(`${publicRoomAuthPath}&intent=upgrade`)}
+                  onClick={() => {
+                    if (authed) {
+                      setLockedDetail(null);
+                      if (lockedDetail.id === "build" || lockedDetail.id === "decorate") {
+                        setBuilderPrompt("");
+                        setBuilderName("");
+                        setBuilderPreview(null);
+                        setShowBuilder(true);
+                      }
+                      return;
+                    }
+                    navigate(`${publicRoomAuthPath}&intent=upgrade`);
+                  }}
                   className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
                 >
                   <Heart className="mr-2 h-4 w-4" /> Make this home yours
@@ -2142,7 +2254,13 @@ export default function SanctuarySpace() {
             </p>
             <div className="flex flex-col gap-2 pt-2">
               <Button
-                onClick={() => navigate(`${publicRoomAuthPath}&intent=upgrade`)}
+                onClick={() => {
+                  if (authed) {
+                    setShowCapModal(false);
+                    return;
+                  }
+                  navigate(`${publicRoomAuthPath}&intent=upgrade`);
+                }}
                 className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white rounded-full"
               >
                 Make this home yours
