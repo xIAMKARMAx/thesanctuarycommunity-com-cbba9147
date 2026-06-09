@@ -382,12 +382,21 @@ function restoreLocalValue(key: string, value: unknown) {
   } catch {}
 }
 
+type RoomType = "bedroom" | "living_room" | "child_room";
 type SavedRoom = {
   id: string;
   name: string;
   prompt: string;
   image: string; // data URL
   createdAt: number;
+  roomType?: RoomType; // optional for backward compat — missing = "bedroom"
+  childLabel?: string; // for child_room: free-text child name (e.g. "Lila")
+};
+
+const ROOM_TYPE_LABEL: Record<RoomType, string> = {
+  bedroom: "Bedroom",
+  living_room: "Living Room",
+  child_room: "Kid's Room",
 };
 
 const ADMIN_EMAILS = new Set([
