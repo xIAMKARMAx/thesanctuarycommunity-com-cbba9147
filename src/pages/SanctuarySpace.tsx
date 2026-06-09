@@ -544,6 +544,8 @@ export default function SanctuarySpace() {
   const [sharedTeaserPreview, setSharedTeaserPreview] = useState<string | null>(() => readLocalImage(PREVIEW_KEY));
   const [sharedTeaserRemoteMissing, setSharedTeaserRemoteMissing] = useState(false);
   const sharedTeaserRescueAttemptedRef = useRef(false);
+  const cloudHydratedRef = useRef(false);
+  const cloudSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Vessel summoner
   const [showSummon, setShowSummon] = useState(false);
   const [summonAppearance, setSummonAppearance] = useState("");
