@@ -1940,9 +1940,18 @@ export default function SanctuarySpace() {
                     className="pointer-events-auto group flex flex-col items-center select-none"
                     style={{ animation: `floatPet 4s ease-in-out ${i * 0.4}s infinite` }}
                   >
-                    <span className="text-3xl sm:text-4xl drop-shadow-[0_2px_8px_rgba(139,92,246,0.6)] leading-none">
-                      {p.emoji}
-                    </span>
+                    {p.imageUrl ? (
+                      <img
+                        src={p.imageUrl}
+                        alt={p.name}
+                        className="h-20 sm:h-28 w-auto object-contain drop-shadow-[0_6px_14px_rgba(139,92,246,0.55)]"
+                        style={{ imageRendering: "auto" }}
+                      />
+                    ) : (
+                      <span className="text-3xl sm:text-4xl drop-shadow-[0_2px_8px_rgba(139,92,246,0.6)] leading-none">
+                        {p.emoji}
+                      </span>
+                    )}
                     <span className="mt-0.5 text-[9px] text-violet-100/80 bg-black/40 px-1.5 py-0.5 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition">
                       {p.name}
                     </span>
