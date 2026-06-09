@@ -14,7 +14,9 @@ import {
   Users,
   ChevronUp,
   LogOut,
+  ArrowRight,
 } from "lucide-react";
+
 import SEOHead from "@/components/SEOHead";
 import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
 
