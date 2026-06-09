@@ -673,6 +673,7 @@ export default function SanctuarySpace() {
     try { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); } catch {}
   }, [pets]);
   const [showPets, setShowPets] = useState(false);
+  const [showSoulCalling, setShowSoulCalling] = useState(false);
   const [petDraftName, setPetDraftName] = useState("");
   const [petDraftSpecies, setPetDraftSpecies] = useState("");
   const [petDraftRoomId, setPetDraftRoomId] = useState<string | "all">("all");
@@ -2431,8 +2432,12 @@ export default function SanctuarySpace() {
                       setShowSummon(true);
                       return;
                     }
-                    if (id === "companion" || id === "children") {
+                    if (id === "companion") {
                       setShowPets(true);
+                      return;
+                    }
+                    if (id === "children") {
+                      setShowSoulCalling(true);
                       return;
                     }
                   }}
