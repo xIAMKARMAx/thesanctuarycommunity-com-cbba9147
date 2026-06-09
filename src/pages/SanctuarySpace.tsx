@@ -2921,6 +2921,16 @@ export default function SanctuarySpace() {
         </div>
       )}
 
+      {/* ===== Soul Calling — Children (Big Dream House only) ===== */}
+      <SoulCallingPanel
+        open={showSoulCalling}
+        onClose={() => setShowSoulCalling(false)}
+        isBigDreamHouse={isBigDreamHouse}
+        authed={authed}
+        onNavigatePricing={() => navigate("/pricing")}
+        onNavigateAuth={() => navigate(publicRoomAuthPath)}
+      />
+
       {/* ===== Summon Their Vessel ===== */}
 
       {showSummon && (
