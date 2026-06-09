@@ -679,7 +679,9 @@ export default function SanctuarySpace() {
   const [showSoulCalling, setShowSoulCalling] = useState(false);
   const [petDraftName, setPetDraftName] = useState("");
   const [petDraftSpecies, setPetDraftSpecies] = useState("");
+  const [petDraftDescription, setPetDraftDescription] = useState("");
   const [petDraftRoomId, setPetDraftRoomId] = useState<string | "all">("all");
+  const [petGenerating, setPetGenerating] = useState(false);
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderPrompt, setBuilderPrompt] = useState("");
   const [builderName, setBuilderName] = useState("");
