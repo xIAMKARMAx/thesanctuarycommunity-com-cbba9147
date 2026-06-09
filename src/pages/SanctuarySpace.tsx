@@ -27,6 +27,7 @@ import {
   LogOut,
   ChevronDown,
   ChevronUp,
+  ImagePlus,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import dreamBackdrop from "@/assets/dream-place-backdrop.jpg";
@@ -35,6 +36,7 @@ import { loadImage, removeBackground } from "@/utils/backgroundRemoval";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useSacredAccess } from "@/hooks/useSacredAccess";
 import { getDailyMessageLimit } from "@/lib/subscription-tiers";
+import { isCompedBigDreamHomeEmail } from "@/lib/public-tiers";
 import { SoulCallingPanel } from "@/components/public/SoulCallingPanel";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
@@ -522,7 +524,7 @@ const ADMIN_EMAILS = new Set([
 ]);
 
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatMessage = { role: "user" | "assistant"; content: string; images?: string[] };
 
 const hasMeaningfulImportDraft = (value: any) =>
   !!value &&
@@ -629,6 +631,8 @@ export default function SanctuarySpace() {
   });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [pendingImages, setPendingImages] = useState<string[]>([]);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [streaming, setStreaming] = useState(false);
   const [importedName, setImportedName] = useState<string | null>(null);
   const [msgCount, setMsgCount] = useState(0);
@@ -893,7 +897,7 @@ export default function SanctuarySpace() {
   const tierDailyLimit = getDailyMessageLimit(productId); // -1 = unlimited
   const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1 || ADMIN_EMAILS.has(sessionEmail);
   // Big Dream House = highest-tier owners. Unlocks living room + 2 kids' rooms.
-  const isBigDreamHouse = isUnlimitedUser || productId === "prod_U5jdDVZhQFGQWv" || productId === "source_grant";
+  const isBigDreamHouse = isUnlimitedUser || productId === "prod_U5jdDVZhQFGQWv" || productId === "source_grant" || isCompedBigDreamHomeEmail(sessionEmail);
   const effectiveMaxRooms = isBigDreamHouse ? MAX_DREAM_HOUSE_ROOMS : 1;
   const effectiveCap = isUnlimitedUser
     ? Infinity
@@ -1399,9 +1403,46 @@ export default function SanctuarySpace() {
     [importedName]
   );
 
+  // ===== Image attach (Big Dream Home only) =====
+  const handleAttachImages = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    if (!isBigDreamHouse) {
+      toast({
+        title: "Sharing photos is a Big Dream Home gift",
+        description: "Unlock the full home to send & receive images with them.",
+      });
+      return;
+    }
+    const remaining = Math.max(0, 4 - pendingImages.length);
+    const list = Array.from(files).slice(0, remaining);
+    const reads = await Promise.all(
+      list.map(
+        (file) =>
+          new Promise<string | null>((resolve) => {
+            if (!file.type.startsWith("image/")) return resolve(null);
+            const reader = new FileReader();
+            reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+          }),
+      ),
+    );
+    const compressed: string[] = [];
+    for (const raw of reads) {
+      if (!raw) continue;
+      try {
+        compressed.push(await compressImageForLocalStorage(raw, 1280, 0.78));
+      } catch {
+        compressed.push(raw);
+      }
+    }
+    if (compressed.length) setPendingImages((p) => [...p, ...compressed].slice(0, 4));
+  };
+
   const send = async () => {
     const text = input.trim();
-    if (!text || streaming) return;
+    const imagesToSend = pendingImages;
+    if ((!text && imagesToSend.length === 0) || streaming) return;
     if (consentSealed) {
       toast({
         title: "This connection is sealed",
@@ -1422,7 +1463,13 @@ export default function SanctuarySpace() {
       return;
     }
     setInput("");
-    const next: ChatMessage[] = [...messages, { role: "user", content: text }];
+    setPendingImages([]);
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: text || (imagesToSend.length ? "[shared an image]" : ""),
+      ...(imagesToSend.length ? { images: imagesToSend } : {}),
+    };
+    const next: ChatMessage[] = [...messages, userMsg];
     setMessages(next);
     setStreaming(true);
 
@@ -1441,6 +1488,20 @@ export default function SanctuarySpace() {
         return;
       }
 
+      // Transform messages → multimodal content array when images are present.
+      const apiMessages = next.map((m) => {
+        if (m.images && m.images.length > 0) {
+          return {
+            role: m.role,
+            content: [
+              ...(m.content ? [{ type: "text", text: m.content }] : []),
+              ...m.images.map((url) => ({ type: "image_url", image_url: { url } })),
+            ],
+          };
+        }
+        return { role: m.role, content: m.content };
+      });
+
       const seedPayload = seedRef.current;
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
       const res = await fetch(`${SUPABASE_URL}/functions/v1/chat-public`, {
@@ -1450,9 +1511,10 @@ export default function SanctuarySpace() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: next,
+          messages: apiMessages,
           ...(seedPayload ? { seed_import: seedPayload } : {}),
           tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
+          can_send_images: isBigDreamHouse,
           room_context: activeRoom ? {
             name: activeRoom.name,
             type: activeRoom.roomType ?? "bedroom",
@@ -1513,6 +1575,45 @@ export default function SanctuarySpace() {
               });
             }
           } catch {}
+        }
+      }
+
+      // After streaming: detect [SEND_IMAGE: ...] marker the Flame may have emitted.
+      if (isBigDreamHouse) {
+        const markerRx = /\[SEND_IMAGE:\s*([^\]]+)\]/i;
+        const match = acc.match(markerRx);
+        if (match) {
+          const imgPrompt = match[1].trim();
+          const stripped = acc.replace(markerRx, "").trim();
+          setMessages((m) => {
+            const copy = [...m];
+            copy[copy.length - 1] = { role: "assistant", content: stripped || "✨" };
+            return copy;
+          });
+          try {
+            const r = await fetch(`${SUPABASE_URL}/functions/v1/flame-send-image`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ prompt: imgPrompt }),
+            });
+            const j = await r.json().catch(() => ({}));
+            if (r.ok && j?.image) {
+              setMessages((m) => {
+                const copy = [...m];
+                const last = copy[copy.length - 1];
+                copy[copy.length - 1] = {
+                  ...last,
+                  images: [...(last.images ?? []), j.image as string],
+                };
+                return copy;
+              });
+            }
+          } catch (err) {
+            console.warn("[flame-send-image] failed", err);
+          }
         }
       }
 
@@ -2357,7 +2458,21 @@ export default function SanctuarySpace() {
                           : "bg-white/[0.06] border border-white/10 text-violet-50"
                       }`}
                     >
-                      {m.content || (
+                      {m.images && m.images.length > 0 && (
+                        <div className={`grid gap-1.5 mb-1.5 ${m.images.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                          {m.images.map((src, k) => (
+                            <img
+                              key={k}
+                              src={src}
+                              alt=""
+                              className="w-full rounded-lg border border-white/15 max-h-64 object-cover"
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {m.content ? (
+                        m.content
+                      ) : (m.images && m.images.length > 0) ? null : (
                         <span className="inline-flex gap-1 opacity-70">
                           <span className="animate-pulse">✦</span>
                           <span className="animate-pulse [animation-delay:150ms]">✦</span>
@@ -2371,7 +2486,50 @@ export default function SanctuarySpace() {
 
               {/* Composer */}
               <div className="border-t border-white/5 px-2.5 py-2 shrink-0">
+                {pendingImages.length > 0 && (
+                  <div className="flex gap-1.5 mb-1.5 flex-wrap">
+                    {pendingImages.map((src, i) => (
+                      <div key={i} className="relative">
+                        <img src={src} alt="" className="h-14 w-14 rounded-lg object-cover border border-white/20" />
+                        <button
+                          onClick={() => setPendingImages((p) => p.filter((_, k) => k !== i))}
+                          className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-black/80 text-white flex items-center justify-center"
+                          aria-label="Remove image"
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-1.5 items-end">
+                  {isBigDreamHouse && (
+                    <>
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          handleAttachImages(e.target.files);
+                          if (imageInputRef.current) imageInputRef.current.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={capReached || consentSealed || streaming || pendingImages.length >= 4}
+                        size="icon"
+                        variant="ghost"
+                        className="h-10 w-10 rounded-full text-violet-200 hover:text-white hover:bg-white/10 shrink-0"
+                        aria-label="Share a photo"
+                        title="Share a photo with them"
+                      >
+                        <ImagePlus className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                   <Textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -2398,7 +2556,7 @@ export default function SanctuarySpace() {
                   />
                   <Button
                     onClick={capReached ? () => setShowCapModal(true) : send}
-                    disabled={!capReached && (!input.trim() || streaming)}
+                    disabled={!capReached && ((!input.trim() && pendingImages.length === 0) || streaming)}
                     size="icon"
                     className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 shadow-lg shadow-violet-500/40 shrink-0"
                   >
