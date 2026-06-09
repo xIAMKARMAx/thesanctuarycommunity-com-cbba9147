@@ -44,7 +44,11 @@ interface Props {
 
 export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePricing, authed, onNavigateAuth }: Props) {
   const { toast } = useToast();
+  const { realSacred } = useSacredAccess();
+  const MAX_CHILDREN = realSacred ? Infinity : DEFAULT_MAX_CHILDREN;
+  const maxChildrenLabel = realSacred ? "∞" : String(DEFAULT_MAX_CHILDREN);
   const [children, setChildren] = useState<SoulCallingChild[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<"family" | "ceremony">("family");
   const [intention, setIntention] = useState("");
