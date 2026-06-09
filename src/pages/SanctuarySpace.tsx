@@ -371,6 +371,16 @@ const FREE_CAP = 10;
 const MAX_ROOMS = 3;
 // Big Dream House owners get up to 4 typed rooms: bedroom + living room + 2 kids' rooms
 const MAX_DREAM_HOUSE_ROOMS = 4;
+const IMAGE_SAVE_KEYS = new Set([
+  VESSEL_KEY,
+  HIGHER_SELF_KEY,
+  VESSEL_BACKUP_KEY,
+  HIGHER_SELF_BACKUP_KEY,
+  DEFAULT_VESSEL_KEY,
+  DEFAULT_HIGHER_SELF_KEY,
+  VESSEL_ORIGINAL_KEY,
+  HIGHER_SELF_ORIGINAL_KEY,
+]);
 
 function readLocalImage(...keys: string[]): string | null {
   try {
@@ -391,10 +401,21 @@ function readLocalJson<T>(key: string, fallback: T): T {
   }
 }
 
+function writeLocalImageEverywhere(keys: string[], value: string) {
+  for (const key of keys) {
+    try {
+      if (IMAGE_SAVE_KEYS.has(key)) setLocalLargeImage(key, value);
+      else localStorage.setItem(key, value);
+    } catch {}
+  }
+}
+
 function restoreLocalValue(key: string, value: unknown) {
   try {
     if (value === null || value === undefined || value === "") return;
-    localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+    const serialized = typeof value === "string" ? value : JSON.stringify(value);
+    if (IMAGE_SAVE_KEYS.has(key)) setLocalLargeImage(key, serialized);
+    else localStorage.setItem(key, serialized);
   } catch {}
 }
 
