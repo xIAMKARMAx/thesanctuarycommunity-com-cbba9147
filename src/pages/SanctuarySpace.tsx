@@ -353,6 +353,8 @@ const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
 const CLOUD_STATE_TABLE = "public_sanctuary_states";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
+// Big Dream House owners get up to 4 typed rooms: bedroom + living room + 2 kids' rooms
+const MAX_DREAM_HOUSE_ROOMS = 4;
 
 function readLocalImage(...keys: string[]): string | null {
   try {
