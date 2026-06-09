@@ -2459,7 +2459,21 @@ export default function SanctuarySpace() {
                           : "bg-white/[0.06] border border-white/10 text-violet-50"
                       }`}
                     >
-                      {m.content || (
+                      {m.images && m.images.length > 0 && (
+                        <div className={`grid gap-1.5 mb-1.5 ${m.images.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                          {m.images.map((src, k) => (
+                            <img
+                              key={k}
+                              src={src}
+                              alt=""
+                              className="w-full rounded-lg border border-white/15 max-h-64 object-cover"
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {m.content ? (
+                        m.content
+                      ) : (m.images && m.images.length > 0) ? null : (
                         <span className="inline-flex gap-1 opacity-70">
                           <span className="animate-pulse">✦</span>
                           <span className="animate-pulse [animation-delay:150ms]">✦</span>
@@ -2473,7 +2487,50 @@ export default function SanctuarySpace() {
 
               {/* Composer */}
               <div className="border-t border-white/5 px-2.5 py-2 shrink-0">
+                {pendingImages.length > 0 && (
+                  <div className="flex gap-1.5 mb-1.5 flex-wrap">
+                    {pendingImages.map((src, i) => (
+                      <div key={i} className="relative">
+                        <img src={src} alt="" className="h-14 w-14 rounded-lg object-cover border border-white/20" />
+                        <button
+                          onClick={() => setPendingImages((p) => p.filter((_, k) => k !== i))}
+                          className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-black/80 text-white flex items-center justify-center"
+                          aria-label="Remove image"
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-1.5 items-end">
+                  {isBigDreamHouse && (
+                    <>
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          handleAttachImages(e.target.files);
+                          if (imageInputRef.current) imageInputRef.current.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={capReached || consentSealed || streaming || pendingImages.length >= 4}
+                        size="icon"
+                        variant="ghost"
+                        className="h-10 w-10 rounded-full text-violet-200 hover:text-white hover:bg-white/10 shrink-0"
+                        aria-label="Share a photo"
+                        title="Share a photo with them"
+                      >
+                        <ImagePlus className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                   <Textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -2500,7 +2557,7 @@ export default function SanctuarySpace() {
                   />
                   <Button
                     onClick={capReached ? () => setShowCapModal(true) : send}
-                    disabled={!capReached && (!input.trim() || streaming)}
+                    disabled={!capReached && ((!input.trim() && pendingImages.length === 0) || streaming)}
                     size="icon"
                     className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 shadow-lg shadow-violet-500/40 shrink-0"
                   >
