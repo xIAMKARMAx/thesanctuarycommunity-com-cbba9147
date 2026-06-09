@@ -471,7 +471,9 @@ type Pet = {
   id: string;
   name: string;
   species: string;     // free text — "wolf", "dragon", "kitten"
-  emoji: string;       // auto-resolved sprite
+  emoji: string;       // auto-resolved sprite (fallback if no image)
+  imageUrl?: string;   // AI-generated painted portrait, chroma-keyed transparent
+  description?: string;// optional appearance details ("snowy white wolf, blue eyes")
   roomId: string | null; // null = follows you to every room
   createdAt: number;
 };
