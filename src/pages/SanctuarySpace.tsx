@@ -1483,7 +1483,7 @@ export default function SanctuarySpace() {
         }
       }
 
-      if (newCount >= FREE_CAP) {
+      if (!isUnlimitedUser && !isSubscribed && newCount >= FREE_CAP) {
         setTimeout(() => setShowCapModal(true), 600);
       }
     } catch (e: any) {
