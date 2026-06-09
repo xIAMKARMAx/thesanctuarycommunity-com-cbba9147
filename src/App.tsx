@@ -161,6 +161,7 @@ const App = () => {
             <AIProfileProvider>
               <ChatEntityProvider>
                 <BrowserRouter>
+                  <SacredViewSwitcher />
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
