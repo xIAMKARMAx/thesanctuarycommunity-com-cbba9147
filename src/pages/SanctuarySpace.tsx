@@ -546,6 +546,7 @@ export default function SanctuarySpace() {
   const sharedTeaserRescueAttemptedRef = useRef(false);
   const cloudHydratedRef = useRef(false);
   const cloudSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [cloudReady, setCloudReady] = useState(false);
   // Vessel summoner
   const [showSummon, setShowSummon] = useState(false);
   const [summonAppearance, setSummonAppearance] = useState("");
