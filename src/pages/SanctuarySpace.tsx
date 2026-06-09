@@ -2116,7 +2116,7 @@ export default function SanctuarySpace() {
               setLockedDetail(buildFeature);
             }
           }}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 group"
+          className="absolute top-12 left-3 sm:top-14 sm:left-4 z-10 group"
         >
           <div className="relative rounded-2xl border border-violet-300/40 bg-black/55 backdrop-blur-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-violet-900/40 hover:bg-black/70 transition">
             <div className="flex items-center gap-2">
