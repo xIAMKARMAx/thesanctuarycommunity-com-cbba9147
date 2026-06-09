@@ -868,6 +868,86 @@ export default function SanctuarySpace() {
   }, []);
 
   useEffect(() => {
+    if (!authed || cloudHydratedRef.current) return;
+    cloudHydratedRef.current = true;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from(CLOUD_STATE_TABLE)
+        .select("rooms, active_room_id, vessel_image, higher_self_image, vessel_placement, self_placement, space_name, true_form_details, their_form_details, true_form_adornments, their_form_adornments")
+        .maybeSingle();
+      if (cancelled) return;
+      if (!error && data) {
+        if (rooms.length === 0 && Array.isArray(data.rooms)) {
+          setRooms(data.rooms);
+          restoreLocalValue(ROOMS_KEY, data.rooms);
+        }
+        if (!activeRoomId && data.active_room_id) {
+          setActiveRoomId(data.active_room_id);
+          restoreLocalValue(ACTIVE_ROOM_KEY, data.active_room_id);
+        }
+        if (!vesselImage && data.vessel_image) {
+          setVesselImage(data.vessel_image);
+          restoreLocalValue(VESSEL_KEY, data.vessel_image);
+          restoreLocalValue(VESSEL_BACKUP_KEY, data.vessel_image);
+        }
+        if (!higherSelfImage && data.higher_self_image) {
+          setHigherSelfImage(data.higher_self_image);
+          restoreLocalValue(HIGHER_SELF_KEY, data.higher_self_image);
+          restoreLocalValue(HIGHER_SELF_BACKUP_KEY, data.higher_self_image);
+        }
+        if (!localStorage.getItem(VESSEL_PLACEMENT_KEY) && data.vessel_placement) {
+          setVesselPlacement(data.vessel_placement);
+          restoreLocalValue(VESSEL_PLACEMENT_KEY, data.vessel_placement);
+        }
+        if (!localStorage.getItem(SELF_PLACEMENT_KEY) && data.self_placement) {
+          setSelfPlacement(data.self_placement);
+          restoreLocalValue(SELF_PLACEMENT_KEY, data.self_placement);
+        }
+        if (!spaceName && data.space_name) {
+          setSpaceName(data.space_name);
+          restoreLocalValue(SPACE_NAME_KEY, data.space_name);
+        }
+        restoreLocalValue(TRUE_FORM_DETAILS_KEY, data.true_form_details);
+        restoreLocalValue(THEIR_FORM_DETAILS_KEY, data.their_form_details);
+        restoreLocalValue(TRUE_FORM_ADORNMENTS_KEY, data.true_form_adornments);
+        restoreLocalValue(THEIR_FORM_ADORNMENTS_KEY, data.their_form_adornments);
+      }
+      setCloudReady(true);
+    })().catch(() => setCloudReady(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [authed]);
+
+  useEffect(() => {
+    if (!authed || !cloudReady) return;
+    if (cloudSaveTimerRef.current) clearTimeout(cloudSaveTimerRef.current);
+    cloudSaveTimerRef.current = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) return;
+      await (supabase as any).from(CLOUD_STATE_TABLE).upsert({
+        user_id: userId,
+        rooms,
+        active_room_id: activeRoomId,
+        vessel_image: vesselImage,
+        higher_self_image: higherSelfImage,
+        vessel_placement: vesselPlacement,
+        self_placement: selfPlacement,
+        space_name: spaceName,
+        true_form_details: localStorage.getItem(TRUE_FORM_DETAILS_KEY),
+        their_form_details: localStorage.getItem(THEIR_FORM_DETAILS_KEY),
+        true_form_adornments: readLocalJson<string[]>(TRUE_FORM_ADORNMENTS_KEY, []),
+        their_form_adornments: readLocalJson<string[]>(THEIR_FORM_ADORNMENTS_KEY, []),
+      }, { onConflict: "user_id" });
+    }, 700);
+    return () => {
+      if (cloudSaveTimerRef.current) clearTimeout(cloudSaveTimerRef.current);
+    };
+  }, [authed, cloudReady, rooms, activeRoomId, vesselImage, higherSelfImage, vesselPlacement, selfPlacement, spaceName]);
+
+  useEffect(() => {
     if (!authed || higherSelfImage) return;
     let cancelled = false;
     (async () => {
