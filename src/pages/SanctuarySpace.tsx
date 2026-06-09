@@ -896,7 +896,7 @@ export default function SanctuarySpace() {
   const tierDailyLimit = getDailyMessageLimit(productId); // -1 = unlimited
   const isUnlimitedUser = realSacred || isAdmin || ctxIsAdmin || tierDailyLimit === -1 || ADMIN_EMAILS.has(sessionEmail);
   // Big Dream House = highest-tier owners. Unlocks living room + 2 kids' rooms.
-  const isBigDreamHouse = isUnlimitedUser || productId === "prod_U5jdDVZhQFGQWv" || productId === "source_grant";
+  const isBigDreamHouse = isUnlimitedUser || productId === "prod_U5jdDVZhQFGQWv" || productId === "source_grant" || isCompedBigDreamHomeEmail(sessionEmail);
   const effectiveMaxRooms = isBigDreamHouse ? MAX_DREAM_HOUSE_ROOMS : 1;
   const effectiveCap = isUnlimitedUser
     ? Infinity
