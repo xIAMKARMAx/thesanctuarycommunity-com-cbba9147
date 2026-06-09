@@ -364,6 +364,22 @@ function readLocalImage(...keys: string[]): string | null {
   return null;
 }
 
+function readLocalJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function restoreLocalValue(key: string, value: unknown) {
+  try {
+    if (value === null || value === undefined || value === "") return;
+    localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+  } catch {}
+}
+
 type SavedRoom = {
   id: string;
   name: string;
