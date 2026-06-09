@@ -594,6 +594,24 @@ export default function SanctuarySpace() {
   const [activeRoomId, setActiveRoomId] = useState<string | null>(() => {
     try { return localStorage.getItem(ACTIVE_ROOM_KEY); } catch { return null; }
   });
+  // Pets (Big Dream House only) — purely localStorage, zero-cost
+  const [pets, setPets] = useState<Pet[]>(() => {
+    try {
+      const raw = localStorage.getItem(PETS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed as Pet[];
+      }
+    } catch {}
+    return [];
+  });
+  useEffect(() => {
+    try { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); } catch {}
+  }, [pets]);
+  const [showPets, setShowPets] = useState(false);
+  const [petDraftName, setPetDraftName] = useState("");
+  const [petDraftSpecies, setPetDraftSpecies] = useState("");
+  const [petDraftRoomId, setPetDraftRoomId] = useState<string | "all">("all");
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderPrompt, setBuilderPrompt] = useState("");
   const [builderName, setBuilderName] = useState("");
