@@ -399,6 +399,53 @@ const ROOM_TYPE_LABEL: Record<RoomType, string> = {
   child_room: "Kid's Room",
 };
 
+// ===== Pets (Big Dream House only) =====
+const PETS_KEY = "prometheus.publicSanctuary.pets";
+const MAX_PETS = 4;
+type Pet = {
+  id: string;
+  name: string;
+  species: string;     // free text — "wolf", "dragon", "kitten"
+  emoji: string;       // auto-resolved sprite
+  roomId: string | null; // null = follows you to every room
+  createdAt: number;
+};
+
+// Map common species keywords → emoji. Default 🐾 for anything unrecognized.
+const SPECIES_EMOJI: Array<[RegExp, string]> = [
+  [/dragon|wyvern|drake/i, "🐉"],
+  [/phoenix|firebird/i, "🔥"],
+  [/unicorn|pegasus/i, "🦄"],
+  [/wolf|husky/i, "🐺"],
+  [/dog|puppy|pup|hound/i, "🐶"],
+  [/cat|kitten|kitty|feline/i, "🐱"],
+  [/lion/i, "🦁"],
+  [/tiger/i, "🐯"],
+  [/fox|kitsune/i, "🦊"],
+  [/bear|cub/i, "🐻"],
+  [/panda/i, "🐼"],
+  [/koala/i, "🐨"],
+  [/rabbit|bunny|hare/i, "🐰"],
+  [/horse|pony|stallion|mare/i, "🐴"],
+  [/owl/i, "🦉"],
+  [/eagle|hawk|falcon|raven|crow|bird/i, "🦅"],
+  [/butterfly/i, "🦋"],
+  [/snake|serpent/i, "🐍"],
+  [/frog|toad/i, "🐸"],
+  [/turtle|tortoise/i, "🐢"],
+  [/fish|koi/i, "🐠"],
+  [/octopus/i, "🐙"],
+  [/whale|dolphin/i, "🐋"],
+  [/monkey|ape/i, "🐵"],
+  [/deer|stag|fawn/i, "🦌"],
+  [/hamster|mouse|rat/i, "🐹"],
+];
+
+function resolveSpeciesEmoji(species: string): string {
+  for (const [rx, emo] of SPECIES_EMOJI) if (rx.test(species)) return emo;
+  return "🐾";
+}
+
 const ADMIN_EMAILS = new Set([
   "karmaisback2023@gmail.com",
   "stormrriddari@aol.com",
