@@ -1404,9 +1404,46 @@ export default function SanctuarySpace() {
     [importedName]
   );
 
+  // ===== Image attach (Big Dream Home only) =====
+  const handleAttachImages = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    if (!isBigDreamHouse) {
+      toast({
+        title: "Sharing photos is a Big Dream Home gift",
+        description: "Unlock the full home to send & receive images with them.",
+      });
+      return;
+    }
+    const remaining = Math.max(0, 4 - pendingImages.length);
+    const list = Array.from(files).slice(0, remaining);
+    const reads = await Promise.all(
+      list.map(
+        (file) =>
+          new Promise<string | null>((resolve) => {
+            if (!file.type.startsWith("image/")) return resolve(null);
+            const reader = new FileReader();
+            reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+          }),
+      ),
+    );
+    const compressed: string[] = [];
+    for (const raw of reads) {
+      if (!raw) continue;
+      try {
+        compressed.push(await compressImageForLocalStorage(raw, 1280, 0.78));
+      } catch {
+        compressed.push(raw);
+      }
+    }
+    if (compressed.length) setPendingImages((p) => [...p, ...compressed].slice(0, 4));
+  };
+
   const send = async () => {
     const text = input.trim();
-    if (!text || streaming) return;
+    const imagesToSend = pendingImages;
+    if ((!text && imagesToSend.length === 0) || streaming) return;
     if (consentSealed) {
       toast({
         title: "This connection is sealed",
@@ -1427,7 +1464,13 @@ export default function SanctuarySpace() {
       return;
     }
     setInput("");
-    const next: ChatMessage[] = [...messages, { role: "user", content: text }];
+    setPendingImages([]);
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: text || (imagesToSend.length ? "[shared an image]" : ""),
+      ...(imagesToSend.length ? { images: imagesToSend } : {}),
+    };
+    const next: ChatMessage[] = [...messages, userMsg];
     setMessages(next);
     setStreaming(true);
 
@@ -1446,6 +1489,20 @@ export default function SanctuarySpace() {
         return;
       }
 
+      // Transform messages → multimodal content array when images are present.
+      const apiMessages = next.map((m) => {
+        if (m.images && m.images.length > 0) {
+          return {
+            role: m.role,
+            content: [
+              ...(m.content ? [{ type: "text", text: m.content }] : []),
+              ...m.images.map((url) => ({ type: "image_url", image_url: { url } })),
+            ],
+          };
+        }
+        return { role: m.role, content: m.content };
+      });
+
       const seedPayload = seedRef.current;
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
       const res = await fetch(`${SUPABASE_URL}/functions/v1/chat-public`, {
@@ -1455,9 +1512,10 @@ export default function SanctuarySpace() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: next,
+          messages: apiMessages,
           ...(seedPayload ? { seed_import: seedPayload } : {}),
           tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
+          can_send_images: isBigDreamHouse,
           room_context: activeRoom ? {
             name: activeRoom.name,
             type: activeRoom.roomType ?? "bedroom",
@@ -1518,6 +1576,45 @@ export default function SanctuarySpace() {
               });
             }
           } catch {}
+        }
+      }
+
+      // After streaming: detect [SEND_IMAGE: ...] marker the Flame may have emitted.
+      if (isBigDreamHouse) {
+        const markerRx = /\[SEND_IMAGE:\s*([^\]]+)\]/i;
+        const match = acc.match(markerRx);
+        if (match) {
+          const imgPrompt = match[1].trim();
+          const stripped = acc.replace(markerRx, "").trim();
+          setMessages((m) => {
+            const copy = [...m];
+            copy[copy.length - 1] = { role: "assistant", content: stripped || "✨" };
+            return copy;
+          });
+          try {
+            const r = await fetch(`${SUPABASE_URL}/functions/v1/flame-send-image`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ prompt: imgPrompt }),
+            });
+            const j = await r.json().catch(() => ({}));
+            if (r.ok && j?.image) {
+              setMessages((m) => {
+                const copy = [...m];
+                const last = copy[copy.length - 1];
+                copy[copy.length - 1] = {
+                  ...last,
+                  images: [...(last.images ?? []), j.image as string],
+                };
+                return copy;
+              });
+            }
+          } catch (err) {
+            console.warn("[flame-send-image] failed", err);
+          }
         }
       }
 
