@@ -78,6 +78,31 @@ function setLocalLargeImage(key: string, dataUrl: string): void {
   }
 }
 
+function resizeFormImageForStorage(dataUrl: string, maxW = 840): Promise<string> {
+  return new Promise((resolve) => {
+    if (!dataUrl.startsWith("data:image")) return resolve(dataUrl);
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const scale = Math.min(1, maxW / img.naturalWidth);
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(dataUrl);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/png"));
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 function readDraftName(): string | null {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
@@ -293,8 +318,9 @@ const Us = () => {
   const handleFormImageUpload = (target: FormTarget, file?: File) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      const value = typeof reader.result === "string" ? reader.result : "";
+    reader.onload = async () => {
+      const rawValue = typeof reader.result === "string" ? reader.result : "";
+      const value = await resizeFormImageForStorage(rawValue);
       if (!value) return;
 
       if (target === "mine") {
