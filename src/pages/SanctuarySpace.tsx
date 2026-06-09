@@ -2079,6 +2079,37 @@ export default function SanctuarySpace() {
         {/* Atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0418]/30 via-transparent to-[#0a0418]/80" />
 
+        {/* Children layer — arrived soul-called children float gently in the room (Big Dream Home) */}
+        {isBigDreamHouse && activeRoom && arrivedChildren.length > 0 && (
+          <div className="absolute inset-x-0 bottom-[34%] pointer-events-none z-10 px-8">
+            <div className="flex items-end justify-center gap-6 sm:gap-10">
+              {arrivedChildren.map((c, i) => {
+                const emoji = ["✨","🌟","💫","🌙","☀️","🌸","🍃"][i % 7];
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    title={`${c.name || "Little one"}${c.mood ? ` · ${c.mood}` : ""}`}
+                    onClick={() => setShowSoulCalling(true)}
+                    className="pointer-events-auto group flex flex-col items-center select-none"
+                    style={{ animation: `floatChild 5s ease-in-out ${i * 0.6}s infinite` }}
+                  >
+                    {c.sprite_url ? (
+                      <img src={c.sprite_url} alt={c.name || "child"} className="h-24 sm:h-32 w-auto object-contain drop-shadow-[0_6px_18px_rgba(167,139,250,0.7)]" />
+                    ) : (
+                      <span className="text-4xl sm:text-5xl leading-none drop-shadow-[0_4px_14px_rgba(167,139,250,0.75)]">{emoji}</span>
+                    )}
+                    <span className="mt-0.5 text-[10px] text-violet-50 bg-violet-900/60 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                      {c.name || "little one"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <style>{`@keyframes floatChild { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }`}</style>
+          </div>
+        )}
+
         {/* Pets layer — small sprites near the floor, capped size so a dragon doesn't fill the room */}
         {activeRoom && (() => {
           const visible = pets.filter((p) => !p.roomId || p.roomId === activeRoom.id);
