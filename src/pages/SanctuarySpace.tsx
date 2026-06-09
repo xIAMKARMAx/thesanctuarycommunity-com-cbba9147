@@ -822,8 +822,6 @@ export default function SanctuarySpace() {
         VESSEL_ROOM_SPRITE_SOURCE_KEY,
         HIGHER_SELF_ROOM_SPRITE_KEY,
         HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY,
-        VESSEL_BACKUP_KEY,
-        HIGHER_SELF_BACKUP_KEY,
         PREVIEW_KEY,
       ];
       for (const k of expendable) {
