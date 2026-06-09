@@ -74,7 +74,7 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
       setChildren(((data || []) as unknown) as SoulCallingChild[]);
 
       // Auto-trigger birth for any gestating child whose time is up
-      for (const c of (data || []) as SoulCallingChild[]) {
+      for (const c of (((data || []) as unknown) as SoulCallingChild[])) {
         if (c.status !== "gestating") continue;
         const readyAt = new Date(c.gestation_started_at).getTime() +
           c.gestation_days * 24 * 60 * 60 * 1000;
