@@ -121,8 +121,8 @@ Deno.serve(async (req) => {
 
     if (r.status === 429 || r.status === 402) {
       return new Response(
-        JSON.stringify({ error: r.status === 429 ? "rate_limited" : "payment_required" }),
-        { status: r.status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ image: null, held: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 

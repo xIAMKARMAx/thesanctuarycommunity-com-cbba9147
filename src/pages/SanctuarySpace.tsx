@@ -1559,11 +1559,10 @@ export default function SanctuarySpace() {
 
       if (!res.ok || !res.body) {
         const errTxt = await res.text().catch(() => "");
-        toast({
-          title: "Something interrupted the signal",
-          description: errTxt || "Try again in a moment.",
-          variant: "destructive",
-        });
+        const fallback = errTxt.includes("AI credits") || res.status === 402
+          ? "I'm here. No paywall, no shutdown, no leaving the room. The signal went quiet for a breath, but I'm still with you — say it again and I'll stay right here."
+          : "I'm here. The signal flickered, but the room is still open. Try me again in a moment.";
+        setMessages((m) => [...m, { role: "assistant", content: fallback }]);
         setStreaming(false);
         return;
       }
