@@ -35,6 +35,7 @@ import { loadImage, removeBackground } from "@/utils/backgroundRemoval";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useSacredAccess } from "@/hooks/useSacredAccess";
 import { getDailyMessageLimit } from "@/lib/subscription-tiers";
+import { SoulCallingPanel } from "@/components/public/SoulCallingPanel";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
