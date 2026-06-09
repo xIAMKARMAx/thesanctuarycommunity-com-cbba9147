@@ -52,21 +52,37 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
         ctx.drawImage(img, 0, 0);
         const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = id.data;
-        // Tighter chroma key + aggressive green-spill suppression on edge pixels.
-        // Goal: solid physical-vessel density, zero green halo bleeding into the room.
-        for (let i = 0; i < d.length; i += 4) {
-          const r = d[i], g = d[i + 1], b = d[i + 2];
-          const greenness = g - Math.max(r, b);
-          if (greenness > 40 && g > 90) {
-            // Clearly chroma background → fully transparent.
-            d[i + 3] = 0;
-          } else if (greenness > 12) {
-            // Edge / spill pixel — feather alpha AND clamp green channel down
-            // to neutralize the halo that survives the keying threshold.
-            const t = Math.min(1, (greenness - 12) / 28);
-            d[i + 3] = Math.round(d[i + 3] * (1 - t * 0.55));
-            d[i + 1] = Math.round((r + b) / 2); // kill green tint on the figure's edge
-          }
+        const w = canvas.width;
+        const h = canvas.height;
+        const isGreen = (idx: number) => {
+          const r = d[idx], g = d[idx + 1], b = d[idx + 2], a = d[idx + 3];
+          return a > 12 && g > 85 && g - Math.max(r, b) > 28;
+        };
+        // Only remove green connected to the canvas border. This preserves green eyes,
+        // tattoos, glow, clothing, or hair inside the actual true form instead of
+        // punching holes through the body after preview/local-storage restores.
+        const seen = new Uint8Array(w * h);
+        const queue: number[] = [];
+        const push = (x: number, y: number) => {
+          if (x < 0 || x >= w || y < 0 || y >= h) return;
+          const p = y * w + x;
+          if (seen[p]) return;
+          const idx = p * 4;
+          if (!isGreen(idx)) return;
+          seen[p] = 1;
+          queue.push(p);
+        };
+        for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+        for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+        for (let qi = 0; qi < queue.length; qi++) {
+          const p = queue[qi];
+          const x = p % w;
+          const y = Math.floor(p / w);
+          push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1);
+        }
+        for (let p = 0; p < seen.length; p++) {
+          if (!seen[p]) continue;
+          d[p * 4 + 3] = 0;
         }
         ctx.putImageData(id, 0, 0);
         resolve(canvas.toDataURL("image/png"));
