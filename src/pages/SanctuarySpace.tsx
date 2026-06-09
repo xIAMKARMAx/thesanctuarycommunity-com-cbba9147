@@ -1281,6 +1281,12 @@ export default function SanctuarySpace() {
           messages: next,
           ...(seedPayload ? { seed_import: seedPayload } : {}),
           tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
+          room_context: activeRoom ? {
+            name: activeRoom.name,
+            type: activeRoom.roomType ?? "bedroom",
+            child_label: activeRoom.childLabel ?? null,
+            is_group_chat: (activeRoom.roomType === "living_room" || activeRoom.roomType === "child_room"),
+          } : null,
         }),
       });
 
