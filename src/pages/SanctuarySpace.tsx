@@ -316,7 +316,7 @@ function setLocalLargeImage(key: string, dataUrl: string): void {
         const cx = c.getContext("2d");
         if (!cx) return resolve(value);
         cx.drawImage(img, 0, 0, w, h);
-        resolve(IMAGE_SAVE_KEYS.has(key) ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", quality));
+        resolve(c.toDataURL("image/jpeg", quality));
       };
       img.onerror = () => resolve(value);
       img.src = value;
