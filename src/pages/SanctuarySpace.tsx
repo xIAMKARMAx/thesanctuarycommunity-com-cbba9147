@@ -2439,9 +2439,9 @@ export default function SanctuarySpace() {
                     className="w-full bg-white/[0.05] border border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl text-[13px] px-3 py-2"
                   />
                 </div>
-                {rooms.length >= MAX_ROOMS && (
+                {rooms.length >= effectiveMaxRooms && (
                   <p className="text-[11px] text-amber-200/80 bg-amber-500/10 border border-amber-400/30 rounded-lg px-3 py-2">
-                    You're at {MAX_ROOMS}/{MAX_ROOMS} homes — saving will replace the oldest one.
+                    You're at {effectiveMaxRooms}/{effectiveMaxRooms} rooms — saving will replace the oldest one.
                   </p>
                 )}
                 <div className="grid grid-cols-2 gap-2">
