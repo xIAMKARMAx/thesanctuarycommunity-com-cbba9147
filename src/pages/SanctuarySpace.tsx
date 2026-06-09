@@ -1426,20 +1426,21 @@ export default function SanctuarySpace() {
 
   const acceptSummonedHigherSelf = async () => {
     if (!selfPreview) return;
+    const compact = await compressImageForLocalStorage(selfPreview, 960, 0.68);
     const roomSprite = await prepareTrueFormSpriteForRoom(selfPreview);
-    setHigherSelfImage(selfPreview);
+    setHigherSelfImage(compact);
     setHigherSelfRoomSprite(roomSprite || null);
     setHigherSelfRoomSpriteReady(!!roomSprite);
     try {
-      localStorage.setItem(HIGHER_SELF_KEY, selfPreview);
-      localStorage.setItem(HIGHER_SELF_BACKUP_KEY, selfPreview);
-      if (isAdmin) localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, selfPreview);
-      localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1");
-      localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY, selfPreview);
+      setLocalLargeImage(HIGHER_SELF_ORIGINAL_KEY, compact);
       localStorage.setItem(HIGHER_SELF_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
+      try { localStorage.setItem(HIGHER_SELF_KEY, compact); } catch {}
+      try { localStorage.setItem(HIGHER_SELF_BACKUP_KEY, compact); } catch {}
+      if (isAdmin) { try { localStorage.setItem(DEFAULT_HIGHER_SELF_KEY, compact); } catch {} }
+      try { localStorage.setItem(HIGHER_SELF_KEY + ".keyed", "1"); } catch {}
       if (roomSprite) {
-        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite);
-        localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, selfPreview);
+        try { localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_KEY, roomSprite); } catch {}
+        try { localStorage.setItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY, compact); } catch {}
       } else {
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_KEY);
         localStorage.removeItem(HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY);
