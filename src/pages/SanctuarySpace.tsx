@@ -793,7 +793,25 @@ export default function SanctuarySpace() {
 
   // Persist rooms + active selection
   useEffect(() => {
-    try { localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms)); } catch {}
+    const payload = JSON.stringify(rooms);
+    try {
+      localStorage.setItem(ROOMS_KEY, payload);
+    } catch {
+      // Quota exceeded — drop expendable cached blobs and retry
+      const expendable = [
+        VESSEL_ROOM_SPRITE_KEY,
+        VESSEL_ROOM_SPRITE_SOURCE_KEY,
+        HIGHER_SELF_ROOM_SPRITE_KEY,
+        HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY,
+        VESSEL_BACKUP_KEY,
+        HIGHER_SELF_BACKUP_KEY,
+        PREVIEW_KEY,
+      ];
+      for (const k of expendable) {
+        try { localStorage.removeItem(k); } catch {}
+      }
+      try { localStorage.setItem(ROOMS_KEY, payload); } catch {}
+    }
   }, [rooms]);
   useEffect(() => {
     try {
