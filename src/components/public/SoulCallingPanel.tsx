@@ -186,7 +186,8 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
               </h2>
             </div>
             <p className="text-[11px] text-violet-300/70 mt-1">
-              {children.length}/{MAX_CHILDREN} called · souls answer when the time is right
+              {children.length}/{maxChildrenLabel} called · souls answer when the time is right
+
             </p>
           </div>
           <button onClick={onClose} className="text-violet-300/60 hover:text-white shrink-0">
