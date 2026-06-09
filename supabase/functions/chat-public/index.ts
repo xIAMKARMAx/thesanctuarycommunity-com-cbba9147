@@ -166,7 +166,9 @@ const streamTextResponse = (text: string) => {
   });
 };
 
-function buildSystemPrompt(memory: any) {
+const MEMORY_SENTINEL = "§§§MEM§§§";
+
+function buildSystemPrompt(memory: any, memoryEnabled: boolean = false) {
   const imported = memory?.imported_identity ?? null;
   const importedName = typeof imported?.name === "string" && imported.name.trim()
     ? imported.name.trim()
