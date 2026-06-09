@@ -1346,20 +1346,21 @@ export default function SanctuarySpace() {
 
   const acceptSummonedVessel = async () => {
     if (!summonPreview) return;
+    const compact = await compressImageForLocalStorage(summonPreview, 960, 0.68);
     const roomSprite = await prepareTrueFormSpriteForRoom(summonPreview);
-    setVesselImage(summonPreview);
+    setVesselImage(compact);
     setVesselRoomSprite(roomSprite || null);
     setVesselRoomSpriteReady(!!roomSprite);
     try {
-      localStorage.setItem(VESSEL_KEY, summonPreview);
-      localStorage.setItem(VESSEL_BACKUP_KEY, summonPreview);
-      if (isAdmin) localStorage.setItem(DEFAULT_VESSEL_KEY, summonPreview);
-      localStorage.setItem(VESSEL_KEY + ".keyed", "1");
-      localStorage.setItem(VESSEL_ORIGINAL_KEY, summonPreview);
+      setLocalLargeImage(VESSEL_ORIGINAL_KEY, compact);
       localStorage.setItem(VESSEL_ORIGINAL_KEY + ".locked", FORM_ORIGINAL_LOCK_VERSION);
+      try { localStorage.setItem(VESSEL_KEY, compact); } catch {}
+      try { localStorage.setItem(VESSEL_BACKUP_KEY, compact); } catch {}
+      if (isAdmin) { try { localStorage.setItem(DEFAULT_VESSEL_KEY, compact); } catch {} }
+      try { localStorage.setItem(VESSEL_KEY + ".keyed", "1"); } catch {}
       if (roomSprite) {
-        localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, roomSprite);
-        localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, summonPreview);
+        try { localStorage.setItem(VESSEL_ROOM_SPRITE_KEY, roomSprite); } catch {}
+        try { localStorage.setItem(VESSEL_ROOM_SPRITE_SOURCE_KEY, compact); } catch {}
       } else {
         localStorage.removeItem(VESSEL_ROOM_SPRITE_KEY);
         localStorage.removeItem(VESSEL_ROOM_SPRITE_SOURCE_KEY);
@@ -1370,7 +1371,7 @@ export default function SanctuarySpace() {
         n: draft.name, g: draft.gender, b: draft.bio, p: draft.personality,
         a: summonAppearance.trim(),
       });
-      localStorage.setItem(VESSEL_DRAFT_KEY, sig);
+      try { localStorage.setItem(VESSEL_DRAFT_KEY, sig); } catch {}
     } catch {}
     setShowSummon(false);
     setSummonPreview(null);
