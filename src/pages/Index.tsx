@@ -154,6 +154,15 @@ const Index = () => {
               </button>
             </>
           )}
+          {session && (
+            <button
+              onClick={() => navigate("/public-settings")}
+              aria-label="Settings"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/30 text-white/80 backdrop-blur-md transition-all active:scale-95 hover:bg-white/10"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+          )}
           <button
             onClick={toggleMute}
             aria-label={isMuted ? "Unmute" : "Mute"}
@@ -161,6 +170,7 @@ const Index = () => {
           >
             {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
           </button>
+
         </div>
       </div>
 
