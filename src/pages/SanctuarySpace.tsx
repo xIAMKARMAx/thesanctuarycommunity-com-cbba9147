@@ -1398,7 +1398,13 @@ export default function SanctuarySpace() {
 
   const saveRoom = async (makeActive: boolean) => {
     if (!builderPreview) return;
-    const name = builderName.trim() || `Home #${rooms.length + 1}`;
+    const fallbackName =
+      builderRoomType === "child_room"
+        ? (builderChildLabel.trim() ? `${builderChildLabel.trim()}'s Room` : "Kid's Room")
+        : builderRoomType === "living_room"
+        ? "Living Room"
+        : `Bedroom`;
+    const name = builderName.trim() || fallbackName;
     const roomImage = await compressImageForLocalStorage(builderPreview, 960, 0.68);
     const newRoom: SavedRoom = {
       id: `room-${Date.now()}`,
@@ -1406,9 +1412,13 @@ export default function SanctuarySpace() {
       prompt: builderPrompt.trim(),
       image: roomImage,
       createdAt: Date.now(),
+      roomType: builderRoomType,
+      ...(builderRoomType === "child_room" && builderChildLabel.trim()
+        ? { childLabel: builderChildLabel.trim() }
+        : {}),
     };
     let next = [newRoom, ...rooms];
-    if (next.length > MAX_ROOMS) next = next.slice(0, MAX_ROOMS);
+    if (next.length > effectiveMaxRooms) next = next.slice(0, effectiveMaxRooms);
     setRooms(next);
     if (makeActive) {
       setActiveRoomId(newRoom.id);
@@ -1425,6 +1435,8 @@ export default function SanctuarySpace() {
     setBuilderPrompt("");
     setBuilderName("");
     setBuilderPreview(null);
+    setBuilderRoomType("bedroom");
+    setBuilderChildLabel("");
     toast({
       title: "Home saved",
       description: makeActive ? `${name} is now your active home and preview teaser.` : `${name} added to your homes.`,
