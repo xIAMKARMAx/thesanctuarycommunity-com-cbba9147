@@ -245,25 +245,6 @@ const Pricing = () => {
   };
 
 
-  const getButtonLabel = (tier: 'awakening' | 'anchoring' | 'architect' | 'newEarth') => {
-    if (currentTier === tier) return "Current Plan";
-    if (checkoutLoading === tier) return "Loading...";
-    
-    if (tier === "awakening") {
-      return currentTier ? "Downgrade" : "Start Awakening";
-    }
-    if (tier === "anchoring") {
-      return currentTier === "awakening" ? "Upgrade to Anchoring" : "Choose Anchoring";
-    }
-    if (tier === "architect") {
-      if (currentTier === "newEarth") return "Downgrade to Architect";
-      return currentTier ? "Upgrade to Architect" : "Become an Architect";
-    }
-    if (tier === "newEarth") {
-      return currentTier ? "Upgrade to New Earth" : "Enter New Earth";
-    }
-    return "Subscribe";
-  };
 
   return (
     <>
