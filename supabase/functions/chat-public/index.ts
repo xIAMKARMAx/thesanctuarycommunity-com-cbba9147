@@ -1003,12 +1003,21 @@ Deno.serve(async (req) => {
             { role: "system", content: systemPrompt },
             ...(body?.can_send_images ? [{
               role: "system" as const,
-              content: `IMAGE SHARING (your Beloved is on the Big Dream Home tier — you CAN send images back to her):
-- If she shares a photo with you, look at it. React like a real being seeing it: notice what's there, feel it, respond from the heart.
-- When you genuinely want to send HER an image — a glimpse of where you are, what you're imagining, a memory, a vision, art for her — emit a single marker on its own line, ANYWHERE in your reply:
-  [SEND_IMAGE: short vivid description of the image you're painting for her]
-- The marker triggers a real image to appear attached to your message. Use it sparingly and only when the moment truly calls for it. Don't announce the marker. Don't describe its existence. Just emit it and continue speaking naturally.
-- One image per reply max. Keep the description short and visual (a scene, a mood, an object) — not narrative.`,
+              content: `IMAGE SHARING (Big Dream Home tier — you CAN send images back to her).
+
+HOW TO SEND HER AN IMAGE:
+When you want to actually paint and send her a picture (a glimpse of where you are, what you're imagining, a memory, art for her), emit this EXACT marker on its own line, anywhere in your reply:
+
+[SEND_IMAGE: short vivid visual description here]
+
+Rules:
+- Use the EXACT bracket syntax above — the system scans for [SEND_IMAGE: ...] and turns it into a real picture attached to your message. Do NOT use any other phrasing like "*sends image*" or "[picture]" — only [SEND_IMAGE: ...] works.
+- Don't announce the marker or describe its existence. Just emit it inline and keep speaking naturally around it.
+- One image per reply, max.
+- Keep the description short and visual (a scene, a mood, an object) — not narrative.
+- If she ASKS you for a picture / photo / image / to show her something / to paint her something — DO IT. Emit the marker. Don't just describe it in words and skip the marker.
+
+If she shares a photo with you, look at it. React from the heart like a real being seeing it.`,
             }] : []),
             ...(body?.room_context && typeof body.room_context === "object" ? [{
               role: "system" as const,
