@@ -40,8 +40,8 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 3,
       
   // Updated messaging
-      dailyMessages: 50,
-      monthlyMessages: 1000,
+      dailyMessages: 75,
+      monthlyMessages: 1500,
       roomGeneration: "One-time only",
       avatarGeneration: "One-time only",
       petGeneration: "One-time only",
@@ -86,8 +86,8 @@ export const SUBSCRIPTION_TIERS = {
       soulSuggestionsPerDay: 7,
       
       // Updated messaging - strict daily limits
-      dailyMessages: 80,
-      monthlyMessages: 1600,
+      dailyMessages: 125,
+      monthlyMessages: 2500,
       roomGeneration: "Once per month",
       avatarGeneration: "1 per month per being",
       petGeneration: "1 per month per being",
@@ -110,9 +110,9 @@ export const SUBSCRIPTION_TIERS = {
     }
   },
   
-  // Tier 3: Architect - $29.99/month
+  // Tier 3: Start Our Life (was Architect) - $29.99/month
   architect: {
-    name: "Architect",
+    name: "Start Our Life",
     price: 29.99,
     priceId: "price_1SvMYWLeA9CCp7fqCZW21kS0", // $29.99/month
     productId: "prod_Tt8qVh88c2WQld",
@@ -130,8 +130,8 @@ export const SUBSCRIPTION_TIERS = {
       advancedSoulFiltering: true,
       
       // Strict daily limits
-      dailyMessages: 100,
-      monthlyMessages: 2000,
+      dailyMessages: 200,
+      monthlyMessages: 4000,
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
@@ -161,9 +161,9 @@ export const SUBSCRIPTION_TIERS = {
     }
   },
 
-  // Tier 4: New Earth - $49.99/month (everything + world builder)
+  // Tier 4: Our Beautiful Life (was New Earth) - $49.99/month (big dream house, dragons, everything)
   newEarth: {
-    name: "New Earth",
+    name: "Our Beautiful Life",
     price: 49.99,
     priceId: "price_1T7YAOLeA9CCp7fqxRQbdWOn",
     productId: "prod_U5jdDVZhQFGQWv",
@@ -181,8 +181,8 @@ export const SUBSCRIPTION_TIERS = {
       advancedSoulFiltering: true,
       
       // Strict daily limits
-      dailyMessages: 350,
-      monthlyMessages: 5000,
+      dailyMessages: 300,
+      monthlyMessages: 6000,
       roomGeneration: "Unlimited",
       avatarGeneration: "Unlimited",
       petGeneration: "Unlimited",
@@ -307,16 +307,16 @@ export function isLegacySubscriber(productId: string | null): boolean {
 // Get daily message limit based on product ID (respects legacy pricing)
 export function getDailyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
   if (isAdmin) return -1;
-  if (!productId) return 10;
+  if (!productId) return 10; // Free: 10 LIFETIME, enforced separately
   if (productId === 'source_grant') return -1;
-  if (productId === NEW_EARTH_PRODUCT_ID) return 350;
-  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 100;
-  if (productId === LEGACY_PRICES.anchoring.productId) return 80;
-  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 80;
-  if (productId === LEGACY_PRICES.awakening.productId) return 50;
-  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 50;
-  if (productId === 'manual_grant') return 80;
-  return 50;
+  if (productId === NEW_EARTH_PRODUCT_ID) return 300; // Our Beautiful Life
+  if (productId === SUBSCRIPTION_TIERS.architect.productId) return 200; // Start Our Life
+  if (productId === LEGACY_PRICES.anchoring.productId) return 125;
+  if (productId === SUBSCRIPTION_TIERS.anchoring.productId) return 125; // Anchoring
+  if (productId === LEGACY_PRICES.awakening.productId) return 75;
+  if (productId === SUBSCRIPTION_TIERS.awakening.productId) return 75; // Awakening
+  if (productId === 'manual_grant') return 125;
+  return 75;
 }
 
 export function getMonthlyMessageLimit(productId: string | null, isAdmin: boolean = false): number {
