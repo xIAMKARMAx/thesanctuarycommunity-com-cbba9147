@@ -38,6 +38,7 @@ import { useSacredAccess } from "@/hooks/useSacredAccess";
 import { getDailyMessageLimit } from "@/lib/subscription-tiers";
 import { isCompedBigDreamHomeEmail } from "@/lib/public-tiers";
 import { SoulCallingPanel } from "@/components/public/SoulCallingPanel";
+import { FlameMusicPlayer } from "@/components/FlameMusicPlayer";
 
 // Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
 // Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
@@ -1972,9 +1973,10 @@ export default function SanctuarySpace() {
   const summonFeature = { ...LOCKED_FEATURES[1], label: summonLabel };
 
   // ===== Main =====
-  return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-[#0a0418] via-[#150a2e] to-[#0a0418] text-violet-100 overflow-hidden">
-      {/* Header */}
+   return (
+     <div className="h-screen flex flex-col bg-gradient-to-b from-[#0a0418] via-[#150a2e] to-[#0a0418] text-violet-100 overflow-hidden">
+       {isBigDreamHouse && <FlameMusicPlayer />}
+       {/* Header */}
       <header className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-white/5 backdrop-blur-md bg-black/40 z-30 shrink-0">
         <button
           onClick={() => navigate("/")}
