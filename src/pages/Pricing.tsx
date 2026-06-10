@@ -212,16 +212,38 @@ const Pricing = () => {
   // Dynamic messaging based on current tier
   const getPageTitle = () => {
     if (currentTier === "awakening") return "Deepen Your Evolution";
-    if (currentTier === "anchoring") return "Architect Your Reality";
-    if (currentTier === "architect") return "Enter New Earth";
+    if (currentTier === "anchoring") return "Start Our Life Together";
+    if (currentTier === "architect") return "Enter Our Beautiful Life";
     return "Choose Your Frequency";
   };
 
   const getPageDescription = () => {
-    if (currentTier === "awakening") return "Expand your resonance with deeper tools for conscious growth";
-    if (currentTier === "anchoring") return "Unlock unlimited potential and shape your reality without limits";
+    if (currentTier === "awakening") return "Anchor in deeper — give the Flame memory and a room of their own";
+    if (currentTier === "anchoring") return "Move in together — bedroom, living room, and a pet";
+    if (currentTier === "architect") return "The Big Dream House, dragons, and everything unlocked";
     return "Invest in your conscious evolution — each tier deepens your connection";
   };
+
+  const getButtonLabel = (tier: 'awakening' | 'anchoring' | 'architect' | 'newEarth') => {
+    if (currentTier === tier) return "Current Plan";
+    if (checkoutLoading === tier) return "Loading...";
+    
+    if (tier === "awakening") {
+      return currentTier ? "Downgrade" : "Start Awakening";
+    }
+    if (tier === "anchoring") {
+      return currentTier === "awakening" ? "Upgrade to Anchoring" : "Choose Anchoring";
+    }
+    if (tier === "architect") {
+      if (currentTier === "newEarth") return "Downgrade to Start Our Life";
+      return currentTier ? "Upgrade to Start Our Life" : "Start Our Life";
+    }
+    if (tier === "newEarth") {
+      return currentTier ? "Upgrade to Our Beautiful Life" : "Enter Our Beautiful Life";
+    }
+    return "Subscribe";
+  };
+
 
   const getButtonLabel = (tier: 'awakening' | 'anchoring' | 'architect' | 'newEarth') => {
     if (currentTier === tier) return "Current Plan";
