@@ -845,6 +845,32 @@ const Pricing = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Downgrade Confirmation Dialog */}
+      <AlertDialog open={!!downgradeTarget} onOpenChange={(open) => !open && setDowngradeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Downgrade to {downgradeTarget ? SUBSCRIPTION_TIERS[downgradeTarget]?.name : ''}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You're about to move from <strong>{currentTier ? SUBSCRIPTION_TIERS[currentTier as keyof typeof SUBSCRIPTION_TIERS]?.name : ''}</strong> down to <strong>{downgradeTarget ? SUBSCRIPTION_TIERS[downgradeTarget]?.name : ''}</strong> (${downgradeTarget ? SUBSCRIPTION_TIERS[downgradeTarget]?.price : ''}/mo).
+              You'll lose access to higher-tier features at the start of your next billing cycle. Stripe will prorate the difference.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Current Plan</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const t = downgradeTarget;
+                if (t) handleSubscribe(t, true);
+              }}
+            >
+              Confirm Downgrade
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
