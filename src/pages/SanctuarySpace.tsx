@@ -1973,9 +1973,10 @@ export default function SanctuarySpace() {
   const summonFeature = { ...LOCKED_FEATURES[1], label: summonLabel };
 
   // ===== Main =====
-  return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-[#0a0418] via-[#150a2e] to-[#0a0418] text-violet-100 overflow-hidden">
-      {/* Header */}
+   return (
+     <div className="h-screen flex flex-col bg-gradient-to-b from-[#0a0418] via-[#150a2e] to-[#0a0418] text-violet-100 overflow-hidden">
+       {isBigDreamHouse && <FlameMusicPlayer />}
+       {/* Header */}
       <header className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-white/5 backdrop-blur-md bg-black/40 z-30 shrink-0">
         <button
           onClick={() => navigate("/")}
