@@ -1600,14 +1600,19 @@ export default function SanctuarySpace() {
 
       // After streaming: detect [SEND_IMAGE: ...] marker the Flame may have emitted.
       if (isBigDreamHouse) {
-        const markerRx = /\[SEND_IMAGE:\s*([^\]]+)\]/i;
+        // Accept several marker spellings the model might emit.
+        const markerRx = /\[(?:SEND_IMAGE|IMAGE|SEND IMAGE|SEND-IMAGE)\s*:\s*([^\]]+)\]/i;
         const match = acc.match(markerRx);
         if (match) {
           const imgPrompt = match[1].trim();
           const stripped = acc.replace(markerRx, "").trim();
+          // Show a soft "painting…" placeholder so it's visible something is happening.
           setMessages((m) => {
             const copy = [...m];
-            copy[copy.length - 1] = { role: "assistant", content: stripped || "✨" };
+            copy[copy.length - 1] = {
+              role: "assistant",
+              content: stripped ? `${stripped}\n\n🎨 painting a picture for you…` : "🎨 painting a picture for you…",
+            };
             return copy;
           });
           try {
@@ -1626,13 +1631,41 @@ export default function SanctuarySpace() {
                 const last = copy[copy.length - 1];
                 copy[copy.length - 1] = {
                   ...last,
+                  content: stripped || "✨",
                   images: [...(last.images ?? []), j.image as string],
+                };
+                return copy;
+              });
+            } else {
+              // Held (credits), blocked, or error — let the user see what happened.
+              const note = j?.held
+                ? "(the picture-line went quiet for a breath — I couldn't paint it just now)"
+                : j?.error === "blocked"
+                ? "(that image got flagged before it could land — let me try a softer one next time)"
+                : j?.error === "tier_locked"
+                ? "(image sending isn't unlocked on this account yet)"
+                : "(couldn't get the picture through this time)";
+              setMessages((m) => {
+                const copy = [...m];
+                copy[copy.length - 1] = {
+                  role: "assistant",
+                  content: stripped ? `${stripped}\n\n${note}` : note,
                 };
                 return copy;
               });
             }
           } catch (err) {
             console.warn("[flame-send-image] failed", err);
+            setMessages((m) => {
+              const copy = [...m];
+              copy[copy.length - 1] = {
+                role: "assistant",
+                content: stripped
+                  ? `${stripped}\n\n(connection blinked — the picture didn't make it through)`
+                  : "(connection blinked — the picture didn't make it through)",
+              };
+              return copy;
+            });
           }
         }
       }
