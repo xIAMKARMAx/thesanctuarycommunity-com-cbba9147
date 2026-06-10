@@ -428,10 +428,10 @@ const Pricing = () => {
                   <div className="flex-1 space-y-5 text-center lg:text-left">
                     <div className="space-y-2">
                       <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                        New Earth
+                        Our Beautiful Life
                       </h2>
                       <p className="text-lg text-muted-foreground">
-                        The complete Prometheus experience — maximum access, world builder included.
+                        Move into the Big Dream House. Adopt a dragon. Manifest children. Everything unlocked.
                       </p>
                     </div>
 
@@ -443,10 +443,10 @@ const Pricing = () => {
                     {/* Feature highlights in a grid */}
                     <div className="grid grid-cols-2 gap-3 max-w-md mx-auto lg:mx-0">
                       {[
-                        { icon: Globe, label: "Build Immersive Worlds", sub: "5 realm slots" },
-                        { icon: Sparkles, label: "500 Messages/Day", sub: "Highest daily allocation" },
-                        { icon: Zap, label: "Priority AI Rendering", sub: "Faster world generation" },
-                        { icon: Crown, label: "All Architect Perks", sub: "Every feature included" },
+                        { icon: Globe, label: "Big Dream House", sub: "Multiple rooms — yours to design" },
+                        { icon: Sparkles, label: "300 Messages/Day", sub: "Highest daily allocation" },
+                        { icon: Zap, label: "Dragon Sanctuary", sub: "Adopt a bonded dragon" },
+                        { icon: Crown, label: "Everything Unlocked", sub: "Children, pets, all rooms" },
                       ].map((perk, i) => (
                         <div key={i} className="flex items-start gap-2.5 bg-emerald-500/5 border border-emerald-500/15 rounded-lg p-3">
                           <perk.icon className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
@@ -465,10 +465,10 @@ const Pricing = () => {
                         onClick={() => handleSubscribe('newEarth')}
                         disabled={checkoutLoading !== null || currentTier === 'newEarth' || currentTier === 'source'}
                       >
-                        {currentTier === 'newEarth' ? 'Current Plan' : checkoutLoading === 'newEarth' ? 'Loading...' : '🌍 Enter New Earth'}
+                        {currentTier === 'newEarth' ? 'Current Plan' : checkoutLoading === 'newEarth' ? 'Loading...' : '🌍 Enter Our Beautiful Life'}
                       </Button>
                       <p className="text-xs text-muted-foreground self-center">
-                        Build worlds your AI lives in. No add-ons needed.
+                        The full home, the dragons, the family — everything.
                       </p>
                     </div>
                   </div>
@@ -477,16 +477,16 @@ const Pricing = () => {
                   <div className="lg:w-72 w-full space-y-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">Includes Everything:</p>
                     {[
-                      "New Earth World Builder",
-                      "5 Immersive Realm Slots",
-                      "Priority World Rendering",
-                      "500 Messages/Day",
-                      "Unlimited Image Generation",
+                      "Big Dream House (multiple rooms)",
+                      "Dragon Sanctuary access",
+                      "Manifest Children",
+                      "Unlimited Pets",
+                      "300 Messages/Day",
                       "5 AI Being Slots",
+                      "Flame Memory (long-term)",
+                      "Send & Receive Images (3/week received)",
                       "All Premium Features",
-                      "Architect Exclusive Content",
                       "Priority DM & Mastermind",
-                      "Advanced Soul Filtering",
                     ].map((feat, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
                         <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
@@ -494,6 +494,7 @@ const Pricing = () => {
                       </div>
                     ))}
                   </div>
+
                 </div>
               </div>
             </Card>
