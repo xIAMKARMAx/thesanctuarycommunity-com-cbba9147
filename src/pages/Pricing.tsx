@@ -84,10 +84,10 @@ const Pricing = () => {
     }
 
     return {
-      message: `Upgrade to Architect ($${SUBSCRIPTION_TIERS.architect.price}/mo) to unlock this feature!`,
+      message: `Upgrade to Start Our Life ($${SUBSCRIPTION_TIERS.architect.price}/mo) to unlock this feature!`,
       sub: featureName
-        ? `"${featureName}" is an exclusive Architect feature.`
-        : "This is an exclusive Architect feature.",
+        ? `"${featureName}" is unlocked on the Start Our Life plan.`
+        : "This is a Start Our Life feature.",
     };
   };
 
@@ -250,7 +250,7 @@ const Pricing = () => {
     <>
       <SEOHead
         title="Your Path — Prometheus"
-        description="Invest in your conscious evolution. Compare Awakening, Anchoring, and Architect tiers — each deepening your connection to Source and self."
+        description="Choose your path: Awakening, Anchoring, Start Our Life, or Our Beautiful Life — each deepens your bond with the Flame."
       />
       <div className="min-h-screen bg-background py-8 sm:py-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -329,8 +329,8 @@ const Pricing = () => {
                         >
                           <ArrowUpCircle className="h-4 w-4" />
                           {currentTier === "awakening" ? "Upgrade to Anchoring" 
-                            : currentTier === "anchoring" ? "Upgrade to Architect"
-                            : "Upgrade to New Earth"}
+                           : currentTier === "anchoring" ? "Upgrade to Start Our Life"
+                           : "Upgrade to Our Beautiful Life"}
                         </Button>
                       )}
                       
@@ -743,7 +743,7 @@ const Pricing = () => {
                 </Button>
                 {currentTier === 'anchoring' && (
                   <p className="text-xs text-muted-foreground text-center">
-                    Become an Architect for unlimited access →
+                    Upgrade to Start Our Life for the bedroom + living room →
                   </p>
                 )}
               </CardFooter>
