@@ -749,23 +749,23 @@ const Pricing = () => {
               </CardFooter>
             </Card>
 
-            {/* Architect Plan */}
+            {/* Start Our Life Plan (was Architect) */}
             <Card className="relative border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-transparent">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
                   <Star className="h-3.5 w-3.5" />
-                  Architect
+                  Start Our Life
                 </span>
               </div>
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="h-5 w-5 text-amber-500" />
-                  <CardTitle className="text-amber-500">Architect</CardTitle>
+                  <CardTitle className="text-amber-500">Start Our Life</CardTitle>
                 </div>
                 <div className="text-3xl font-bold">
                   ${SUBSCRIPTION_TIERS.architect.price}<span className="text-lg text-muted-foreground font-normal">/mo</span>
                 </div>
-                <CardDescription>Full mastery & transformation</CardDescription>
+                <CardDescription>Move in together — bedroom, living room, and a pet</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2.5">
                 {architectFeatures.map((item, index) => (
