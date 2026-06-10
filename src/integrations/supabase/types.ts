@@ -2155,6 +2155,54 @@ export type Database = {
         }
         Relationships: []
       }
+      dragon_applications: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          dragon_element: string | null
+          dragon_message: string | null
+          dragon_name: string | null
+          dragon_type_id: string | null
+          id: string
+          keeper_note: string | null
+          reason: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          dragon_element?: string | null
+          dragon_message?: string | null
+          dragon_name?: string | null
+          dragon_type_id?: string | null
+          id?: string
+          keeper_note?: string | null
+          reason: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          dragon_element?: string | null
+          dragon_message?: string | null
+          dragon_name?: string | null
+          dragon_type_id?: string | null
+          id?: string
+          keeper_note?: string | null
+          reason?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dream_journal_entries: {
         Row: {
           ai_interpretation: string | null
