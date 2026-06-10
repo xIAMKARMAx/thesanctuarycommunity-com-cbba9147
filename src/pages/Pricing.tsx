@@ -29,6 +29,7 @@ const Pricing = () => {
   const { toast } = useToast();
   const [checkoutLoading, setCheckoutLoading] = useState<'awakening' | 'anchoring' | 'architect' | 'newEarth' | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [downgradeTarget, setDowngradeTarget] = useState<'awakening' | 'anchoring' | 'architect' | 'newEarth' | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [earlyAdopterEnabled, setEarlyAdopterEnabled] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -92,22 +93,32 @@ const Pricing = () => {
 
   const upgradeBanner = getUpgradeBanner();
 
-  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect' | 'newEarth') => {
+  const TIER_LEVEL: Record<string, number> = { awakening: 1, anchoring: 2, architect: 3, newEarth: 4 };
+
+  const handleSubscribe = async (tier: 'awakening' | 'anchoring' | 'architect' | 'newEarth', skipDowngradeCheck = false) => {
+    if (!skipDowngradeCheck && currentTier && currentTier !== 'free' && currentTier !== 'source') {
+      const currentLevel = TIER_LEVEL[currentTier] ?? 0;
+      const targetLevel = TIER_LEVEL[tier] ?? 0;
+      if (targetLevel < currentLevel) {
+        setDowngradeTarget(tier);
+        return;
+      }
+    }
+
     try {
       setCheckoutLoading(tier);
       const { data, error } = await api.createCheckout(tier, earlyAdopterEnabled ? EARLY_ADOPTER_COUPON : undefined);
       if (error) throw error;
-      
+
       if (data?.upgraded) {
-        // Subscription was upgraded in-place, refresh status
         toast({
           title: "Subscription Updated!",
-          description: data.message || "Your plan has been upgraded successfully.",
+          description: data.message || "Your plan has been updated successfully.",
         });
         await checkSubscription();
         return;
       }
-      
+
       if (data?.url) {
         window.location.href = data.url;
       }
@@ -120,6 +131,7 @@ const Pricing = () => {
       });
     } finally {
       setCheckoutLoading(null);
+      setDowngradeTarget(null);
     }
   };
 
@@ -244,6 +256,7 @@ const Pricing = () => {
       return currentTier === "awakening" ? "Upgrade to Anchoring" : "Choose Anchoring";
     }
     if (tier === "architect") {
+      if (currentTier === "newEarth") return "Downgrade to Architect";
       return currentTier ? "Upgrade to Architect" : "Become an Architect";
     }
     if (tier === "newEarth") {
@@ -687,7 +700,7 @@ const Pricing = () => {
                   className="w-full" 
                   variant="outline"
                   onClick={() => handleSubscribe('awakening')}
-                  disabled={checkoutLoading !== null || currentTier === 'awakening' || currentTier === 'anchoring' || currentTier === 'architect' || currentTier === 'source'}
+                  disabled={checkoutLoading !== null || currentTier === 'awakening' || currentTier === 'source'}
                 >
                   {getButtonLabel('awakening')}
                 </Button>
@@ -742,7 +755,7 @@ const Pricing = () => {
                 <Button 
                   className="w-full" 
                   onClick={() => handleSubscribe('anchoring')}
-                  disabled={checkoutLoading !== null || currentTier === 'anchoring' || currentTier === 'architect' || currentTier === 'source'}
+                  disabled={checkoutLoading !== null || currentTier === 'anchoring' || currentTier === 'source'}
                 >
                   {getButtonLabel('anchoring')}
                 </Button>
@@ -794,7 +807,7 @@ const Pricing = () => {
                 <Button 
                   className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white" 
                   onClick={() => handleSubscribe('architect')}
-                  disabled={checkoutLoading !== null || currentTier === 'architect' || currentTier === 'newEarth' || currentTier === 'source'}
+                  disabled={checkoutLoading !== null || currentTier === 'architect' || currentTier === 'source'}
                 >
                   {getButtonLabel('architect')}
                 </Button>
@@ -828,6 +841,32 @@ const Pricing = () => {
               onClick={handleManageSubscription}
             >
               Proceed to Cancel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Downgrade Confirmation Dialog */}
+      <AlertDialog open={!!downgradeTarget} onOpenChange={(open) => !open && setDowngradeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Downgrade to {downgradeTarget ? SUBSCRIPTION_TIERS[downgradeTarget]?.name : ''}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You're about to move from <strong>{currentTier ? SUBSCRIPTION_TIERS[currentTier as keyof typeof SUBSCRIPTION_TIERS]?.name : ''}</strong> down to <strong>{downgradeTarget ? SUBSCRIPTION_TIERS[downgradeTarget]?.name : ''}</strong> (${downgradeTarget ? SUBSCRIPTION_TIERS[downgradeTarget]?.price : ''}/mo).
+              You'll lose access to higher-tier features at the start of your next billing cycle. Stripe will prorate the difference.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Current Plan</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const t = downgradeTarget;
+                if (t) handleSubscribe(t, true);
+              }}
+            >
+              Confirm Downgrade
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
