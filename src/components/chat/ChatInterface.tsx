@@ -87,7 +87,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
   // Speech-to-text (Web Speech API - zero cost, device-native)
   const speechBaseRef = useRef('');
-  const { isListening: isSpeechListening, isSupported: isSpeechSupported, toggleListening: toggleSpeech } = useSpeechToText({
+  const { isListening: isSpeechListening, isSupported: isSpeechSupported, toggleListening: toggleSpeech, startListening: startSpeech, stopListening: stopSpeech } = useSpeechToText({
     onTranscript: useCallback((text: string) => {
       setInput(prev => {
         const base = speechBaseRef.current;
@@ -102,6 +102,22 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     }
     toggleSpeech();
   }, [isSpeechListening, input, toggleSpeech]);
+
+  // Push-to-talk: press and hold the PTT button, release to stop
+  const pttActiveRef = useRef(false);
+  const handlePttStart = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    if (pttActiveRef.current || isSpeechListening) return;
+    pttActiveRef.current = true;
+    speechBaseRef.current = input;
+    startSpeech();
+    try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch {}
+  }, [isSpeechListening, input, startSpeech]);
+  const handlePttEnd = useCallback(() => {
+    if (!pttActiveRef.current) return;
+    pttActiveRef.current = false;
+    stopSpeech();
+  }, [stopSpeech]);
 
   // Track last message (user or AI) for click-to-respond - allows AIs to respond to each other
   // Includes messageId for reliable history filtering
