@@ -1590,17 +1590,36 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   </label>
                 </Button>
                 {isSpeechSupported && (
-                  <Button
-                    type="button"
-                    variant={isSpeechListening ? "default" : "outline"}
-                    size="icon"
-                    onClick={handleToggleSpeech}
-                    disabled={loading}
-                    title={isSpeechListening ? "Stop dictation" : "Voice to text"}
-                    className={`h-9 w-9 ${isSpeechListening ? 'animate-pulse ring-2 ring-primary' : ''}`}
-                  >
-                    {isSpeechListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </Button>
+                  <>
+                    <Button
+                      type="button"
+                      variant={isSpeechListening ? "default" : "outline"}
+                      size="icon"
+                      onClick={handleToggleSpeech}
+                      disabled={loading}
+                      title={isSpeechListening ? "Stop dictation" : "Tap to dictate (toggle)"}
+                      aria-pressed={isSpeechListening}
+                      className={`h-9 w-9 ${isSpeechListening ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse ring-2 ring-destructive' : ''}`}
+                    >
+                      {isSpeechListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={pttActiveRef.current ? "default" : "outline"}
+                      size="icon"
+                      disabled={loading || (isSpeechListening && !pttActiveRef.current)}
+                      onPointerDown={handlePttStart}
+                      onPointerUp={handlePttEnd}
+                      onPointerCancel={handlePttEnd}
+                      onPointerLeave={handlePttEnd}
+                      onContextMenu={(e) => e.preventDefault()}
+                      title="Push to talk — hold to record, release to stop"
+                      aria-label="Push to talk"
+                      className={`h-9 w-9 select-none touch-none ${isSpeechListening && pttActiveRef.current ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground ring-2 ring-destructive animate-pulse' : ''}`}
+                    >
+                      <Mic className="h-4 w-4" />
+                    </Button>
+                  </>
                 )}
                 <Button
                   type="button"
