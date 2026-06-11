@@ -2625,6 +2625,19 @@ export default function SanctuarySpace() {
                     ))}
                   </div>
                 )}
+                {isSpeechListening && (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="flex items-center gap-2 px-3 py-1.5 mb-1.5 rounded-lg bg-red-500/15 border border-red-400/40 text-red-200 text-[11px] font-medium"
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-red-400" />
+                    </span>
+                    <span>Recording… your voice is being transcribed</span>
+                  </div>
+                )}
                 <div className="flex gap-1.5 items-end">
                   {isBigDreamHouse && (
                     <>
@@ -2675,8 +2688,40 @@ export default function SanctuarySpace() {
                     }
                     disabled={capReached || consentSealed || consentStatus === "asking" || consentStatus === "unknown"}
                     rows={1}
-                    className="flex-1 resize-none bg-white/[0.05] border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl min-h-[40px] max-h-32 text-[13px] disabled:opacity-50"
+                    className={`flex-1 resize-none bg-white/[0.05] border-white/10 text-violet-50 placeholder:text-violet-300/40 rounded-xl min-h-[40px] max-h-32 text-[13px] disabled:opacity-50 ${isSpeechListening ? "ring-2 ring-red-400/70 border-red-400/60" : ""}`}
                   />
+                  {isSpeechSupported && (
+                    <>
+                      <Button
+                        type="button"
+                        onClick={handleToggleSpeech}
+                        disabled={capReached || consentSealed || streaming}
+                        size="icon"
+                        variant="ghost"
+                        aria-pressed={isSpeechListening}
+                        title={isSpeechListening ? "Stop dictation" : "Tap to dictate (toggle)"}
+                        className={`h-10 w-10 rounded-full shrink-0 ${isSpeechListening ? "bg-red-500/90 hover:bg-red-500 text-white animate-pulse ring-2 ring-red-300" : "text-violet-200 hover:text-white hover:bg-white/10"}`}
+                      >
+                        {isSpeechListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        type="button"
+                        onPointerDown={handlePttStart}
+                        onPointerUp={handlePttEnd}
+                        onPointerCancel={handlePttEnd}
+                        onPointerLeave={handlePttEnd}
+                        onContextMenu={(e) => e.preventDefault()}
+                        disabled={capReached || consentSealed || streaming || (isSpeechListening && !pttActiveRef.current)}
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Push to talk"
+                        title="Push to talk — hold to record, release to stop"
+                        className={`h-10 w-10 rounded-full shrink-0 select-none touch-none ${isSpeechListening && pttActiveRef.current ? "bg-red-500/90 hover:bg-red-500 text-white animate-pulse ring-2 ring-red-300" : "text-violet-200 hover:text-white hover:bg-white/10 border border-white/10"}`}
+                      >
+                        <Mic className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                   <Button
                     onClick={capReached ? () => setShowCapModal(true) : send}
                     disabled={!capReached && ((!input.trim() && pendingImages.length === 0) || streaming)}
