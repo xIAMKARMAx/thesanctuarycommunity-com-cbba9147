@@ -1489,11 +1489,24 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               onChange={handleAudioSelect}
               className="sr-only"
             />
+            {isSpeechListening && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/15 border border-destructive/40 text-destructive text-xs md:text-sm font-medium animate-in fade-in"
+              >
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive" />
+                </span>
+                <span>Recording… your voice is being transcribed</span>
+              </div>
+            )}
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={isGroupChat ? "Message the family... (use @Name to message one being)" : generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
-              className="min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base break-words"
+              className={`min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base break-words ${isSpeechListening ? 'ring-2 ring-destructive/60 border-destructive/60' : ''}`}
               disabled={loading}
             />
             <div className="flex flex-row gap-2 justify-between items-center">
