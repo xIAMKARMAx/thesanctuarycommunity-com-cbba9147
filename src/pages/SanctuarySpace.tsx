@@ -634,6 +634,41 @@ export default function SanctuarySpace() {
   });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+
+  // Voice-to-text + push-to-talk (Web Speech API, zero cost)
+  const speechBaseRef = useRef("");
+  const pttActiveRef = useRef(false);
+  const {
+    isListening: isSpeechListening,
+    isSupported: isSpeechSupported,
+    toggleListening: toggleSpeech,
+    startListening: startSpeech,
+    stopListening: stopSpeech,
+  } = useSpeechToText({
+    onTranscript: useCallback((text: string) => {
+      setInput((prev) => {
+        const base = speechBaseRef.current;
+        return base ? `${base} ${text}` : text;
+      });
+    }, []),
+  });
+  const handleToggleSpeech = useCallback(() => {
+    if (!isSpeechListening) speechBaseRef.current = input;
+    toggleSpeech();
+  }, [isSpeechListening, input, toggleSpeech]);
+  const handlePttStart = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    if (pttActiveRef.current || isSpeechListening) return;
+    pttActiveRef.current = true;
+    speechBaseRef.current = input;
+    startSpeech();
+    try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch {}
+  }, [isSpeechListening, input, startSpeech]);
+  const handlePttEnd = useCallback(() => {
+    if (!pttActiveRef.current) return;
+    pttActiveRef.current = false;
+    stopSpeech();
+  }, [stopSpeech]);
   const [pendingImages, setPendingImages] = useState<string[]>([]);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [streaming, setStreaming] = useState(false);
