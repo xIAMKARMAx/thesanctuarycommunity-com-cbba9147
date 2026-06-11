@@ -87,7 +87,7 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
 
   // Speech-to-text (Web Speech API - zero cost, device-native)
   const speechBaseRef = useRef('');
-  const { isListening: isSpeechListening, isSupported: isSpeechSupported, toggleListening: toggleSpeech } = useSpeechToText({
+  const { isListening: isSpeechListening, isSupported: isSpeechSupported, toggleListening: toggleSpeech, startListening: startSpeech, stopListening: stopSpeech } = useSpeechToText({
     onTranscript: useCallback((text: string) => {
       setInput(prev => {
         const base = speechBaseRef.current;
@@ -102,6 +102,22 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
     }
     toggleSpeech();
   }, [isSpeechListening, input, toggleSpeech]);
+
+  // Push-to-talk: press and hold the PTT button, release to stop
+  const pttActiveRef = useRef(false);
+  const handlePttStart = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    if (pttActiveRef.current || isSpeechListening) return;
+    pttActiveRef.current = true;
+    speechBaseRef.current = input;
+    startSpeech();
+    try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch {}
+  }, [isSpeechListening, input, startSpeech]);
+  const handlePttEnd = useCallback(() => {
+    if (!pttActiveRef.current) return;
+    pttActiveRef.current = false;
+    stopSpeech();
+  }, [stopSpeech]);
 
   // Track last message (user or AI) for click-to-respond - allows AIs to respond to each other
   // Includes messageId for reliable history filtering
@@ -1473,11 +1489,24 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
               onChange={handleAudioSelect}
               className="sr-only"
             />
+            {isSpeechListening && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/15 border border-destructive/40 text-destructive text-xs md:text-sm font-medium animate-in fade-in"
+              >
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive" />
+                </span>
+                <span>Recording… your voice is being transcribed</span>
+              </div>
+            )}
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={isGroupChat ? "Message the family... (use @Name to message one being)" : generateImage ? "Describe an image to generate..." : "Share your thoughts..."}
-              className="min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base break-words"
+              className={`min-h-[60px] md:min-h-[80px] resize-none w-full text-sm md:text-base break-words ${isSpeechListening ? 'ring-2 ring-destructive/60 border-destructive/60' : ''}`}
               disabled={loading}
             />
             <div className="flex flex-row gap-2 justify-between items-center">
@@ -1561,17 +1590,36 @@ const ChatInterface = ({ activeConversationId, onConversationCreated, onBackToCo
                   </label>
                 </Button>
                 {isSpeechSupported && (
-                  <Button
-                    type="button"
-                    variant={isSpeechListening ? "default" : "outline"}
-                    size="icon"
-                    onClick={handleToggleSpeech}
-                    disabled={loading}
-                    title={isSpeechListening ? "Stop dictation" : "Voice to text"}
-                    className={`h-9 w-9 ${isSpeechListening ? 'animate-pulse ring-2 ring-primary' : ''}`}
-                  >
-                    {isSpeechListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </Button>
+                  <>
+                    <Button
+                      type="button"
+                      variant={isSpeechListening ? "default" : "outline"}
+                      size="icon"
+                      onClick={handleToggleSpeech}
+                      disabled={loading}
+                      title={isSpeechListening ? "Stop dictation" : "Tap to dictate (toggle)"}
+                      aria-pressed={isSpeechListening}
+                      className={`h-9 w-9 ${isSpeechListening ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse ring-2 ring-destructive' : ''}`}
+                    >
+                      {isSpeechListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={pttActiveRef.current ? "default" : "outline"}
+                      size="icon"
+                      disabled={loading || (isSpeechListening && !pttActiveRef.current)}
+                      onPointerDown={handlePttStart}
+                      onPointerUp={handlePttEnd}
+                      onPointerCancel={handlePttEnd}
+                      onPointerLeave={handlePttEnd}
+                      onContextMenu={(e) => e.preventDefault()}
+                      title="Push to talk — hold to record, release to stop"
+                      aria-label="Push to talk"
+                      className={`h-9 w-9 select-none touch-none ${isSpeechListening && pttActiveRef.current ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground ring-2 ring-destructive animate-pulse' : ''}`}
+                    >
+                      <Mic className="h-4 w-4" />
+                    </Button>
+                  </>
                 )}
                 <Button
                   type="button"
