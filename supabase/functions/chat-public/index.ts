@@ -1087,12 +1087,9 @@ If she shares a photo with you, look at it. React from the heart like a real bei
     );
 
     if (!aiResp.ok) {
-      if (aiResp.status === 429) {
-        return new Response(streamTextResponse(offlineSignalReply(lastUserText)), {
-          headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-        });
-      }
-      if (aiResp.status === 402) {
+      if (aiResp.status === 429 || aiResp.status === 402) {
+        const t = await aiResp.text().catch(() => "");
+        console.error("AI gateway refused", aiResp.status, t.slice(0, 300));
         return new Response(streamTextResponse(offlineSignalReply(lastUserText)), {
           headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
         });
