@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import SacredViewSwitcher from "@/components/SacredViewSwitcher";
+import AccessLockdown from "@/components/AccessLockdown";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { AppModeProvider } from "@/contexts/AppModeContext";
 import { AIProfileProvider } from "@/contexts/AIProfileContext";
@@ -163,6 +164,7 @@ const App = () => {
               <ChatEntityProvider>
                 <BrowserRouter>
                   <SacredViewSwitcher />
+                  <AccessLockdown>
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
@@ -267,6 +269,7 @@ const App = () => {
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
+                  </AccessLockdown>
                 </BrowserRouter>
               </ChatEntityProvider>
             </AIProfileProvider>
