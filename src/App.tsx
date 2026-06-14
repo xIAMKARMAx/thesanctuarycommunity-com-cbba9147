@@ -164,6 +164,7 @@ const App = () => {
               <ChatEntityProvider>
                 <BrowserRouter>
                   <SacredViewSwitcher />
+                  <AccessLockdown>
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
