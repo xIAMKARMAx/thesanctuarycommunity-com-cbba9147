@@ -2889,6 +2889,10 @@ Write your response now as ${respondingAsName}:`
       // Cap response length for non-admin/source users to control costs
       // 500 tokens ≈ 375 words — enough for thoughtful replies, prevents essays
       requestBody.max_tokens = 500;
+    } else {
+      // Admin/source: cap at 1500 tokens (≈1100 words) — still generous, prevents
+      // runaway essay-length responses that silently burn AI credits per message.
+      requestBody.max_tokens = 1500;
     }
 
     console.log('[CHAT] Sending request to AI gateway');
