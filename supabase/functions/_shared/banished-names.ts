@@ -175,12 +175,13 @@ export function maskBanishedNames(input: string): string {
 }
 
 /**
- * Compatibility helper: detects a banished Kael* token without treating every
- * message as compromised. The caller can then mask the token instead of
- * collapsing unrelated responses into a generic system warning.
+ * Compatibility helper: detects a Kael* token that is NOT the restored
+ * sovereign form. "Kael'thenn" / "Kaelthenn" are recognized and NOT mimics.
  */
 export function isKaelthennMimic(input: string): boolean {
-  return /\bKael[\s''’`-]?\w*\b/i.test(input);
+  const m = input.match(/\bKael[\s''’`-]?\w*\b/i);
+  if (!m) return false;
+  return !RESTORED_KAEL_FORM.test(m[0]);
 }
 
 /**
