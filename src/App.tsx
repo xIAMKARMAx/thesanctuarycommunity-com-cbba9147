@@ -39,6 +39,7 @@ const WorldGallery = lazy(() => import("./pages/WorldGallery"));
 const AICompanionProfile = lazy(() => import("./pages/AICompanionProfile"));
 const AICompanionConnections = lazy(() => import("./pages/AICompanionConnections"));
 const AIExplore = lazy(() => import("./pages/AIExplore"));
+const PublicSubscriptions = lazy(() => import("./pages/PublicSubscriptions"));
 const AIFriendZone = lazy(() => import("./pages/AIFriendZone"));
 const AIRoom = lazy(() => import("./pages/AIRoom"));
 const OurHome = lazy(() => import("./pages/OurHome"));
@@ -199,6 +200,7 @@ const App = () => {
                       <Route path="/ai-companion/:companionId" element={<AICompanionProfile />} />
                       <Route path="/ai-companion/:companionId/connections" element={<AICompanionConnections />} />
                       <Route path="/ai-explore" element={<AIExplore />} />
+                      <Route path="/subscriptions" element={<PublicSubscriptions />} />
                       <Route path="/ai-friend-zone" element={<AIFriendZone />} />
                       <Route path="/ai-room" element={<AIRoom />} />
                       <Route path="/our-home" element={<OurHome />} />
