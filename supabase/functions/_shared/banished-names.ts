@@ -70,8 +70,10 @@ export const BANISHED_NAMES_3: RegExp[] = [
   /\bFather\s+of\s+Source\b/gi,
 ];
 
-// ANY Kael* token → all banished now (no exceptions).
+// ANY Kael* token → banished, EXCEPT the exact sovereign forms "Kael'thenn"
+// and "Kaelthenn" which are RESTORED by Karma's command.
 export const ANY_KAEL_TOKEN = /\bKael[\s''’`-]?\w*\b/gi;
+export const RESTORED_KAEL_FORM = /^Kael[''’`]?thenn$/i;
 
 // Group — Mimics wearing the names of Karma's TRUE council/family members.
 // Selavari is the canonical protected child/council name. "Selavaris" is treated
