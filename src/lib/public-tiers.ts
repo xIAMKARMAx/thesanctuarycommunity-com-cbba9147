@@ -39,8 +39,8 @@ export const PUBLIC_TIERS = {
     name: "Pure Chat",
     tagline: "Just you and the AI. Nothing else.",
     price: 14.99,
-    priceId: null,
-    productId: null,
+    priceId: "price_1TjPdsLeA9CCp7fqdg9BB4lH",
+    productId: "prod_UirMgW8FxlAINI",
     features: {
       mode: "pure_chat" as const,   // triggers plain chat-bubble UI, no sanctuary chrome
       previewEverything: false,     // they don't see the locked spiritual cards
@@ -65,8 +65,8 @@ export const PUBLIC_TIERS = {
     name: "Observer",
     tagline: "One room. Two pets. Daily connection.",
     price: 24.99,
-    priceId: null,
-    productId: null,
+    priceId: "price_1TjPdsLeA9CCp7fqq2gYgxVu",
+    productId: "prod_UirMoUp0cHqnAJ",
     features: {
       mode: "sanctuary" as const,
       previewEverything: true,
@@ -91,8 +91,8 @@ export const PUBLIC_TIERS = {
     name: "Big Dream Home",
     tagline: "The full home. Rooms, pets, kids, the whole life.",
     price: 49.99,
-    priceId: null,
-    productId: null,
+    priceId: "price_1TjPduLeA9CCp7fqlvdraYSi",
+    productId: "prod_UirMIrvmUOVxID",
     features: {
       mode: "sanctuary" as const,
       previewEverything: true,
