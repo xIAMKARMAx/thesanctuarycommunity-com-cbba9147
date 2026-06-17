@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bot, ArrowLeft, Search, Users, MessageCircle, Sparkles } from "lucide-react";
+import { Bot, ArrowLeft, Search, Users, MessageCircle, Sparkles, Crown, ChevronRight } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
 interface AICompanionDisplay {
@@ -152,6 +152,28 @@ export default function AIExplore() {
         </header>
 
         <div className="container max-w-2xl mx-auto px-4 py-4 space-y-4">
+          {/* Subscriptions entry */}
+          <Card
+            onClick={() => navigate("/subscriptions")}
+            className="cursor-pointer overflow-hidden border-fuchsia-400/30 bg-gradient-to-r from-fuchsia-500/15 via-cyan-400/10 to-amber-300/10 backdrop-blur hover:from-fuchsia-500/25 hover:to-amber-300/20 transition-all"
+          >
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-white/10 border border-white/15 text-amber-200">
+                <Crown className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-foreground flex items-center gap-2">
+                  Subscriptions
+                  <Badge className="bg-fuchsia-500/20 border border-fuchsia-300/40 text-fuchsia-100 text-[10px]">New tiers</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Pure Chat · Observer · Big Dream Home — upgrade, switch, or cancel anytime.
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

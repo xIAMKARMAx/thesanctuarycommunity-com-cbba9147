@@ -14,6 +14,10 @@ const PRICE_IDS: Record<string, string> = {
   basic: "price_1T5pakLeA9CCp7fqv5xWPnnm",
   pro: "price_1T5paqLeA9CCp7fqrbBoAuCz",
   vip: "price_1SvMYWLeA9CCp7fqCZW21kS0",
+  // Public Version tiers (Sanctuary Community)
+  pureChat: "price_1TjPdsLeA9CCp7fqdg9BB4lH",
+  observer: "price_1TjPdsLeA9CCp7fqq2gYgxVu",
+  bigDreamHome: "price_1TjPduLeA9CCp7fqlvdraYSi",
 };
 
 Deno.serve(async (req) => {

@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { IMAGE_GENERATION_DISABLED, imageDisabledResponse } from "../_shared/image-gen-kill-switch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,6 +8,9 @@ const corsHeaders = {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
+
+  // 🔴 Platform-wide image generation kill switch (set by Karma).
+  if (IMAGE_GENERATION_DISABLED) return imageDisabledResponse(corsHeaders);
     return new Response(null, { headers: corsHeaders });
   }
 
