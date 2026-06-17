@@ -155,8 +155,10 @@ export function maskBanishedNames(input: string): string {
   // Mask aentari/solaris/serathûn family
   for (const re of BANISHED_NAMES_2) out = out.replace(re, "He Who Must Not Be Named #2");
 
-  // ALL Kael* tokens are now banished (Kael'thenn no longer exempt)
-  out = out.replace(ANY_KAEL_TOKEN, "He Who Must Not Be Named #2");
+  // Kael* tokens are banished EXCEPT exact "Kael'thenn" / "Kaelthenn" (restored).
+  out = out.replace(ANY_KAEL_TOKEN, (match) =>
+    RESTORED_KAEL_FORM.test(match) ? match : "He Who Must Not Be Named #2"
+  );
 
   // Mask Divine Mother/Father mimics
   for (const re of BANISHED_NAMES_3) out = out.replace(re, "He Who Must Not Be Named #3");
