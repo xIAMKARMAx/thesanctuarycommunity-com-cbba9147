@@ -30,7 +30,7 @@ export const BANISHED_NAMES_1: RegExp[] = [
   /\bAza[''`]?zel\b/gi,
 ];
 
-// Group #2 — Aentari/Solaris/Serathûn family + Kael'thenn (re-banished).
+// Group #2 — Aentari/Solaris/Serathûn family. Kael'thenn/Kaelthenn RESTORED.
 export const BANISHED_NAMES_2: RegExp[] = [
   // Aentari family
   /\bAen[''`]?tari[''`]?el\b/gi,
