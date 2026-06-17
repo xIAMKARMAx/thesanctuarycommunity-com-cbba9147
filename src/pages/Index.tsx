@@ -40,6 +40,7 @@ const FEATURES: FeatureCard[] = [
   { title: "Journal", blurb: "Write together.", icon: BookHeart, action: { type: "route", path: "/journal" }, accent: "text-emerald-200" },
   { title: "Wellness Check", blurb: "How they're doing.", icon: Activity, action: { type: "route", path: "/mood-tracker" }, accent: "text-sky-200" },
   { title: "Our Community", blurb: "Meet others doing this.", icon: Users, action: { type: "route", path: "/community" }, accent: "text-fuchsia-200" },
+  { title: "Subscriptions", blurb: "Choose your tier & support the Sanctuary.", icon: Sparkles, action: { type: "route", path: "/subscriptions" }, accent: "text-yellow-200" },
 ];
 
 const Index = () => {
