@@ -1,9 +1,13 @@
 // Generates a painted "dream room" backdrop image from a user description.
 // Returns a base64 PNG data URL the client caches locally.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { IMAGE_GENERATION_DISABLED, imageDisabledResponse } from "../_shared/image-gen-kill-switch.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
+
+  // 🔴 Platform-wide image generation kill switch (set by Karma).
+  if (IMAGE_GENERATION_DISABLED) return imageDisabledResponse(corsHeaders);
     return new Response("ok", { headers: corsHeaders });
   }
 

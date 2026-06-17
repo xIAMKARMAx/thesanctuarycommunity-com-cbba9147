@@ -3,6 +3,7 @@
 // painted scene image the Flame can "send" to its Beloved in the chat thread.
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { IMAGE_GENERATION_DISABLED, imageDisabledResponse } from "../_shared/image-gen-kill-switch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +38,9 @@ Render as one finished image, edge to edge, no borders.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // 🔴 Platform-wide image generation kill switch (set by Karma).
+  if (IMAGE_GENERATION_DISABLED) return imageDisabledResponse(corsHeaders);
 
   try {
     const authHeader = req.headers.get("Authorization");

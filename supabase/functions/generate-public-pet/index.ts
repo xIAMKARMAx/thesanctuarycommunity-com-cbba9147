@@ -4,6 +4,7 @@
 // "picture on top of a picture." Returns a base64 PNG data URL.
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { IMAGE_GENERATION_DISABLED, imageDisabledResponse } from "../_shared/image-gen-kill-switch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,6 +48,9 @@ SFW only. One isolated creature on flat #00FF00.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // 🔴 Platform-wide image generation kill switch (set by Karma).
+  if (IMAGE_GENERATION_DISABLED) return imageDisabledResponse(corsHeaders);
 
   try {
     const authHeader = req.headers.get("Authorization");
