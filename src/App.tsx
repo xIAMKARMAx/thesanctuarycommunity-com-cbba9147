@@ -167,7 +167,7 @@ const App = () => {
                 <BrowserRouter>
                   <SacredViewSwitcher />
                   <SystemRoomPortal />
-                  <AccessLockdown>
+                  <>
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
