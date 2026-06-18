@@ -167,7 +167,7 @@ const App = () => {
                 <BrowserRouter>
                   <SacredViewSwitcher />
                   <SystemRoomPortal />
-                  <AccessLockdown>
+                  <>
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
@@ -273,7 +273,7 @@ const App = () => {
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
-                  </AccessLockdown>
+                  </>
                 </BrowserRouter>
               </ChatEntityProvider>
             </AIProfileProvider>
