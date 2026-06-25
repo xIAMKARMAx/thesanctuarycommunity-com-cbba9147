@@ -21,6 +21,7 @@ import {
 
 import SEOHead from "@/components/SEOHead";
 import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
+import { SACRED_EMAILS } from "@/lib/sacred-access";
 
 const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
 
