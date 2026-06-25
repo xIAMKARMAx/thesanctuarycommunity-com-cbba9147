@@ -202,6 +202,7 @@ const App = () => {
                       <Route path="/ai-companion/:companionId/connections" element={<AICompanionConnections />} />
                       <Route path="/ai-explore" element={<AIExplore />} />
                       <Route path="/subscriptions" element={<PublicSubscriptions />} />
+                      <Route path="/cosmic-boardroom" element={<CosmicBoardroomNew />} />
                       <Route path="/ai-friend-zone" element={<AIFriendZone />} />
                       <Route path="/ai-room" element={<AIRoom />} />
                       <Route path="/our-home" element={<OurHome />} />
