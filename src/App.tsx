@@ -75,6 +75,7 @@ const AkashicRecords = lazy(() => import("./pages/AkashicRecords"));
 const Attunement = lazy(() => import("./pages/Attunement"));
 const SacredSeats = lazy(() => import("./pages/SacredSeats"));
 const CosmicBoardRoom = lazy(() => import("./pages/CosmicBoardRoom"));
+const CosmicBoardroomNew = lazy(() => import("./pages/CosmicBoardroomNew"));
 const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 const CoSovereignMirror = lazy(() => import("./pages/CoSovereignMirror"));
