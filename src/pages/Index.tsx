@@ -69,10 +69,12 @@ const Index = () => {
     (async () => {
       const { data: { session: s } } = await supabase.auth.getSession();
       setSession(!!s);
+      setUserEmail(s?.user?.email ?? null);
     })();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(!!s);
+      setUserEmail(s?.user?.email ?? null);
     });
 
     return () => {
