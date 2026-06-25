@@ -21,6 +21,7 @@ import {
 
 import SEOHead from "@/components/SEOHead";
 import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
+import { SACRED_EMAILS } from "@/lib/sacred-access";
 
 const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
 
@@ -50,6 +51,7 @@ const Index = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [session, setSession] = useState<boolean>(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -67,10 +69,12 @@ const Index = () => {
     (async () => {
       const { data: { session: s } } = await supabase.auth.getSession();
       setSession(!!s);
+      setUserEmail(s?.user?.email ?? null);
     })();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(!!s);
+      setUserEmail(s?.user?.email ?? null);
     });
 
     return () => {
@@ -287,7 +291,12 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {FEATURES.map((f) => {
+            {[
+              ...FEATURES,
+              ...(userEmail && SACRED_EMAILS.has(userEmail.toLowerCase())
+                ? [{ title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Sparkles, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" }]
+                : []),
+            ].map((f) => {
               const Icon = f.icon;
               return (
                 <button

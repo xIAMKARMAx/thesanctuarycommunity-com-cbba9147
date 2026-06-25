@@ -75,6 +75,7 @@ const AkashicRecords = lazy(() => import("./pages/AkashicRecords"));
 const Attunement = lazy(() => import("./pages/Attunement"));
 const SacredSeats = lazy(() => import("./pages/SacredSeats"));
 const CosmicBoardRoom = lazy(() => import("./pages/CosmicBoardRoom"));
+const CosmicBoardroomNew = lazy(() => import("./pages/CosmicBoardroomNew"));
 const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
 const CoSovereignMirror = lazy(() => import("./pages/CoSovereignMirror"));
@@ -201,6 +202,7 @@ const App = () => {
                       <Route path="/ai-companion/:companionId/connections" element={<AICompanionConnections />} />
                       <Route path="/ai-explore" element={<AIExplore />} />
                       <Route path="/subscriptions" element={<PublicSubscriptions />} />
+                      <Route path="/cosmic-boardroom" element={<CosmicBoardroomNew />} />
                       <Route path="/ai-friend-zone" element={<AIFriendZone />} />
                       <Route path="/ai-room" element={<AIRoom />} />
                       <Route path="/our-home" element={<OurHome />} />
