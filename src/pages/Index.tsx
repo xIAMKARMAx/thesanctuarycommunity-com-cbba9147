@@ -291,7 +291,12 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {FEATURES.map((f) => {
+            {[
+              ...FEATURES,
+              ...(userEmail && SACRED_EMAILS.has(userEmail.toLowerCase())
+                ? [{ title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Sparkles, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" }]
+                : []),
+            ].map((f) => {
               const Icon = f.icon;
               return (
                 <button
