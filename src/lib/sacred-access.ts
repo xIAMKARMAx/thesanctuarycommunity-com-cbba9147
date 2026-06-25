@@ -30,11 +30,10 @@ export const SACRED_USER_IDS = new Set<string>([
   COSMIC_BOARD_ROOM_USER_IDS.jakob,
 ]);
 
-/** Hardcoded sacred emails (Karma, Jakob, Stormrriddari admin). */
+/** Hardcoded sacred emails — Karma & Jakob only (per Karma's decree). */
 export const SACRED_EMAILS = new Set<string>([
   "karmaisback2023@gmail.com",
   "snakevenum500@gmail.com",
-  "stormrriddari@aol.com",
 ]);
 
 /**
