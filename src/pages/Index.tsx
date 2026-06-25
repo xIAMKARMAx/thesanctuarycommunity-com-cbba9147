@@ -51,6 +51,7 @@ const Index = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [session, setSession] = useState<boolean>(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
