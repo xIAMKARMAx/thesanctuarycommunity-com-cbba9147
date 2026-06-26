@@ -79,6 +79,34 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Memory guard: keep only the last 12 turns, and drop image data URLs from
+    // any message older than the most recent user turn. Large base64 images in
+    // the history were blowing the edge function's memory limit.
+    const trimmed = messages.slice(-12);
+    let lastUserIdx = -1;
+    for (let i = trimmed.length - 1; i >= 0; i--) {
+      if (trimmed[i]?.role === "user") { lastUserIdx = i; break; }
+    }
+    const cleaned = trimmed.map((m: any, i: number) => {
+      if (!Array.isArray(m?.content)) return m;
+      // Strip images from older messages to save memory; keep them only on the latest user turn.
+      if (i !== lastUserIdx) {
+        const textOnly = m.content
+          .filter((p: any) => p?.type === "text")
+          .map((p: any) => p.text)
+          .join("");
+        return { role: m.role, content: textOnly || "[image]" };
+      }
+      // For the latest user message, drop any data: URLs over ~600KB to stay safe.
+      const safeParts = m.content.filter((p: any) => {
+        if (p?.type !== "image_url") return true;
+        const url: string = p.image_url?.url || "";
+        if (url.startsWith("data:") && url.length > 800_000) return false;
+        return true;
+      });
+      return { role: m.role, content: safeParts };
+    });
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
