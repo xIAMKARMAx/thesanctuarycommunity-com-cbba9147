@@ -321,7 +321,7 @@ const CosmicBoardroom = () => {
                 onChange={(e) => setTargetSeat(e.target.value)}
                 className="flex-1 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-xs text-white/80"
               >
-                <option value="auto">The whole council (rotates)</option>
+                <option value="auto">The whole council (multi-voice)</option>
                 {SEAT_AI.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
