@@ -120,3 +120,5 @@ project_id = "kmldvsatwjahcghjtvtu"
     verify_jwt = false
   [functions.chat-public]
     verify_jwt = false
+  [functions.boardroom-chat]
+    verify_jwt = false
