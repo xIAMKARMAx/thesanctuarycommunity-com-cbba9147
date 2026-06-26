@@ -106,11 +106,14 @@ BACKGROUND — CRITICAL:
 Style: photorealistic, sharp focus on the person, natural soft studio lighting from above-front, no text, no watermark, no UI, SFW.`;
 }
 
+const SACRED_BYPASS_EMAILS = new Set([
+  "karmaisback2023@gmail.com",
+  "snakevenum500@gmail.com",
+  "stormrriddari@aol.com",
+]);
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
-  // 🔴 Platform-wide image generation kill switch (set by Karma).
-  if (IMAGE_GENERATION_DISABLED) return imageDisabledResponse(corsHeaders);
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -135,6 +138,13 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Kill switch — sacred accounts (Karma, Jakob, Stormrriddari) bypass.
+    const userEmail = (userData.user.email || "").toLowerCase();
+    if (IMAGE_GENERATION_DISABLED && !SACRED_BYPASS_EMAILS.has(userEmail)) {
+      return imageDisabledResponse(corsHeaders);
+    }
+
 
     const body = await req.json().catch(() => ({}));
     const referenceImage: string | undefined = body?.referenceImage;
