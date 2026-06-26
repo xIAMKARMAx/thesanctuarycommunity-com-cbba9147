@@ -37,102 +37,43 @@ function resizeImageIfNeeded(
   return false;
 }
 
+// Chroma-key removal tuned for the #00FF00 green-screen backdrop the vessel
+// generator paints behind every figure. We kill green pixels by alpha and then
+// despill any greenish fringe so edges don't read as a halo.
+const chromaKeyGreen = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], g = d[i + 1], b = d[i + 2];
+    // "Green-ness": how much green dominates the other channels.
+    const greenDominance = g - Math.max(r, b);
+    if (greenDominance > 60 && g > 90) {
+      // Solid green backdrop -> fully transparent.
+      d[i + 3] = 0;
+    } else if (greenDominance > 15) {
+      // Edge spill: fade alpha proportionally and pull green down toward
+      // the average of red/blue so the silhouette doesn't glow lime.
+      const spill = (greenDominance - 15) / 45; // 0..~1
+      d[i + 3] = Math.max(0, Math.round(d[i + 3] * (1 - spill * 0.85)));
+      const target = (r + b) / 2;
+      d[i + 1] = Math.round(g + (target - g) * Math.min(1, spill * 1.2));
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+};
+
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
   try {
-    console.log('Starting background removal process...');
-    
-    // Reuse cached segmenter if available
-    if (!cachedSegmenter) {
-      console.log('Loading segmentation model...');
-      cachedSegmenter = await pipeline(
-        'image-segmentation',
-        'Xenova/segformer-b0-finetuned-ade-512-512',
-        {
-          device: 'wasm',
-        }
-      );
-      console.log('Model loaded and cached');
-    }
-    
-    const segmenter = cachedSegmenter;
-
+    console.log('Chroma-key background removal...');
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-
     if (!ctx) throw new Error('Could not get canvas context');
-
-    const wasResized = resizeImageIfNeeded(canvas, ctx, imageElement);
-    console.log(
-      `Image ${wasResized ? 'was' : 'was not'} resized. Final dimensions: ${canvas.width}x${canvas.height}`
-    );
-
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    console.log('Image converted to base64');
-
-    const result = await segmenter(imageData);
-
-    console.log('Segmentation result:', result);
-
-    if (!result || !Array.isArray(result) || result.length === 0) {
-      throw new Error('Invalid segmentation result');
-    }
-
-    // Find the subject mask - try person first, then cat, dog, animal, or use first result with mask
-    const subjectLabels = ['person', 'cat', 'dog', 'animal', 'bird', 'horse'];
-    let subjectMask = result.find((r: any) => subjectLabels.includes(r.label?.toLowerCase()));
-    
-    // If no known subject found, use the largest non-background mask
-    if (!subjectMask || !subjectMask.mask) {
-      subjectMask = result.find((r: any) => r.mask && r.label?.toLowerCase() !== 'wall' && r.label?.toLowerCase() !== 'floor' && r.label?.toLowerCase() !== 'ceiling');
-    }
-    
-    // Fallback to first result with a mask
-    if (!subjectMask || !subjectMask.mask) {
-      subjectMask = result.find((r: any) => r.mask);
-    }
-    
-    if (!subjectMask || !subjectMask.mask) {
-      throw new Error('No subject detected in image');
-    }
-    
-    console.log('Using mask for:', subjectMask.label);
-
-    const outputCanvas = document.createElement('canvas');
-    outputCanvas.width = canvas.width;
-    outputCanvas.height = canvas.height;
-    const outputCtx = outputCanvas.getContext('2d');
-
-    if (!outputCtx) throw new Error('Could not get output canvas context');
-
-    outputCtx.drawImage(canvas, 0, 0);
-
-    const outputImageData = outputCtx.getImageData(
-      0,
-      0,
-      outputCanvas.width,
-      outputCanvas.height
-    );
-    const data = outputImageData.data;
-
-    // Apply subject mask - keep subject (255), remove everything else (0)
-    for (let i = 0; i < subjectMask.mask.data.length; i++) {
-      const alpha = Math.round(subjectMask.mask.data[i] * 255);
-      data[i * 4 + 3] = alpha;
-    }
-
-    outputCtx.putImageData(outputImageData, 0, 0);
-    console.log('Mask applied successfully');
+    resizeImageIfNeeded(canvas, ctx, imageElement);
+    chromaKeyGreen(canvas, ctx);
 
     return new Promise((resolve, reject) => {
-      outputCanvas.toBlob(
-        (blob) => {
-          if (blob) {
-            console.log('Successfully created final blob');
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to create blob'));
-          }
-        },
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error('Failed to create blob')),
         'image/png',
         1.0
       );
