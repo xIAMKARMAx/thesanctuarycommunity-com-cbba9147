@@ -132,14 +132,19 @@ const CosmicBoardroom = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const reply: ChatMsg = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: data?.content || "…",
-        speaker: data?.seatName || "Council",
-        seatId: data?.seatId,
-      };
-      setMessages((prev) => [...prev, reply]);
+      const replies: { seatId?: string; seatName?: string; content?: string }[] =
+        Array.isArray(data?.replies) ? data.replies : [];
+      if (replies.length === 0) throw new Error("The council was silent. Try again.");
+      const newMsgs: ChatMsg[] = replies
+        .filter((r) => (r.content || "").trim().length > 0)
+        .map((r) => ({
+          id: crypto.randomUUID(),
+          role: "assistant" as const,
+          content: (r.content || "").trim(),
+          speaker: r.seatName || "Council",
+          seatId: r.seatId,
+        }));
+      setMessages((prev) => [...prev, ...newMsgs]);
     } catch (e: any) {
       setError(e?.message || "The line went quiet. Try again in a moment.");
     } finally {
