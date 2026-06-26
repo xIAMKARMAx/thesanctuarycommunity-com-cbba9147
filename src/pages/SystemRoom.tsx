@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X, LogOut, Star } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X, LogOut, Star, Copy, CheckSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
@@ -54,6 +54,8 @@ export default function SystemRoom() {
   const [micNeedsTap, setMicNeedsTap] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [contextMenu, setContextMenu] = useState<{ id: string } | null>(null);
+  const closeMenu = useCallback(() => setContextMenu(null), []);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const speechBaseRef = useRef("");
@@ -152,9 +154,8 @@ export default function SystemRoom() {
   const startLongPress = (id: string) => {
     if (longPressTimer.current) window.clearTimeout(longPressTimer.current);
     longPressTimer.current = window.setTimeout(() => {
-      setSelectionMode(true);
-      setSelectedIds(prev => new Set(prev).add(id));
-    }, 450);
+      setContextMenu({ id });
+    }, 500);
   };
   const cancelLongPress = () => {
     if (longPressTimer.current) {
@@ -183,6 +184,52 @@ export default function SystemRoom() {
     exitSelection();
     toast({ title: "Deleted", description: `${count} message${count === 1 ? "" : "s"} removed.` });
   };
+
+  const handleCopyMessage = useCallback((id: string) => {
+    const text = getText(messages.find(m => m.id === id)?.content || "");
+    const copy = async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast({ title: "Copied", description: "Message text copied to clipboard." });
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        toast({ title: ok ? "Copied" : "Copy failed", description: ok ? "Message text copied." : "Could not copy.", variant: ok ? "default" : "destructive" });
+      }
+    };
+    copy();
+    closeMenu();
+  }, [messages, toast, closeMenu]);
+
+  const handleDeleteMessage = useCallback((id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+    closeMenu();
+    toast({ title: "Deleted", description: "Message removed." });
+  }, [closeMenu, toast]);
+
+  const handleSelectForDelete = useCallback((id: string) => {
+    setSelectionMode(true);
+    setSelectedIds(new Set([id]));
+    closeMenu();
+  }, [closeMenu]);
+
+  const handleStarFromMenu = useCallback((id: string) => {
+    toggleStar(id);
+    closeMenu();
+  }, [closeMenu]);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeMenu(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [contextMenu, closeMenu]);
 
   const send = async () => {
     const text = input.trim();
@@ -344,7 +391,7 @@ export default function SystemRoom() {
         </div>
         {!selectionMode && (
           <div className="max-w-3xl mx-auto px-4 pb-2 text-[10px] text-muted-foreground/60 text-center">
-            Long-press a message to select & delete · tap ⭐ to save up to {MAX_STARRED}
+            Long-press a message for copy, star, or delete options · tap ⭐ to save up to {MAX_STARRED}
           </div>
         )}
       </header>
@@ -353,7 +400,7 @@ export default function SystemRoom() {
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {messages.length === 0 && (
             <Card className="p-6 text-sm text-muted-foreground border-dashed">
-              Private line to the System — your dev-partner voice. Long-press any message to enter select mode and delete.
+              Private line to the System — your dev-partner voice. Long-press any message to copy, delete, or select multiple.
               Tap the ⭐ to save up to {MAX_STARRED} important messages from auto-cleanup.
             </Card>
           )}
@@ -381,6 +428,7 @@ export default function SystemRoom() {
                     onPointerUp={cancelLongPress}
                     onPointerLeave={cancelLongPress}
                     onPointerCancel={cancelLongPress}
+                    onContextMenu={(e) => { e.preventDefault(); setContextMenu({ id }); }}
                     className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed select-none ${
                       m.role === "user"
                         ? "bg-primary text-primary-foreground rounded-br-sm"
