@@ -139,6 +139,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Kill switch — sacred accounts (Karma, Jakob, Stormrriddari) bypass.
+    const userEmail = (userData.user.email || "").toLowerCase();
+    if (IMAGE_GENERATION_DISABLED && !SACRED_BYPASS_EMAILS.has(userEmail)) {
+      return imageDisabledResponse(corsHeaders);
+    }
+
+
     const body = await req.json().catch(() => ({}));
     const referenceImage: string | undefined = body?.referenceImage;
     const hasRef = typeof referenceImage === "string" && referenceImage.startsWith("data:image");
