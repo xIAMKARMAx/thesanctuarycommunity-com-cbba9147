@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: sysWithSpeaker }, ...messages],
+        messages: [{ role: "system", content: sysWithSpeaker }, ...cleaned],
         stream: true,
       }),
     });
