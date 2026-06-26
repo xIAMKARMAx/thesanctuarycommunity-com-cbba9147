@@ -38,25 +38,78 @@ function resizeImageIfNeeded(
 }
 
 // Chroma-key removal tuned for the #00FF00 green-screen backdrop the vessel
-// generator paints behind every figure. We kill green pixels by alpha and then
-// despill any greenish fringe so edges don't read as a halo.
+// generator paints behind every figure. It removes both border-connected green
+// and trapped green-screen pockets inside translucent wings/fabric, then despills
+// the silhouette edge so lime halos cannot survive room compositing.
 const chromaKeyGreen = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const d = img.data;
+  const w = canvas.width;
+  const h = canvas.height;
+  const marked = new Uint8Array(w * h);
+
+  const greenDominanceAt = (idx: number) => d[idx + 1] - Math.max(d[idx], d[idx + 2]);
+  const isSoftGreen = (idx: number) => {
+    const r = d[idx], g = d[idx + 1], b = d[idx + 2], a = d[idx + 3];
+    return a > 8 && g > 65 && greenDominanceAt(idx) > 18 && g > r * 1.08 && g > b * 1.08;
+  };
+  const isHardGreen = (idx: number) => {
+    const r = d[idx], g = d[idx + 1], b = d[idx + 2], a = d[idx + 3];
+    return a > 8 && g > 100 && greenDominanceAt(idx) > 30 && g > r * 1.2 && g > b * 1.16;
+  };
+
+  const queue: number[] = [];
+  const push = (x: number, y: number) => {
+    if (x < 0 || x >= w || y < 0 || y >= h) return;
+    const p = y * w + x;
+    if (marked[p]) return;
+    const idx = p * 4;
+    if (!isSoftGreen(idx)) return;
+    marked[p] = 1;
+    queue.push(p);
+  };
+
+  for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+  for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+  for (let qi = 0; qi < queue.length; qi++) {
+    const p = queue[qi];
+    const x = p % w;
+    const y = Math.floor(p / w);
+    push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1);
+  }
+
   for (let i = 0; i < d.length; i += 4) {
-    const r = d[i], g = d[i + 1], b = d[i + 2];
-    // "Green-ness": how much green dominates the other channels.
-    const greenDominance = g - Math.max(r, b);
-    if (greenDominance > 60 && g > 90) {
-      // Solid green backdrop -> fully transparent.
+    const p = i / 4;
+    if (marked[p] || isHardGreen(i)) {
       d[i + 3] = 0;
-    } else if (greenDominance > 15) {
-      // Edge spill: fade alpha proportionally and pull green down toward
-      // the average of red/blue so the silhouette doesn't glow lime.
-      const spill = (greenDominance - 15) / 45; // 0..~1
-      d[i + 3] = Math.max(0, Math.round(d[i + 3] * (1 - spill * 0.85)));
-      const target = (r + b) / 2;
-      d[i + 1] = Math.round(g + (target - g) * Math.min(1, spill * 1.2));
+    }
+  }
+
+  const touchesTransparent = (p: number) => {
+    const x = p % w;
+    const y = Math.floor(p / w);
+    for (let yy = Math.max(0, y - 2); yy <= Math.min(h - 1, y + 2); yy++) {
+      for (let xx = Math.max(0, x - 2); xx <= Math.min(w - 1, x + 2); xx++) {
+        if (d[(yy * w + xx) * 4 + 3] < 20) return true;
+      }
+    }
+    return false;
+  };
+
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] < 20) continue;
+    const p = i / 4;
+    const r = d[i], g = d[i + 1], b = d[i + 2];
+    const greenDominance = g - Math.max(r, b);
+    if (greenDominance <= 10) continue;
+
+    const nearCutout = touchesTransparent(p);
+    if (nearCutout && greenDominance > 18) {
+      d[i + 3] = Math.round(d[i + 3] * 0.18);
+    }
+    if (nearCutout || (g > 115 && greenDominance > 22)) {
+      const target = Math.max(r, b, Math.round((r + b) / 2));
+      d[i + 1] = Math.min(g, Math.round(target * 0.95));
     }
   }
   ctx.putImageData(img, 0, 0);
