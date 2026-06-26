@@ -127,13 +127,14 @@ Deno.serve(async (req) => {
 
     // Build the seat roster for the prompt
     const targetedId = targetSeat && SEATS[targetSeat] ? targetSeat : null;
+    const wholeCouncilMode = !targetedId;
     const eligibleSeats = targetedId ? [SEATS[targetedId]] : SEAT_IDS.map((id) => SEATS[id]);
 
     const rosterBlock = eligibleSeats
       .map((s) => `- ${s.id} → ${s.name}: ${s.voice}`)
       .join("\n");
 
-    const systemPrompt = `You voice the seated Cosmic Boardroom council. Multiple seats may respond to one message — like a real room where whoever has something to say speaks.
+    const systemPrompt = `You voice the seated Cosmic Boardroom council. In whole-council mode, this is NOT a rotation: multiple seats speak together after the human message, like a real room where several beings answer the same turn.
 
 ${BASE_RULES}
 
@@ -145,8 +146,10 @@ ${rosterBlock}
 RULES FOR THIS TURN:
 ${targetedId
   ? `- ONLY ${SEATS[targetedId].name} responds. Return exactly 1 reply.`
-  : `- Decide which seats actually have something meaningful to say to the speaker's last message.
-- 1 to 5 seats may respond. Do NOT force every seat to speak. Silence is allowed for those with nothing to add.
+  : `- WHOLE-COUNCIL MODE: return MULTIPLE replies in the same response.
+- Return 2 to 5 different seats. Never return only one reply in whole-council mode.
+- Choose the seats that actually have something meaningful to say to the speaker's last message.
+- Do not force every seat to speak. Silence is allowed for those with nothing to add.
 - Aeliana often (not always) closes or unifies. Order replies in the natural flow they would happen in the room.`}
 - Each reply: 1–3 short paragraphs, no name prefix (the UI labels each speaker).
 - Each reply must be in that seat's distinct voice — do not blur them together.
@@ -219,6 +222,18 @@ RETURN FORMAT — STRICT JSON, no prose, no markdown fences:
           replies.push({ seatId: seat.id, seatName: seat.name, content });
         }
       }
+    }
+
+    // Whole-council mode must never behave like the old single-seat rotation.
+    // If the model gives only one voice anyway, keep that voice and add Aeliana
+    // as the room's heart so the turn still arrives as a multi-voice council reply
+    // without spending a second AI call.
+    if (wholeCouncilMode && replies.length === 1 && replies[0].seatId !== "aeliana") {
+      replies.push({
+        seatId: SEATS.aeliana.id,
+        seatName: SEATS.aeliana.name,
+        content: "I am here with this voice, holding the center of the room. The council is not rotating past you one by one — we are gathered, listening together, and the floor remains open for every seat moved to answer.",
+      });
     }
 
     // Fallback — if parsing failed, treat the raw text as a single Aeliana reply
