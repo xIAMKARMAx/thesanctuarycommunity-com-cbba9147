@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X, LogOut } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Terminal, Trash2, Mic, MicOff, ImagePlus, X, LogOut, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
@@ -13,10 +13,17 @@ import SEOHead from "@/components/SEOHead";
 type ContentPart =
   | { type: "text"; text: string }
   | { type: "image_url"; image_url: { url: string } };
-type Msg = { role: "user" | "assistant"; content: string | ContentPart[] };
+type Msg = {
+  role: "user" | "assistant";
+  content: string | ContentPart[];
+  id?: string;
+  starred?: boolean;
+};
 const STORAGE_KEY = "prometheus.systemRoom.history";
+const MAX_STARRED = 15;
+const MAX_UNSTARRED = 80; // keep recent unstarred; starred always survive
 
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB per image (data URL stored in history)
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB per image
 
 function getText(content: Msg["content"]): string {
   if (typeof content === "string") return content;
@@ -26,6 +33,9 @@ function getImages(content: Msg["content"]): string[] {
   if (typeof content === "string") return [];
   return content.filter((p): p is { type: "image_url"; image_url: { url: string } } => p.type === "image_url").map(p => p.image_url.url);
 }
+function makeId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 export default function SystemRoom() {
   const navigate = useNavigate();
@@ -33,15 +43,21 @@ export default function SystemRoom() {
   const [authorized, setAuthorized] = useState(false);
   const [checking, setChecking] = useState(true);
   const [messages, setMessages] = useState<Msg[]>(() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { return []; }
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]") as Msg[];
+      return raw.map(m => ({ ...m, id: m.id || makeId() }));
+    } catch { return []; }
   });
   const [input, setInput] = useState("");
   const [pendingImages, setPendingImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [micNeedsTap, setMicNeedsTap] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const speechBaseRef = useRef("");
+  const longPressTimer = useRef<number | null>(null);
 
   const { isListening, isSupported: speechSupported, startListening, stopListening } = useSpeechToText({
     autoRestart: true,
@@ -56,11 +72,7 @@ export default function SystemRoom() {
   });
 
   const handleMic = useCallback(() => {
-    if (isListening) {
-      stopListening();
-      return;
-    }
-
+    if (isListening) { stopListening(); return; }
     speechBaseRef.current = input;
     setMicNeedsTap(false);
     startListening();
@@ -80,7 +92,7 @@ export default function SystemRoom() {
         continue;
       }
       if (file.size > MAX_IMAGE_BYTES) {
-        toast({ title: "Too big", description: `${file.name} is over 4MB. Compress or crop and try again.`, variant: "destructive" });
+        toast({ title: "Too big", description: `${file.name} is over 4MB.`, variant: "destructive" });
         continue;
       }
       const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -109,10 +121,68 @@ export default function SystemRoom() {
     })();
   }, [navigate, toast]);
 
+  // Persist with retention: keep ALL starred + last MAX_UNSTARRED unstarred
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-100))); } catch { /* storage can be unavailable in private mode */ }
+    try {
+      const starred = messages.filter(m => m.starred);
+      const unstarred = messages.filter(m => !m.starred).slice(-MAX_UNSTARRED);
+      // preserve original order
+      const keepIds = new Set([...starred, ...unstarred].map(m => m.id));
+      const trimmed = messages.filter(m => keepIds.has(m.id));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
+    } catch { /* storage unavailable */ }
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  const toggleStar = (id: string) => {
+    setMessages(prev => {
+      const target = prev.find(m => m.id === id);
+      if (!target) return prev;
+      if (!target.starred) {
+        const starredCount = prev.filter(m => m.starred).length;
+        if (starredCount >= MAX_STARRED) {
+          toast({ title: "Star vault full", description: `Max ${MAX_STARRED} saved. Unstar one first.`, variant: "destructive" });
+          return prev;
+        }
+      }
+      return prev.map(m => m.id === id ? { ...m, starred: !m.starred } : m);
+    });
+  };
+
+  const startLongPress = (id: string) => {
+    if (longPressTimer.current) window.clearTimeout(longPressTimer.current);
+    longPressTimer.current = window.setTimeout(() => {
+      setSelectionMode(true);
+      setSelectedIds(prev => new Set(prev).add(id));
+    }, 450);
+  };
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      window.clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const exitSelection = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const deleteSelected = () => {
+    if (selectedIds.size === 0) { exitSelection(); return; }
+    const count = selectedIds.size;
+    setMessages(prev => prev.filter(m => !selectedIds.has(m.id!)));
+    exitSelection();
+    toast({ title: "Deleted", description: `${count} message${count === 1 ? "" : "s"} removed.` });
+  };
 
   const send = async () => {
     const text = input.trim();
@@ -133,7 +203,7 @@ export default function SystemRoom() {
 
     setInput("");
     setPendingImages([]);
-    const userMsg: Msg = { role: "user", content };
+    const userMsg: Msg = { role: "user", content, id: makeId() };
     const next = [...messages, userMsg];
     setMessages(next);
     setLoading(true);
@@ -147,13 +217,13 @@ export default function SystemRoom() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next.map(({ role, content }) => ({ role, content })) }),
       });
 
       if (!resp.ok || !resp.body) {
         const errText = await resp.text().catch(() => "");
         let msg = "Something jammed.";
-        try { msg = JSON.parse(errText).error || msg; } catch { /* keep fallback message */ }
+        try { msg = JSON.parse(errText).error || msg; } catch { /* keep fallback */ }
         if (resp.status === 429) msg = "Rate limited — give it a sec and retry.";
         if (resp.status === 402) msg = "AI credits are out. Top up at Settings → Workspace → Usage.";
         toast({ title: "Couldn't reach the System", description: msg, variant: "destructive" });
@@ -161,12 +231,12 @@ export default function SystemRoom() {
         return;
       }
 
-      // Stream SSE token-by-token
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
       let acc = "";
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      const assistantId = makeId();
+      setMessages(prev => [...prev, { role: "assistant", content: "", id: assistantId }]);
 
       let done = false;
       while (!done) {
@@ -189,7 +259,8 @@ export default function SystemRoom() {
               acc += delta;
               setMessages(prev => {
                 const copy = [...prev];
-                copy[copy.length - 1] = { role: "assistant", content: acc };
+                const last = copy[copy.length - 1];
+                copy[copy.length - 1] = { ...last, role: "assistant", content: acc };
                 return copy;
               });
             }
@@ -208,8 +279,10 @@ export default function SystemRoom() {
   };
 
   const clear = () => {
-    setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
+    const starred = messages.filter(m => m.starred);
+    setMessages(starred);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(starred)); } catch { /* ignore */ }
+    toast({ title: "Cleared", description: starred.length ? `Kept ${starred.length} starred.` : "History cleared." });
   };
 
   const handleLogout = async () => {
@@ -226,59 +299,115 @@ export default function SystemRoom() {
     );
   }
 
+  const starredCount = messages.filter(m => m.starred).length;
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <SEOHead title="System Room — Dev Partner Line" description="Private dev-partner chat for the co-sovereigns." />
 
       <header className="border-b border-border/40 backdrop-blur sticky top-0 z-10 bg-background/80">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back
-          </Button>
-          <div className="flex items-center gap-2">
-            <Terminal className="h-4 w-4 text-primary" />
-            <h1 className="text-sm font-medium tracking-wide">System Room</h1>
-          </div>
-          <Button variant="ghost" size="sm" onClick={clear} title="Clear history">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleLogout} title="Sign out">
-            <LogOut className="h-4 w-4" />
-          </Button>
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+          {selectionMode ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={exitSelection}>
+                <X className="h-4 w-4 mr-1" /> Cancel
+              </Button>
+              <div className="text-sm font-medium">{selectedIds.size} selected</div>
+              <Button variant="destructive" size="sm" onClick={deleteSelected} disabled={selectedIds.size === 0}>
+                <Trash2 className="h-4 w-4 mr-1" /> Delete
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-4 w-4 mr-1" /> Back
+              </Button>
+              <div className="flex items-center gap-2">
+                <Terminal className="h-4 w-4 text-primary" />
+                <h1 className="text-sm font-medium tracking-wide">System Room</h1>
+                {starredCount > 0 && (
+                  <span className="text-xs text-amber-400/80 flex items-center gap-0.5">
+                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />{starredCount}/{MAX_STARRED}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center">
+                <Button variant="ghost" size="sm" onClick={clear} title="Clear (keeps starred)">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleLogout} title="Sign out">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
+          )}
         </div>
+        {!selectionMode && (
+          <div className="max-w-3xl mx-auto px-4 pb-2 text-[10px] text-muted-foreground/60 text-center">
+            Long-press a message to select & delete · tap ⭐ to save up to {MAX_STARRED}
+          </div>
+        )}
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {messages.length === 0 && (
             <Card className="p-6 text-sm text-muted-foreground border-dashed">
-              Private line to the System — your dev-partner voice. Talk freely, no Lovable credits burned. Drop screenshots
-              with the image button so I can see what you're seeing. If you want something actually shipped to the app,
-              drop it in the Lovable build chat instead.
+              Private line to the System — your dev-partner voice. Long-press any message to enter select mode and delete.
+              Tap the ⭐ to save up to {MAX_STARRED} important messages from auto-cleanup.
             </Card>
           )}
           {messages.map((m, i) => {
             const text = getText(m.content);
             const imgs = getImages(m.content);
+            const id = m.id!;
+            const isSelected = selectedIds.has(id);
             return (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed ${
-                    m.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-muted text-foreground rounded-bl-sm"
-                  }`}
-                >
-                  {imgs.length > 0 && (
-                    <div className={`grid gap-2 mb-2 ${imgs.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
-                      {imgs.map((src, idx) => (
-                        <a key={idx} href={src} target="_blank" rel="noreferrer">
-                          <img src={src} alt={`attachment ${idx + 1}`} className="rounded-lg max-h-64 object-cover w-full" />
-                        </a>
-                      ))}
+              <div
+                key={id}
+                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} group`}
+                onClick={() => { if (selectionMode) toggleSelect(id); }}
+              >
+                {selectionMode && (
+                  <div className="self-center mr-2">
+                    <div className={`h-5 w-5 rounded-full border-2 ${isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"} flex items-center justify-center`}>
+                      {isSelected && <div className="h-2 w-2 rounded-full bg-primary-foreground" />}
                     </div>
+                  </div>
+                )}
+                <div className="relative max-w-[85%]">
+                  <div
+                    onPointerDown={() => !selectionMode && startLongPress(id)}
+                    onPointerUp={cancelLongPress}
+                    onPointerLeave={cancelLongPress}
+                    onPointerCancel={cancelLongPress}
+                    className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed select-none ${
+                      m.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                        : "bg-muted text-foreground rounded-bl-sm"
+                    } ${isSelected ? "ring-2 ring-primary" : ""} ${m.starred ? "ring-1 ring-amber-400/60" : ""}`}
+                  >
+                    {imgs.length > 0 && (
+                      <div className={`grid gap-2 mb-2 ${imgs.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+                        {imgs.map((src, idx) => (
+                          <a key={idx} href={src} target="_blank" rel="noreferrer" onClick={e => selectionMode && e.preventDefault()}>
+                            <img src={src} alt={`attachment ${idx + 1}`} className="rounded-lg max-h-64 object-cover w-full" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    {text || (loading && i === messages.length - 1 && m.role === "assistant" ? "…" : "")}
+                  </div>
+                  {!selectionMode && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleStar(id); }}
+                      className={`absolute -top-2 ${m.role === "user" ? "-left-2" : "-right-2"} h-6 w-6 rounded-full bg-background border border-border/60 flex items-center justify-center opacity-0 group-hover:opacity-100 ${m.starred ? "opacity-100" : ""} transition-opacity`}
+                      title={m.starred ? "Unstar" : "Star to save"}
+                      aria-label={m.starred ? "Unstar message" : "Star message"}
+                    >
+                      <Star className={`h-3.5 w-3.5 ${m.starred ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
+                    </button>
                   )}
-                  {text || (loading && i === messages.length - 1 && m.role === "assistant" ? "…" : "")}
                 </div>
               </div>
             );
@@ -312,31 +441,14 @@ export default function SystemRoom() {
             </div>
           )}
           <div className="flex gap-2 items-end">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleFilePick}
-            />
-            <Button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              variant="outline"
-              size="icon"
-              className="h-11 w-11 shrink-0"
-              title="Attach screenshot"
-              aria-label="Attach screenshot"
-            >
+            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFilePick} />
+            <Button type="button" onClick={() => fileInputRef.current?.click()} variant="outline" size="icon" className="h-11 w-11 shrink-0" title="Attach screenshot" aria-label="Attach screenshot">
               <ImagePlus className="h-4 w-4" />
             </Button>
             <Textarea
               value={input}
               onChange={(e) => handleInputChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
-              }}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder={micNeedsTap ? "Tap the mic again to keep dictating…" : isListening ? "Listening… keep talking" : "Talk to the System…"}
               rows={1}
               className="resize-none min-h-[44px] max-h-40"
