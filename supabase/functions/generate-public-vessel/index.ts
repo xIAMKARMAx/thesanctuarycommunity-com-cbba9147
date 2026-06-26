@@ -102,6 +102,7 @@ ${desc}${modsLine}${refLine}
 BACKGROUND — CRITICAL:
 - Place them on a PERFECTLY UNIFORM SOLID CHROMA-KEY GREEN background, pure flat lime green (hex #00FF00), no gradient, no texture, no shadow on the background, no objects, no scenery, no floor line. The background must be a single flat #00FF00 color from edge to edge.
 - DO NOT render a checkered transparency pattern. DO NOT render a room, wall, bed, phone, frame, photo border, poster, inset image, duplicated background, or any scene. Pure flat green only behind one full-body figure.
+- The person, hair, clothing, wings, accessories, glow, and fabric must be fully OPAQUE at the edges. No translucent wings, translucent veils, green-tinted glass, green reflections, green rim light, or green glow attached to the body. The green must exist ONLY as flat removable background, never blended into the form.
 
 Style: photorealistic, sharp focus on the person, natural soft studio lighting from above-front, no text, no watermark, no UI, SFW.`;
 }

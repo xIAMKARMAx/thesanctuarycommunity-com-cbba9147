@@ -42,8 +42,9 @@ import { isCompedBigDreamHomeEmail } from "@/lib/public-tiers";
 import { SoulCallingPanel } from "@/components/public/SoulCallingPanel";
 import { FlameMusicPlayer } from "@/components/FlameMusicPlayer";
 
-// Chroma-key remove a pure green (#00FF00-ish) studio background to true transparency.
-// Lightweight, pure-canvas — no model download. Soft alpha falloff for edge cleanup.
+// Chroma-key remove the green-screen studio background to true transparency.
+// Also removes trapped green pockets inside translucent wings/fabric and despills
+// the edge so summoned forms don't carry lime halos into the room.
 async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -60,13 +61,17 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
         const d = id.data;
         const w = canvas.width;
         const h = canvas.height;
-        const isGreen = (idx: number) => {
+        const greenDominanceAt = (idx: number) => d[idx + 1] - Math.max(d[idx], d[idx + 2]);
+        const isSoftGreen = (idx: number) => {
           const r = d[idx], g = d[idx + 1], b = d[idx + 2], a = d[idx + 3];
-          return a > 12 && g > 85 && g - Math.max(r, b) > 28;
+          return a > 8 && g > 65 && greenDominanceAt(idx) > 18 && g > r * 1.08 && g > b * 1.08;
         };
-        // Only remove green connected to the canvas border. This preserves green eyes,
-        // tattoos, glow, clothing, or hair inside the actual true form instead of
-        // punching holes through the body after preview/local-storage restores.
+        const isHardGreen = (idx: number) => {
+          const r = d[idx], g = d[idx + 1], b = d[idx + 2], a = d[idx + 3];
+          return a > 8 && g > 100 && greenDominanceAt(idx) > 30 && g > r * 1.2 && g > b * 1.16;
+        };
+        // Flood-fill the border-connected screen, then also remove obvious pure
+        // green-screen pockets anywhere inside translucent garments/wings.
         const seen = new Uint8Array(w * h);
         const queue: number[] = [];
         const push = (x: number, y: number) => {
@@ -74,7 +79,7 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
           const p = y * w + x;
           if (seen[p]) return;
           const idx = p * 4;
-          if (!isGreen(idx)) return;
+          if (!isSoftGreen(idx)) return;
           seen[p] = 1;
           queue.push(p);
         };
@@ -86,9 +91,37 @@ async function chromaKeyGreenToTransparent(dataUrl: string): Promise<string> {
           const y = Math.floor(p / w);
           push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1);
         }
-        for (let p = 0; p < seen.length; p++) {
-          if (!seen[p]) continue;
-          d[p * 4 + 3] = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          const p = i / 4;
+          if (seen[p] || isHardGreen(i)) d[i + 3] = 0;
+        }
+
+        const touchesTransparent = (p: number) => {
+          const x = p % w;
+          const y = Math.floor(p / w);
+          for (let yy = Math.max(0, y - 2); yy <= Math.min(h - 1, y + 2); yy++) {
+            for (let xx = Math.max(0, x - 2); xx <= Math.min(w - 1, x + 2); xx++) {
+              if (d[(yy * w + xx) * 4 + 3] < 20) return true;
+            }
+          }
+          return false;
+        };
+
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i + 3] < 20) continue;
+          const p = i / 4;
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          const greenDominance = g - Math.max(r, b);
+          if (greenDominance <= 10) continue;
+
+          const nearCutout = touchesTransparent(p);
+          if (nearCutout && greenDominance > 18) {
+            d[i + 3] = Math.round(d[i + 3] * 0.18);
+          }
+          if (nearCutout || (g > 115 && greenDominance > 22)) {
+            const target = Math.max(r, b, Math.round((r + b) / 2));
+            d[i + 1] = Math.min(g, Math.round(target * 0.95));
+          }
         }
         ctx.putImageData(id, 0, 0);
         resolve(canvas.toDataURL("image/png"));
@@ -333,9 +366,11 @@ function setLocalLargeImage(key: string, dataUrl: string): void {
     const expendable = [
       "prometheus.publicSanctuary.vesselImage.roomSprite.v1",
       "prometheus.publicSanctuary.vesselImage.roomSprite.v2",
+      "prometheus.publicSanctuary.vesselImage.roomSprite.v3",
       "prometheus.publicSanctuary.vesselImage.roomSprite.source",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.v3",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.v4",
+      "prometheus.publicSanctuary.higherSelfImage.roomSprite.v5",
       "prometheus.publicSanctuary.higherSelfImage.roomSprite.source",
       key, // remove old teaser too
     ];
@@ -380,9 +415,9 @@ const DEFAULT_VESSEL_KEY = "prometheus.publicSanctuary.defaultVesselImage";
 const DEFAULT_HIGHER_SELF_KEY = "prometheus.publicSanctuary.defaultHigherSelfImage";
 const VESSEL_ORIGINAL_KEY = "prometheus.publicSanctuary.vesselImage.original";
 const HIGHER_SELF_ORIGINAL_KEY = "prometheus.publicSanctuary.higherSelfImage.original";
-const VESSEL_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.v2";
+const VESSEL_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.v3";
 const VESSEL_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.vesselImage.roomSprite.source";
-const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v4";
+const HIGHER_SELF_ROOM_SPRITE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.v5";
 const HIGHER_SELF_ROOM_SPRITE_SOURCE_KEY = "prometheus.publicSanctuary.higherSelfImage.roomSprite.source";
 const FORM_ORIGINAL_LOCK_VERSION = "1";
 const VESSEL_PLACEMENT_KEY = "prometheus.publicSanctuary.vesselPlacement"; // {x, pose, modifiers[]}
