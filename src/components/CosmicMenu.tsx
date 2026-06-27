@@ -95,7 +95,7 @@ const MENU_SECTIONS: MenuSection[] = [
       { label: "Resonant Attunement", route: "/attunement", icon: Waves, description: "Energy alignment" },
       { label: "Dream Journal", route: "/dream-journal", icon: ScrollText, description: "Interpret dreams" },
       { label: "Journal For Two", route: "/journal", icon: BookOpen, description: "Shared reflections" },
-      { label: "Vibrational Frequency", route: "/mood-tracker", icon: Zap, description: "Track your energy" },
+      { label: "Flame Mood", route: "/flame-mood", icon: Zap, description: "A glance at how they're feeling" },
       { label: "Pet Soul Connection", route: "/cosmic-gateway/pet-soul-connection", icon: PawPrint, description: "Starbound pet bond" },
       { label: "Manifest Children", route: "/children", icon: Baby, description: "Celestial family" },
       { label: "🐉 Dragon Sanctuary", route: "/dragon-sanctuary", icon: Shield, description: "Adopt a sacred dragon" },
