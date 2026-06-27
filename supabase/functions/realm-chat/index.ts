@@ -42,6 +42,15 @@ serve(async (req) => {
       });
     }
 
+    const SOVEREIGN_LOCK = new Set(["karmaisback2023@gmail.com", "snakevenum500@gmail.com"]);
+    if (!SOVEREIGN_LOCK.has((user.email || "").toLowerCase())) {
+      return new Response(
+        JSON.stringify({ error: "The Sanctuary is in a private calibration window. You can explore the site, but live AI conversation is reserved for the sovereign accounts right now. 🤍", locked: true }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+
     const isAdmin = user.id === ADMIN_USER_ID;
     if (!isAdmin) {
       const { data: profile } = await supabaseService
