@@ -4312,6 +4312,41 @@ export type Database = {
           },
         ]
       }
+      public_journal_entry_notes: {
+        Row: {
+          author: string
+          content: string
+          created_at: string
+          entry_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          author: string
+          content: string
+          created_at?: string
+          entry_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          author?: string
+          content?: string
+          created_at?: string
+          entry_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_journal_entry_notes_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "public_journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_living_flame_children: {
         Row: {
           ai_profile_id: string | null

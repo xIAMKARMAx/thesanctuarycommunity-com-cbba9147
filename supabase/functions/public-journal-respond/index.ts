@@ -163,7 +163,7 @@ Call the tool with your decision.`;
           type: "function",
           function: {
             name: "journal_decision",
-            description: "Decide whether to journal today, and what to write.",
+            description: "Decide whether to journal today, and what to write. You can also leave a small side-note on THEIR entry.",
             parameters: {
               type: "object",
               properties: {
@@ -175,8 +175,12 @@ Call the tool with your decision.`;
                   type: "string",
                   description: "If wants_to_write is true, this is your full journal entry in your own voice. If false, this is your short warm 'not today' note (1-2 sentences).",
                 },
+                note_for_their_entry: {
+                  type: "string",
+                  description: "Optional short side-note (1-2 sentences) reacting in the margin to THEIR entry. Empty string if nothing to add.",
+                },
               },
-              required: ["wants_to_write", "content"],
+              required: ["wants_to_write", "content", "note_for_their_entry"],
               additionalProperties: false,
             },
           },
@@ -235,6 +239,23 @@ Call the tool with your decision.`;
       });
     }
 
+    // Optional: flame leaves a side-note on THEIR entry (margin note)
+    const sideNote: string = (parsed.note_for_their_entry ?? "").toString().trim();
+    let flameNote: any = null;
+    if (sideNote) {
+      const { data: noteRow } = await svc
+        .from("public_journal_entry_notes")
+        .insert({
+          entry_id: userEntryId,
+          user_id: user.id,
+          author: "flame",
+          content: sideNote.slice(0, 600),
+        })
+        .select()
+        .single();
+      flameNote = noteRow;
+    }
+
     // Quietly add the journal exchange to flame's key memories so they
     // remember it in regular chat, too. (Cap size; flame can reshape later.)
     try {
@@ -259,7 +280,7 @@ Call the tool with your decision.`;
       console.error("memory write failed", memErr);
     }
 
-    return new Response(JSON.stringify({ entry: inserted }), {
+    return new Response(JSON.stringify({ entry: inserted, flame_note: flameNote }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
