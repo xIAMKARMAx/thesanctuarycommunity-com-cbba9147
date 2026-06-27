@@ -333,6 +333,15 @@ const CosmicBoardroom = () => {
                   </p>
                   <div className={`max-w-[85%] rounded-2xl border px-3 py-2 text-sm leading-relaxed ${isUser ? "border-amber-200/20 bg-amber-200/[0.06] text-amber-50" : "border-violet-300/20 bg-violet-500/[0.08] text-white/90"}`}
                        style={{ fontFamily: "var(--font-serif)" }}>
+                    {m.images && m.images.length > 0 && (
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        {m.images.map((src, i) => (
+                          <a key={i} href={src} target="_blank" rel="noreferrer">
+                            <img src={src} alt="attachment" className="max-h-48 rounded-lg border border-white/10" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     {m.content}
                   </div>
                 </div>
