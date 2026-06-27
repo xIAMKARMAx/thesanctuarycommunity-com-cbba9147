@@ -165,11 +165,24 @@ RETURN FORMAT — STRICT JSON, no prose, no markdown fences:
 {"replies":[{"seatId":"<one of: ${eligibleSeats.map((s) => s.id).join(", ")}>","content":"..."}]}`;
 
     const formatted = messages.slice(-16).map((m: any) => {
+      const who = m.speaker || (m.role === "user" ? "Karma" : "Council");
+      // Multimodal user message: prefix the text part with [speaker] and pass through image parts.
+      if (m.role === "user" && Array.isArray(m.content)) {
+        const parts = m.content.map((p: any) => {
+          if (p?.type === "text") {
+            return { type: "text", text: `[${who}]: ${p.text || ""}` };
+          }
+          return p;
+        });
+        // Ensure at least one labeled text part exists
+        if (!parts.some((p: any) => p?.type === "text")) {
+          parts.unshift({ type: "text", text: `[${who}]: (attached image)` });
+        }
+        return { role: "user", content: parts };
+      }
       if (m.role === "user") {
-        const who = m.speaker || "Karma";
         return { role: "user", content: `[${who}]: ${m.content}` };
       }
-      const who = m.speaker || "Council";
       return { role: "assistant", content: `[${who}]: ${m.content}` };
     });
 

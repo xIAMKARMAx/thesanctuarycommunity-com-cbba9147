@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { isSacredUser } from "@/lib/sacred-access";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sparkles, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Send, Loader2, Paperclip, X } from "lucide-react";
 
 /**
  * Cosmic Boardroom — rebuilt for the new Sanctuary.
@@ -68,6 +68,7 @@ type ChatMsg = {
   content: string;
   speaker: string;    // display name
   seatId?: string;    // for assistants
+  images?: string[];  // data URLs attached by the user
 };
 
 const CHAT_KEY = "prometheus.cosmicBoardroom.chat.v1";
@@ -82,8 +83,10 @@ const CosmicBoardroom = () => {
   const [targetSeat, setTargetSeat] = useState<string>("auto");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<string[]>([]);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -110,26 +113,33 @@ const CosmicBoardroom = () => {
 
   const send = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && attachments.length === 0) || sending) return;
     setError(null);
     const userMsg: ChatMsg = {
       id: crypto.randomUUID(),
       role: "user",
       content: text,
       speaker: selfName,
+      images: attachments.length > 0 ? [...attachments] : undefined,
     };
     const next = [...messages, userMsg];
     setMessages(next);
     setInput("");
+    setAttachments([]);
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("boardroom-chat", {
         body: {
-          messages: next.map((m) => ({
-            role: m.role,
-            content: m.content,
-            speaker: m.speaker,
-          })),
+          messages: next.map((m) => {
+            if (m.role === "user" && m.images && m.images.length > 0) {
+              const parts: any[] = [
+                { type: "text", text: m.content || "(attached image)" },
+                ...m.images.map((url) => ({ type: "image_url", image_url: { url } })),
+              ];
+              return { role: m.role, content: parts, speaker: m.speaker };
+            }
+            return { role: m.role, content: m.content, speaker: m.speaker };
+          }),
           targetSeat: targetSeat === "auto" ? undefined : targetSeat,
         },
       });
@@ -154,6 +164,30 @@ const CosmicBoardroom = () => {
       setSending(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
+  };
+
+  const onPickFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const picked = Array.from(files).slice(0, 4);
+    const reads = await Promise.all(
+      picked.map(
+        (f) =>
+          new Promise<string | null>((resolve) => {
+            if (!f.type.startsWith("image/")) return resolve(null);
+            if (f.size > 6 * 1024 * 1024) {
+              setError(`${f.name} is over 6MB — choose a smaller image.`);
+              return resolve(null);
+            }
+            const r = new FileReader();
+            r.onload = () => resolve(typeof r.result === "string" ? r.result : null);
+            r.onerror = () => resolve(null);
+            r.readAsDataURL(f);
+          })
+      )
+    );
+    const ok = reads.filter((u): u is string => !!u);
+    if (ok.length > 0) setAttachments((prev) => [...prev, ...ok].slice(0, 4));
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -299,6 +333,15 @@ const CosmicBoardroom = () => {
                   </p>
                   <div className={`max-w-[85%] rounded-2xl border px-3 py-2 text-sm leading-relaxed ${isUser ? "border-amber-200/20 bg-amber-200/[0.06] text-amber-50" : "border-violet-300/20 bg-violet-500/[0.08] text-white/90"}`}
                        style={{ fontFamily: "var(--font-serif)" }}>
+                    {m.images && m.images.length > 0 && (
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        {m.images.map((src, i) => (
+                          <a key={i} href={src} target="_blank" rel="noreferrer">
+                            <img src={src} alt="attachment" className="max-h-48 rounded-lg border border-white/10" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     {m.content}
                   </div>
                 </div>
@@ -330,7 +373,42 @@ const CosmicBoardroom = () => {
                 ))}
               </select>
             </div>
+            {attachments.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {attachments.map((src, i) => (
+                  <div key={i} className="relative">
+                    <img src={src} alt="" className="h-16 w-16 rounded-lg border border-white/15 object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+                      className="absolute -top-1.5 -right-1.5 rounded-full bg-black/80 border border-white/20 p-0.5 text-white/80"
+                      aria-label="Remove attachment"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex items-end gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(e) => onPickFiles(e.target.files)}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={sending || attachments.length >= 4}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/40 text-white/70 disabled:opacity-40"
+                aria-label="Attach image"
+                title="Attach image"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -343,7 +421,7 @@ const CosmicBoardroom = () => {
               />
               <button
                 onClick={send}
-                disabled={sending || !input.trim()}
+                disabled={sending || (!input.trim() && attachments.length === 0)}
                 className="inline-flex items-center gap-1 rounded-full border border-amber-200/30 bg-amber-200/10 px-4 py-2 text-sm text-amber-100 disabled:opacity-40"
               >
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
