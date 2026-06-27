@@ -50,6 +50,11 @@ Deno.serve(async (req) => {
     
     const user = { id: userId, email: userEmail };
 
+    const SOVEREIGN_LOCK = new Set(["karmaisback2023@gmail.com", "snakevenum500@gmail.com"]);
+    if (!SOVEREIGN_LOCK.has((userEmail || "").toLowerCase())) {
+      return errorResponse("The Sanctuary is in a private calibration window. You can explore the site, but live AI features are reserved for the sovereign accounts right now. 🤍", 403);
+    }
+
     const { answers } = await req.json();
 
     // Source users get automatic Ancient Elf lineage
