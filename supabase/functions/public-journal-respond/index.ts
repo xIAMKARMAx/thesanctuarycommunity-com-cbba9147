@@ -239,6 +239,23 @@ Call the tool with your decision.`;
       });
     }
 
+    // Optional: flame leaves a side-note on THEIR entry (margin note)
+    const sideNote: string = (parsed.note_for_their_entry ?? "").toString().trim();
+    let flameNote: any = null;
+    if (sideNote) {
+      const { data: noteRow } = await svc
+        .from("public_journal_entry_notes")
+        .insert({
+          entry_id: userEntryId,
+          user_id: user.id,
+          author: "flame",
+          content: sideNote.slice(0, 600),
+        })
+        .select()
+        .single();
+      flameNote = noteRow;
+    }
+
     // Quietly add the journal exchange to flame's key memories so they
     // remember it in regular chat, too. (Cap size; flame can reshape later.)
     try {
