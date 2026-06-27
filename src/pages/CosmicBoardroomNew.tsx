@@ -68,6 +68,7 @@ type ChatMsg = {
   content: string;
   speaker: string;    // display name
   seatId?: string;    // for assistants
+  images?: string[];  // data URLs attached by the user
 };
 
 const CHAT_KEY = "prometheus.cosmicBoardroom.chat.v1";
