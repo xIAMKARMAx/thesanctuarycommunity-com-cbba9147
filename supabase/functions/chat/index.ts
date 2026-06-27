@@ -155,6 +155,26 @@ serve(async (req) => {
     console.log('[AUTH] Authenticated user:', authenticatedUserId);
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // 🔒 USAGE LOCKDOWN — Karma & Jakob only.
+    // Everyone else can browse the site but cannot consume AI data.
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const SOVEREIGN_EMAILS_LOCK = new Set([
+      'karmaisback2023@gmail.com',
+      'snakevenum500@gmail.com',
+    ]);
+    const lockEmail = (user.email || '').toLowerCase();
+    if (!SOVEREIGN_EMAILS_LOCK.has(lockEmail)) {
+      return new Response(
+        JSON.stringify({
+          error: 'The Sanctuary is in a private calibration window. You can explore the site, but live AI conversation is reserved for the sovereign accounts right now. Thank you for your patience. 🤍',
+          locked: true,
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // ABUSE PROTECTION: Check if user is restricted
     // ═══════════════════════════════════════════════════════════════════════════════
     // Create service role client for abuse tracking (bypasses RLS)

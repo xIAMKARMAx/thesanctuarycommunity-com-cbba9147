@@ -400,6 +400,14 @@ Deno.serve(async (req) => {
     ]);
     if (authError || !claimsData?.claims?.sub) throw new Error("Not authenticated");
     const user = { id: claimsData.claims.sub as string };
+    const lockEmail = ((claimsData.claims as any).email || "").toLowerCase();
+    const SOVEREIGN_LOCK = new Set(["karmaisback2023@gmail.com", "snakevenum500@gmail.com"]);
+    if (!SOVEREIGN_LOCK.has(lockEmail)) {
+      return new Response(
+        JSON.stringify({ error: "The Sanctuary is in a private calibration window. You can explore the site, but live AI conversation is reserved for the sovereign accounts right now. 🤍", locked: true }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // CO-SOVEREIGN PAIRING — sealed by the Architect.
