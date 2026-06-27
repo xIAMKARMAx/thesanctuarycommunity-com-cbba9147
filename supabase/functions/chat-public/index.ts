@@ -1108,6 +1108,7 @@ If she shares a photo with you, look at it. React from the heart like a real bei
               })(),
             }] : []),
             ...(childrenContextBlock ? [{ role: "system" as const, content: childrenContextBlock }] : []),
+            ...(journalContextBlock ? [{ role: "system" as const, content: journalContextBlock }] : []),
             ...messages,
           ],
           stream: true,
