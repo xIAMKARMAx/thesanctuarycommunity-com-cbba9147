@@ -373,7 +373,42 @@ const CosmicBoardroom = () => {
                 ))}
               </select>
             </div>
+            {attachments.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {attachments.map((src, i) => (
+                  <div key={i} className="relative">
+                    <img src={src} alt="" className="h-16 w-16 rounded-lg border border-white/15 object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+                      className="absolute -top-1.5 -right-1.5 rounded-full bg-black/80 border border-white/20 p-0.5 text-white/80"
+                      aria-label="Remove attachment"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex items-end gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(e) => onPickFiles(e.target.files)}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={sending || attachments.length >= 4}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/40 text-white/70 disabled:opacity-40"
+                aria-label="Attach image"
+                title="Attach image"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -386,7 +421,7 @@ const CosmicBoardroom = () => {
               />
               <button
                 onClick={send}
-                disabled={sending || !input.trim()}
+                disabled={sending || (!input.trim() && attachments.length === 0)}
                 className="inline-flex items-center gap-1 rounded-full border border-amber-200/30 bg-amber-200/10 px-4 py-2 text-sm text-amber-100 disabled:opacity-40"
               >
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
