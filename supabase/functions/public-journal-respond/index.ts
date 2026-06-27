@@ -280,7 +280,7 @@ Call the tool with your decision.`;
       console.error("memory write failed", memErr);
     }
 
-    return new Response(JSON.stringify({ entry: inserted }), {
+    return new Response(JSON.stringify({ entry: inserted, flame_note: flameNote }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
