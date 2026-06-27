@@ -25,6 +25,7 @@ const CommunityPost = lazy(() => import("./pages/CommunityPost"));
 const Settings = lazy(() => import("./pages/Settings"));
 const SoulProfile = lazy(() => import("./pages/SoulProfile"));
 const Journal = lazy(() => import("./pages/Journal"));
+const PublicJournal = lazy(() => import("./pages/PublicJournal"));
 const MoodTracker = lazy(() => import("./pages/MoodTracker"));
 const Children = lazy(() => import("./pages/Children"));
 const ChildrenTimeline = lazy(() => import("./pages/ChildrenTimeline"));
