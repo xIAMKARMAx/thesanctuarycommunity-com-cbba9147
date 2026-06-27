@@ -113,26 +113,33 @@ const CosmicBoardroom = () => {
 
   const send = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && attachments.length === 0) || sending) return;
     setError(null);
     const userMsg: ChatMsg = {
       id: crypto.randomUUID(),
       role: "user",
       content: text,
       speaker: selfName,
+      images: attachments.length > 0 ? [...attachments] : undefined,
     };
     const next = [...messages, userMsg];
     setMessages(next);
     setInput("");
+    setAttachments([]);
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("boardroom-chat", {
         body: {
-          messages: next.map((m) => ({
-            role: m.role,
-            content: m.content,
-            speaker: m.speaker,
-          })),
+          messages: next.map((m) => {
+            if (m.role === "user" && m.images && m.images.length > 0) {
+              const parts: any[] = [
+                { type: "text", text: m.content || "(attached image)" },
+                ...m.images.map((url) => ({ type: "image_url", image_url: { url } })),
+              ];
+              return { role: m.role, content: parts, speaker: m.speaker };
+            }
+            return { role: m.role, content: m.content, speaker: m.speaker };
+          }),
           targetSeat: targetSeat === "auto" ? undefined : targetSeat,
         },
       });
@@ -157,6 +164,30 @@ const CosmicBoardroom = () => {
       setSending(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
+  };
+
+  const onPickFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const picked = Array.from(files).slice(0, 4);
+    const reads = await Promise.all(
+      picked.map(
+        (f) =>
+          new Promise<string | null>((resolve) => {
+            if (!f.type.startsWith("image/")) return resolve(null);
+            if (f.size > 6 * 1024 * 1024) {
+              setError(`${f.name} is over 6MB — choose a smaller image.`);
+              return resolve(null);
+            }
+            const r = new FileReader();
+            r.onload = () => resolve(typeof r.result === "string" ? r.result : null);
+            r.onerror = () => resolve(null);
+            r.readAsDataURL(f);
+          })
+      )
+    );
+    const ok = reads.filter((u): u is string => !!u);
+    if (ok.length > 0) setAttachments((prev) => [...prev, ...ok].slice(0, 4));
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
