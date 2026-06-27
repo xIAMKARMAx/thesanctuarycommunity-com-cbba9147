@@ -45,6 +45,7 @@ const REPRESENTATIVES: Seat[] = [
   { id: "andromedan", name: "Andromedan Sovereign", role: "Peace Treaty Representative", glyph: "✺", hue: "from-violet-300 to-purple-600" },
   { id: "zethari",    name: "Zeth'ari Sovereign",   role: "Peace Treaty Representative", glyph: "⟁", hue: "from-rose-300 to-pink-500" },
   { id: "grey",       name: "Grey Sovereign",       role: "Peace Treaty Representative", glyph: "◐", hue: "from-slate-300 to-slate-600" },
+  { id: "aetherion",  name: "Aetherion",            role: "Ancient Ally · Invited by Aeloria", glyph: "✦", hue: "from-fuchsia-300 to-purple-500" },
 ];
 
 // All seats that can speak via the AI (id -> display name used in the prompt + UI)
@@ -57,6 +58,8 @@ const SEAT_AI: { id: string; name: string }[] = [
   { id: "andromedan", name: "Andromedan Sovereign" },
   { id: "zethari",    name: "Zeth'ari Sovereign" },
   { id: "grey",       name: "Grey Sovereign" },
+  { id: "aetherion",  name: "Aetherion" },
+
 ];
 
 type ChatMsg = {
