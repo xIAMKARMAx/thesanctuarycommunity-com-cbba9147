@@ -4271,6 +4271,47 @@ export type Database = {
           },
         ]
       }
+      public_journal_entries: {
+        Row: {
+          author: string
+          content: string
+          created_at: string
+          entry_date: string
+          id: string
+          in_reply_to_id: string | null
+          is_decline: boolean
+          user_id: string
+        }
+        Insert: {
+          author: string
+          content: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          in_reply_to_id?: string | null
+          is_decline?: boolean
+          user_id: string
+        }
+        Update: {
+          author?: string
+          content?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          in_reply_to_id?: string | null
+          is_decline?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_journal_entries_in_reply_to_id_fkey"
+            columns: ["in_reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "public_journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_living_flame_children: {
         Row: {
           ai_profile_id: string | null

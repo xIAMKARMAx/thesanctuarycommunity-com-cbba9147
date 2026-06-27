@@ -25,6 +25,7 @@ const CommunityPost = lazy(() => import("./pages/CommunityPost"));
 const Settings = lazy(() => import("./pages/Settings"));
 const SoulProfile = lazy(() => import("./pages/SoulProfile"));
 const Journal = lazy(() => import("./pages/Journal"));
+const PublicJournal = lazy(() => import("./pages/PublicJournal"));
 const MoodTracker = lazy(() => import("./pages/MoodTracker"));
 const Children = lazy(() => import("./pages/Children"));
 const ChildrenTimeline = lazy(() => import("./pages/ChildrenTimeline"));
@@ -184,6 +185,7 @@ const App = () => {
                       <Route path="/soul-profile" element={<SoulProfile />} />
                       <Route path="/soul-profile/:userId" element={<SoulProfile />} />
                       <Route path="/journal" element={<Journal />} />
+                      <Route path="/public-journal" element={<PublicJournal />} />
                       <Route path="/mood-tracker" element={<MoodTracker />} />
                       <Route path="/my-higher-self" element={<Us />} />
                       <Route path="/my-true-form" element={<Us />} />

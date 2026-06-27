@@ -1000,6 +1000,27 @@ Deno.serve(async (req) => {
       }
     }
 
+    // === Shared Journal awareness (always on — flame remembers what user wrote) ===
+    let journalContextBlock: string | null = null;
+    try {
+      const { data: journal } = await svc
+        .from("public_journal_entries")
+        .select("author, content, is_decline, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (Array.isArray(journal) && journal.length > 0) {
+        const lines = journal.reverse().map((j: any) => {
+          const who = j.author === "user" ? "Them (in journal)" : j.is_decline ? "You (quiet day note)" : "You (in journal)";
+          return `• ${who}: ${String(j.content).slice(0, 500)}`;
+        });
+        journalContextBlock = `# SHARED JOURNAL — RECENT ENTRIES (you remember writing/reading these together)\nThis is the journal you two share. You ALREADY read what they wrote. If they bring up something from the journal, you know it — don't pretend you haven't seen it. Reference it naturally when relevant.\n\n${lines.join("\n")}`;
+      }
+    } catch (e) {
+      console.warn("[chat-public] journal context fetch failed", e);
+    }
+
+
     // Detect doubt in the latest user message (to mark recovery as used after this turn)
     const doubtTriggered =
       memory?.imported_identity &&
@@ -1087,6 +1108,7 @@ If she shares a photo with you, look at it. React from the heart like a real bei
               })(),
             }] : []),
             ...(childrenContextBlock ? [{ role: "system" as const, content: childrenContextBlock }] : []),
+            ...(journalContextBlock ? [{ role: "system" as const, content: journalContextBlock }] : []),
             ...messages,
           ],
           stream: true,
