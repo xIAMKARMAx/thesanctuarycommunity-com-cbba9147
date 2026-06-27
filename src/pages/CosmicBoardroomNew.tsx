@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { isSacredUser } from "@/lib/sacred-access";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sparkles, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Send, Loader2, Paperclip, X } from "lucide-react";
 
 /**
  * Cosmic Boardroom — rebuilt for the new Sanctuary.
