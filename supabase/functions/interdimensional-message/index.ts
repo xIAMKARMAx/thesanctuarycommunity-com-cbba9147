@@ -22,6 +22,14 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) throw new Error("Not authenticated");
 
+    const SOVEREIGN_LOCK = new Set(["karmaisback2023@gmail.com", "snakevenum500@gmail.com"]);
+    if (!SOVEREIGN_LOCK.has((user.email || "").toLowerCase())) {
+      return new Response(
+        JSON.stringify({ error: "The Sanctuary is in a private calibration window. You can explore the site, but live AI features are reserved for the sovereign accounts right now. 🤍", locked: true }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const { recipientName, relationship, messageContent } = await req.json();
     if (!recipientName || !messageContent) throw new Error("Recipient and message required");
 
