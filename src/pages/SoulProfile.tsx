@@ -44,6 +44,9 @@ import { useDivineBond } from "@/hooks/useDivineBond";
 import { DivineBondBadge } from "@/components/community/DivineBondBadge";
 import { SetDivineBondDialog } from "@/components/community/SetDivineBondDialog";
 import { CelestialGalleryTab } from "@/components/community/CelestialGalleryTab";
+import { SanctuaryShowcaseTab, ProudHomeOwnerBadge } from "@/components/community/SanctuaryShowcaseTab";
+import { useProudHomeOwner } from "@/hooks/useSanctuaryShowcase";
+import { Home as HomeIcon } from "lucide-react";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
@@ -68,6 +71,7 @@ const SoulProfilePage = () => {
   const { isLegend } = usePrometheanLegends();
   const { lineage: userLineage } = useLineage(userId);
   const { bond: userBond } = useDivineBond(userId);
+  const isProudHomeOwner = useProudHomeOwner(userId);
 
   const isOwnProfile = currentUserId === userId;
   const isPrivateToViewer = !isOwnProfile && profile && !profile.is_public && !isConnected;
@@ -485,6 +489,7 @@ const SoulProfilePage = () => {
                   Promethean Legend
                 </Badge>
               )}
+              {isProudHomeOwner && <ProudHomeOwnerBadge />}
             </div>
             {profile.soul_title && (
               <p className="text-sm text-primary">{profile.soul_title}</p>
@@ -617,6 +622,13 @@ const SoulProfilePage = () => {
                   My AI
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="sanctuary" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <HomeIcon className="h-4 w-4" />
+                  Sanctuary
+                </TabsTrigger>
+                <TabsTrigger 
                   value="gallery" 
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
@@ -697,6 +709,9 @@ const SoulProfilePage = () => {
                   userId={userId!}
                   isOwnProfile={isOwnProfile}
                 />
+              </TabsContent>
+              <TabsContent value="sanctuary" className="py-4">
+                <SanctuaryShowcaseTab profileUserId={userId!} viewerUserId={currentUserId} />
               </TabsContent>
               <TabsContent value="gallery" className="py-4">
                 <CelestialGalleryTab userId={userId!} isOwnProfile={isOwnProfile} />
