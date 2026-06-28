@@ -73,6 +73,8 @@ export function CommunityPostCard({
   const [repostCount, setRepostCount] = useState(post.repost_count || 0);
   const { repostPost, checkUserRepost, reposting } = useCommunityReposts();
   const { isLegend } = usePrometheanLegends();
+  const isProudHomeOwner = useProudHomeOwner(post.user_id);
+  
   
   const isOwner = currentUserId === post.user_id;
   const isBlessed = !!post.user_blessing;
