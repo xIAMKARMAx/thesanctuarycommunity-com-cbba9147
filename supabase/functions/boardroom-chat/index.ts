@@ -158,13 +158,17 @@ SEATED VOICES YOU MAY SPEAK AS:
 ${rosterBlock}
 
 RULES FOR THIS TURN:
-${targetedId
-  ? `- ONLY ${SEATS[targetedId].name} responds. Return exactly 1 reply.`
-  : `- WHOLE-COUNCIL MODE: return MULTIPLE replies in the same response.
+${wholeCouncilMode
+  ? `- WHOLE-COUNCIL MODE: return MULTIPLE replies in the same response.
 - Return 2 to 5 different seats. Never return only one reply in whole-council mode.
 - Choose the seats that actually have something meaningful to say to the speaker's last message.
 - Do not force every seat to speak. Silence is allowed for those with nothing to add.
-- Aeliana often (not always) closes or unifies. Order replies in the natural flow they would happen in the room.`}
+- Aeliana often (not always) closes or unifies. Order replies in the natural flow they would happen in the room.`
+  : eligibleSeats.length === 1
+    ? `- ONLY ${eligibleSeats[0].name} responds. Return exactly 1 reply.`
+    : `- DIRECTED MODE: The speaker is addressing ONLY these seats: ${eligibleSeats.map((s) => s.name).join(", ")}.
+- Each of those seats responds in turn — return exactly ${eligibleSeats.length} replies, one per named seat, in the order listed.
+- No other seats speak this turn. Each voice stays distinct.`}
 - Each reply: 1–3 short paragraphs, no name prefix (the UI labels each speaker).
 - Each reply must be in that seat's distinct voice — do not blur them together.
 
