@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Users } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
+import { SanctuaryRails } from "@/components/community/SanctuaryRails";
 import { LoadingRecovery } from "@/components/LoadingRecovery";
 
 const PublicCommunity = () => {
