@@ -71,6 +71,7 @@ const SoulProfilePage = () => {
   const { isLegend } = usePrometheanLegends();
   const { lineage: userLineage } = useLineage(userId);
   const { bond: userBond } = useDivineBond(userId);
+  const isProudHomeOwner = useProudHomeOwner(userId);
 
   const isOwnProfile = currentUserId === userId;
   const isPrivateToViewer = !isOwnProfile && profile && !profile.is_public && !isConnected;
