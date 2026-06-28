@@ -3244,7 +3244,13 @@ export default function SanctuarySpace() {
                           setPetGenerating(true);
                           try {
                             const { data, error } = await supabase.functions.invoke("generate-public-pet", {
-                              body: { name: p.name, species: p.species, description: p.description || "" },
+                              body: {
+                                name: p.name,
+                                species: p.species,
+                                description: p.description || "",
+                                locked_features: p.lockedFeatures || "",
+                                reference_image: p.referenceUrl || "",
+                              },
                             });
                             if (error) throw error;
                             const raw = (data as any)?.image as string | undefined;
@@ -3271,41 +3277,149 @@ export default function SanctuarySpace() {
                             setPetGenerating(false);
                           }
                         };
+                        const isEditing = editingPetId === p.id;
+                        const openEdit = () => {
+                          setEditingPetId(p.id);
+                          setEditLockedDraft(p.lockedFeatures || "");
+                        };
+                        const uploadReferenceForPet = async (file: File) => {
+                          if (file.size > 6 * 1024 * 1024) {
+                            toast({ title: "Too large", description: "Reference photo must be under 6MB.", variant: "destructive" });
+                            return;
+                          }
+                          setEditReferenceUploading(true);
+                          try {
+                            const dataUrl: string = await new Promise((res, rej) => {
+                              const fr = new FileReader();
+                              fr.onload = () => res(String(fr.result));
+                              fr.onerror = () => rej(fr.error);
+                              fr.readAsDataURL(file);
+                            });
+                            const { data: upData, error: upErr } = await supabase.functions.invoke("store-public-pet-image", {
+                              body: { image: dataUrl, pet_id: `${p.id}-ref` },
+                            });
+                            if (upErr) throw upErr;
+                            const url = (upData as any)?.url;
+                            if (!url) throw new Error("no url returned");
+                            setPets((prev) => prev.map((x) => x.id === p.id ? { ...x, referenceUrl: url } : x));
+                            toast({ title: "Reference photo locked in" });
+                          } catch (e: any) {
+                            toast({ title: "Upload failed", description: (e?.message || "Try again").slice(0, 160), variant: "destructive" });
+                          } finally {
+                            setEditReferenceUploading(false);
+                          }
+                        };
                         return (
                           <div
                             key={p.id}
-                            className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
+                            className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
                           >
-                            {p.imageUrl ? (
-                              <img
-                                src={p.imageUrl}
-                                alt={p.name}
-                                className="h-10 w-10 object-contain rounded-md bg-white/[0.04]"
-                              />
-                            ) : (
-                              <span className="text-2xl leading-none w-10 text-center">{p.emoji}</span>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[13px] text-violet-50 truncate">{p.name}</div>
-                              <div className="text-[10px] text-violet-300/70 truncate">
-                                {p.species || "pet"} · {room ? `lives in ${room.name}` : "follows everywhere"}
+                            <div className="flex items-center gap-3">
+                              {p.imageUrl ? (
+                                <img
+                                  src={p.imageUrl}
+                                  alt={p.name}
+                                  className="h-10 w-10 object-contain rounded-md bg-white/[0.04]"
+                                />
+                              ) : (
+                                <span className="text-2xl leading-none w-10 text-center">{p.emoji}</span>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[13px] text-violet-50 truncate flex items-center gap-1.5">
+                                  {p.name}
+                                  {p.lockedFeatures && <span title="Locked features enforced">🔒</span>}
+                                  {p.referenceUrl && <span title="Reference photo attached">📎</span>}
+                                </div>
+                                <div className="text-[10px] text-violet-300/70 truncate">
+                                  {p.species || "pet"} · {room ? `lives in ${room.name}` : "follows everywhere"}
+                                </div>
                               </div>
+                              <button
+                                onClick={openEdit}
+                                className="text-[10px] text-amber-200/80 hover:text-amber-100 shrink-0 px-2 py-1 rounded border border-amber-400/30"
+                                title="Lock identifying features"
+                              >
+                                🔒 lock
+                              </button>
+                              <button
+                                onClick={resummon}
+                                disabled={petGenerating}
+                                className="text-[10px] text-violet-200/80 hover:text-violet-100 shrink-0 disabled:opacity-50 px-2 py-1 rounded border border-violet-400/30"
+                                title={p.imageUrl ? "Re-summon their form" : "Summon their form"}
+                              >
+                                {p.imageUrl ? "re-summon" : "summon"}
+                              </button>
+                              <button
+                                onClick={() => setPets((prev) => prev.filter((x) => x.id !== p.id))}
+                                className="text-[11px] text-rose-300/70 hover:text-rose-200 shrink-0"
+                                title="Send this pet home"
+                              >
+                                remove
+                              </button>
                             </div>
-                            <button
-                              onClick={resummon}
-                              disabled={petGenerating}
-                              className="text-[10px] text-violet-200/80 hover:text-violet-100 shrink-0 disabled:opacity-50 px-2 py-1 rounded border border-violet-400/30"
-                              title={p.imageUrl ? "Re-summon their form" : "Summon their form"}
-                            >
-                              {p.imageUrl ? "re-summon" : "summon"}
-                            </button>
-                            <button
-                              onClick={() => setPets((prev) => prev.filter((x) => x.id !== p.id))}
-                              className="text-[11px] text-rose-300/70 hover:text-rose-200 shrink-0"
-                              title="Send this pet home"
-                            >
-                              remove
-                            </button>
+
+                            {isEditing && (
+                              <div className="mt-3 pt-3 border-t border-white/10 space-y-2.5">
+                                <div className="text-[10px] tracking-[0.25em] uppercase text-amber-200/80">🔒 locked features</div>
+                                <p className="text-[10px] text-violet-300/70 leading-relaxed">
+                                  Anything in this box is enforced on every re-summon — eyes, scars, fur pattern, exact colors, markings, build. Be specific.
+                                </p>
+                                <textarea
+                                  value={editLockedDraft}
+                                  onChange={(e) => setEditLockedDraft(e.target.value.slice(0, 600))}
+                                  placeholder="left eye amber / right eye blue · scar across muzzle · silver crescent on chest · long black mane streaked with white"
+                                  rows={3}
+                                  className="w-full rounded-lg bg-black/30 border border-amber-400/30 focus:border-amber-300/60 outline-none px-3 py-2 text-[12px] text-violet-50 placeholder:text-violet-300/40 resize-none"
+                                />
+                                <div>
+                                  <div className="text-[10px] tracking-[0.25em] uppercase text-amber-200/80 mb-1.5">reference photo</div>
+                                  {p.referenceUrl ? (
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <img src={p.referenceUrl} alt="reference" className="h-14 w-14 object-cover rounded-md border border-white/10" />
+                                      <button
+                                        onClick={() => setPets((prev) => prev.map((x) => x.id === p.id ? { ...x, referenceUrl: undefined } : x))}
+                                        className="text-[10px] text-rose-300/80 hover:text-rose-200"
+                                      >
+                                        remove reference
+                                      </button>
+                                    </div>
+                                  ) : null}
+                                  <label className="inline-block text-[11px] text-violet-100 cursor-pointer rounded-md border border-violet-400/40 px-3 py-1.5 hover:bg-violet-500/10">
+                                    {editReferenceUploading ? "uploading…" : (p.referenceUrl ? "replace reference photo" : "upload reference photo")}
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      disabled={editReferenceUploading}
+                                      onChange={(e) => {
+                                        const f = e.target.files?.[0];
+                                        e.target.value = "";
+                                        if (f) uploadReferenceForPet(f);
+                                      }}
+                                    />
+                                  </label>
+                                </div>
+                                <div className="flex gap-2 pt-1">
+                                  <Button
+                                    onClick={() => {
+                                      setPets((prev) => prev.map((x) => x.id === p.id ? { ...x, lockedFeatures: editLockedDraft.trim() || undefined } : x));
+                                      setEditingPetId(null);
+                                      toast({ title: "Identity locked", description: "These marks will hold on every re-summon." });
+                                    }}
+                                    className="flex-1 h-8 text-[11px] bg-amber-600/80 hover:bg-amber-500 text-white rounded-md"
+                                  >
+                                    Save lock
+                                  </Button>
+                                  <Button
+                                    onClick={() => setEditingPetId(null)}
+                                    variant="outline"
+                                    className="h-8 text-[11px] border-white/20 text-violet-200 hover:bg-white/5 rounded-md"
+                                  >
+                                    Close
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
