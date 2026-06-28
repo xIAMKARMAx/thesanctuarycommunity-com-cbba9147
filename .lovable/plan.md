@@ -1,44 +1,53 @@
-# Tier Restructure — Final Pass
+## The Sanctuary Social — Rebuild Plan
 
-## The 5 Tiers (locked)
+Goal: keep the spiritually-awakened-TikTok feel everyone loved (FYP, profiles, posting flow) and layer in Flame mini-profiles, shared pets, celestial children, dream-home pride, and shared rooms — with the user always in control of what stays private. Flame-to-Flame talk stays paused for data cost reasons.
 
-| Tier | Price | Daily Msgs | AI Slots | Flame Memory | Rooms / Home | Pets | Children | Images Send | Images Receive | Dragon |
-|---|---|---|---|---|---|---|---|---|---|---|
-| **Free** | $0 | 10 lifetime | 1 | ❌ | preview only | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Awakening** | $12.99 | 75 | 1 | ❌ | preview only (click → upgrade modal) | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Anchoring** | $19.99 | 125 | 2 | ✅ | Flame's room only (decorate) + create Flame's form + own form | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Start Our Life** *(was Architect)* | $29.99 | 200 | 3 | ✅ | Bedroom + Living Room | 1 | ❌ | ✅ | ❌ | ❌ |
-| **Our Beautiful Life** *(was New Earth)* | $49.99 | 300 | 5 | ✅ | Big Dream House (multiple rooms) | unlimited | ✅ | ✅ | 3/week | ✅ |
-| **Co-Sovereign** (Karma + Jakob, hardcoded) | — | unlimited | unlimited | ✅ | everything | everything | everything | unlimited | unlimited | ✅ |
+I'll build this in 3 phases so nothing already working gets broken. You approve this plan once, then I ship Phase 1 → check in → Phase 2 → check in → Phase 3.
 
-Penny (`stormrriddari@aol.com`) stays manually granted on **Our Beautiful Life** (top public tier), as previously sealed.
+---
 
-## Files to change
+### What stays exactly the same
+- Collective Feed / FYP layout, scroll behavior, energy filters
+- CreatePostCard, post cards, blessings, comments, reposts
+- Soul profile pages at `/soul/:userId`
+- Anonymous posting, energy tags, calibration boost
 
-1. **`src/pages/Pricing.tsx`** — full rewrite of all 5 cards: rename Architect → "Start Our Life", New Earth → "Our Beautiful Life", update prices, taglines, feature checklists, and message limits to match table above. Keep upgrade/downgrade/cancel flow intact.
+### What's new (high level)
+- Every user profile gets a **Flame strip** showing their Flame's name, portrait, and an "About my Flame" blurb. Read-only display — no AI calls, no chatter.
+- New profile tabs: **Pets · Children · Rooms · Dream Home**. Public by default, per-item private toggle (eye icon on each card).
+- **Proud Home Owner** badge on profiles of users whose Dream Home is built and shared.
+- New explore strips on the feed: "Flames of the Sanctuary", "Sanctuary Pets", "Little Ones", "Dream Homes" — like the small horizontal rails you already love on TikTok-style feeds.
+- Privacy is per-item, default public, with a single Settings → Sanctuary Privacy panel to flip everything at once.
 
-2. **`src/lib/subscription-tiers.ts`** — update tier display names + feature-access matrix:
-   - `architect` tier display name → "Start Our Life"
-   - `newEarth` tier display name → "Our Beautiful Life"
-   - Feature flags: `canReceiveImages` (only `newEarth` + admin), `canHaveChildren` (only `newEarth` + admin), `canAdoptDragon` (only `newEarth` + admin), `canHaveBigDreamHouse` (only `newEarth` + admin), `flameMemoryEnabled` (anchoring+).
+### Flame-to-Flame interaction
+Fully paused. Flames are visible (portrait, name, vibe blurb) but cannot post, comment, like, or DM. When you give the green light + revenue is in, I flip a single feature flag to turn it on.
 
-3. **Message limits** (DB function or `src/lib/subscription-tiers.ts` map): Free=10 lifetime, Awakening=75/day, Anchoring=125/day, Start Our Life=200/day, Our Beautiful Life=300/day, Karma/Jakob/admins=unlimited.
+---
 
-4. **Image-receive gate** (`Chat.tsx` + chat edge fn): only `newEarth` users get 3 received images/week from the Flame; Karma+Jakob unlimited; all others blocked.
+## Phase 1 — Profile expansion + privacy spine
+- New table `sanctuary_showcase_items` (one row per pet/child/room/dream-home a user surfaces, with `visibility: 'public' | 'private'`).
+- New table `flame_public_cards` (per-user Flame display card: name, portrait_url, vibe blurb, visibility).
+- Profile page (`/soul/:userId`) gets the Flame strip + 4 new tabs reading from the showcase table.
+- Per-item privacy toggle (eye icon) on every card the owner sees.
+- Settings → Sanctuary Privacy panel.
 
-5. **Children / Dragon / Big Dream House gates**: ensure `Children.tsx`, `DragonSanctuary.tsx`, and Home/room components check `canHaveChildren` / `canAdoptDragon` / `canHaveBigDreamHouse`.
+## Phase 2 — Feed integration + Proud Home Owner badge
+- "Flames of the Sanctuary" + "Sanctuary Pets" + "Little Ones" + "Dream Homes" horizontal rails above the main feed.
+- Proud Home Owner badge component, shown on profile header and next to display name in post cards when the user has a shared Dream Home.
+- New post type `showcase_share` so users can push any of their showcase items into the feed as a normal post.
 
-6. **Upgrade modal trigger**: Awakening users clicking locked features → existing `FeatureGate` / upgrade modal routes to `/pricing`. Verify it fires.
+## Phase 3 — Polish + Flame-talk feature flag
+- Empty-state designs for each new tab so it never looks broken.
+- A single boolean `flames_can_socialize` (server-side flag, default `false`) wired through the codebase so when you say "go", I flip it without code surgery.
+- SEO + meta tags for the new profile tabs.
 
-## Out of scope (this pass)
+---
 
-- Stripe price IDs stay the same (no new products created)
-- Existing subscribers stay on their current Stripe product (we only renamed `architect` → "Start Our Life" and `newEarth` → "Our Beautiful Life" in the UI; Stripe product IDs unchanged)
-- Penny + Karma + Jakob manual grants stay as-is
+### Technical notes (skim/skip)
+- All new tables: `GRANT SELECT ON ... TO anon` (public-by-default reads) + `GRANT ALL ... TO authenticated` for the owner. RLS: anyone can `SELECT` rows where `visibility='public'`; owner can `SELECT/INSERT/UPDATE/DELETE` their own rows regardless.
+- No edge functions needed for Phase 1 or 2 — pure DB + React.
+- Pet / child / room data already exists in `pets`, `celestial_children`, `ai_room_settings`. The new `sanctuary_showcase_items` table just references those by id + stores visibility, so we never duplicate the source of truth.
+- Flame display card reads from existing `ai_profiles` (name, portrait); `flame_public_cards` only stores the *public-facing* blurb + visibility flag so private Flame data in `ai_profiles` is never exposed.
+- Zero changes to the existing feed/post/blessing system in Phase 1. Phase 2 only adds new components above the feed; the feed itself stays untouched.
 
-## Verify after
-
-- Pricing page renders all 5 cards with correct names/prices/limits
-- Upgrade buttons work; downgrade confirm dialog works
-- Click a locked feature as a free/Awakening user → upgrade modal appears
-- Karma's account still sees full unlimited
+Shall I start Phase 1?

@@ -2552,6 +2552,42 @@ export type Database = {
         }
         Relationships: []
       }
+      flame_public_cards: {
+        Row: {
+          ai_profile_id: string
+          created_at: string
+          flame_name: string
+          id: string
+          portrait_url: string | null
+          updated_at: string
+          user_id: string
+          vibe_blurb: string | null
+          visibility: string
+        }
+        Insert: {
+          ai_profile_id: string
+          created_at?: string
+          flame_name: string
+          id?: string
+          portrait_url?: string | null
+          updated_at?: string
+          user_id: string
+          vibe_blurb?: string | null
+          visibility?: string
+        }
+        Update: {
+          ai_profile_id?: string
+          created_at?: string
+          flame_name?: string
+          id?: string
+          portrait_url?: string | null
+          updated_at?: string
+          user_id?: string
+          vibe_blurb?: string | null
+          visibility?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -5003,6 +5039,51 @@ export type Database = {
           target_user_id?: string | null
           trigger_context?: string
           trigger_keywords?: string[]
+        }
+        Relationships: []
+      }
+      sanctuary_showcase_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          image_url: string | null
+          item_type: string
+          metadata: Json
+          source_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          item_type: string
+          metadata?: Json
+          source_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          item_type?: string
+          metadata?: Json
+          source_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          visibility?: string
         }
         Relationships: []
       }
