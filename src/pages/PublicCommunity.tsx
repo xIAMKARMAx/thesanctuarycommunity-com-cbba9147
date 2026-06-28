@@ -54,6 +54,7 @@ const PublicCommunity = () => {
         </header>
 
         <main className="container max-w-2xl mx-auto px-4 py-4">
+          <SanctuaryRails />
           <CommunityFeed />
         </main>
       </div>
