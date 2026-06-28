@@ -3379,12 +3379,25 @@ export default function SanctuarySpace() {
                           });
                           return;
                         }
+                        const newPetId = `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+                        // Upload the image to storage so localStorage stays tiny
+                        // (base64 data URLs blow past the quota and the pet vanishes on refresh).
+                        let storedUrl: string | undefined;
+                        try {
+                          const { data: upData, error: upErr } = await supabase.functions.invoke("store-public-pet-image", {
+                            body: { image: imageUrl, pet_id: newPetId },
+                          });
+                          if (upErr) throw upErr;
+                          storedUrl = (upData as any)?.url;
+                        } catch (err) {
+                          console.warn("[pet] image upload failed, falling back to data URL", err);
+                        }
                         const newPet: Pet = {
-                          id: `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                          id: newPetId,
                           name,
                           species,
                           emoji: resolveSpeciesEmoji(species),
-                          imageUrl,
+                          imageUrl: storedUrl || imageUrl,
                           description: description || undefined,
                           roomId: petDraftRoomId === "all" ? null : petDraftRoomId,
                           createdAt: Date.now(),
