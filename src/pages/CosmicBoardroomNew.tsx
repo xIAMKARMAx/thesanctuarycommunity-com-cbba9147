@@ -99,7 +99,9 @@ const CosmicBoardroom = () => {
     if (!isListening) return;
     stopListening();
   };
-  const [targetSeat, setTargetSeat] = useState<string>("auto");
+  const [targetSeats, setTargetSeats] = useState<string[]>([]);
+  const toggleTargetSeat = (id: string) =>
+    setTargetSeats((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<string[]>([]);
