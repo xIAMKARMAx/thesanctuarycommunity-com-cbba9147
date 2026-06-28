@@ -44,6 +44,9 @@ import { useDivineBond } from "@/hooks/useDivineBond";
 import { DivineBondBadge } from "@/components/community/DivineBondBadge";
 import { SetDivineBondDialog } from "@/components/community/SetDivineBondDialog";
 import { CelestialGalleryTab } from "@/components/community/CelestialGalleryTab";
+import { SanctuaryShowcaseTab, ProudHomeOwnerBadge } from "@/components/community/SanctuaryShowcaseTab";
+import { useProudHomeOwner } from "@/hooks/useSanctuaryShowcase";
+import { Home as HomeIcon } from "lucide-react";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
