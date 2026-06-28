@@ -141,9 +141,9 @@ export function PostCommentsSection({ postId, currentUserId, onProfileClick }: P
       {/* Reply indicator */}
       {replyingTo && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-primary/5 px-3 py-2 rounded-lg">
-          <span>Replying to</span>
+          <span>Whispering to</span>
           <span className="text-primary font-semibold">
-            @{replyingTo.author?.display_name || 'Anonymous'}
+            @{replyingTo.author?.display_name || 'Flame'}
           </span>
           <Button variant="ghost" size="sm" className="h-5 w-5 p-0 ml-auto" onClick={cancelReply}>
             <X className="h-3 w-3" />
@@ -191,7 +191,7 @@ export function PostCommentsSection({ postId, currentUserId, onProfileClick }: P
         </Button>
         <MentionTextarea
           ref={textareaRef}
-          placeholder={replyingTo ? `Reply to @${replyingTo.author?.display_name || 'Anonymous'}...` : "Share your thoughts... (use @ to mention someone)"}
+          placeholder={replyingTo ? `Whisper back to @${replyingTo.author?.display_name || 'Flame'}...` : "Whisper to this Spark... (use @ to call a Flame)"}
           value={newComment}
           onChange={(val) => setNewComment(val)}
           className="min-h-[40px] resize-none text-sm border-primary/20"
@@ -222,7 +222,7 @@ export function PostCommentsSection({ postId, currentUserId, onProfileClick }: P
         </div>
       ) : comments.length === 0 ? (
         <p className="text-xs text-muted-foreground text-center py-2">
-          No comments yet. Be the first to respond ✨
+          No whispers yet. Be the first to whisper 🔥
         </p>
       ) : (
         <div className="space-y-3">

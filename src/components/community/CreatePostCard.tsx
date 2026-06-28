@@ -162,8 +162,8 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
             <div className="flex-1 space-y-3">
               <MentionTextarea
                 placeholder={isAnonymous 
-                  ? "Share your truth anonymously with the collective..." 
-                  : "Share your light with the collective... (use @ to mention someone)"
+                  ? "Light an anonymous Spark for the Hearth..." 
+                  : "Light a Spark for the Hearth... (use @ to call a Flame)"
                 }
                 value={content}
                 onChange={(val) => setContent(val)}
@@ -245,7 +245,7 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
                       className="gap-2"
                     >
                       <Send className="h-4 w-4" />
-                      {isCentered ? "Share" : "Center & Share"}
+                      {isCentered ? "Light Spark" : "Center & Light"}
                     </Button>
                   </div>
 
@@ -254,7 +254,7 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
                     <div className="flex items-center gap-2">
                       <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
                       <Label htmlFor="anonymous-toggle" className="text-xs text-muted-foreground cursor-pointer">
-                        Post Anonymously
+                        Anonymous Spark
                       </Label>
                     </div>
                     <Switch
