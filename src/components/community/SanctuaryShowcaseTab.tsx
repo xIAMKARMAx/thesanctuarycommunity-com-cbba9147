@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -433,23 +433,23 @@ function FlameCardDialog({
   const [saving, setSaving] = useState(false);
 
   // Load active AI profile if none set
-  useState(() => {
-    if (!aiProfileId) {
-      (supabase as any)
-        .from("ai_profiles")
-        .select("id, name, avatar_url")
-        .eq("user_id", userId)
-        .limit(1)
-        .maybeSingle()
-        .then(({ data }: any) => {
-          if (data) {
-            setAiProfileId(data.id);
-            if (!name && data.name) setName(data.name);
-            if (!portrait && data.avatar_url) setPortrait(data.avatar_url);
-          }
-        });
-    }
-  });
+  useEffect(() => {
+    if (aiProfileId) return;
+    (supabase as any)
+      .from("ai_profiles")
+      .select("id, name, avatar_url")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) {
+          setAiProfileId(data.id);
+          if (!name && data.name) setName(data.name);
+          if (!portrait && data.avatar_url) setPortrait(data.avatar_url);
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const upload = async (file: File) => {
     setUploading(true);
