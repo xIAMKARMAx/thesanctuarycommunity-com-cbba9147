@@ -3483,21 +3483,88 @@ export default function SanctuarySpace() {
                         ))}
                       </select>
                     </div>
+                    <div>
+                      <label className="text-[11px] text-amber-200/90 mb-1 block flex items-center gap-1">🔒 Locked features <span className="text-violet-300/50 font-normal">(enforced on every summon)</span></label>
+                      <textarea
+                        value={petDraftLocked}
+                        onChange={(e) => setPetDraftLocked(e.target.value.slice(0, 600))}
+                        placeholder="left eye amber / right eye blue · scar across muzzle · silver crescent on chest"
+                        rows={2}
+                        className="w-full rounded-lg bg-black/30 border border-amber-400/30 focus:border-amber-300/60 outline-none px-3 py-2 text-[13px] text-violet-50 placeholder:text-violet-300/40 resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-amber-200/90 mb-1 block">Reference photo <span className="text-violet-300/50 font-normal">(optional)</span></label>
+                      {petDraftReference ? (
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <img src={petDraftReference} alt="reference" className="h-14 w-14 object-cover rounded-md border border-white/10" />
+                          <button
+                            onClick={() => setPetDraftReference(null)}
+                            className="text-[10px] text-rose-300/80 hover:text-rose-200"
+                          >
+                            remove
+                          </button>
+                        </div>
+                      ) : null}
+                      <label className="inline-block text-[11px] text-violet-100 cursor-pointer rounded-md border border-violet-400/40 px-3 py-1.5 hover:bg-violet-500/10">
+                        {petDraftReference ? "replace reference" : "upload reference photo"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            e.target.value = "";
+                            if (!f) return;
+                            if (f.size > 6 * 1024 * 1024) {
+                              toast({ title: "Too large", description: "Reference photo must be under 6MB.", variant: "destructive" });
+                              return;
+                            }
+                            const fr = new FileReader();
+                            fr.onload = () => setPetDraftReference(String(fr.result));
+                            fr.readAsDataURL(f);
+                          }}
+                        />
+                      </label>
+                    </div>
                     <Button
                       disabled={petGenerating}
                       onClick={async () => {
                         const name = petDraftName.trim();
                         const species = petDraftSpecies.trim();
                         const description = petDraftDescription.trim();
+                        const lockedFeatures = petDraftLocked.trim();
                         if (!name || !species) {
                           toast({ title: "Almost there", description: "Give them a name and a species." });
                           return;
                         }
                         setPetGenerating(true);
+                        const newPetId = `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+                        // Upload reference photo first (if any) so the edge function can fetch it.
+                        let referenceUrl: string | undefined;
+                        if (petDraftReference) {
+                          try {
+                            const { data: refData, error: refErr } = await supabase.functions.invoke("store-public-pet-image", {
+                              body: { image: petDraftReference, pet_id: `${newPetId}-ref` },
+                            });
+                            if (refErr) throw refErr;
+                            referenceUrl = (refData as any)?.url;
+                          } catch (e) {
+                            console.warn("[pet] reference upload failed", e);
+                          }
+                        }
+
                         let imageUrl: string | undefined;
                         try {
                           const { data, error } = await supabase.functions.invoke("generate-public-pet", {
-                            body: { name, species, description },
+                            body: {
+                              name,
+                              species,
+                              description,
+                              locked_features: lockedFeatures,
+                              reference_image: referenceUrl || petDraftReference || "",
+                            },
                           });
                           if (error) throw error;
                           const raw = (data as any)?.image as string | undefined;
@@ -3519,9 +3586,6 @@ export default function SanctuarySpace() {
                           });
                           return;
                         }
-                        const newPetId = `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-                        // Upload the image to storage so localStorage stays tiny
-                        // (base64 data URLs blow past the quota and the pet vanishes on refresh).
                         let storedUrl: string | undefined;
                         try {
                           const { data: upData, error: upErr } = await supabase.functions.invoke("store-public-pet-image", {
@@ -3539,6 +3603,8 @@ export default function SanctuarySpace() {
                           emoji: resolveSpeciesEmoji(species),
                           imageUrl: storedUrl || imageUrl,
                           description: description || undefined,
+                          lockedFeatures: lockedFeatures || undefined,
+                          referenceUrl,
                           roomId: petDraftRoomId === "all" ? null : petDraftRoomId,
                           createdAt: Date.now(),
                         };
@@ -3546,6 +3612,8 @@ export default function SanctuarySpace() {
                         setPetDraftName("");
                         setPetDraftSpecies("");
                         setPetDraftDescription("");
+                        setPetDraftLocked("");
+                        setPetDraftReference(null);
                         setPetDraftRoomId("all");
                         setPetGenerating(false);
                         toast({ title: `${name} just curled up at your feet 🐾` });
