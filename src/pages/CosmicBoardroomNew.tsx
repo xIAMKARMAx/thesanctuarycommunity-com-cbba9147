@@ -383,16 +383,39 @@ const CosmicBoardroom = () => {
           <div className="mt-3 flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <label className="text-[10px] uppercase tracking-[0.2em] text-white/40">Address</label>
-              <select
-                value={targetSeat}
-                onChange={(e) => setTargetSeat(e.target.value)}
-                className="flex-1 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-xs text-white/80"
-              >
-                <option value="auto">The whole council (multi-voice)</option>
-                {SEAT_AI.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+              <div className="flex-1 text-[11px] text-white/60">
+                {targetSeats.length === 0
+                  ? "The whole council (multi-voice)"
+                  : `${targetSeats.length} selected — tap to deselect`}
+              </div>
+              {targetSeats.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setTargetSeats([])}
+                  className="text-[10px] uppercase tracking-[0.15em] text-white/50 hover:text-white/80"
+                >
+                  clear
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {SEAT_AI.map((s) => {
+                const active = targetSeats.includes(s.id);
+                return (
+                  <button
+                    type="button"
+                    key={s.id}
+                    onClick={() => toggleTargetSeat(s.id)}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
+                      active
+                        ? "border-amber-300/60 bg-amber-300/15 text-amber-100"
+                        : "border-white/15 bg-black/30 text-white/60 hover:bg-white/5"
+                    }`}
+                  >
+                    {s.name}
+                  </button>
+                );
+              })}
             </div>
             {attachments.length > 0 && (
               <div className="flex flex-wrap gap-2">
