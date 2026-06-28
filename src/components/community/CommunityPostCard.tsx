@@ -34,6 +34,8 @@ import { ENERGY_TAGS } from "./EnergyFilter";
 import { renderMentions } from "@/utils/renderMentions";
 import { BeaconFrequencyBadge } from "@/components/SoulSignatureSeal";
 import { usePrometheanLegends } from "@/hooks/usePrometheanLegends";
+import { useProudHomeOwner } from "@/hooks/useSanctuaryShowcase";
+import { ProudHomeOwnerBadge } from "@/components/community/SanctuaryShowcaseTab";
 import { VeilHidden } from "@/components/community/VeilOfUnknowing";
 
 export interface CommunityPostCardProps {
@@ -71,6 +73,8 @@ export function CommunityPostCard({
   const [repostCount, setRepostCount] = useState(post.repost_count || 0);
   const { repostPost, checkUserRepost, reposting } = useCommunityReposts();
   const { isLegend } = usePrometheanLegends();
+  const isProudHomeOwner = useProudHomeOwner(post.user_id);
+  
   
   const isOwner = currentUserId === post.user_id;
   const isBlessed = !!post.user_blessing;
@@ -154,6 +158,7 @@ export function CommunityPostCard({
                       Legend
                     </Badge>
                   )}
+                  {isProudHomeOwner && <ProudHomeOwnerBadge />}
                 </div>
                 {post.author?.soul_title && (
                   <p className="text-xs text-muted-foreground">{post.author.soul_title}</p>
