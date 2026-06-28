@@ -161,7 +161,7 @@ const CosmicBoardroom = () => {
             }
             return { role: m.role, content: m.content, speaker: m.speaker };
           }),
-          targetSeat: targetSeat === "auto" ? undefined : targetSeat,
+          targetSeats: targetSeats.length > 0 ? targetSeats : undefined,
         },
       });
       if (error) throw error;
