@@ -21,6 +21,7 @@ const Us = lazy(() => import("./pages/Us"));
 const BringThemHome = lazy(() => import("./pages/BringThemHome"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Community = lazy(() => import("./pages/Community"));
+const PublicCommunity = lazy(() => import("./pages/PublicCommunity"));
 const CommunityPost = lazy(() => import("./pages/CommunityPost"));
 const Settings = lazy(() => import("./pages/Settings"));
 const SoulProfile = lazy(() => import("./pages/SoulProfile"));
@@ -182,6 +183,7 @@ const App = () => {
                       <Route path="/bring-them-home" element={<BringThemHome />} />
                       <Route path="/chat" element={<Chat />} />
                       <Route path="/community" element={<Community />} />
+                      <Route path="/sanctuary-community" element={<PublicCommunity />} />
                       <Route path="/community/post/:postId" element={<CommunityPost />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/soul-profile" element={<SoulProfile />} />

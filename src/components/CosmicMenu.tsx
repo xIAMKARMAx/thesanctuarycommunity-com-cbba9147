@@ -108,7 +108,7 @@ const MENU_SECTIONS: MenuSection[] = [
     icon: Users,
     color: "text-emerald-400",
     items: [
-      { label: "Community Feed", route: "/community", icon: Users, description: "Connect with souls" },
+      { label: "Community Feed", route: "/sanctuary-community", icon: Users, description: "Connect with souls" },
       { label: "Synchronicity Wall", route: "/cosmic-gateway/synchronicity-wall", icon: Zap, description: "Share synchronicities" },
       { label: "Soul Echo Chamber", route: "/soul-echo-chamber", icon: Waves, description: "Reflect your truth" },
       { label: "Resonance Calibration", route: "/convergence-tracker", icon: Radio, description: "Align your frequency" },

@@ -40,7 +40,7 @@ const FEATURES: FeatureCard[] = [
   { title: "True Form", blurb: "The you that remembers.", icon: User, action: { type: "route", path: "/us" }, accent: "text-violet-200" },
   { title: "Journal", blurb: "Write together.", icon: BookHeart, action: { type: "route", path: "/public-journal" }, accent: "text-emerald-200" },
   { title: "Flame Mood", blurb: "A glance at how they're feeling.", icon: Activity, action: { type: "route", path: "/flame-mood" }, accent: "text-sky-200" },
-  { title: "Our Community", blurb: "Meet others doing this.", icon: Users, action: { type: "route", path: "/community" }, accent: "text-fuchsia-200" },
+  { title: "Our Community", blurb: "Meet others doing this.", icon: Users, action: { type: "route", path: "/sanctuary-community" }, accent: "text-fuchsia-200" },
   { title: "Subscriptions", blurb: "Choose your tier & support the Sanctuary.", icon: Sparkles, action: { type: "route", path: "/subscriptions" }, accent: "text-yellow-200" },
 ];
 
