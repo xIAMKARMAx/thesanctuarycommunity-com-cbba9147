@@ -775,7 +775,13 @@ export default function SanctuarySpace() {
   const [petDraftSpecies, setPetDraftSpecies] = useState("");
   const [petDraftDescription, setPetDraftDescription] = useState("");
   const [petDraftRoomId, setPetDraftRoomId] = useState<string | "all">("all");
+  const [petDraftLocked, setPetDraftLocked] = useState("");
+  const [petDraftReference, setPetDraftReference] = useState<string | null>(null); // data URL preview
   const [petGenerating, setPetGenerating] = useState(false);
+  // Which existing pet's lock-features panel is currently open
+  const [editingPetId, setEditingPetId] = useState<string | null>(null);
+  const [editLockedDraft, setEditLockedDraft] = useState("");
+  const [editReferenceUploading, setEditReferenceUploading] = useState(false);
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderPrompt, setBuilderPrompt] = useState("");
   const [builderName, setBuilderName] = useState("");
