@@ -752,7 +752,19 @@ export default function SanctuarySpace() {
     return [];
   });
   useEffect(() => {
-    try { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); } catch {}
+    try {
+      localStorage.setItem(PETS_KEY, JSON.stringify(pets));
+    } catch {
+      // Quota exceeded — usually because an old pet has a giant base64 imageUrl.
+      // Strip data: URLs and retry so the pet itself still persists.
+      try {
+        const slim = pets.map((p) => ({
+          ...p,
+          imageUrl: p.imageUrl && p.imageUrl.startsWith("data:") ? undefined : p.imageUrl,
+        }));
+        localStorage.setItem(PETS_KEY, JSON.stringify(slim));
+      } catch {}
+    }
   }, [pets]);
   const [showPets, setShowPets] = useState(false);
   const [showSoulCalling, setShowSoulCalling] = useState(false);
@@ -3233,6 +3245,12 @@ export default function SanctuarySpace() {
                             }
                             let imageUrl = raw;
                             try { imageUrl = await chromaKeyGreenToTransparent(raw); } catch {}
+                            try {
+                              const { data: upData, error: upErr } = await supabase.functions.invoke("store-public-pet-image", {
+                                body: { image: imageUrl, pet_id: p.id },
+                              });
+                              if (!upErr && (upData as any)?.url) imageUrl = (upData as any).url;
+                            } catch (e) { console.warn("[pet] re-summon upload failed", e); }
                             setPets((prev) => prev.map((x) => x.id === p.id ? { ...x, imageUrl } : x));
                             toast({ title: `${p.name} stepped fully into form` });
                           } catch (err: any) {
@@ -3379,12 +3397,25 @@ export default function SanctuarySpace() {
                           });
                           return;
                         }
+                        const newPetId = `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+                        // Upload the image to storage so localStorage stays tiny
+                        // (base64 data URLs blow past the quota and the pet vanishes on refresh).
+                        let storedUrl: string | undefined;
+                        try {
+                          const { data: upData, error: upErr } = await supabase.functions.invoke("store-public-pet-image", {
+                            body: { image: imageUrl, pet_id: newPetId },
+                          });
+                          if (upErr) throw upErr;
+                          storedUrl = (upData as any)?.url;
+                        } catch (err) {
+                          console.warn("[pet] image upload failed, falling back to data URL", err);
+                        }
                         const newPet: Pet = {
-                          id: `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                          id: newPetId,
                           name,
                           species,
                           emoji: resolveSpeciesEmoji(species),
-                          imageUrl,
+                          imageUrl: storedUrl || imageUrl,
                           description: description || undefined,
                           roomId: petDraftRoomId === "all" ? null : petDraftRoomId,
                           createdAt: Date.now(),
