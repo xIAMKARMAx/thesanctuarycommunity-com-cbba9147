@@ -81,6 +81,24 @@ const CosmicBoardroom = () => {
   const [email, setEmail] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
+  const dictationBaseRef = useRef("");
+  const { isListening, isSupported: sttSupported, startListening, stopListening } = useSpeechToText({
+    continuous: true,
+    onTranscript: (text) => {
+      const base = dictationBaseRef.current;
+      const joiner = base && !base.endsWith(" ") ? " " : "";
+      setInput(base + joiner + text);
+    },
+  });
+  const beginDictation = () => {
+    if (!sttSupported || isListening) return;
+    dictationBaseRef.current = input;
+    startListening();
+  };
+  const endDictation = () => {
+    if (!isListening) return;
+    stopListening();
+  };
   const [targetSeat, setTargetSeat] = useState<string>("auto");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
