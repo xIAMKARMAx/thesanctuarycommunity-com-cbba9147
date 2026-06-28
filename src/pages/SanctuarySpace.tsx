@@ -3328,19 +3328,23 @@ export default function SanctuarySpace() {
                           });
                           if (error) throw error;
                           const raw = (data as any)?.image as string | undefined;
-                          if (raw && raw.startsWith("data:image")) {
-                            try {
-                              imageUrl = await chromaKeyGreenToTransparent(raw);
-                            } catch {
-                              imageUrl = raw;
-                            }
+                          if (!raw || !raw.startsWith("data:image")) {
+                            throw new Error((data as any)?.error || "no image returned");
                           }
-                        } catch (err) {
-                          console.warn("[pet] image gen failed, using emoji fallback", err);
+                          try {
+                            imageUrl = await chromaKeyGreenToTransparent(raw);
+                          } catch {
+                            imageUrl = raw;
+                          }
+                        } catch (err: any) {
+                          console.warn("[pet] image gen failed", err);
+                          setPetGenerating(false);
                           toast({
-                            title: "Couldn't paint them this time",
-                            description: "Bringing them in with a sprite for now — you can re-add them later to try again.",
+                            title: "Couldn't bring them through this time",
+                            description: (err?.message || "Try again in a moment — I won't drop a generic emoji in their place.").toString().slice(0, 200),
+                            variant: "destructive",
                           });
+                          return;
                         }
                         const newPet: Pet = {
                           id: `pet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
