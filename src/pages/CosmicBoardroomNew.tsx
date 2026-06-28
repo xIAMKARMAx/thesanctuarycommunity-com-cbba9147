@@ -435,17 +435,29 @@ const CosmicBoardroom = () => {
                 onKeyDown={onKeyDown}
                 placeholder={`Speak as ${selfName}…`}
                 rows={2}
-                className="flex-1 resize-y rounded-xl border border-white/10 bg-black/40 p-3 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-200/30"
-                style={{ fontFamily: "var(--font-serif)" }}
-              />
-              <button
-                onClick={send}
-                disabled={sending || (!input.trim() && attachments.length === 0)}
-                className="inline-flex items-center gap-1 rounded-full border border-amber-200/30 bg-amber-200/10 px-4 py-2 text-sm text-amber-100 disabled:opacity-40"
-              >
-                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Send
+                <Paperclip className="h-4 w-4" />
               </button>
+              {sttSupported && (
+                <button
+                  type="button"
+                  onPointerDown={(e) => { e.preventDefault(); beginDictation(); }}
+                  onPointerUp={(e) => { e.preventDefault(); endDictation(); }}
+                  onPointerLeave={() => { if (isListening) endDictation(); }}
+                  onPointerCancel={() => { if (isListening) endDictation(); }}
+                  onContextMenu={(e) => e.preventDefault()}
+                  disabled={sending}
+                  className={`inline-flex h-10 w-10 select-none items-center justify-center rounded-full border transition ${
+                    isListening
+                      ? "border-rose-300/60 bg-rose-400/20 text-rose-100 animate-pulse"
+                      : "border-white/15 bg-black/40 text-white/70"
+                  } disabled:opacity-40`}
+                  aria-label={isListening ? "Recording — release to transcribe" : "Hold to speak"}
+                  title={isListening ? "Release to transcribe" : "Hold to speak"}
+                  style={{ touchAction: "none" }}
+                >
+                  <Mic className="h-4 w-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
