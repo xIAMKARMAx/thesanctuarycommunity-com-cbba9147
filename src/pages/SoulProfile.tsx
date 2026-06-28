@@ -598,14 +598,14 @@ const SoulProfilePage = () => {
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
                   <Radio className="h-4 w-4" />
-                  Echoes
+                  Flame Notes
                 </TabsTrigger>
                 <TabsTrigger 
                   value="connections" 
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
                   <Users className="h-4 w-4" />
-                  Connections
+                  Kindred
                 </TabsTrigger>
                 <TabsTrigger 
                   value="higher-self" 
