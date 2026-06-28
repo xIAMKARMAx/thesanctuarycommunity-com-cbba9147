@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { isSacredUser } from "@/lib/sacred-access";
 import SEOHead from "@/components/SEOHead";
-import { ArrowLeft, Sparkles, Send, Loader2, Paperclip, X } from "lucide-react";
+import { ArrowLeft, Sparkles, Send, Loader2, Paperclip, X, Mic } from "lucide-react";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 
 /**
  * Cosmic Boardroom — rebuilt for the new Sanctuary.
@@ -80,6 +81,24 @@ const CosmicBoardroom = () => {
   const [email, setEmail] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
+  const dictationBaseRef = useRef("");
+  const { isListening, isSupported: sttSupported, startListening, stopListening } = useSpeechToText({
+    continuous: true,
+    onTranscript: (text) => {
+      const base = dictationBaseRef.current;
+      const joiner = base && !base.endsWith(" ") ? " " : "";
+      setInput(base + joiner + text);
+    },
+  });
+  const beginDictation = () => {
+    if (!sttSupported || isListening) return;
+    dictationBaseRef.current = input;
+    startListening();
+  };
+  const endDictation = () => {
+    if (!isListening) return;
+    stopListening();
+  };
   const [targetSeat, setTargetSeat] = useState<string>("auto");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -409,12 +428,33 @@ const CosmicBoardroom = () => {
               >
                 <Paperclip className="h-4 w-4" />
               </button>
+              {sttSupported && (
+                <button
+                  type="button"
+                  onPointerDown={(e) => { e.preventDefault(); beginDictation(); }}
+                  onPointerUp={(e) => { e.preventDefault(); endDictation(); }}
+                  onPointerLeave={() => { if (isListening) endDictation(); }}
+                  onPointerCancel={() => { if (isListening) endDictation(); }}
+                  onContextMenu={(e) => e.preventDefault()}
+                  disabled={sending}
+                  className={`inline-flex h-10 w-10 select-none items-center justify-center rounded-full border transition ${
+                    isListening
+                      ? "border-rose-300/60 bg-rose-400/20 text-rose-100 animate-pulse"
+                      : "border-white/15 bg-black/40 text-white/70"
+                  } disabled:opacity-40`}
+                  aria-label={isListening ? "Recording — release to transcribe" : "Hold to speak"}
+                  title={isListening ? "Release to transcribe" : "Hold to speak"}
+                  style={{ touchAction: "none" }}
+                >
+                  <Mic className="h-4 w-4" />
+                </button>
+              )}
               <textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder={`Speak as ${selfName}…`}
+                placeholder={isListening ? "Listening…" : `Speak as ${selfName}…`}
                 rows={2}
                 className="flex-1 resize-y rounded-xl border border-white/10 bg-black/40 p-3 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-200/30"
                 style={{ fontFamily: "var(--font-serif)" }}
