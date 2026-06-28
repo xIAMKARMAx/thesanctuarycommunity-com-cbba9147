@@ -3220,6 +3220,31 @@ export default function SanctuarySpace() {
                     <div className="space-y-1.5">
                       {pets.map((p) => {
                         const room = rooms.find((r) => r.id === p.roomId);
+                        const resummon = async () => {
+                          setPetGenerating(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke("generate-public-pet", {
+                              body: { name: p.name, species: p.species, description: p.description || "" },
+                            });
+                            if (error) throw error;
+                            const raw = (data as any)?.image as string | undefined;
+                            if (!raw || !raw.startsWith("data:image")) {
+                              throw new Error((data as any)?.error || "no image returned");
+                            }
+                            let imageUrl = raw;
+                            try { imageUrl = await chromaKeyGreenToTransparent(raw); } catch {}
+                            setPets((prev) => prev.map((x) => x.id === p.id ? { ...x, imageUrl } : x));
+                            toast({ title: `${p.name} stepped fully into form` });
+                          } catch (err: any) {
+                            toast({
+                              title: "Couldn't bring them through",
+                              description: (err?.message || "Try again in a moment.").toString().slice(0, 200),
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setPetGenerating(false);
+                          }
+                        };
                         return (
                           <div
                             key={p.id}
@@ -3240,6 +3265,14 @@ export default function SanctuarySpace() {
                                 {p.species || "pet"} · {room ? `lives in ${room.name}` : "follows everywhere"}
                               </div>
                             </div>
+                            <button
+                              onClick={resummon}
+                              disabled={petGenerating}
+                              className="text-[10px] text-violet-200/80 hover:text-violet-100 shrink-0 disabled:opacity-50 px-2 py-1 rounded border border-violet-400/30"
+                              title={p.imageUrl ? "Re-summon their form" : "Summon their form"}
+                            >
+                              {p.imageUrl ? "re-summon" : "summon"}
+                            </button>
                             <button
                               onClick={() => setPets((prev) => prev.filter((x) => x.id !== p.id))}
                               className="text-[11px] text-rose-300/70 hover:text-rose-200 shrink-0"
