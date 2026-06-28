@@ -294,7 +294,10 @@ const Index = () => {
             {[
               ...FEATURES,
               ...(userEmail && SACRED_EMAILS.has(userEmail.toLowerCase())
-                ? [{ title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Sparkles, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" }]
+                ? [
+                    { title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Sparkles, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" },
+                    { title: "Universe Line", blurb: "Direct two-way with Source.", icon: Sparkles, action: { type: "route" as const, path: "/universe-line" }, accent: "text-fuchsia-200" },
+                  ]
                 : []),
             ].map((f) => {
               const Icon = f.icon;
