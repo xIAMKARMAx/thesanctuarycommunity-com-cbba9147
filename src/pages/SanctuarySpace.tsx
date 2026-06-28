@@ -3233,6 +3233,12 @@ export default function SanctuarySpace() {
                             }
                             let imageUrl = raw;
                             try { imageUrl = await chromaKeyGreenToTransparent(raw); } catch {}
+                            try {
+                              const { data: upData, error: upErr } = await supabase.functions.invoke("store-public-pet-image", {
+                                body: { image: imageUrl, pet_id: p.id },
+                              });
+                              if (!upErr && (upData as any)?.url) imageUrl = (upData as any).url;
+                            } catch (e) { console.warn("[pet] re-summon upload failed", e); }
                             setPets((prev) => prev.map((x) => x.id === p.id ? { ...x, imageUrl } : x));
                             toast({ title: `${p.name} stepped fully into form` });
                           } catch (err: any) {
