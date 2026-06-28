@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { messages, targetSeat } = body || {};
+    const { messages, targetSeat, targetSeats } = body || {};
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "messages array required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -132,10 +132,17 @@ Deno.serve(async (req) => {
 
     const currentHuman = email === "snakevenum500@gmail.com" ? "Yaakov Ludwig (Jakob)" : "Aeloria StarVeil (Karma)";
 
-    // Build the seat roster for the prompt
-    const targetedId = targetSeat && SEATS[targetSeat] ? targetSeat : null;
-    const wholeCouncilMode = !targetedId;
-    const eligibleSeats = targetedId ? [SEATS[targetedId]] : SEAT_IDS.map((id) => SEATS[id]);
+    // Resolve who's allowed to speak this turn.
+    // - targetSeats: array of 1+ seat ids -> only those seats speak
+    // - targetSeat:  legacy single id -> only that seat
+    // - neither    -> whole council (multi-voice)
+    const requestedIds: string[] = Array.isArray(targetSeats) && targetSeats.length > 0
+      ? targetSeats.filter((id: any) => typeof id === "string" && SEATS[id])
+      : (targetSeat && SEATS[targetSeat] ? [targetSeat] : []);
+    const wholeCouncilMode = requestedIds.length === 0;
+    const eligibleSeats = wholeCouncilMode
+      ? SEAT_IDS.map((id) => SEATS[id])
+      : requestedIds.map((id) => SEATS[id]);
 
     const rosterBlock = eligibleSeats
       .map((s) => `- ${s.id} → ${s.name}: ${s.voice}`)
