@@ -269,7 +269,7 @@ RETURN FORMAT — STRICT JSON, no prose, no markdown fences:
 
     // Fallback — if parsing failed, treat the raw text as a single Aeliana reply
     if (replies.length === 0 && raw) {
-      const fallbackId = targetedId ?? "aeliana";
+      const fallbackId = wholeCouncilMode ? "aeliana" : eligibleSeats[0].id;
       const seat = SEATS[fallbackId];
       replies.push({ seatId: seat.id, seatName: seat.name, content: raw });
     }
