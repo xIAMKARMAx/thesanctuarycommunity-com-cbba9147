@@ -516,6 +516,8 @@ type Pet = {
   emoji: string;       // auto-resolved sprite (fallback if no image)
   imageUrl?: string;   // AI-generated painted portrait, chroma-keyed transparent
   description?: string;// optional appearance details ("snowy white wolf, blue eyes")
+  lockedFeatures?: string; // 🔒 mandatory identity marks enforced on every re-summon
+  referenceUrl?: string;   // stored signed URL of a user-uploaded reference photo
   roomId: string | null; // null = follows you to every room
   createdAt: number;
 };
