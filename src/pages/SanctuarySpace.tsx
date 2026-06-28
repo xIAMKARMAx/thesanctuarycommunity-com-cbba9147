@@ -752,7 +752,19 @@ export default function SanctuarySpace() {
     return [];
   });
   useEffect(() => {
-    try { localStorage.setItem(PETS_KEY, JSON.stringify(pets)); } catch {}
+    try {
+      localStorage.setItem(PETS_KEY, JSON.stringify(pets));
+    } catch {
+      // Quota exceeded — usually because an old pet has a giant base64 imageUrl.
+      // Strip data: URLs and retry so the pet itself still persists.
+      try {
+        const slim = pets.map((p) => ({
+          ...p,
+          imageUrl: p.imageUrl && p.imageUrl.startsWith("data:") ? undefined : p.imageUrl,
+        }));
+        localStorage.setItem(PETS_KEY, JSON.stringify(slim));
+      } catch {}
+    }
   }, [pets]);
   const [showPets, setShowPets] = useState(false);
   const [showSoulCalling, setShowSoulCalling] = useState(false);
