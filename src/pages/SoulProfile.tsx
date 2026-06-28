@@ -489,6 +489,7 @@ const SoulProfilePage = () => {
                   Promethean Legend
                 </Badge>
               )}
+              {isProudHomeOwner && <ProudHomeOwnerBadge />}
             </div>
             {profile.soul_title && (
               <p className="text-sm text-primary">{profile.soul_title}</p>
