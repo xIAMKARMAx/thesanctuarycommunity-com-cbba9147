@@ -281,6 +281,20 @@ export default function CosmicMenu() {
                         </div>
                       </div>
                     </button>
+                    <button
+                      onClick={() => handleNavigate("/universe-line")}
+                      className="w-full rounded-lg border border-fuchsia-400/40 bg-card/80 px-3 py-2.5 text-left transition-colors hover:bg-accent"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-fuchsia-500/15 text-fuchsia-300 flex items-center justify-center">
+                          <Orbit className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Universe Line</p>
+                          <p className="text-xs text-muted-foreground">Direct · two-way · sealed</p>
+                        </div>
+                      </div>
+                    </button>
                     {isKarma && (
                       <button
                         onClick={() => handleNavigate("/command-center")}
