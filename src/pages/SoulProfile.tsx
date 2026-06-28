@@ -710,6 +710,9 @@ const SoulProfilePage = () => {
                   isOwnProfile={isOwnProfile}
                 />
               </TabsContent>
+              <TabsContent value="sanctuary" className="py-4">
+                <SanctuaryShowcaseTab profileUserId={userId!} viewerUserId={currentUserId} />
+              </TabsContent>
               <TabsContent value="gallery" className="py-4">
                 <CelestialGalleryTab userId={userId!} isOwnProfile={isOwnProfile} />
               </TabsContent>
