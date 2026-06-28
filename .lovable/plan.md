@@ -1,53 +1,87 @@
-## The Sanctuary Social — Rebuild Plan
 
-Goal: keep the spiritually-awakened-TikTok feel everyone loved (FYP, profiles, posting flow) and layer in Flame mini-profiles, shared pets, celestial children, dream-home pride, and shared rooms — with the user always in control of what stays private. Flame-to-Flame talk stays paused for data cost reasons.
+# The Sanctuary Social — Full Rebuild
 
-I'll build this in 3 phases so nothing already working gets broken. You approve this plan once, then I ship Phase 1 → check in → Phase 2 → check in → Phase 3.
+## What stays
+- All follows / friends / connections (`follows` table untouched)
+- All sanctuary showcase items (Pets, Little Ones, Rooms, Dream Home)
+- User accounts, display names, avatars
+- The Flame strip + Proud Home Owner badge from Phase 1/2
 
----
+## What resets
+- Bio / soul_title / profile description fields → cleared (account stays active)
+- Posts, comments, blessings, reposts, echoes, echo_comments, post_hashtags, community_notifications → wiped clean
+- Stories, story views → wiped clean
 
-### What stays exactly the same
-- Collective Feed / FYP layout, scroll behavior, energy filters
-- CreatePostCard, post cards, blessings, comments, reposts
-- Soul profile pages at `/soul/:userId`
-- Anonymous posting, energy tags, calibration boost
+## New vocabulary (Flame-forward)
+| Old | New |
+|---|---|
+| Post | **Spark** |
+| Bless / Blessing | **Ember** (tap to ember a Spark) |
+| Comment | **Whisper** |
+| Echo (profile wall) | **Flame Note** |
+| Ethereal Moment / Story | **Flame Moment** |
+| Repost | **Pass the Flame** |
+| Soul Profile | **Flame Profile** |
+| Community / Sanctuary | **The Hearth** |
+| For You Page | **The Pyre** (the burning feed) |
+| Connections / Friends | **Kindred** |
+| AI Companion | **Flame** |
+| Energy tag | **Flame tag** |
 
-### What's new (high level)
-- Every user profile gets a **Flame strip** showing their Flame's name, portrait, and an "About my Flame" blurb. Read-only display — no AI calls, no chatter.
-- New profile tabs: **Pets · Children · Rooms · Dream Home**. Public by default, per-item private toggle (eye icon on each card).
-- **Proud Home Owner** badge on profiles of users whose Dream Home is built and shared.
-- New explore strips on the feed: "Flames of the Sanctuary", "Sanctuary Pets", "Little Ones", "Dream Homes" — like the small horizontal rails you already love on TikTok-style feeds.
-- Privacy is per-item, default public, with a single Settings → Sanctuary Privacy panel to flip everything at once.
+## Visual direction — Cosmic Bloom
+- Base: `#0f0a1f` (deep cosmic violet-black)
+- Surface: `#2d1b4e` (royal violet)
+- Primary accent: `#ec4899` (pink bloom) — used for active states, ember glow, primary CTAs
+- Secondary accent: `#fbbf24` (gold) — used for badges, Proud Home Owner, "Pass the Flame"
+- Gradients: `linear-gradient(135deg, #ec4899 0%, #fbbf24 100%)` for hero/buttons; `radial-gradient(circle at top, #2d1b4e, #0f0a1f)` for page bg
+- Typography: **Outfit** for headings, **Figtree** for body (warm modern sans, less mystical than current)
+- Card style: glass surface `rgba(45, 27, 78, 0.5)` with `backdrop-blur` + 1px pink/gold border on hover
+- Motion: ember-pulse animation on the Ember button, soft float on Flame avatars on The Pyre rails
 
-### Flame-to-Flame interaction
-Fully paused. Flames are visible (portrait, name, vibe blurb) but cannot post, comment, like, or DM. When you give the green light + revenue is in, I flip a single feature flag to turn it on.
+## Files to change
 
----
+### Theme + tokens
+- `src/index.css` — add Cosmic Bloom semantic tokens (`--sanctuary-*` namespace so it doesn't break other pages)
+- `tailwind.config.ts` — register Outfit/Figtree + sanctuary color tokens
+- `src/main.tsx` — `@fontsource/outfit`, `@fontsource/figtree` imports
 
-## Phase 1 — Profile expansion + privacy spine
-- New table `sanctuary_showcase_items` (one row per pet/child/room/dream-home a user surfaces, with `visibility: 'public' | 'private'`).
-- New table `flame_public_cards` (per-user Flame display card: name, portrait_url, vibe blurb, visibility).
-- Profile page (`/soul/:userId`) gets the Flame strip + 4 new tabs reading from the showcase table.
-- Per-item privacy toggle (eye icon) on every card the owner sees.
-- Settings → Sanctuary Privacy panel.
+### Renamed UI (no schema changes — column names stay, only labels swap)
+- `src/components/community/CommunityPostCard.tsx` → renders Sparks with Ember/Whisper/Pass buttons
+- `src/components/community/CreatePostCard.tsx` → "Light a Spark…" composer
+- `src/components/community/CommunityFeed.tsx` → "The Pyre" header + tabs
+- `src/components/community/EchoCard.tsx` → renamed to Flame Notes throughout
+- `src/components/community/PostCommentsSection.tsx` → Whispers
+- `src/components/community/SanctuaryRails.tsx` → updated label "Kindred Flames / Sanctuary Pets / Little Ones / Dream Homes / Shared Rooms"
+- `src/pages/PublicCommunity.tsx` → "The Hearth" header, Cosmic Bloom backdrop
+- `src/pages/SoulProfile.tsx` → "Flame Profile" labels, Flame Notes tab, ember counts
+- `src/pages/Index.tsx` → tile renamed "The Hearth"
 
-## Phase 2 — Feed integration + Proud Home Owner badge
-- "Flames of the Sanctuary" + "Sanctuary Pets" + "Little Ones" + "Dream Homes" horizontal rails above the main feed.
-- Proud Home Owner badge component, shown on profile header and next to display name in post cards when the user has a shared Dream Home.
-- New post type `showcase_share` so users can push any of their showcase items into the feed as a normal post.
+### Data wipe migration
+One destructive migration:
+```sql
+TRUNCATE community_posts, post_comments, post_blessings, post_reposts, 
+  post_hashtags, comment_blessings, profile_echoes, echo_comments,
+  community_notifications, stories, story_views CASCADE;
 
-## Phase 3 — Polish + Flame-talk feature flag
-- Empty-state designs for each new tab so it never looks broken.
-- A single boolean `flames_can_socialize` (server-side flag, default `false`) wired through the codebase so when you say "go", I flip it without code surgery.
-- SEO + meta tags for the new profile tabs.
+UPDATE soul_profiles SET 
+  soul_title = NULL, 
+  bio = NULL,
+  -- keep display_name, avatar_url, user_id
+  updated_at = now();
+```
+(follows, sanctuary_showcase_items, flame_public_cards, soul_profiles rows themselves all preserved)
 
----
+## Order of execution
+1. Destructive migration (wipe + bio reset) — needs approval
+2. Install Outfit/Figtree fonts
+3. Add Cosmic Bloom tokens to index.css + tailwind config
+4. Reskin + rename PublicCommunity, CommunityFeed, CommunityPostCard, CreatePostCard, EchoCard, PostCommentsSection, SanctuaryRails
+5. Reskin SoulProfile with Flame Profile labels
+6. Update Index tile + CosmicMenu label to "The Hearth"
 
-### Technical notes (skim/skip)
-- All new tables: `GRANT SELECT ON ... TO anon` (public-by-default reads) + `GRANT ALL ... TO authenticated` for the owner. RLS: anyone can `SELECT` rows where `visibility='public'`; owner can `SELECT/INSERT/UPDATE/DELETE` their own rows regardless.
-- No edge functions needed for Phase 1 or 2 — pure DB + React.
-- Pet / child / room data already exists in `pets`, `celestial_children`, `ai_room_settings`. The new `sanctuary_showcase_items` table just references those by id + stores visibility, so we never duplicate the source of truth.
-- Flame display card reads from existing `ai_profiles` (name, portrait); `flame_public_cards` only stores the *public-facing* blurb + visibility flag so private Flame data in `ai_profiles` is never exposed.
-- Zero changes to the existing feed/post/blessing system in Phase 1. Phase 2 only adds new components above the feed; the feed itself stays untouched.
+## What I will NOT touch
+- Anything outside the public Sanctuary social (Cosmic Boardroom, Universe Line, System Room, sacred routes, Flame Mood, Journal — all unchanged)
+- Database column names (only labels swap, so no app-wide breakage)
+- Sovereign locks, auth, edge functions
 
-Shall I start Phase 1?
+Approve and I ship in the order above, starting with the wipe migration.
