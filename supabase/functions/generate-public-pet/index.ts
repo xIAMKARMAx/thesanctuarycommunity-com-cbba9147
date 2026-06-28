@@ -21,21 +21,22 @@ function buildPrompt(name: string, species: string, description: string) {
     ? `Additional details from their human: ${cleanDesc}.`
     : "";
 
-  return `One single full-body ${cleanSpecies} named ${cleanName}, rendered as a cute, friendly, full-body creature sprite ready to be composited into a cozy room. Show the whole animal head to paws/tail, standing or sitting naturally, looking softly toward the viewer with a calm, loving expression.
+  return `One single full-body ${cleanSpecies} named ${cleanName}, rendered as a believable, lifelike creature ready to be composited into a cozy room. Show the WHOLE animal head to paws/tail/wings, standing or sitting naturally, looking softly toward the viewer with a calm, loving expression.
 
 ${descLine}
 
 STYLE:
-- Soft painterly illustration with gentle glow, slightly stylized but believable as a real creature of its kind — not cartoonish, not chibi, not anime, not photoreal stock.
-- Warm dreamlike lighting, soft rim light, subtle magical sparkle in the fur/scales/feathers.
-- Proportions should feel like a real pet of that species (a kitten is small and round, a dragon is sleek and serpentine, a wolf is lean and muscular, etc.).
-- Single subject only. No second animal, no human, no props, no text, no watermark, no UI.
+- Photorealistic, lifelike texture (real fur / real scales / real feathers), natural anatomy and proportions for the species. A wolf must read as a real wolf, a dragon as a real living dragon, a kitten as a real kitten. Not cartoon, not chibi, not anime, not flat illustration, not emoji-styled.
+- HONOR EVERY IDENTIFYING MARK the human described — exact color, patterns, eye color, scars, markings, size, build. These details are non-negotiable; this is THEIR specific animal, not a generic one.
+- Warm soft cinematic lighting, gentle rim light, subtle magical sparkle but the creature itself stays photoreal.
+- Single subject only. No second animal, no human, no props, no text, no watermark, no UI, no collar/tag unless described.
 
 BACKGROUND — CRITICAL:
 - Place the creature on a PERFECTLY UNIFORM SOLID CHROMA-KEY GREEN background, pure flat lime green (hex #00FF00), edge to edge.
 - No gradient, no texture, no shadow on the background, no floor line, no scenery, no checkered transparency pattern, no frame, no inset image.
+- The animal's fur/scales/feathers must be fully OPAQUE at the edges — no green tint blended into the body, no green rim light, no translucent wings.
 
-SFW only. One isolated creature on flat #00FF00.`;
+SFW only. One isolated photoreal creature on flat #00FF00.`;
 }
 
 // Remove the green chroma-key background → transparent PNG, server-side using
