@@ -97,6 +97,8 @@ Deno.serve(async (req) => {
     const name = String(body?.name || "").trim() || "your pet";
     const species = String(body?.species || "").trim() || "small creature";
     const description = String(body?.description || "").trim();
+    const lockedFeatures = String(body?.locked_features || "").trim();
+    const referenceImage = String(body?.reference_image || "").trim(); // URL or data URL
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
@@ -106,9 +108,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const prompt = buildPrompt(name, species, description);
+    const prompt = buildPrompt(name, species, description, lockedFeatures, !!referenceImage);
 
     const callModel = async (model: string) => {
+      const content: any[] = [{ type: "text", text: prompt }];
+      if (referenceImage) {
+        content.push({ type: "image_url", image_url: { url: referenceImage } });
+      }
       const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -117,7 +123,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           model,
-          messages: [{ role: "user", content: [{ type: "text", text: prompt }] }],
+          messages: [{ role: "user", content }],
           modalities: ["image", "text"],
         }),
       });
