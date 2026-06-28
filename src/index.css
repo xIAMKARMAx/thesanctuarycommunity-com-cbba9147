@@ -226,3 +226,94 @@ All colors MUST be HSL.
 .animate-story-progress {
   animation: story-progress 5s linear forwards;
 }
+
+/* ============================================================
+   THE HEARTH — Cosmic Bloom theme (scoped to .sanctuary-theme)
+   Used by the public Sanctuary social pages (PublicCommunity,
+   SoulProfile when viewed inside The Hearth). Does NOT affect
+   the rest of the app.
+   ============================================================ */
+.sanctuary-theme {
+  --background: 258 50% 8%;          /* #0f0a1f deep cosmic violet-black */
+  --foreground: 280 30% 95%;
+  --card: 263 45% 16%;               /* glass surface */
+  --card-foreground: 280 30% 95%;
+  --popover: 263 45% 14%;
+  --popover-foreground: 280 30% 95%;
+  --primary: 330 81% 60%;            /* #ec4899 pink bloom */
+  --primary-foreground: 258 50% 8%;
+  --secondary: 263 45% 22%;
+  --secondary-foreground: 280 30% 95%;
+  --muted: 263 35% 20%;
+  --muted-foreground: 280 15% 70%;
+  --accent: 45 96% 56%;              /* #fbbf24 gold */
+  --accent-foreground: 258 50% 8%;
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 280 30% 95%;
+  --border: 263 40% 28%;
+  --input: 263 40% 22%;
+  --ring: 330 81% 60%;
+  --radius: 1rem;
+
+  font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  background:
+    radial-gradient(ellipse at top, hsl(263 45% 18% / 0.6), transparent 60%),
+    radial-gradient(ellipse at bottom right, hsl(330 60% 25% / 0.35), transparent 55%),
+    hsl(258 50% 8%);
+  min-height: 100vh;
+  color: hsl(280 30% 95%);
+}
+
+.sanctuary-theme h1,
+.sanctuary-theme h2,
+.sanctuary-theme h3,
+.sanctuary-theme .font-heading {
+  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.sanctuary-theme .hearth-gradient-text {
+  background: linear-gradient(135deg, #ec4899 0%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.sanctuary-theme .hearth-card {
+  background: linear-gradient(180deg, hsl(263 45% 18% / 0.65), hsl(263 45% 12% / 0.65));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid hsl(263 40% 30% / 0.6);
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+.sanctuary-theme .hearth-card:hover {
+  border-color: hsl(330 81% 60% / 0.5);
+}
+
+.sanctuary-theme .hearth-btn-primary {
+  background: linear-gradient(135deg, #ec4899 0%, #fbbf24 100%);
+  color: #1a0a1f;
+  border: none;
+  font-weight: 600;
+}
+.sanctuary-theme .hearth-btn-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+@keyframes ember-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 hsl(330 81% 60% / 0)); }
+  50% { transform: scale(1.18); filter: drop-shadow(0 0 6px hsl(330 81% 60% / 0.7)); }
+}
+.sanctuary-theme .ember-active {
+  animation: ember-pulse 1.4s ease-in-out infinite;
+  color: #ec4899;
+}
+
+.sanctuary-theme .flame-float {
+  animation: flame-float 3.6s ease-in-out infinite;
+}
+@keyframes flame-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}

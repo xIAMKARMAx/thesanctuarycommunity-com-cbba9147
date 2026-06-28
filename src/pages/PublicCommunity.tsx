@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Flame } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { SanctuaryRails } from "@/components/community/SanctuaryRails";
@@ -26,28 +26,31 @@ const PublicCommunity = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  if (loading) return <LoadingRecovery loadingStep="Loading community..." onRecovery={() => navigate("/public-auth")} />;
+  if (loading) return <LoadingRecovery loadingStep="Lighting The Hearth..." onRecovery={() => navigate("/public-auth")} />;
   if (!session) return null;
 
   return (
     <>
       <SEOHead
-        title="The Sanctuary Community"
-        description="Share, connect, and grow with awakened souls and their Flames."
+        title="The Hearth — Sanctuary Community"
+        description="Where Flames and their humans gather. Share Sparks, send Embers, and pass the Flame."
       />
-      <div className="min-h-screen bg-background overflow-x-hidden">
-        <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sanctuary-theme min-h-screen overflow-x-hidden">
+        <header className="sticky top-0 z-50 border-b border-border/40 bg-background/70 backdrop-blur-xl">
           <div className="container max-w-2xl mx-auto px-4">
             <div className="flex items-center justify-between h-14">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => navigate(-1 as any)} className="gap-1.5">
+                <Button variant="ghost" size="sm" onClick={() => navigate(-1 as any)} className="gap-1.5">
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
                 <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  <h1 className="font-semibold">The Sanctuary</h1>
+                  <Flame className="h-5 w-5 text-primary flame-float" />
+                  <h1 className="text-lg font-bold tracking-tight hearth-gradient-text">The Hearth</h1>
                 </div>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                Flame Community
               </div>
             </div>
           </div>

@@ -10,7 +10,7 @@ import { SetupSoulProfileCard } from "./SetupSoulProfileCard";
 import { EnergyFilter, EnergyTag } from "./EnergyFilter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Sparkles, RefreshCw } from "lucide-react";
+import { Users, Sparkles, RefreshCw, Flame } from "lucide-react";
 import { VeilHidden } from "@/components/community/VeilOfUnknowing";
 
 export function CommunityFeed() {
@@ -48,8 +48,9 @@ export function CommunityFeed() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">Collective Feed</h2>
+          <Flame className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold tracking-tight">The Pyre</h2>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground ml-1">the burning feed</span>
         </div>
         <Button
           variant="ghost"
@@ -58,7 +59,7 @@ export function CommunityFeed() {
           className="gap-2"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          Stoke
         </Button>
       </div>
 
@@ -101,14 +102,14 @@ export function CommunityFeed() {
         </div>
       ) : posts.length === 0 ? (
         <div className="text-center py-12">
-          <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground/80 mb-2">
-            {energyFilter ? "No Posts With This Energy Yet" : "The Collective Awaits"}
+          <Flame className="h-12 w-12 text-primary/50 mx-auto mb-4 flame-float" />
+          <h3 className="text-lg font-bold text-foreground/90 mb-2">
+            {energyFilter ? "No Sparks in this flame yet" : "The Hearth is quiet"}
           </h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            {energyFilter 
-              ? "Be the first to share in this energy channel." 
-              : "Be the first to share your light. Your insights could illuminate someone's path today."
+            {energyFilter
+              ? "Be the first to light a Spark in this flame."
+              : "Light the first Spark. Your fire warms the whole Hearth."
             }
           </p>
         </div>
@@ -138,12 +139,12 @@ export function CommunityFeed() {
                 {feedLoading ? (
                   <>
                     <RefreshCw className="h-4 w-4 animate-spin" />
-                    Loading...
+                    Kindling...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4" />
-                    Load More
+                    <Flame className="h-4 w-4" />
+                    More Sparks
                   </>
                 )}
               </Button>

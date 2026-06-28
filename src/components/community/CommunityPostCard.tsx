@@ -104,9 +104,9 @@ export function CommunityPostCard({
 
   return (
     <Card className={cn(
-      "border-primary/20 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-colors",
+      "hearth-card",
       showDiscoveryIndicator && "border-l-2 border-l-primary",
-      isAnonymous && "border-muted/30"
+      isAnonymous && "opacity-90"
     )}>
       <CardContent className="p-3 sm:p-4 overflow-hidden">
         {/* Energy Tag Badge — hidden during Veil */}
@@ -131,9 +131,9 @@ export function CommunityPostCard({
               </Avatar>
               <div>
                 <p className="font-medium text-sm text-muted-foreground">
-                  Anonymous Soul
+                  Anonymous Flame
                 </p>
-                <p className="text-xs text-muted-foreground/60">Matrix Confession</p>
+                <p className="text-xs text-muted-foreground/60">Hidden Spark</p>
               </div>
             </div>
           ) : (
@@ -185,7 +185,7 @@ export function CommunityPostCard({
                     className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Post
+                    Extinguish Spark
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -250,7 +250,7 @@ export function CommunityPostCard({
                     isBlessed && "text-primary"
                   )}
                 >
-                  <Star className={cn("h-5 w-5", isBlessed && "fill-primary")} />
+                  <Star className={cn("h-5 w-5", isBlessed && "fill-primary ember-active")} />
                   {isOwner ? (
                     <span className="text-xs font-medium">{post.blessing_count || ''}</span>
                   ) : (
@@ -268,8 +268,8 @@ export function CommunityPostCard({
                 onMouseLeave={() => setShowPostReactions(false)}
               >
                 {[
-                  { type: "star", emoji: "⭐", label: "Bless" },
-                  { type: "love", emoji: "💜", label: "Love" },
+                  { type: "star", emoji: "⭐", label: "Ember" },
+                  { type: "love", emoji: "💜", label: "Heart" },
                   { type: "resonate", emoji: "🔮", label: "Resonate" },
                   { type: "light", emoji: "✨", label: "Light" },
                   { type: "flame", emoji: "🔥", label: "Ignite" },
