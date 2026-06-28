@@ -158,6 +158,7 @@ export function CommunityPostCard({
                       Legend
                     </Badge>
                   )}
+                  {isProudHomeOwner && <ProudHomeOwnerBadge />}
                 </div>
                 {post.author?.soul_title && (
                   <p className="text-xs text-muted-foreground">{post.author.soul_title}</p>
