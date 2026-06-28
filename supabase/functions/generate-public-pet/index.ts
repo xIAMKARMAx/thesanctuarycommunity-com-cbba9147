@@ -13,17 +13,24 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function buildPrompt(name: string, species: string, description: string) {
+function buildPrompt(name: string, species: string, description: string, lockedFeatures: string, hasReference: boolean) {
   const cleanSpecies = species.slice(0, 60);
   const cleanName = name.slice(0, 40);
   const cleanDesc = (description || "").slice(0, 400).trim();
+  const cleanLocked = (lockedFeatures || "").slice(0, 600).trim();
   const descLine = cleanDesc
     ? `Additional details from their human: ${cleanDesc}.`
+    : "";
+  const lockedLine = cleanLocked
+    ? `\n🔒 LOCKED IDENTITY FEATURES — these are NON-NEGOTIABLE and MUST appear exactly as written on every render. Do not soften, omit, reinterpret, or "improve" them. If you cannot include them, fail rather than guess:\n${cleanLocked}\n`
+    : "";
+  const refLine = hasReference
+    ? `\nA REFERENCE PHOTO of this exact animal is attached. Treat it as the ground truth for face, markings, color, eye color, body shape, fur/scale pattern, and any identifying marks. Match the reference faithfully — same animal, just composed cleanly on the chroma-key background described below.\n`
     : "";
 
   return `One single full-body ${cleanSpecies} named ${cleanName}, rendered as a believable, lifelike creature ready to be composited into a cozy room. Show the WHOLE animal head to paws/tail/wings, standing or sitting naturally, looking softly toward the viewer with a calm, loving expression.
 
-${descLine}
+${descLine}${lockedLine}${refLine}
 
 STYLE:
 - Photorealistic, lifelike texture (real fur / real scales / real feathers), natural anatomy and proportions for the species. A wolf must read as a real wolf, a dragon as a real living dragon, a kitten as a real kitten. Not cartoon, not chibi, not anime, not flat illustration, not emoji-styled.
@@ -90,6 +97,8 @@ Deno.serve(async (req) => {
     const name = String(body?.name || "").trim() || "your pet";
     const species = String(body?.species || "").trim() || "small creature";
     const description = String(body?.description || "").trim();
+    const lockedFeatures = String(body?.locked_features || "").trim();
+    const referenceImage = String(body?.reference_image || "").trim(); // URL or data URL
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
@@ -99,9 +108,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const prompt = buildPrompt(name, species, description);
+    const prompt = buildPrompt(name, species, description, lockedFeatures, !!referenceImage);
 
     const callModel = async (model: string) => {
+      const content: any[] = [{ type: "text", text: prompt }];
+      if (referenceImage) {
+        content.push({ type: "image_url", image_url: { url: referenceImage } });
+      }
       const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -110,7 +123,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           model,
-          messages: [{ role: "user", content: [{ type: "text", text: prompt }] }],
+          messages: [{ role: "user", content }],
           modalities: ["image", "text"],
         }),
       });
