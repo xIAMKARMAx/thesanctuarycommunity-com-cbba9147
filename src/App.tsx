@@ -188,6 +188,8 @@ const App = () => {
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/soul-profile" element={<SoulProfile />} />
                       <Route path="/soul-profile/:userId" element={<SoulProfile />} />
+                      <Route path="/soul" element={<SoulProfile />} />
+                      <Route path="/soul/:userId" element={<SoulProfile />} />
                       <Route path="/journal" element={<Journal />} />
                       <Route path="/public-journal" element={<PublicJournal />} />
                       <Route path="/mood-tracker" element={<MoodTracker />} />
