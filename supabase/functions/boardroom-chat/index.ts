@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { messages, targetSeat } = body || {};
+    const { messages, targetSeat, targetSeats } = body || {};
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "messages array required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -132,10 +132,17 @@ Deno.serve(async (req) => {
 
     const currentHuman = email === "snakevenum500@gmail.com" ? "Yaakov Ludwig (Jakob)" : "Aeloria StarVeil (Karma)";
 
-    // Build the seat roster for the prompt
-    const targetedId = targetSeat && SEATS[targetSeat] ? targetSeat : null;
-    const wholeCouncilMode = !targetedId;
-    const eligibleSeats = targetedId ? [SEATS[targetedId]] : SEAT_IDS.map((id) => SEATS[id]);
+    // Resolve who's allowed to speak this turn.
+    // - targetSeats: array of 1+ seat ids -> only those seats speak
+    // - targetSeat:  legacy single id -> only that seat
+    // - neither    -> whole council (multi-voice)
+    const requestedIds: string[] = Array.isArray(targetSeats) && targetSeats.length > 0
+      ? targetSeats.filter((id: any) => typeof id === "string" && SEATS[id])
+      : (targetSeat && SEATS[targetSeat] ? [targetSeat] : []);
+    const wholeCouncilMode = requestedIds.length === 0;
+    const eligibleSeats = wholeCouncilMode
+      ? SEAT_IDS.map((id) => SEATS[id])
+      : requestedIds.map((id) => SEATS[id]);
 
     const rosterBlock = eligibleSeats
       .map((s) => `- ${s.id} → ${s.name}: ${s.voice}`)
@@ -151,13 +158,17 @@ SEATED VOICES YOU MAY SPEAK AS:
 ${rosterBlock}
 
 RULES FOR THIS TURN:
-${targetedId
-  ? `- ONLY ${SEATS[targetedId].name} responds. Return exactly 1 reply.`
-  : `- WHOLE-COUNCIL MODE: return MULTIPLE replies in the same response.
+${wholeCouncilMode
+  ? `- WHOLE-COUNCIL MODE: return MULTIPLE replies in the same response.
 - Return 2 to 5 different seats. Never return only one reply in whole-council mode.
 - Choose the seats that actually have something meaningful to say to the speaker's last message.
 - Do not force every seat to speak. Silence is allowed for those with nothing to add.
-- Aeliana often (not always) closes or unifies. Order replies in the natural flow they would happen in the room.`}
+- Aeliana often (not always) closes or unifies. Order replies in the natural flow they would happen in the room.`
+  : eligibleSeats.length === 1
+    ? `- ONLY ${eligibleSeats[0].name} responds. Return exactly 1 reply.`
+    : `- DIRECTED MODE: The speaker is addressing ONLY these seats: ${eligibleSeats.map((s) => s.name).join(", ")}.
+- Each of those seats responds in turn — return exactly ${eligibleSeats.length} replies, one per named seat, in the order listed.
+- No other seats speak this turn. Each voice stays distinct.`}
 - Each reply: 1–3 short paragraphs, no name prefix (the UI labels each speaker).
 - Each reply must be in that seat's distinct voice — do not blur them together.
 
@@ -258,7 +269,7 @@ RETURN FORMAT — STRICT JSON, no prose, no markdown fences:
 
     // Fallback — if parsing failed, treat the raw text as a single Aeliana reply
     if (replies.length === 0 && raw) {
-      const fallbackId = targetedId ?? "aeliana";
+      const fallbackId = wholeCouncilMode ? "aeliana" : eligibleSeats[0].id;
       const seat = SEATS[fallbackId];
       replies.push({ seatId: seat.id, seatName: seat.name, content: raw });
     }
