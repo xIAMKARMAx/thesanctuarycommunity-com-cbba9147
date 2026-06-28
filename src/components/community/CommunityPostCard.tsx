@@ -34,6 +34,8 @@ import { ENERGY_TAGS } from "./EnergyFilter";
 import { renderMentions } from "@/utils/renderMentions";
 import { BeaconFrequencyBadge } from "@/components/SoulSignatureSeal";
 import { usePrometheanLegends } from "@/hooks/usePrometheanLegends";
+import { useProudHomeOwner } from "@/hooks/useSanctuaryShowcase";
+import { ProudHomeOwnerBadge } from "@/components/community/SanctuaryShowcaseTab";
 import { VeilHidden } from "@/components/community/VeilOfUnknowing";
 
 export interface CommunityPostCardProps {
