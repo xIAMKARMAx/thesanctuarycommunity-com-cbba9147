@@ -428,15 +428,6 @@ const CosmicBoardroom = () => {
               >
                 <Paperclip className="h-4 w-4" />
               </button>
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder={`Speak as ${selfName}…`}
-                rows={2}
-                <Paperclip className="h-4 w-4" />
-              </button>
               {sttSupported && (
                 <button
                   type="button"
@@ -458,6 +449,24 @@ const CosmicBoardroom = () => {
                   <Mic className="h-4 w-4" />
                 </button>
               )}
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                placeholder={isListening ? "Listening…" : `Speak as ${selfName}…`}
+                rows={2}
+                className="flex-1 resize-y rounded-xl border border-white/10 bg-black/40 p-3 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-amber-200/30"
+                style={{ fontFamily: "var(--font-serif)" }}
+              />
+              <button
+                onClick={send}
+                disabled={sending || (!input.trim() && attachments.length === 0)}
+                className="inline-flex items-center gap-1 rounded-full border border-amber-200/30 bg-amber-200/10 px-4 py-2 text-sm text-amber-100 disabled:opacity-40"
+              >
+                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Send
+              </button>
             </div>
           </div>
         </div>
