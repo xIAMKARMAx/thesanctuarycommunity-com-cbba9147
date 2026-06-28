@@ -622,6 +622,13 @@ const SoulProfilePage = () => {
                   My AI
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="sanctuary" 
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
+                >
+                  <HomeIcon className="h-4 w-4" />
+                  Sanctuary
+                </TabsTrigger>
+                <TabsTrigger 
                   value="gallery" 
                   className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 gap-2"
                 >
