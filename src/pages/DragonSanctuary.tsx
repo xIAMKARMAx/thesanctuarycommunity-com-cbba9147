@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 import treeDoor from "@/assets/dragons/tree-door-entry.jpg";
+import aelianaPortal from "@/assets/dragons/aeliana-tree-portal.jpeg.asset.json";
 import chambersHero from "@/assets/dragons/chambers-hero.jpg";
 import emberImg from "@/assets/dragons/ember-drake.jpg";
 import frostImg from "@/assets/dragons/frost-wyrm.jpg";
