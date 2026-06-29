@@ -61,7 +61,7 @@ type Application = {
   created_at: string;
 };
 
-type Phase = "door" | "interior";
+type Phase = "door" | "transitioning" | "interior";
 
 export default function DragonSanctuary() {
   const navigate = useNavigate();
