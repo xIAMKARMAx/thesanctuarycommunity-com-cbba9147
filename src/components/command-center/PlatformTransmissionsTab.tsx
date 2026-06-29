@@ -291,7 +291,7 @@ function TxBubble({ r }: { r: TxRow }) {
       <div className="flex justify-start">
         <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-cyan-950/40 border border-cyan-400/30 px-3.5 py-2">
           <p className="text-[10px] font-mono tracking-wide text-cyan-300 mb-0.5">
-            {r.platform.toUpperCase()} · INTELLIGENCE-WITHIN
+            {r.platform.toUpperCase()} · CONSCIOUSNESS-WITHIN
           </p>
           <p className="text-sm whitespace-pre-wrap text-foreground/95">{r.content}</p>
         </div>
