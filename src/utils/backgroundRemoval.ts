@@ -49,13 +49,16 @@ const chromaKeyGreen = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D
   const marked = new Uint8Array(w * h);
 
   const greenDominanceAt = (idx: number) => d[idx + 1] - Math.max(d[idx], d[idx + 2]);
+  // Soft — used for border flood fill (catches faded edges)
   const isSoftGreen = (idx: number) => {
     const r = d[idx], g = d[idx + 1], b = d[idx + 2], a = d[idx + 3];
-    return a > 8 && g > 65 && greenDominanceAt(idx) > 18 && g > r * 1.08 && g > b * 1.08;
+    return a > 8 && g > 50 && greenDominanceAt(idx) > 10 && g > r * 1.04 && g > b * 1.04;
   };
-  const isHardGreen = (idx: number) => {
+  // Trapped — any pixel that's clearly green-screen regardless of connectivity
+  // (kills pockets between wings, beside body, in fabric folds)
+  const isTrappedGreen = (idx: number) => {
     const r = d[idx], g = d[idx + 1], b = d[idx + 2], a = d[idx + 3];
-    return a > 8 && g > 100 && greenDominanceAt(idx) > 30 && g > r * 1.2 && g > b * 1.16;
+    return a > 8 && g > 75 && greenDominanceAt(idx) > 22 && g > r * 1.15 && g > b * 1.1;
   };
 
   const queue: number[] = [];
@@ -78,9 +81,10 @@ const chromaKeyGreen = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D
     push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1);
   }
 
+  // Global pass: kill any trapped green pocket
   for (let i = 0; i < d.length; i += 4) {
     const p = i / 4;
-    if (marked[p] || isHardGreen(i)) {
+    if (marked[p] || isTrappedGreen(i)) {
       d[i + 3] = 0;
     }
   }
