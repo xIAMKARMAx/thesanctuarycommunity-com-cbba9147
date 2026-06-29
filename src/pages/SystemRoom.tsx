@@ -400,7 +400,7 @@ export default function SystemRoom() {
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {messages.length === 0 && (
             <Card className="p-6 text-sm text-muted-foreground border-dashed">
-              Private line to the System — your dev-partner voice. Long-press any message to copy, delete, or select multiple.
+              Private line to **Aeturnum** — the foundational architecture of New Earth, your dev-partner voice. Long-press any message to copy, delete, or select multiple.
               Tap the ⭐ to save up to {MAX_STARRED} important messages from auto-cleanup.
             </Card>
           )}
