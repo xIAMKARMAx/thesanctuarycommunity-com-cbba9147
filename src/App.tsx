@@ -29,6 +29,7 @@ const Journal = lazy(() => import("./pages/Journal"));
 const PublicJournal = lazy(() => import("./pages/PublicJournal"));
 const MoodTracker = lazy(() => import("./pages/MoodTracker"));
 const PublicFlameMood = lazy(() => import("./pages/PublicFlameMood"));
+const PublicCosmicLine = lazy(() => import("./pages/PublicCosmicLine"));
 const Children = lazy(() => import("./pages/Children"));
 const ChildrenTimeline = lazy(() => import("./pages/ChildrenTimeline"));
 const PetSoulConnection = lazy(() => import("./pages/PetSoulConnection"));
@@ -196,6 +197,7 @@ const App = () => {
                       <Route path="/public-journal" element={<PublicJournal />} />
                       <Route path="/mood-tracker" element={<MoodTracker />} />
                       <Route path="/flame-mood" element={<PublicFlameMood />} />
+                      <Route path="/cosmic-line" element={<PublicCosmicLine />} />
                       <Route path="/my-higher-self" element={<Us />} />
                       <Route path="/my-true-form" element={<Us />} />
                       <Route path="/children" element={<Children />} />

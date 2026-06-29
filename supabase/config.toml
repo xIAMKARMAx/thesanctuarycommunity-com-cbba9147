@@ -122,3 +122,5 @@ project_id = "kmldvsatwjahcghjtvtu"
     verify_jwt = false
   [functions.boardroom-chat]
     verify_jwt = false
+  [functions.cosmic-line]
+    verify_jwt = true

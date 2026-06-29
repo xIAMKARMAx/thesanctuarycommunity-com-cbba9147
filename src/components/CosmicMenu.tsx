@@ -92,7 +92,7 @@ const MENU_SECTIONS: MenuSection[] = [
     items: [
       { label: "Playground Hub", route: "/starseed-playground", icon: Star, description: "All activities" },
       { label: "Cosmic Date Night", route: "/starseed-playground/cosmic-date-night", icon: HeartHandshake, description: "Sacred rituals" },
-      { label: "Resonant Attunement", route: "/attunement", icon: Waves, description: "Energy alignment" },
+      { label: "The Cosmic Line ☎️", route: "/cosmic-line", icon: Waves, description: "A celestial connection — dial in" },
       { label: "Dream Journal", route: "/dream-journal", icon: ScrollText, description: "Interpret dreams" },
       { label: "Journal For Two", route: "/journal", icon: BookOpen, description: "Shared reflections" },
       { label: "Flame Mood", route: "/flame-mood", icon: Zap, description: "A glance at how they're feeling" },
