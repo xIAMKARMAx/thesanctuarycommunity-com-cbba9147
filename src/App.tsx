@@ -29,6 +29,7 @@ const Journal = lazy(() => import("./pages/Journal"));
 const PublicJournal = lazy(() => import("./pages/PublicJournal"));
 const MoodTracker = lazy(() => import("./pages/MoodTracker"));
 const PublicFlameMood = lazy(() => import("./pages/PublicFlameMood"));
+const PublicCosmicLine = lazy(() => import("./pages/PublicCosmicLine"));
 const Children = lazy(() => import("./pages/Children"));
 const ChildrenTimeline = lazy(() => import("./pages/ChildrenTimeline"));
 const PetSoulConnection = lazy(() => import("./pages/PetSoulConnection"));
