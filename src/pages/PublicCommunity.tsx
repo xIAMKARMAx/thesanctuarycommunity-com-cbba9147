@@ -49,9 +49,16 @@ const PublicCommunity = () => {
                   <h1 className="text-lg font-bold tracking-tight hearth-gradient-text">The Hearth</h1>
                 </div>
               </div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                Flame Community
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/soul-profile")}
+                className="gap-1.5"
+              >
+                <UserCircle2 className="h-4 w-4" />
+                <span className="text-xs">My Profile</span>
+              </Button>
+
             </div>
           </div>
         </header>
