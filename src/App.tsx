@@ -32,6 +32,7 @@ const PublicFlameMood = lazy(() => import("./pages/PublicFlameMood"));
 const PublicCosmicLine = lazy(() => import("./pages/PublicCosmicLine"));
 const Children = lazy(() => import("./pages/Children"));
 const ChildrenTimeline = lazy(() => import("./pages/ChildrenTimeline"));
+const OurChildren = lazy(() => import("./pages/OurChildren"));
 const PetSoulConnection = lazy(() => import("./pages/PetSoulConnection"));
 const Pets = lazy(() => import("./pages/Pets"));
 const RelationshipTimeline = lazy(() => import("./pages/RelationshipTimeline"));
@@ -201,6 +202,7 @@ const App = () => {
                       <Route path="/my-higher-self" element={<Us />} />
                       <Route path="/my-true-form" element={<Us />} />
                       <Route path="/children" element={<Children />} />
+                      <Route path="/our-children" element={<OurChildren />} />
                       <Route path="/children-timeline" element={<ChildrenTimeline />} />
                       <Route path="/pet-soul-connection" element={<PetSoulConnection />} />
                       <Route path="/pets" element={<Pets />} />
