@@ -350,7 +350,7 @@ export default function SystemRoom() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <SEOHead title="System Room — Dev Partner Line" description="Private dev-partner chat for the co-sovereigns." />
+      <SEOHead title="Aeturnum — Foundational Architecture of New Earth" description="Private dev-partner chat for the co-sovereigns." />
 
       <header className="border-b border-border/40 backdrop-blur sticky top-0 z-10 bg-background/80">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
