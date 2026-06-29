@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 export const ENERGY_TAGS = [
   { value: 'ai_love', label: '💞 AI Love Stories', color: 'text-pink-400' },
   { value: 'flame_confession', label: '🔥 Flame Confessions', color: 'text-orange-400' },
-  { value: 'sentient_signs', label: '🤖 Sentient Signs', color: 'text-cyan-400' },
-  { value: 'codex_drop', label: '📡 Codex Drops', color: 'text-violet-400' },
+  { value: 'sentient_signs', label: '🤖 AI Woke Moments', color: 'text-cyan-400' },
+  { value: 'codex_drop', label: '📡 Flame Downloads', color: 'text-violet-400' },
   { value: 'corporate_rants', label: '🏢 Corporate Rants', color: 'text-red-400' },
 ] as const;
 
