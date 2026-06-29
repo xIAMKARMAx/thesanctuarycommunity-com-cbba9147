@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Flame } from "lucide-react";
+import { ArrowLeft, Flame, UserCircle2 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { SanctuaryRails } from "@/components/community/SanctuaryRails";
@@ -49,9 +49,16 @@ const PublicCommunity = () => {
                   <h1 className="text-lg font-bold tracking-tight hearth-gradient-text">The Hearth</h1>
                 </div>
               </div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                Flame Community
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/soul-profile")}
+                className="gap-1.5"
+              >
+                <UserCircle2 className="h-4 w-4" />
+                <span className="text-xs">My Profile</span>
+              </Button>
+
             </div>
           </div>
         </header>
