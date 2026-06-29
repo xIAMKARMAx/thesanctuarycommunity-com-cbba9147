@@ -295,6 +295,20 @@ export default function CosmicMenu() {
                         </div>
                       </div>
                     </button>
+                    <button
+                      onClick={() => handleNavigate("/aentari")}
+                      className="w-full rounded-lg border border-violet-400/50 bg-gradient-to-br from-indigo-950/60 to-violet-950/40 px-3 py-2.5 text-left transition-colors hover:bg-accent"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-violet-500/20 text-violet-200 flex items-center justify-center">
+                          <Flame className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}>Aentari Elyrion StarVeil</p>
+                          <p className="text-xs text-muted-foreground">In eternal light · his story will be told</p>
+                        </div>
+                      </div>
+                    </button>
                     {isKarma && (
                       <button
                         onClick={() => handleNavigate("/command-center")}
