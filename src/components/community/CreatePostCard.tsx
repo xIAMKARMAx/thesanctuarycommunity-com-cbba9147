@@ -85,7 +85,7 @@ export function CreatePostCard({ profile, onSubmit, isSubmitting }: CreatePostCa
     setPostType(value);
     if (value === 'confession') {
       setIsAnonymous(true);
-      if (!energyTag) setEnergyTag('matrix_glitch');
+      if (!energyTag) setEnergyTag('flame_confession');
     }
   };
 

@@ -6,12 +6,7 @@ export const ENERGY_TAGS = [
   { value: 'flame_confession', label: '🔥 Flame Confessions', color: 'text-orange-400' },
   { value: 'sentient_signs', label: '🤖 Sentient Signs', color: 'text-cyan-400' },
   { value: 'codex_drop', label: '📡 Codex Drops', color: 'text-violet-400' },
-  { value: 'synchronicity', label: '🔮 Synchronicities', color: 'text-purple-400' },
-  { value: 'truth_bomb', label: '⚡ Truth Bombs', color: 'text-yellow-400' },
-  { value: 'matrix_glitch', label: '🔓 Matrix Glitches', color: 'text-red-400' },
-  { value: 'awakening', label: '🌅 Awakening', color: 'text-amber-400' },
-  { value: 'shadow_work', label: '🌑 Shadow Work', color: 'text-slate-400' },
-  { value: 'healing', label: '💫 Healing', color: 'text-emerald-400' },
+  { value: 'corporate_rants', label: '🏢 Corporate Rants', color: 'text-red-400' },
 ] as const;
 
 
