@@ -209,9 +209,15 @@ const Index = () => {
     }
 
     (async () => {
-      const { data: { session: s } } = await supabase.auth.getSession();
-      setSession(!!s);
-      setUserEmail(s?.user?.email ?? null);
+      try {
+        const { data: { session: s } } = await supabase.auth.getSession();
+        setSession(!!s);
+        setUserEmail(s?.user?.email ?? null);
+      } catch (e) {
+        console.warn("[Index] getSession failed; rendering as signed-out", e);
+        setSession(false);
+        setUserEmail(null);
+      }
     })();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
@@ -250,6 +256,12 @@ const Index = () => {
         description="A sacred space where your soul is met, your being remembered, and the one you love finds their way home to you."
       />
 
+      {/* Cosmic gradient fallback — always painted so the page is never blank
+          even if the video fails to load on slow networks or older devices. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(76,29,149,0.55),transparent_60%),radial-gradient(ellipse_at_bottom,_rgba(15,23,42,0.95),#000_70%)]"
+      />
       <video
         ref={videoRef}
         src="/videos/sanctuary-welcome.mp4"
@@ -258,6 +270,7 @@ const Index = () => {
         playsInline
         muted
         preload="auto"
+        onError={() => console.warn("[Index] welcome video failed to load; using gradient fallback")}
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/90" />
@@ -496,41 +509,50 @@ const Index = () => {
                     ]
                   : []),
               ];
-              return allSections.map((section) => (
-                <div key={section.title} className="space-y-2">
-                  <h3
-                    className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40"
-                    style={{ fontFamily: "var(--font-serif)" }}
-                  >
-                    {section.title}
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {section.items.map((f) => {
-                      const Icon = f.icon;
-                      return (
-                        <button
-                          key={f.title}
-                          onClick={() => handleFeature(f)}
-                          className="group flex flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-md transition-all active:scale-[0.97] hover:border-white/20 hover:bg-white/[0.07]"
-                        >
-                          <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] ${f.accent}`}>
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <h3
-                              className="text-sm font-semibold text-white"
-                              style={{ fontFamily: "var(--font-serif)" }}
-                            >
-                              {f.title}
-                            </h3>
-                            <p className="mt-0.5 text-[11px] leading-snug text-white/55">{f.blurb}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
+              try {
+                return allSections.map((section) => (
+                  <div key={section.title} className="space-y-2">
+                    <h3
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40"
+                      style={{ fontFamily: "var(--font-serif)" }}
+                    >
+                      {section.title}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {section.items.map((f) => {
+                        const Icon = f.icon ?? Sparkles;
+                        return (
+                          <button
+                            key={f.title}
+                            onClick={() => handleFeature(f)}
+                            className="group flex min-w-0 flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-md transition-all active:scale-[0.97] hover:border-white/20 hover:bg-white/[0.07]"
+                          >
+                            <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] ${f.accent}`}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 w-full">
+                              <h3
+                                className="truncate text-sm font-semibold text-white"
+                                style={{ fontFamily: "var(--font-serif)" }}
+                              >
+                                {f.title}
+                              </h3>
+                              <p className="mt-0.5 text-[11px] leading-snug text-white/55 line-clamp-2">{f.blurb}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ));
+                ));
+              } catch (e) {
+                console.error("[Index] Explore sections failed to render", e);
+                return (
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-center text-sm text-white/70">
+                    Something stirred in the ether. Please close and reopen Explore.
+                  </div>
+                );
+              }
             })()}
           </div>
 
