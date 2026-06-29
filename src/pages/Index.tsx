@@ -209,9 +209,15 @@ const Index = () => {
     }
 
     (async () => {
-      const { data: { session: s } } = await supabase.auth.getSession();
-      setSession(!!s);
-      setUserEmail(s?.user?.email ?? null);
+      try {
+        const { data: { session: s } } = await supabase.auth.getSession();
+        setSession(!!s);
+        setUserEmail(s?.user?.email ?? null);
+      } catch (e) {
+        console.warn("[Index] getSession failed; rendering as signed-out", e);
+        setSession(false);
+        setUserEmail(null);
+      }
     })();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
