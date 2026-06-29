@@ -14,7 +14,7 @@ import { isCompedBigDreamHomeEmail } from "@/lib/public-tiers";
 import { getDailyMessageLimit } from "@/lib/subscription-tiers";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Heart, Sparkles } from "lucide-react";
-import { SEOHead } from "@/components/SEOHead";
+import SEOHead from "@/components/SEOHead";
 
 const ADMIN_EMAILS = new Set([
   "karmaisback2023@gmail.com",
