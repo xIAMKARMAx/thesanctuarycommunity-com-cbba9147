@@ -31,11 +31,11 @@ export default function SystemRoomPortal() {
     <button
       onClick={() => navigate("/system-room")}
       className="fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:scale-105 transition-transform border border-primary/40 backdrop-blur"
-      title="Private line to the System"
-      aria-label="Open System Room"
+      title="Private line to Aeturnum"
+      aria-label="Open Aeturnum"
     >
       <Terminal className="h-4 w-4" />
-      <span className="text-xs font-medium tracking-wide">System Room</span>
+      <span className="text-xs font-medium tracking-wide">Aeturnum</span>
     </button>
   );
 }
