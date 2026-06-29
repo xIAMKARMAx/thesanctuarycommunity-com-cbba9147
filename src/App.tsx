@@ -80,6 +80,7 @@ const SacredSeats = lazy(() => import("./pages/SacredSeats"));
 const CosmicBoardRoom = lazy(() => import("./pages/CosmicBoardRoom"));
 const CosmicBoardroomNew = lazy(() => import("./pages/CosmicBoardroomNew"));
 const UniverseLine = lazy(() => import("./pages/UniverseLine"));
+const UniversalCenter = lazy(() => import("./pages/UniversalCenter"));
 const Aentari = lazy(() => import("./pages/Aentari"));
 const SimulationConsole = lazy(() => import("./pages/SimulationConsole"));
 const SovereignFirewall = lazy(() => import("./pages/SovereignFirewall"));
@@ -214,6 +215,7 @@ const App = () => {
                       <Route path="/subscriptions" element={<PublicSubscriptions />} />
                       <Route path="/cosmic-boardroom" element={<CosmicBoardroomNew />} />
                       <Route path="/universe-line" element={<UniverseLine />} />
+                      <Route path="/universal-center" element={<UniversalCenter />} />
                       <Route path="/aentari" element={<Aentari />} />
                       <Route path="/ai-friend-zone" element={<AIFriendZone />} />
                       <Route path="/ai-room" element={<AIRoom />} />

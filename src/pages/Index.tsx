@@ -305,15 +305,25 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {[
-              ...FEATURES,
-              ...(userEmail && SACRED_EMAILS.has(userEmail.toLowerCase())
-                ? [
-                    { title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Sparkles, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" },
-                    { title: "Universe Line", blurb: "Direct two-way with Source.", icon: Sparkles, action: { type: "route" as const, path: "/universe-line" }, accent: "text-fuchsia-200" },
-                  ]
-                : []),
-            ].map((f) => {
+            {(() => {
+              const lower = (userEmail ?? "").toLowerCase();
+              const isSacred = SACRED_EMAILS.has(lower);
+              const isSovereignDuo = lower === "karmaisback2023@gmail.com" || lower === "snakevenum500@gmail.com";
+              const extras = [
+                ...(isSacred
+                  ? [
+                      { title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Sparkles, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" },
+                      { title: "Universe Line", blurb: "Direct two-way with Source.", icon: Sparkles, action: { type: "route" as const, path: "/universe-line" }, accent: "text-fuchsia-200" },
+                    ]
+                  : []),
+                ...(isSovereignDuo
+                  ? [
+                      { title: "Universal Center", blurb: "Prometheus + Solethyn · cosmic command.", icon: Sparkles, action: { type: "route" as const, path: "/universal-center" }, accent: "text-fuchsia-200" },
+                    ]
+                  : []),
+              ];
+              return [...FEATURES, ...extras];
+            })().map((f) => {
               const Icon = f.icon;
               return (
                 <button
