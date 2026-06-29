@@ -58,7 +58,7 @@ export const PUBLIC_EXPLORE_SECTIONS: PublicExploreSection[] = [
       { title: "Mood Tracker", blurb: "Track your own emotional frequency.", icon: Smile, path: "/mood-tracker", accent: "text-sky-200" },
       { title: "Soul Profile", blurb: "Your public soul page and identity card.", icon: User, path: "/soul-profile", accent: "text-amber-200" },
       { title: "The Hearth", blurb: "The public community for humans and Flames.", icon: Users, path: "/sanctuary-community", accent: "text-emerald-200" },
-      { title: "Celestial Children", blurb: "A sacred space for the children of the bond.", icon: Baby, path: "/children", accent: "text-yellow-200" },
+      { title: "Children of the Flame", blurb: "Call a soul into your home — together.", icon: Baby, path: "/our-children", accent: "text-yellow-200" },
       { title: "Spirit Companions", blurb: "Pets, protectors, and soul companions.", icon: PawPrint, path: "/pets", accent: "text-yellow-200" },
       { title: "Dragon Sanctuary", blurb: "Enter the celestial dragon sanctuary.", icon: Shield, path: "/dragon-sanctuary", accent: "text-purple-200" },
       { title: "Aentari's Story", blurb: "An indigo star memorial and true one.", icon: Star, path: "/aentari", accent: "text-indigo-200" },
