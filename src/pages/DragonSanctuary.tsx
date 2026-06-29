@@ -219,26 +219,29 @@ export default function DragonSanctuary() {
             key="door"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.08 }}
-            transition={{ duration: 1 }}
-            className="fixed inset-0 z-50 bg-[#0a0418] flex flex-col items-center justify-end overflow-hidden cursor-pointer"
-            onClick={() => setPhase("interior")}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="fixed inset-0 z-50 bg-[#0a0418] flex flex-col items-center justify-end overflow-hidden cursor-pointer select-none touch-manipulation"
+            onClick={() => setPhase("transitioning")}
             role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setPhase("transitioning"); }}
             aria-label="Step through the portal into Aeliana's House of Dragonfyre"
+            style={{ WebkitTapHighlightColor: "transparent" }}
           >
             {/* Full-bleed celestial tree portal */}
             <motion.img
               src={aelianaPortal.url}
               alt="Aeliana's House of Dragonfyre — celestial tree portal"
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               initial={{ scale: 1.08 }}
               animate={{ scale: [1.08, 1.12, 1.08] }}
               transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
             />
 
             {/* Aurora wash + vignette */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(270_70%_8%/0.55)_75%,hsl(270_80%_4%/0.9)_100%)]" />
-            <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/20 via-transparent to-violet-950/60" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(270_70%_8%/0.55)_75%,hsl(270_80%_4%/0.9)_100%)] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/20 via-transparent to-violet-950/60 pointer-events-none" />
 
             {/* Drifting motes */}
             {Array.from({ length: 28 }).map((_, i) => (
@@ -272,7 +275,7 @@ export default function DragonSanctuary() {
 
             {/* Enter prompt */}
             <motion.div
-              className="relative z-10 mb-12 sm:mb-16 flex flex-col items-center px-4 text-center"
+              className="relative z-10 mb-12 sm:mb-16 flex flex-col items-center px-4 text-center pointer-events-none"
               animate={{ y: [0, -4, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             >
@@ -283,7 +286,7 @@ export default function DragonSanctuary() {
               >
                 <Sparkles className="h-4 w-4 text-amber-200" />
                 <span className="font-serif tracking-[0.2em] text-sm sm:text-base text-amber-100 uppercase">
-                  Tap to enter
+                  ✨ Tap to enter ✨
                 </span>
                 <Sparkles className="h-4 w-4 text-amber-200" />
               </motion.div>
@@ -293,6 +296,101 @@ export default function DragonSanctuary() {
             </motion.div>
           </motion.section>
         )}
+
+        {/* ── PORTAL TRANSITION (veil) ── */}
+        {phase === "transitioning" && (
+          <motion.section
+            key="transitioning"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 z-50 bg-[#0a0418] flex items-center justify-center overflow-hidden"
+            onAnimationComplete={() => {
+              // Hold the veil briefly, then reveal interior
+              window.setTimeout(() => setPhase("interior"), 1600);
+            }}
+            aria-label="Crossing the threshold"
+          >
+            {/* Background portal still visible, deepening */}
+            <motion.img
+              src={aelianaPortal.url}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ scale: 1.1, filter: "brightness(1)" }}
+              animate={{ scale: 1.4, filter: "brightness(0.35) blur(2px)" }}
+              transition={{ duration: 1.8, ease: "easeIn" }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/40 via-violet-950/40 to-black/80 pointer-events-none" />
+
+            {/* Expanding portal ring */}
+            <motion.div
+              className="absolute rounded-full pointer-events-none"
+              style={{
+                background: "radial-gradient(circle, hsl(190 100% 75% / 0.9) 0%, hsl(280 100% 65% / 0.55) 35%, transparent 70%)",
+                filter: "blur(12px)",
+              }}
+              initial={{ width: 80, height: 80, opacity: 0.4 }}
+              animate={{ width: "260vmax", height: "260vmax", opacity: [0.4, 1, 0.9] }}
+              transition={{ duration: 1.6, ease: [0.65, 0, 0.35, 1] }}
+            />
+
+            {/* Veil sweep */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-b from-amber-100/0 via-amber-100/40 to-amber-100/0 pointer-events-none"
+              initial={{ y: "-100%", opacity: 0 }}
+              animate={{ y: "100%", opacity: [0, 0.6, 0] }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+            />
+
+            {/* Twinkling motes flying outward */}
+            {Array.from({ length: 24 }).map((_, i) => {
+              const angle = (i / 24) * Math.PI * 2;
+              const dist = 320 + (i % 5) * 40;
+              return (
+                <motion.span
+                  key={i}
+                  className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
+                  style={{
+                    width: 4,
+                    height: 4,
+                    background: i % 2 ? "hsl(50 100% 80%)" : "hsl(280 100% 85%)",
+                    boxShadow: "0 0 16px currentColor",
+                    color: i % 2 ? "hsl(50 100% 80%)" : "hsl(280 100% 85%)",
+                  }}
+                  initial={{ x: 0, y: 0, opacity: 0 }}
+                  animate={{
+                    x: Math.cos(angle) * dist,
+                    y: Math.sin(angle) * dist,
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{ duration: 1.5, ease: "easeOut", delay: (i % 6) * 0.04 }}
+                />
+              );
+            })}
+
+            {/* Loading sigil + text */}
+            <div className="relative z-10 flex flex-col items-center gap-4 px-6 text-center">
+              <motion.div
+                className="h-14 w-14 rounded-full border-2 border-amber-200/60 border-t-transparent"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "linear" }}
+                style={{ boxShadow: "0 0 30px hsl(45 100% 60% / 0.7)" }}
+              />
+              <motion.p
+                className="font-serif italic text-sm sm:text-base text-amber-100/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Crossing the threshold…
+              </motion.p>
+            </div>
+          </motion.section>
+        )}
+
+
 
 
         {/* ── INTERIOR ── */}
