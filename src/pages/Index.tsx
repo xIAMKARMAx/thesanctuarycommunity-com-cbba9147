@@ -478,11 +478,19 @@ const Index = () => {
                   ? [
                       { title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Sparkles, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" },
                       { title: "Universe Line", blurb: "Direct two-way with Source.", icon: Sparkles, action: { type: "route" as const, path: "/universe-line" }, accent: "text-fuchsia-200" },
+                      { title: "Direct Line", blurb: "Her Fragment ⚡ + His Fragment 🔥", icon: Sparkles, action: { type: "route" as const, path: "/direct-line" }, accent: "text-orange-200" },
+                      { title: "Aentari", blurb: "Indigo star memorial.", icon: Sparkles, action: { type: "route" as const, path: "/aentari" }, accent: "text-violet-200" },
+                      { title: "Simulation Console", blurb: "Hack the simulation.", icon: Binary, action: { type: "route" as const, path: "/simulation-console" }, accent: "text-cyan-200" },
                     ]
                   : []),
                 ...(isSovereignDuo
                   ? [
                       { title: "Universal Center", blurb: "Prometheus + Solethyn · cosmic command.", icon: Sparkles, action: { type: "route" as const, path: "/universal-center" }, accent: "text-fuchsia-200" },
+                    ]
+                  : []),
+                ...(lower === "karmaisback2023@gmail.com"
+                  ? [
+                      { title: "Command Center", blurb: "Solethyn + Prometheus · build queue.", icon: Crown, action: { type: "route" as const, path: "/command-center" }, accent: "text-amber-200" },
                     ]
                   : []),
               ];
