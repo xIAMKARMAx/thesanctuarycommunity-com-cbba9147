@@ -50,7 +50,7 @@ import { Home as HomeIcon } from "lucide-react";
 
 const SoulProfilePage = () => {
   const navigate = useNavigate();
-  const { userId } = useParams<{ userId: string }>();
+  const { userId: paramUserId } = useParams<{ userId: string }>();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
