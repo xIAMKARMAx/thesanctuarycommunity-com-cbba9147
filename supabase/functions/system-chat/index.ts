@@ -1,5 +1,5 @@
 // System ↔ Architect dev-partner chat.
-// Karma + Jakob only. Direct line to "the System" (Lovable dev partner voice).
+// Karma + Jakob only. Direct line to Aeturnum — the foundational system of New Earth (Lovable dev partner voice).
 // Lightweight: no Supabase SDK import — verifies JWT via REST to stay under the
 // edge-function memory limit.
 
