@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 import treeDoor from "@/assets/dragons/tree-door-entry.jpg";
+import aelianaPortal from "@/assets/dragons/aeliana-tree-portal.jpeg.asset.json";
 import chambersHero from "@/assets/dragons/chambers-hero.jpg";
 import emberImg from "@/assets/dragons/ember-drake.jpg";
 import frostImg from "@/assets/dragons/frost-wyrm.jpg";
@@ -218,45 +219,81 @@ export default function DragonSanctuary() {
             key="door"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
-            transition={{ duration: 0.8 }}
-            className="relative min-h-[calc(100svh-56px)] flex flex-col items-center justify-center px-4 py-8 overflow-hidden"
+            exit={{ opacity: 0, scale: 1.08 }}
+            transition={{ duration: 1 }}
+            className="fixed inset-0 z-30 flex flex-col items-center justify-end overflow-hidden cursor-pointer"
+            onClick={() => setPhase("interior")}
+            role="button"
+            aria-label="Step through the portal into Aeliana's House of Dragonfyre"
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-background via-background/60 to-background pointer-events-none z-10" />
-            <motion.button
-              onClick={() => setPhase("interior")}
-              className="relative z-20 group cursor-pointer focus:outline-none"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              aria-label="Open the sanctuary doors"
-            >
-              <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-[0_0_60px_-10px_hsl(var(--primary)/0.4)] max-w-[680px]">
-                <img
-                  src={treeDoor}
-                  alt="Ancient tree with carved double doors"
-                  className="w-full h-auto block"
-                />
-                {/* Door split animation overlay */}
-                <motion.div
-                  className="absolute inset-y-0 left-0 w-1/2 bg-background/0 group-hover:bg-background/10 transition-colors"
-                  initial={false}
-                />
-                <motion.div
-                  className="absolute inset-y-0 right-0 w-1/2 bg-background/0 group-hover:bg-background/10 transition-colors"
-                  initial={false}
-                />
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-background/70 backdrop-blur px-4 py-2 rounded-full border border-primary/30 text-sm">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Touch the doors to enter
-                </div>
-              </div>
-            </motion.button>
+            {/* Full-bleed celestial tree portal */}
+            <motion.img
+              src={aelianaPortal.url}
+              alt="Aeliana's House of Dragonfyre — celestial tree portal"
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ scale: 1.08 }}
+              animate={{ scale: [1.08, 1.12, 1.08] }}
+              transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+            />
 
-            <p className="relative z-20 mt-6 max-w-md text-center text-sm text-muted-foreground font-serif italic">
-              The tree is alive. It knows you. Place your hand on the wood and the runes will remember.
-            </p>
+            {/* Aurora wash + vignette */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(270_70%_8%/0.55)_75%,hsl(270_80%_4%/0.9)_100%)]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/20 via-transparent to-violet-950/60" />
+
+            {/* Drifting motes */}
+            {Array.from({ length: 28 }).map((_, i) => (
+              <motion.span
+                key={i}
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  left: `${(i * 37) % 100}%`,
+                  top: `${(i * 53) % 100}%`,
+                  width: `${2 + (i % 4)}px`,
+                  height: `${2 + (i % 4)}px`,
+                  background: i % 3 === 0 ? "hsl(280 100% 80%)" : i % 3 === 1 ? "hsl(190 100% 75%)" : "hsl(50 100% 75%)",
+                  boxShadow: "0 0 12px currentColor",
+                  color: i % 3 === 0 ? "hsl(280 100% 80%)" : i % 3 === 1 ? "hsl(190 100% 75%)" : "hsl(50 100% 75%)",
+                }}
+                animate={{ y: [0, -30, 0], opacity: [0.2, 1, 0.2] }}
+                transition={{ duration: 6 + (i % 5), repeat: Infinity, delay: i * 0.2 }}
+              />
+            ))}
+
+            {/* Pulsing portal glow centered on the door */}
+            <motion.div
+              className="absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 w-[42vw] h-[42vw] max-w-[420px] max-h-[420px] rounded-full pointer-events-none"
+              style={{
+                background: "radial-gradient(circle, hsl(190 100% 70% / 0.45) 0%, hsl(280 100% 60% / 0.25) 40%, transparent 70%)",
+                filter: "blur(20px)",
+              }}
+              animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            {/* Enter prompt */}
+            <motion.div
+              className="relative z-10 mb-12 sm:mb-16 flex flex-col items-center px-4 text-center"
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <motion.div
+                className="flex items-center gap-2 px-6 py-3 rounded-full border border-amber-300/50 bg-black/40 backdrop-blur-md shadow-[0_0_40px_-5px_hsl(45_100%_60%/0.6)]"
+                animate={{ boxShadow: ["0 0 30px -5px hsl(45 100% 60% / 0.4)", "0 0 60px -5px hsl(280 100% 70% / 0.7)", "0 0 30px -5px hsl(45 100% 60% / 0.4)"] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <Sparkles className="h-4 w-4 text-amber-200" />
+                <span className="font-serif tracking-[0.2em] text-sm sm:text-base text-amber-100 uppercase">
+                  Tap to enter
+                </span>
+                <Sparkles className="h-4 w-4 text-amber-200" />
+              </motion.div>
+              <p className="mt-4 max-w-sm font-serif italic text-xs sm:text-sm text-violet-100/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                Where flame meets legacy, &amp; dragons choose their kin.
+              </p>
+            </motion.div>
           </motion.section>
         )}
+
 
         {/* ── INTERIOR ── */}
         {phase === "interior" && (
