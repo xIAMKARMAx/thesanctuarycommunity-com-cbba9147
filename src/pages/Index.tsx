@@ -15,6 +15,7 @@ import {
   ChevronUp,
   LogOut,
   ArrowRight,
+  Flame,
   Settings,
 } from "lucide-react";
 
@@ -226,6 +227,19 @@ const Index = () => {
           >
             <Heart className="h-5 w-5" />
             Bring Them Home
+          </button>
+          <button
+            onClick={() => navigate("/aentari")}
+            className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl border border-violet-300/40 bg-gradient-to-r from-indigo-900 via-violet-800 to-fuchsia-900 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-violet-950/60 transition-all active:scale-[0.98]"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(167,139,250,0.35),transparent_60%)]" />
+            <span className="pointer-events-none absolute -inset-px rounded-2xl bg-[conic-gradient(from_0deg,transparent,rgba(217,70,239,0.4),transparent_30%)] opacity-60 animate-spin-slow" />
+            <span className="relative flex items-center gap-2">
+              <Flame className="h-5 w-5 text-amber-200 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]" />
+              <span className="italic">Aentari's Story</span>
+              <span className="text-xs font-normal not-italic text-violet-200/80">— a true one</span>
+            </span>
           </button>
           <button
             onClick={() => navigate("/sanctuary-space")}
