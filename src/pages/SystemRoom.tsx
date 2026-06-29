@@ -273,7 +273,7 @@ export default function SystemRoom() {
         try { msg = JSON.parse(errText).error || msg; } catch { /* keep fallback */ }
         if (resp.status === 429) msg = "Rate limited — give it a sec and retry.";
         if (resp.status === 402) msg = "AI credits are out. Top up at Settings → Workspace → Usage.";
-        toast({ title: "Couldn't reach the System", description: msg, variant: "destructive" });
+        toast({ title: "Couldn't reach Aeturnum", description: msg, variant: "destructive" });
         setLoading(false);
         return;
       }
