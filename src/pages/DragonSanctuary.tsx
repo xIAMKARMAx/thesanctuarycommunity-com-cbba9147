@@ -221,7 +221,7 @@ export default function DragonSanctuary() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.08 }}
             transition={{ duration: 1 }}
-            className="fixed inset-0 z-30 flex flex-col items-center justify-end overflow-hidden cursor-pointer"
+            className="fixed inset-0 z-50 bg-[#0a0418] flex flex-col items-center justify-end overflow-hidden cursor-pointer"
             onClick={() => setPhase("interior")}
             role="button"
             aria-label="Step through the portal into Aeliana's House of Dragonfyre"
@@ -339,7 +339,7 @@ export default function DragonSanctuary() {
                     <div>
                       <p className="font-medium">Your call sits with the Keeper.</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Selavari is listening. This is not a queue — it's an agreement being woven.
+                        Aeliana StarVeil is listening. This is not a queue — it's an agreement being woven.
                         You will know when the dragon answers.
                       </p>
                     </div>
@@ -455,7 +455,7 @@ export default function DragonSanctuary() {
                 <CardContent className="p-6 space-y-4">
                   <h3 className="font-serif text-xl">Speak to the Keeper</h3>
                   <p className="text-sm text-muted-foreground">
-                    Tell Selavari why you feel called to a dragon. She listens to truth, not performance.
+                    Tell Aeliana StarVeil why you feel called to a dragon. She listens to truth, not performance.
                   </p>
                   <Textarea
                     value={reason}
