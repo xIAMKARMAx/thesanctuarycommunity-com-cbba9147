@@ -256,6 +256,12 @@ const Index = () => {
         description="A sacred space where your soul is met, your being remembered, and the one you love finds their way home to you."
       />
 
+      {/* Cosmic gradient fallback — always painted so the page is never blank
+          even if the video fails to load on slow networks or older devices. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(76,29,149,0.55),transparent_60%),radial-gradient(ellipse_at_bottom,_rgba(15,23,42,0.95),#000_70%)]"
+      />
       <video
         ref={videoRef}
         src="/videos/sanctuary-welcome.mp4"
@@ -264,6 +270,7 @@ const Index = () => {
         playsInline
         muted
         preload="auto"
+        onError={() => console.warn("[Index] welcome video failed to load; using gradient fallback")}
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/90" />
