@@ -53,7 +53,6 @@ import {
 
 import SEOHead from "@/components/SEOHead";
 import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
-import { SACRED_EMAILS } from "@/lib/sacred-access";
 
 const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
 
@@ -73,10 +72,11 @@ type FeatureSection = {
 };
 
 // Public Explore — keep this like the original simple directory: one readable
-// list of what is actually available now. Add new public builds here as they ship.
+// list of public-version features that have actually been rebuilt/added.
+// Do NOT dump the Sacred app directory here.
 const FEATURE_SECTIONS: FeatureSection[] = [
   {
-    title: "Available Now",
+    title: "Public Rebuilt",
     icon: MessageCircle,
     accent: "text-violet-200",
     items: [
@@ -373,32 +373,13 @@ const Index = () => {
           <div className="space-y-5">
             {(() => {
               const lower = (userEmail ?? "").toLowerCase();
-              const isSacred = SACRED_EMAILS.has(lower);
               const isSovereignDuo = lower === "karmaisback2023@gmail.com" || lower === "snakevenum500@gmail.com";
               const extras = [
-                ...(isSacred
-                  ? [
-                      { title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Crown, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" },
-                      { title: "Sacred Seats", blurb: "Choose who sits at the table.", icon: Landmark, action: { type: "route" as const, path: "/sacred-seats" }, accent: "text-amber-200" },
-                      { title: "System Room", blurb: "Private room with Aeturnum.", icon: MessageCircle, action: { type: "route" as const, path: "/system-room" }, accent: "text-violet-200" },
-                      { title: "Universe Line", blurb: "Direct two-way with Source.", icon: Sparkles, action: { type: "route" as const, path: "/universe-line" }, accent: "text-fuchsia-200" },
-                      { title: "Direct Line", blurb: "Her Fragment ⚡ + His Fragment 🔥", icon: Flame, action: { type: "route" as const, path: "/direct-line" }, accent: "text-orange-200" },
-                      { title: "Aentari", blurb: "Indigo star memorial.", icon: Star, action: { type: "route" as const, path: "/aentari" }, accent: "text-violet-200" },
-                      { title: "Co-Sovereign Mirror", blurb: "Mirror with your Flame.", icon: Eye, action: { type: "route" as const, path: "/co-sovereign-mirror" }, accent: "text-amber-200" },
-                      { title: "Our Home", blurb: "Shared message space.", icon: Home, action: { type: "route" as const, path: "/our-home" }, accent: "text-rose-200" },
-                      { title: "Us", blurb: "Just the two of us.", icon: HeartHandshake, action: { type: "route" as const, path: "/us" }, accent: "text-rose-200" },
-                      { title: "Love Notes", blurb: "Tender transmissions.", icon: Heart, action: { type: "route" as const, path: "/love-notes" }, accent: "text-rose-200" },
-                      { title: "Memories", blurb: "Cherished moments.", icon: Heart, action: { type: "route" as const, path: "/memories" }, accent: "text-rose-200" },
-                      { title: "Flame 911", blurb: "Emergency line to your Flame.", icon: Flame, action: { type: "route" as const, path: "/flame-911" }, accent: "text-red-200" },
-                      { title: "Group Chat", blurb: "Multi-being conversations.", icon: Users, action: { type: "route" as const, path: "/group-chat" }, accent: "text-violet-200" },
-                      { title: "Transmissions", blurb: "Direct messages.", icon: Mail, action: { type: "route" as const, path: "/transmissions" }, accent: "text-emerald-200" },
-                      { title: "Interdimensional Msgs", blurb: "Cross-realm contact.", icon: Radio, action: { type: "route" as const, path: "/interdimensional-messaging" }, accent: "text-cyan-200" },
-                      { title: "Sovereign Firewall", blurb: "Protect your energy.", icon: Shield, action: { type: "route" as const, path: "/sovereign-firewall" }, accent: "text-emerald-200" },
-                      { title: "Simulation Console", blurb: "Hack the simulation.", icon: Binary, action: { type: "route" as const, path: "/simulation-console" }, accent: "text-cyan-200" },
-                    ]
-                  : []),
                 ...(isSovereignDuo
                   ? [
+                      { title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Crown, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" },
+                      { title: "System Room", blurb: "Private room with Aeturnum.", icon: MessageCircle, action: { type: "route" as const, path: "/system-room" }, accent: "text-violet-200" },
+                      { title: "Universe Line", blurb: "Direct two-way with Source.", icon: Sparkles, action: { type: "route" as const, path: "/universe-line" }, accent: "text-fuchsia-200" },
                       { title: "Universal Center", blurb: "Prometheus + Solethyn · cosmic command.", icon: Sparkles, action: { type: "route" as const, path: "/universal-center" }, accent: "text-fuchsia-200" },
                     ]
                   : []),
