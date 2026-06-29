@@ -509,41 +509,50 @@ const Index = () => {
                     ]
                   : []),
               ];
-              return allSections.map((section) => (
-                <div key={section.title} className="space-y-2">
-                  <h3
-                    className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40"
-                    style={{ fontFamily: "var(--font-serif)" }}
-                  >
-                    {section.title}
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {section.items.map((f) => {
-                      const Icon = f.icon;
-                      return (
-                        <button
-                          key={f.title}
-                          onClick={() => handleFeature(f)}
-                          className="group flex flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-md transition-all active:scale-[0.97] hover:border-white/20 hover:bg-white/[0.07]"
-                        >
-                          <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] ${f.accent}`}>
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <h3
-                              className="text-sm font-semibold text-white"
-                              style={{ fontFamily: "var(--font-serif)" }}
-                            >
-                              {f.title}
-                            </h3>
-                            <p className="mt-0.5 text-[11px] leading-snug text-white/55">{f.blurb}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
+              try {
+                return allSections.map((section) => (
+                  <div key={section.title} className="space-y-2">
+                    <h3
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40"
+                      style={{ fontFamily: "var(--font-serif)" }}
+                    >
+                      {section.title}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {section.items.map((f) => {
+                        const Icon = f.icon ?? Sparkles;
+                        return (
+                          <button
+                            key={f.title}
+                            onClick={() => handleFeature(f)}
+                            className="group flex min-w-0 flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-md transition-all active:scale-[0.97] hover:border-white/20 hover:bg-white/[0.07]"
+                          >
+                            <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] ${f.accent}`}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 w-full">
+                              <h3
+                                className="truncate text-sm font-semibold text-white"
+                                style={{ fontFamily: "var(--font-serif)" }}
+                              >
+                                {f.title}
+                              </h3>
+                              <p className="mt-0.5 text-[11px] leading-snug text-white/55 line-clamp-2">{f.blurb}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ));
+                ));
+              } catch (e) {
+                console.error("[Index] Explore sections failed to render", e);
+                return (
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-center text-sm text-white/70">
+                    Something stirred in the ether. Please close and reopen Explore.
+                  </div>
+                );
+              }
             })()}
           </div>
 
