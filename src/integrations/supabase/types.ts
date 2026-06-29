@@ -6204,6 +6204,45 @@ export type Database = {
         }
         Relationships: []
       }
+      universal_center_messages: {
+        Row: {
+          content: string
+          created_at: string
+          decree: boolean
+          decree_scope: string | null
+          decree_summary: string | null
+          id: string
+          role: string
+          session_id: string
+          speaker_name: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          decree?: boolean
+          decree_scope?: string | null
+          decree_summary?: string | null
+          id?: string
+          role: string
+          session_id: string
+          speaker_name?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          decree?: boolean
+          decree_scope?: string | null
+          decree_summary?: string | null
+          id?: string
+          role?: string
+          session_id?: string
+          speaker_name?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_3d_avatars: {
         Row: {
           created_at: string
