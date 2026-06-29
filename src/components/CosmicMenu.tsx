@@ -6,7 +6,7 @@ import {
   MessageCircle, Home, Heart, Wand2, Moon, ScrollText, Shield,
   Zap, Eye, Flame, Brain, Compass, Search, Baby, PawPrint,
   Camera, Video, Award, Mail, Landmark, Mountain, Radio,
-  Waves, Gem, Binary, Orbit, HeartHandshake, ScanEye, CreditCard, Settings
+  Waves, Gem, Binary, Orbit, HeartHandshake, ScanEye, CreditCard, Settings, Smile
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
