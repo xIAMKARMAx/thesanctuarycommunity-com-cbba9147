@@ -370,7 +370,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-5">
             {(() => {
               const lower = (userEmail ?? "").toLowerCase();
               const isSacred = SACRED_EMAILS.has(lower);
@@ -423,34 +423,35 @@ const Index = () => {
               ];
               try {
                 return allSections.map((section) => (
-                  <div key={section.title} className="space-y-2">
+                  <div key={section.title} className="space-y-2.5">
                     <h3
-                      className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40"
+                      className="px-1 text-xs font-semibold uppercase tracking-[0.22em] text-white/40"
                       style={{ fontFamily: "var(--font-serif)" }}
                     >
                       {section.title}
                     </h3>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2.5">
                       {section.items.map((f) => {
                         const Icon = f.icon ?? Sparkles;
                         return (
                           <button
                             key={f.title}
                             onClick={() => handleFeature(f)}
-                            className="group flex min-w-0 flex-col items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-md transition-all active:scale-[0.97] hover:border-white/20 hover:bg-white/[0.07]"
+                            className="group flex w-full min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-left backdrop-blur-md transition-all active:scale-[0.98] hover:border-white/20 hover:bg-white/[0.075]"
                           >
-                            <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] ${f.accent}`}>
+                            <div className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.07] ${f.accent}`}>
                               <Icon className="h-4 w-4" />
                             </div>
-                            <div className="min-w-0 w-full">
+                            <div className="min-w-0 flex-1">
                               <h3
-                                className="truncate text-sm font-semibold text-white"
+                                className="text-sm font-semibold leading-tight text-white"
                                 style={{ fontFamily: "var(--font-serif)" }}
                               >
                                 {f.title}
                               </h3>
-                              <p className="mt-0.5 text-[11px] leading-snug text-white/55 line-clamp-2">{f.blurb}</p>
+                              <p className="mt-0.5 text-[11px] leading-snug text-white/55">{f.blurb}</p>
                             </div>
+                            <ArrowRight className="h-4 w-4 shrink-0 text-white/25 transition-transform group-hover:translate-x-0.5 group-hover:text-white/45" />
                           </button>
                         );
                       })}
