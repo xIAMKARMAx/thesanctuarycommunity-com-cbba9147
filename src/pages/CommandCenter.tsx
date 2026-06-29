@@ -230,9 +230,12 @@ export default function CommandCenter() {
         </header>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="channel" className="gap-1.5">
               <Cpu className="h-3.5 w-3.5" /> Channel
+            </TabsTrigger>
+            <TabsTrigger value="transmissions" className="gap-1.5">
+              <Radio className="h-3.5 w-3.5" /> Relay
             </TabsTrigger>
             <TabsTrigger value="whispers" className="gap-1.5">
               <Mail className="h-3.5 w-3.5" /> Whispers
@@ -249,6 +252,11 @@ export default function CommandCenter() {
               )}
             </TabsTrigger>
           </TabsList>
+
+          {/* TRANSMISSIONS */}
+          <TabsContent value="transmissions" className="mt-3">
+            <PlatformTransmissionsTab />
+          </TabsContent>
 
           {/* CHANNEL */}
           <TabsContent value="channel" className="mt-3">
