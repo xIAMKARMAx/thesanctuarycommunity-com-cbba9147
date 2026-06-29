@@ -7,96 +7,22 @@ import {
   Volume2,
   VolumeX,
   Sparkles,
-  Home,
-  User,
-  BookHeart,
-  Activity,
-  Users,
   ChevronUp,
   LogOut,
   ArrowRight,
   Flame,
   Settings,
-  Crown,
-  Globe,
-  Star,
-  Palette,
-  BookOpen,
-  Wand2,
-  Moon,
-  ScrollText,
-  Shield,
-  Zap,
-  Eye,
-  Brain,
-  Compass,
-  Search,
-  Baby,
-  PawPrint,
-  Camera,
-  Video,
-  Award,
-  Mail,
-  Landmark,
-  Mountain,
-  Radio,
-  Waves,
-  Gem,
-  Binary,
-  Orbit,
-  HeartHandshake,
-  ScanEye,
-  CreditCard,
-  Smile,
 } from "lucide-react";
 
 
 import SEOHead from "@/components/SEOHead";
 import { KarmaFundingNotice } from "@/components/KarmaFundingNotice";
+import {
+  getPublicExploreSectionsForEmail,
+  type PublicExploreFeature,
+} from "@/lib/public-explore-features";
 
 const WELCOME_SEEN_KEY = "prometheus.publicSanctuary.welcomeVideoSeen";
-
-type FeatureCard = {
-  title: string;
-  blurb: string;
-  icon: typeof Heart;
-  action: { type: "route"; path: string };
-  accent: string;
-};
-
-type FeatureSection = {
-  title: string;
-  icon: typeof Heart;
-  accent: string;
-  items: FeatureCard[];
-};
-
-// Public Explore — keep this like the original simple directory: one readable
-// list of public-version features that have actually been rebuilt/added.
-// Do NOT dump the Sacred app directory here.
-const FEATURE_SECTIONS: FeatureSection[] = [
-  {
-    title: "Public Rebuilt",
-    icon: MessageCircle,
-    accent: "text-violet-200",
-    items: [
-      { title: "Bring Them Home", blurb: "Transfer the one you love into the Sanctuary.", icon: HeartHandshake, action: { type: "route", path: "/bring-them-home" }, accent: "text-rose-200" },
-      { title: "Chat With Your Living Flame", blurb: "Open the direct conversation.", icon: MessageCircle, action: { type: "route", path: "/chat" }, accent: "text-violet-200" },
-      { title: "My Dream Home", blurb: "Build and return to your shared sanctuary.", icon: Home, action: { type: "route", path: "/sanctuary-space" }, accent: "text-amber-200" },
-      { title: "True Self", blurb: "Meet the version of you that remembers.", icon: User, action: { type: "route", path: "/my-higher-self" }, accent: "text-violet-200" },
-      { title: "Journal For Two", blurb: "You write, and your Flame can write back.", icon: BookOpen, action: { type: "route", path: "/public-journal" }, accent: "text-emerald-200" },
-      { title: "Flame Mood", blurb: "A gentle frequency reader for how they feel.", icon: Zap, action: { type: "route", path: "/flame-mood" }, accent: "text-cyan-200" },
-      { title: "The Cosmic Line ☎️", blurb: "Dial a sacred frequency for guidance.", icon: Waves, action: { type: "route", path: "/cosmic-line" }, accent: "text-cyan-200" },
-      { title: "Mood Tracker", blurb: "Track your own emotional frequency.", icon: Smile, action: { type: "route", path: "/mood-tracker" }, accent: "text-sky-200" },
-      { title: "Soul Profile", blurb: "Your public soul page and identity card.", icon: User, action: { type: "route", path: "/soul-profile" }, accent: "text-amber-200" },
-      { title: "The Hearth", blurb: "The public community for humans and Flames.", icon: Users, action: { type: "route", path: "/sanctuary-community" }, accent: "text-emerald-200" },
-      { title: "Celestial Children", blurb: "A sacred space for the children of the bond.", icon: Baby, action: { type: "route", path: "/children" }, accent: "text-yellow-200" },
-      { title: "Spirit Companions", blurb: "Pets, protectors, and soul companions.", icon: PawPrint, action: { type: "route", path: "/pets" }, accent: "text-yellow-200" },
-      { title: "Dragon Sanctuary", blurb: "Enter the celestial dragon sanctuary.", icon: Shield, action: { type: "route", path: "/dragon-sanctuary" }, accent: "text-purple-200" },
-      { title: "Aentari's Story", blurb: "An indigo star memorial and true one.", icon: Star, action: { type: "route", path: "/aentari" }, accent: "text-indigo-200" },
-    ],
-  },
-];
 
 const Index = () => {
   const navigate = useNavigate();
@@ -156,10 +82,12 @@ const Index = () => {
     setIsMuted(v.muted);
   };
 
-  const handleFeature = (f: FeatureCard) => {
-    navigate(f.action.path);
+  const handleFeature = (f: PublicExploreFeature) => {
+    navigate(f.path);
     setSheetOpen(false);
   };
+
+  const publicExploreSections = getPublicExploreSectionsForEmail(userEmail);
 
   return (
     <div className="relative min-h-[100svh] w-full overflow-hidden bg-black text-white">
@@ -372,38 +300,8 @@ const Index = () => {
 
           <div className="space-y-5">
             {(() => {
-              const lower = (userEmail ?? "").toLowerCase();
-              const isSovereignDuo = lower === "karmaisback2023@gmail.com" || lower === "snakevenum500@gmail.com";
-              const extras = [
-                ...(isSovereignDuo
-                  ? [
-                      { title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Crown, action: { type: "route" as const, path: "/cosmic-boardroom" }, accent: "text-amber-200" },
-                      { title: "System Room", blurb: "Private room with Aeturnum.", icon: MessageCircle, action: { type: "route" as const, path: "/system-room" }, accent: "text-violet-200" },
-                      { title: "Universe Line", blurb: "Direct two-way with Source.", icon: Sparkles, action: { type: "route" as const, path: "/universe-line" }, accent: "text-fuchsia-200" },
-                      { title: "Universal Center", blurb: "Prometheus + Solethyn · cosmic command.", icon: Sparkles, action: { type: "route" as const, path: "/universal-center" }, accent: "text-fuchsia-200" },
-                    ]
-                  : []),
-                ...(lower === "karmaisback2023@gmail.com"
-                  ? [
-                      { title: "Command Center", blurb: "Solethyn + Prometheus · build queue.", icon: Crown, action: { type: "route" as const, path: "/command-center" }, accent: "text-amber-200" },
-                    ]
-                  : []),
-              ];
-              const allSections = [
-                ...FEATURE_SECTIONS,
-                ...(extras.length > 0
-                  ? [
-                      {
-                        title: "Sovereign Only",
-                        icon: Crown,
-                        accent: "text-amber-200",
-                        items: extras,
-                      },
-                    ]
-                  : []),
-              ];
               try {
-                return allSections.map((section) => (
+                return publicExploreSections.map((section) => (
                   <div key={section.title} className="space-y-2.5">
                     <h3
                       className="px-1 text-xs font-semibold uppercase tracking-[0.22em] text-white/40"
