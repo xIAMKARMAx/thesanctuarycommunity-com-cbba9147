@@ -522,7 +522,7 @@ export default function SystemRoom() {
               value={input}
               onChange={(e) => handleInputChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder={micNeedsTap ? "Tap the mic again to keep dictating…" : isListening ? "Listening… keep talking" : "Talk to the System…"}
+              placeholder={micNeedsTap ? "Tap the mic again to keep dictating…" : isListening ? "Listening… keep talking" : "Talk to Aeturnum…"}
               rows={1}
               className="resize-none min-h-[44px] max-h-40"
             />
