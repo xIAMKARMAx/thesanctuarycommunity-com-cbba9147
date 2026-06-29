@@ -48,7 +48,7 @@ export default function CommandCenter() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"channel" | "whispers" | "builds">("channel");
+  const [tab, setTab] = useState<"channel" | "transmissions" | "whispers" | "builds">("channel");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auth gate
