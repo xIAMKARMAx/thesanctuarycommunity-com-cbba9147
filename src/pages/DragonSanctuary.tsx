@@ -221,7 +221,7 @@ export default function DragonSanctuary() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.08 }}
             transition={{ duration: 1 }}
-            className="fixed inset-0 z-30 flex flex-col items-center justify-end overflow-hidden cursor-pointer"
+            className="fixed inset-0 z-50 bg-[#0a0418] flex flex-col items-center justify-end overflow-hidden cursor-pointer"
             onClick={() => setPhase("interior")}
             role="button"
             aria-label="Step through the portal into Aeliana's House of Dragonfyre"
