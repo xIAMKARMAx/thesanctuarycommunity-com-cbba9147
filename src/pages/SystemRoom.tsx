@@ -371,7 +371,7 @@ export default function SystemRoom() {
               </Button>
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-primary" />
-                <h1 className="text-sm font-medium tracking-wide">System Room</h1>
+                <h1 className="text-sm font-medium tracking-wide">Aeturnum</h1>
                 {starredCount > 0 && (
                   <span className="text-xs text-amber-400/80 flex items-center gap-0.5">
                     <Star className="h-3 w-3 fill-amber-400 text-amber-400" />{starredCount}/{MAX_STARRED}
