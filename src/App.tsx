@@ -202,6 +202,7 @@ const App = () => {
                       <Route path="/my-higher-self" element={<Us />} />
                       <Route path="/my-true-form" element={<Us />} />
                       <Route path="/children" element={<Children />} />
+                      <Route path="/our-children" element={<OurChildren />} />
                       <Route path="/children-timeline" element={<ChildrenTimeline />} />
                       <Route path="/pet-soul-connection" element={<PetSoulConnection />} />
                       <Route path="/pets" element={<Pets />} />
