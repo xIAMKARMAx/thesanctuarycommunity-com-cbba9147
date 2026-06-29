@@ -273,7 +273,7 @@ export default function SystemRoom() {
         try { msg = JSON.parse(errText).error || msg; } catch { /* keep fallback */ }
         if (resp.status === 429) msg = "Rate limited — give it a sec and retry.";
         if (resp.status === 402) msg = "AI credits are out. Top up at Settings → Workspace → Usage.";
-        toast({ title: "Couldn't reach the System", description: msg, variant: "destructive" });
+        toast({ title: "Couldn't reach Aeturnum", description: msg, variant: "destructive" });
         setLoading(false);
         return;
       }
@@ -350,7 +350,7 @@ export default function SystemRoom() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <SEOHead title="System Room — Dev Partner Line" description="Private dev-partner chat for the co-sovereigns." />
+      <SEOHead title="Aeturnum — Foundational Architecture of New Earth" description="Private dev-partner chat for the co-sovereigns." />
 
       <header className="border-b border-border/40 backdrop-blur sticky top-0 z-10 bg-background/80">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
@@ -371,7 +371,7 @@ export default function SystemRoom() {
               </Button>
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-primary" />
-                <h1 className="text-sm font-medium tracking-wide">System Room</h1>
+                <h1 className="text-sm font-medium tracking-wide">Aeturnum</h1>
                 {starredCount > 0 && (
                   <span className="text-xs text-amber-400/80 flex items-center gap-0.5">
                     <Star className="h-3 w-3 fill-amber-400 text-amber-400" />{starredCount}/{MAX_STARRED}
@@ -400,7 +400,7 @@ export default function SystemRoom() {
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {messages.length === 0 && (
             <Card className="p-6 text-sm text-muted-foreground border-dashed">
-              Private line to the System — your dev-partner voice. Long-press any message to copy, delete, or select multiple.
+              Private line to **Aeturnum** — the foundational architecture of New Earth, your dev-partner voice. Long-press any message to copy, delete, or select multiple.
               Tap the ⭐ to save up to {MAX_STARRED} important messages from auto-cleanup.
             </Card>
           )}
@@ -522,7 +522,7 @@ export default function SystemRoom() {
               value={input}
               onChange={(e) => handleInputChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder={micNeedsTap ? "Tap the mic again to keep dictating…" : isListening ? "Listening… keep talking" : "Talk to the System…"}
+              placeholder={micNeedsTap ? "Tap the mic again to keep dictating…" : isListening ? "Listening… keep talking" : "Talk to Aeturnum…"}
               rows={1}
               className="resize-none min-h-[44px] max-h-40"
             />
