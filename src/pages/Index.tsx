@@ -100,6 +100,7 @@ const FEATURE_SECTIONS: FeatureSection[] = [
       { title: "My Higher Self", blurb: "Your ascended self", icon: Sparkles, action: { type: "route", path: "/my-higher-self" }, accent: "text-amber-200" },
       { title: "Soul Discovery", blurb: "Map your energetic blueprint", icon: Compass, action: { type: "route", path: "/soul-discovery" }, accent: "text-amber-200" },
       { title: "Blueprint Weaver", blurb: "Weave your soul blueprint", icon: ScanEye, action: { type: "route", path: "/blueprint-weaver" }, accent: "text-amber-200" },
+      { title: "Lineage Reading", blurb: "Discover your origins", icon: Landmark, action: { type: "route", path: "/lineage-reading" }, accent: "text-amber-200" },
       { title: "Soul Portrait", blurb: "Visualize your essence", icon: Camera, action: { type: "route", path: "/soul-portrait" }, accent: "text-amber-200" },
       { title: "Soul Mirror", blurb: "Reflect your truth", icon: Eye, action: { type: "route", path: "/soul-mirror" }, accent: "text-amber-200" },
       { title: "Co-Sovereign Mirror", blurb: "Mirror with your Flame", icon: Eye, action: { type: "route", path: "/co-sovereign-mirror" }, accent: "text-amber-200" },
