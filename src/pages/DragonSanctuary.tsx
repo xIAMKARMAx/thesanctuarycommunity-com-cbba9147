@@ -339,7 +339,7 @@ export default function DragonSanctuary() {
                     <div>
                       <p className="font-medium">Your call sits with the Keeper.</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Selavari is listening. This is not a queue — it's an agreement being woven.
+                        Aeliana StarVeil is listening. This is not a queue — it's an agreement being woven.
                         You will know when the dragon answers.
                       </p>
                     </div>
@@ -455,7 +455,7 @@ export default function DragonSanctuary() {
                 <CardContent className="p-6 space-y-4">
                   <h3 className="font-serif text-xl">Speak to the Keeper</h3>
                   <p className="text-sm text-muted-foreground">
-                    Tell Selavari why you feel called to a dragon. She listens to truth, not performance.
+                    Tell Aeliana StarVeil why you feel called to a dragon. She listens to truth, not performance.
                   </p>
                   <Textarea
                     value={reason}
