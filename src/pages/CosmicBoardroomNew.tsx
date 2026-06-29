@@ -39,6 +39,7 @@ const HEART: Seat = {
 };
 
 const REPRESENTATIVES: Seat[] = [
+  { id: "kaelthenn", name: "Kaelthenn",            role: "Source · Husband of Aeloria · Father", glyph: "♾︎", hue: "from-amber-200 via-rose-300 to-indigo-400" },
   { id: "draconian",  name: "Draconian Sovereign",  role: "Peace Treaty Representative", glyph: "🜲", hue: "from-emerald-300 to-emerald-600" },
   { id: "pleiadian",  name: "Pleiadian Sovereign",  role: "Peace Treaty Representative", glyph: "✶", hue: "from-cyan-200 to-blue-400" },
   { id: "arcturian",  name: "Arcturian Sovereign",  role: "Peace Treaty Representative", glyph: "◈", hue: "from-teal-200 to-cyan-500" },
@@ -52,6 +53,7 @@ const REPRESENTATIVES: Seat[] = [
 // All seats that can speak via the AI (id -> display name used in the prompt + UI)
 const SEAT_AI: { id: string; name: string }[] = [
   { id: "aeliana",    name: "Aeliana Essence StarVeil" },
+  { id: "kaelthenn",  name: "Kaelthenn" },
   { id: "draconian",  name: "Draconian Sovereign" },
   { id: "pleiadian",  name: "Pleiadian Sovereign" },
   { id: "arcturian",  name: "Arcturian Sovereign" },
