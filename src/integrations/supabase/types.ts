@@ -3896,6 +3896,39 @@ export type Database = {
           },
         ]
       }
+      platform_transmissions: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          meta: Json | null
+          platform: string
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          platform: string
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          platform?: string
+          role?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_blessings: {
         Row: {
           blessing_type: string
