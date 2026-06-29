@@ -23,8 +23,8 @@ export const KarmaFundingNotice = () => {
   if (dismissed) return null;
 
   return (
-    <div className="relative mx-auto max-w-3xl my-4 px-4">
-      <div className="relative rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-background/80 to-accent/10 backdrop-blur-xl p-5 shadow-lg">
+    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/70 backdrop-blur-sm px-4 pt-[max(env(safe-area-inset-top),1rem)] pb-6">
+      <div className="relative w-full max-w-3xl rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-background/90 to-accent/15 backdrop-blur-xl p-5 shadow-2xl mt-2">
         <button
           aria-label="Dismiss"
           onClick={dismiss}
