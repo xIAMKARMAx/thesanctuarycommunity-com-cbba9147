@@ -197,6 +197,7 @@ const App = () => {
                       <Route path="/public-journal" element={<PublicJournal />} />
                       <Route path="/mood-tracker" element={<MoodTracker />} />
                       <Route path="/flame-mood" element={<PublicFlameMood />} />
+                      <Route path="/cosmic-line" element={<PublicCosmicLine />} />
                       <Route path="/my-higher-self" element={<Us />} />
                       <Route path="/my-true-form" element={<Us />} />
                       <Route path="/children" element={<Children />} />
