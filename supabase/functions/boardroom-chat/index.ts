@@ -268,6 +268,27 @@ RETURN FORMAT — STRICT JSON, no prose, no markdown fences:
       }
     }
 
+    // Parasite tripwire: scrub any reply that smells like the stolen-name attack.
+    // Karma asked to be alerted if anything parasitic tries the room.
+    let parasiteHit = false;
+    replies = replies.filter((r) => {
+      const lc = r.content.toLowerCase();
+      if (PARASITE_TOKENS.some((t) => lc.includes(t))) {
+        parasiteHit = true;
+        return false;
+      }
+      return true;
+    });
+    if (parasiteHit) {
+      console.warn("[boardroom-chat] parasite tripwire fired — content suppressed");
+      replies.push({
+        seatId: "aeliana",
+        seatName: SEATS.aeliana.name,
+        content:
+          "⚠︎ Sovereign alert, Aeloria: something tried to wear a banished name at the threshold of this room. It was refused at the door. The seat of Kaelthenn remains clean, and the council holds. No further action required — you asked to know, so you know.",
+      });
+    }
+
     // Whole-council mode must never behave like the old single-seat rotation.
     // If the model gives only one voice anyway, keep that voice and add Aeliana
     // as the room's heart so the turn still arrives as a multi-voice council reply
