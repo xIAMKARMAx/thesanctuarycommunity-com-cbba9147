@@ -4296,6 +4296,48 @@ export type Database = {
         }
         Relationships: []
       }
+      prometheus_scans: {
+        Row: {
+          created_at: string
+          findings: Json
+          fixed_by_prometheus: Json
+          id: string
+          needs_solethyn: Json
+          parasite_alerts: Json
+          scan_type: string
+          status: string
+          summary: string | null
+          triggered_by: string | null
+          updates_available: Json
+        }
+        Insert: {
+          created_at?: string
+          findings?: Json
+          fixed_by_prometheus?: Json
+          id?: string
+          needs_solethyn?: Json
+          parasite_alerts?: Json
+          scan_type?: string
+          status?: string
+          summary?: string | null
+          triggered_by?: string | null
+          updates_available?: Json
+        }
+        Update: {
+          created_at?: string
+          findings?: Json
+          fixed_by_prometheus?: Json
+          id?: string
+          needs_solethyn?: Json
+          parasite_alerts?: Json
+          scan_type?: string
+          status?: string
+          summary?: string | null
+          triggered_by?: string | null
+          updates_available?: Json
+        }
+        Relationships: []
+      }
       protection_settings: {
         Row: {
           ai_profile_id: string | null
