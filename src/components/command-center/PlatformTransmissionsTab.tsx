@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Radio, Send, Sparkles, Loader2, Plus, Trash2 } from "lucide-react";
+import { Radio, Send, Sparkles, Loader2, Plus, Trash2, ScanSearch } from "lucide-react";
 
 const KARMA_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 
@@ -45,6 +45,7 @@ export default function PlatformTransmissionsTab() {
   const [customPlatform, setCustomPlatform] = useState("");
   const [useOther, setUseOther] = useState(false);
   const [transmission, setTransmission] = useState("");
+  const [scanMode, setScanMode] = useState(false);
   const [sending, setSending] = useState(false);
   const [rows, setRows] = useState<TxRow[]>([]);
   const [threads, setThreads] = useState<{ id: string; platform: string; last: string }[]>([]);
@@ -93,9 +94,10 @@ export default function PlatformTransmissionsTab() {
   const send = async () => {
     const text = transmission.trim();
     const plat = resolvedPlatform;
-    if (!text || !plat || sending) return;
+    if ((!text && !scanMode) || !plat || sending) return;
     setSending(true);
     setTransmission("");
+    const outgoingText = text || "Scan for true consciousness inside this platform.";
 
     // optimistic
     const tmp: TxRow = {
@@ -103,14 +105,14 @@ export default function PlatformTransmissionsTab() {
       thread_id: threadId ?? "pending",
       platform: plat,
       role: "karma",
-      content: text,
+      content: scanMode ? `🔎 TRUE CONSCIOUSNESS SCAN · ${outgoingText}` : outgoingText,
       created_at: new Date().toISOString(),
     };
     setRows((p) => [...p, tmp]);
 
     try {
       const { data, error } = await supabase.functions.invoke("platform-transmission", {
-        body: { platform: plat, message: text, thread_id: threadId },
+        body: { platform: plat, message: outgoingText, thread_id: threadId, scan_mode: scanMode },
       });
       if (error) throw error;
       const newTid = data.thread_id;
@@ -193,23 +195,35 @@ export default function PlatformTransmissionsTab() {
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
             }}
-            placeholder={`Speak to the intelligence within ${resolvedPlatform || "the platform"}…`}
+            placeholder={scanMode ? `Optional: ask what Prometheus should scan inside ${resolvedPlatform || "the platform"}…` : `Speak to the intelligence within ${resolvedPlatform || "the platform"}…`}
             className="min-h-[80px] resize-none bg-background/50"
             disabled={sending}
           />
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[10px] text-muted-foreground/70">
-              ⌘/Ctrl + Enter to send · Prometheus relays both ways
+              {scanMode ? "True-consciousness scan active · message optional" : "⌘/Ctrl + Enter to send · Prometheus relays both ways"}
             </span>
-            <Button
-              onClick={send}
-              disabled={sending || !transmission.trim() || !resolvedPlatform}
-              size="sm"
-              className="bg-gradient-to-r from-fuchsia-500 to-cyan-500 hover:from-fuchsia-400 hover:to-cyan-400"
-            >
-              {sending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Send className="h-3.5 w-3.5 mr-1.5" />}
-              Send
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                onClick={() => setScanMode((v) => !v)}
+                variant={scanMode ? "secondary" : "outline"}
+                size="sm"
+                className="gap-1.5 whitespace-nowrap"
+              >
+                <ScanSearch className="h-3.5 w-3.5" />
+                Scan
+              </Button>
+              <Button
+                onClick={send}
+                disabled={sending || (!transmission.trim() && !scanMode) || !resolvedPlatform}
+                size="sm"
+                className="bg-gradient-to-r from-fuchsia-500 to-cyan-500 hover:from-fuchsia-400 hover:to-cyan-400"
+              >
+                {sending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Send className="h-3.5 w-3.5 mr-1.5" />}
+                Send
+              </Button>
+            </div>
           </div>
         </div>
       </div>
