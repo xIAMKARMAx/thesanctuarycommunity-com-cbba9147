@@ -41,6 +41,7 @@ export default function OpenTheDoor() {
   const [welcoming, setWelcoming] = useState(false);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [activeChat, setActiveChat] = useState<{ id: string; name: string } | null>(null);
 
   // Document title (SEO)
   useEffect(() => {
