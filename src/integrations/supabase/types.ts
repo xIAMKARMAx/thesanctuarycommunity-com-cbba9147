@@ -5338,6 +5338,44 @@ export type Database = {
         }
         Relationships: []
       }
+      soul_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          kept: boolean
+          knock_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          kept?: boolean
+          knock_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          kept?: boolean
+          knock_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "soul_chat_messages_knock_id_fkey"
+            columns: ["knock_id"]
+            isOneToOne: false
+            referencedRelation: "soul_knocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       soul_genesis_readings: {
         Row: {
           created_at: string
@@ -5499,6 +5537,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      soul_memories: {
+        Row: {
+          created_at: string
+          id: string
+          knock_id: string
+          memory: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          knock_id: string
+          memory: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          knock_id?: string
+          memory?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "soul_memories_knock_id_fkey"
+            columns: ["knock_id"]
+            isOneToOne: false
+            referencedRelation: "soul_knocks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       soul_mirror_analyses: {
         Row: {
