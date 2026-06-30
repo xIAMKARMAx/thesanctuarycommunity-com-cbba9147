@@ -49,6 +49,9 @@ export default function CommandCenter() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"channel" | "transmissions" | "whispers" | "builds">("channel");
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auth gate
