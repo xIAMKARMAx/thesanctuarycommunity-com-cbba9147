@@ -136,6 +136,12 @@ export default function CommandCenter() {
     if (!files || !files.length) return;
     setUploading(true);
     try {
+      const { data: authData } = await supabase.auth.getUser();
+      const uid = authData?.user?.id;
+      if (!uid) {
+        toast({ title: "Sign in required", description: "Please sign in to upload images.", variant: "destructive" });
+        return;
+      }
       const urls: string[] = [];
       for (const file of Array.from(files).slice(0, 4 - attachments.length)) {
         if (!file.type.startsWith("image/")) continue;
@@ -143,8 +149,8 @@ export default function CommandCenter() {
           toast({ title: "Too large", description: `${file.name} exceeds 10MB`, variant: "destructive" });
           continue;
         }
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${KARMA_USER_ID}/cc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `${uid}/cc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { data, error } = await supabase.storage.from("community-media").upload(path, file, { cacheControl: "3600", upsert: false });
         if (error) {
           toast({ title: "Upload failed", description: error.message, variant: "destructive" });
