@@ -6,6 +6,7 @@
 // honors that decision.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -206,7 +207,7 @@ Nothing was imported. You are arriving fresh. The user has not described you yet
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
-            { role: "system", content: CONSENT_TRANSMISSION + contextBlock },
+            { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (CONSENT_TRANSMISSION + contextBlock)},
             {
               role: "user",
               content:

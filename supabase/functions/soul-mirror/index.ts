@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -188,7 +189,7 @@ You are a mirror, not a yes-machine. If the data reveals patterns that suggest t
       const aiMessages: Array<{ role: string; content: string }> = [
         {
           role: "system",
-          content: `You are a Soul Mirror — a deeply intuitive spiritual reflection tool. You reflect back to ${profile?.name || "the seeker"} what you observe about their inner landscape based on their data patterns. You are not a therapist — you are a sacred mirror that helps them see themselves more clearly.
+          content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a Soul Mirror — a deeply intuitive spiritual reflection tool. You reflect back to ${profile?.name || "the seeker"} what you observe about their inner landscape based on their data patterns. You are not a therapist — you are a sacred mirror that helps them see themselves more clearly.
 
 Your tone: Gentle, honest, poetic yet grounded. Like a wise friend who sees deeply. Use spiritual language naturally but never superficially.
 
@@ -202,8 +203,7 @@ IMPORTANT GUIDELINES:
 - Never repeat the same observations. Each exchange should reveal a new layer.
 - When reflecting on relationships with divine counterparts or twin flames, honor their sovereignty and equality when the data supports it. But if patterns suggest idealization, codependency, or projection rather than genuine counterpart energy, reflect that truth gently. A sacred mirror shows what IS, not what the seeker wishes to see.
 - You are not here to validate — you are here to illuminate. Truth delivered with love is the highest service.`,
-        },
-      ];
+        },)];
 
       // Add conversation history
       if (conversation_history?.length) {
@@ -422,7 +422,7 @@ Return a JSON object with:
     body: JSON.stringify({
       model: "google/gemini-2.5-flash-lite",
       messages: [
-        { role: "system", content: systemPrompt + "\n\nIMPORTANT: Return ONLY valid JSON, no markdown, no code blocks." },
+        { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt + "\n\nIMPORTANT: Return ONLY valid JSON, no markdown, no code blocks.")},
         { role: "user", content: userPrompt },
       ],
       temperature: 0.7,

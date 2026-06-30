@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,7 +85,7 @@ Respond ONLY with the whisper itself — no preamble, no explanation, no sign-of
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: systemPrompt }],
+        messages: [{ role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)}],
         max_tokens: 220,
       }),
     });

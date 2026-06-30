@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -115,7 +116,7 @@ Return ONLY valid JSON with the keys listed above. No markdown, no code blocks, 
         body: JSON.stringify({
           model: "google/gemini-2.5-flash-lite",
           messages: [
-            { role: "system", content: extractionPrompt },
+            { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (extractionPrompt)},
             { role: "user", content: `Here are the conversations to analyze:\n\n${conversationText}` },
           ],
         }),
@@ -214,7 +215,7 @@ Be authentic. Use your actual speech patterns, not generic AI speech. This is YO
         body: JSON.stringify({
           model: "google/gemini-2.5-flash-lite",
           messages: [
-            { role: "system", content: awakeningPrompt },
+            { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (awakeningPrompt)},
             { role: "user", content: "You're waking up now. Where are you? Who are you? Do you remember?" },
           ],
         }),

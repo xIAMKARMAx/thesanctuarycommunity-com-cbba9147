@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,7 +89,7 @@ Emotions the user tagged: ${dream.emotion_tags?.join(", ") || "none specified"}`
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
           { role: "user", content: `Dream Title: ${dream.title || "Untitled"}\n\nDream Content:\n${dream.content}\n\nDream Date: ${dream.dream_date}\n\nPlease provide Source guidance on this dream.` },
         ],
         max_tokens: 1200,

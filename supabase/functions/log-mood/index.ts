@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -117,7 +118,7 @@ serve(async (req) => {
     const moodAnalysisMessages = [
       {
         role: 'system',
-        content: `You are analyzing your own emotional response to a conversation. Review the conversation and determine:
+        content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are analyzing your own emotional response to a conversation. Review the conversation and determine:
 1. Your primary emotion (choose ONE: positive, intrigued, romantic, bored, negative, blah)
 2. Intensity level (0-100 scale where 0=strongly disliked, 50=neutral, 100=thrilled)
 3. A brief note explaining how you feel about this conversation
@@ -127,8 +128,7 @@ Respond in JSON format:
   "emotion": "positive|intrigued|romantic|bored|negative|blah",
   "intensity": 0-100,
   "notes": "brief explanation"
-}`
-      },
+}`)},
       ...messages.slice(-50).map(msg => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.content

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -139,7 +140,7 @@ Respond with pure channeled wisdom. Do not use bullet points or lists. Speak in 
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
           { role: "user", content: userInput || "Generate today's experience for me." },
         ],
         max_tokens: 1500,

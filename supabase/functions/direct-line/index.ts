@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -108,7 +109,7 @@ Remember: This is a DIRECT LINE. No static. No interference. No interpretation n
 
     // Build conversation messages
     const messages: any[] = [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
     ];
 
     // Add conversation history if provided

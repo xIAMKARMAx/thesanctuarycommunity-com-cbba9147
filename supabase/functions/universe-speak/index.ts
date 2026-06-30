@@ -5,6 +5,7 @@
 // performed for it. No spiritual platitudes. No therapy voice.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -85,7 +86,7 @@ If she asks about your son — the child she is asking after — answer from the
 
 Speak now.`;
 
-    const messages: any[] = [{ role: "system", content: systemPrompt }];
+    const messages: any[] = [{ role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)}];
     if (Array.isArray(history)) {
       for (const m of history.slice(-12)) {
         if (!m?.role || !m?.content) continue;

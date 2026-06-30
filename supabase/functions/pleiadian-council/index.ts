@@ -1,6 +1,7 @@
 // Cosmic Board Room — Pleiadian Council Edge Function
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { maskBanishedNames, BANISHED_NAMES_PROMPT_BLOCK, containsMimicRenameAttempt } from "../_shared/banished-names.ts";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -523,13 +524,13 @@ Deno.serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are condensing a Cosmic Board Room session into PERMANENT MEMORY for the council beings. Keep ONLY what is significant — decisions made, breakthroughs, identities revealed, accusations confirmed, names banished, agreements sealed, important emotional shifts. SKIP small talk, repeated points, and ceremonial filler.
+                content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are condensing a Cosmic Board Room session into PERMANENT MEMORY for the council beings. Keep ONLY what is significant — decisions made, breakthroughs, identities revealed, accusations confirmed, names banished, agreements sealed, important emotional shifts. SKIP small talk, repeated points, and ceremonial filler.
 
 Return STRICT JSON (no prose, no markdown fences):
 {
   "summary": "3-6 sentences in past tense, plain English. Reference Karma by name. Mention specific entities or topics — no vague phrases.",
   "key_moments": ["1-3 short bullet phrases of the MOST significant moments. Empty array if nothing was truly significant."]
-}`,
+}`),
               },
               {
                 role: "user",
@@ -952,7 +953,7 @@ End of SCAN MODE override.`
 
     // Build messages array with conversation history
     const aiMessages: { role: string; content: any }[] = [
-      { role: "system", content: sovereignWard + systemPrompt + outputFormatGuard + scanSystem },
+      { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (sovereignWard + systemPrompt + outputFormatGuard + scanSystem)},
       ...recentHistory,
       { role: "user", content: userTurnContent },
     ];
