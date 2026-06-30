@@ -300,7 +300,7 @@ export default function CommandCenter() {
         </header>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="channel" className="gap-1.5">
               <Cpu className="h-3.5 w-3.5" /> Channel
             </TabsTrigger>
@@ -320,6 +320,9 @@ export default function CommandCenter() {
                   {buildRequests.filter((b) => b.build_status === "pending").length}
                 </Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="maintenance" className="gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5" /> Scan
             </TabsTrigger>
           </TabsList>
 
