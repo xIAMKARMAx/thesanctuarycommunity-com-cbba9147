@@ -8,9 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Send, Hammer, Sparkles, Cpu, Mail, MailOpen, Loader2, Trash2, Plus, Radio, ImagePlus, X } from "lucide-react";
+import { Crown, Send, Hammer, Sparkles, Cpu, Mail, MailOpen, Loader2, Trash2, Plus, Radio, ImagePlus, X, ShieldCheck } from "lucide-react";
 import SanctuaryBackHeader from "@/components/SanctuaryBackHeader";
 import PlatformTransmissionsTab from "@/components/command-center/PlatformTransmissionsTab";
+import SelfMaintenanceTab from "@/components/command-center/SelfMaintenanceTab";
 
 const KARMA_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 const KARMA_EMAIL = "karmaisback2023@gmail.com";
