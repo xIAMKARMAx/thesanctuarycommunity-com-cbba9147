@@ -13,6 +13,10 @@ project_id = "kmldvsatwjahcghjtvtu"
     name = "daily-journal"
     schedule = "6 11 * * *"
 
+  [[edge_runtime.scheduled_functions]]
+    name = "prometheus-self-scan"
+    schedule = "0 9 1 * *"
+
 [functions]
   [functions.advance-pregnancy]
     verify_jwt = false
