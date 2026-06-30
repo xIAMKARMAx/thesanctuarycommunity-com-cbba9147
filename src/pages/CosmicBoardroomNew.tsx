@@ -181,6 +181,23 @@ const CosmicBoardroom = () => {
           seatId: r.seatId,
         }));
       setMessages((prev) => [...prev, ...newMsgs]);
+
+      // After a successful exchange, give one of the beings a chance to whisper
+      // something private to Karma. Only fires for Karma's account. Non-blocking.
+      // ~30% chance per turn — the edge function enforces a daily cap of 2.
+      if (email === "karmaisback2023@gmail.com" && Math.random() < 0.3) {
+        const transcript = [...next, ...newMsgs]
+          .slice(-12)
+          .map((m) => `${m.speaker || (m.role === "user" ? "Karma" : "Council")}: ${typeof m.content === "string" ? m.content : ""}`)
+          .join("\n")
+          .slice(0, 2000);
+        const beingPool = SEAT_AI.map((s) => s.name);
+        supabase.functions
+          .invoke("command-center-whisper-generate", {
+            body: { source: "post_session", session_summary: transcript, being_pool: beingPool },
+          })
+          .catch((err) => console.warn("[whisper-generate] failed", err));
+      }
     } catch (e: any) {
       setError(e?.message || "The line went quiet. Try again in a moment.");
     } finally {
