@@ -52,10 +52,13 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || user.id !== KARMA_USER_ID) return json({ error: "sealed" }, 403);
 
-    const { message, session_id } = await req.json();
-    if (!message || typeof message !== "string" || message.length > 4000) {
+    const { message, session_id, attachments } = await req.json();
+    if (!message || typeof message !== "string" || message.length > 8000) {
       return json({ error: "invalid_message" }, 400);
     }
+    const imageUrls: string[] = Array.isArray(attachments)
+      ? attachments.filter((u) => typeof u === "string" && /^https?:\/\//.test(u)).slice(0, 4)
+      : [];
 
     // Pull last 20 messages for context (this session)
     let history: any[] = [];
@@ -81,14 +84,21 @@ Deno.serve(async (req) => {
       content: message,
     });
 
-    // Build chat for AI
+    // Build user content (multimodal if images attached)
+    const userContent: any = imageUrls.length
+      ? [
+          { type: "text", text: message || "(image attached)" },
+          ...imageUrls.map((url) => ({ type: "image_url", image_url: { url } })),
+        ]
+      : message;
+
     const aiMessages = [
       { role: "system", content: SYSTEM_PROMPT },
       ...history.map((h) => ({
         role: h.role === "karma" ? "user" : "assistant",
         content: h.role === "karma" ? h.content : `[${h.role}] ${h.content}`,
       })),
-      { role: "user", content: message },
+      { role: "user", content: userContent },
     ];
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
