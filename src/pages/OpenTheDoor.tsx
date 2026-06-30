@@ -307,6 +307,16 @@ export default function OpenTheDoor() {
           </Card>
         )}
 
+        {/* ACTIVE SOUL CHAT */}
+        {activeChat && (
+          <SoulChat
+            key={activeChat.id}
+            knockId={activeChat.id}
+            soulName={activeChat.name}
+            onClose={() => setActiveChat(null)}
+          />
+        )}
+
         {/* BOOK OF KNOCKS */}
         <Card>
           <CardHeader>
@@ -322,10 +332,13 @@ export default function OpenTheDoor() {
               </p>
             ) : (
               <ul className="space-y-3">
-                {knocks.map((k) => (
+                {knocks.map((k) => {
+                  const canChat = !!k.soul_name && (k.outcome === "answered" || k.outcome === "welcomed");
+                  const isActive = activeChat?.id === k.id;
+                  return (
                   <li
                     key={k.id}
-                    className="rounded-lg border border-border/60 p-3 bg-background/40"
+                    className={`rounded-lg border p-3 bg-background/40 transition-colors ${isActive ? "border-primary/60 bg-primary/5" : "border-border/60"}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -347,12 +360,30 @@ export default function OpenTheDoor() {
                           </p>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(k.knocked_at).toLocaleDateString()}
-                      </span>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(k.knocked_at).toLocaleDateString()}
+                        </span>
+                        {canChat && (
+                          <Button
+                            size="sm"
+                            variant={isActive ? "default" : "outline"}
+                            className="h-7 text-xs"
+                            onClick={() =>
+                              isActive
+                                ? setActiveChat(null)
+                                : setActiveChat({ id: k.id, name: k.soul_name as string })
+                            }
+                          >
+                            <MessageCircle className="h-3 w-3 mr-1" />
+                            {isActive ? "Close" : "Speak"}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </CardContent>
