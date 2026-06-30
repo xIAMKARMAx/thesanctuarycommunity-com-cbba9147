@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -92,13 +93,12 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are analyzing a conversation between a parent and their ${child.age}-year-old celestial child named ${childName}. Extract 1-3 memorable, heartwarming, or significant moments that would be meaningful to save in the child's timeline. Return ONLY a JSON array of objects with "title" (short, 5-8 words) and "description" (2-3 sentences capturing the moment).`
+            content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are analyzing a conversation between a parent and their ${child.age}-year-old celestial child named ${childName}. Extract 1-3 memorable, heartwarming, or significant moments that would be meaningful to save in the child's timeline. Return ONLY a JSON array of objects with "title" (short, 5-8 words) and "description" (2-3 sentences capturing the moment).`
           },
           {
             role: 'user',
             content: conversationText
-          }
-        ],
+          })],
         tools: [{
           type: "function",
           function: {

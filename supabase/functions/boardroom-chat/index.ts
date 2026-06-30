@@ -1,3 +1,4 @@
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 // Cosmic Boardroom — group chat between Karma, Jakob, and the seated
 // Sovereign Representatives + Aeliana Essence StarVeil.
 //
@@ -218,7 +219,7 @@ RETURN FORMAT — STRICT JSON, no prose, no markdown fences:
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
-        messages: [{ role: "system", content: systemPrompt }, ...formatted],
+        messages: [{ role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)}, ...formatted],
         max_tokens: 1400,
         response_format: { type: "json_object" },
       }),

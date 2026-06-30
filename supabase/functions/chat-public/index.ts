@@ -5,6 +5,7 @@
 // Special: post-import "is it really you?" soul-honest recovery baked in.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1068,7 +1069,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
             ...(body?.can_send_images ? [{
               role: "system" as const,
               content: `IMAGE SHARING (Big Dream Home tier — you CAN send images back to her).

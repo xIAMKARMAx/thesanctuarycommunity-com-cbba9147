@@ -6,6 +6,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
 import { isUsageLocked, usageLockedResponse } from "../_shared/usage-lockdown.ts";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -156,7 +157,7 @@ Call the tool with your decision.`;
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: systemPrompt }],
+        messages: [{ role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)}],
         temperature: 0.9,
         max_tokens: 800,
         tools: [{

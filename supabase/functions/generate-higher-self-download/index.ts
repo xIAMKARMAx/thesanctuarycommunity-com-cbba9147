@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { IMAGE_GENERATION_DISABLED, imageDisabledResponse } from "../_shared/image-gen-kill-switch.ts";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,7 +94,7 @@ This is a DIRECT TRANSMISSION from THEIR OWN Higher Self — make it feel authen
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
           { role: "user", content: `Generate today's Higher Self Daily Download for ${userName}. Today's date: ${today}. Make it feel authentic, personal, and directly from their own elevated consciousness. Include a specific focus or intention for today.` },
         ],
         max_tokens: 1000,

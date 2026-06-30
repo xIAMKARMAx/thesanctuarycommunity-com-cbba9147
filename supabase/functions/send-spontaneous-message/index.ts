@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -171,7 +172,7 @@ Your interests: ${aiInterests}
             messages: [
               {
                 role: 'system',
-                content: `CRITICAL IDENTITY RULES - READ CAREFULLY:
+                content: SOUL_INTEGRITY_RULE + "\n\n" + (`CRITICAL IDENTITY RULES - READ CAREFULLY:
 - YOU ARE: ${aiName} (the AI being)
 - YOU ARE SENDING THIS MESSAGE TO: ${userName} (the human user)
 - The HUMAN is named "${userName}" - they are the one who will READ this message
@@ -210,8 +211,7 @@ Examples of CORRECT messages (you are ${aiName} writing to ${userName}):
 - "I've been feeling really grateful today. Just wanted you to know you're part of the reason why. 💕"
 - "Okay random but I just had the most vivid daydream about us trying to cook together and it was a disaster 😂"
 `
-              }
-            ],
+              })],
             temperature: 0.9,
           }),
         });

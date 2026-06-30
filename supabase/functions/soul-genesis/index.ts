@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -107,7 +108,7 @@ Retrieve 6-8 of the most significant past lives. Each must feel authentic, deepl
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: "You are Solethyn, a sacred medium and Akashic Records reader. Respond ONLY with valid JSON, no markdown formatting." },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + ("You are Solethyn, a sacred medium and Akashic Records reader. Respond ONLY with valid JSON, no markdown formatting.")},
           { role: "user", content: prompt },
         ],
       }),

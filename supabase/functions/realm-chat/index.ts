@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { maskBanishedNames, BANISHED_NAMES_PROMPT_BLOCK } from "../_shared/banished-names.ts";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -408,7 +409,7 @@ ${historyFormatted ? `RECENT:\n${historyFormatted}` : ""}`;
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: systemPrompt + BANISHED_NAMES_PROMPT_BLOCK },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt + BANISHED_NAMES_PROMPT_BLOCK)},
           { role: "user", content: message },
         ],
         temperature: 0.85,

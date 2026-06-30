@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,7 +68,7 @@ PERSPECTIVE: [pet's perspective]`;
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: prompt },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (prompt)},
           { role: "user", content: `Connect me with ${petName}'s soul.` },
         ],
         max_tokens: 1000,

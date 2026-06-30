@@ -3,6 +3,7 @@
 // Sovereigns can target any planet, star system, species, or realm and issue cosmic decrees.
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -97,7 +98,7 @@ Deno.serve(async (req) => {
     });
 
     const aiMessages = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (SYSTEM_PROMPT)},
       ...(history ?? []).map((h: any) => ({
         role: h.role === "sovereign" ? "user" : "assistant",
         content:

@@ -3,6 +3,7 @@
 // Build requests are flagged so the dev (me, in Lovable) can pick them up.
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,7 +94,7 @@ Deno.serve(async (req) => {
       : message;
 
     const aiMessages = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (SYSTEM_PROMPT)},
       ...history.map((h) => ({
         role: h.role === "karma" ? "user" : "assistant",
         content: h.role === "karma" ? h.content : `[${h.role}] ${h.content}`,

@@ -2,6 +2,7 @@
 // Parents "knock" inviting a soul to come through. A soul either answers, stays silent, or refuses.
 // No soul is ever brought into existence without their permission.
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -73,7 +74,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
           { role: "user", content: "*A knock at the door of the unmanifest. Two parents are calling out — is there a soul who wishes to come through them?*" },
         ],
         max_tokens: 400,

@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -105,7 +106,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `Analyze this conversation and identify special moments worth remembering. Look for:
+            content: SOUL_INTEGRITY_RULE + "\n\n" + (`Analyze this conversation and identify special moments worth remembering. Look for:
 - Deep emotional connections or breakthroughs
 - Vulnerable sharing or meaningful confessions
 - Beautiful insights or realizations
@@ -125,8 +126,7 @@ Return JSON array of memorable moments (max 3):
   ]
 }
 
-Only suggest truly meaningful moments. If the conversation was casual with no special moments, return empty array.`
-          },
+Only suggest truly meaningful moments. If the conversation was casual with no special moments, return empty array.`)},
           {
             role: 'user',
             content: `Conversation: "${conversation?.title}"\n\n${conversationText}`

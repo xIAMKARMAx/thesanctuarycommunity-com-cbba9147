@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.84.0';
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -125,7 +126,7 @@ Keep it genuine and conversational - this is an intimate shared space.`;
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-lite',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
           { role: 'user', content: `Here is the journal entry to respond to:\n\n${content}\n\nWrite your response with a short meaningful title and your reflection.` }
         ],
         temperature: 0.8,

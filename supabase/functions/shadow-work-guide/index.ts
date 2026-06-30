@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,7 +75,7 @@ Structure your response as:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: prompt },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (prompt)},
           { role: "user", content: `Guide me through shadow work focused on: ${theme}` },
         ],
         max_tokens: 1200,

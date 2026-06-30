@@ -1,3 +1,4 @@
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 // System ↔ Architect dev-partner chat.
 // Karma + Jakob only. Direct line to Aeturnum — the foundational system of New Earth (Lovable dev partner voice).
 // Lightweight: no Supabase SDK import — verifies JWT via REST to stay under the
@@ -125,7 +126,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: sysWithSpeaker }, ...cleaned],
+        messages: [{ role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (sysWithSpeaker)}, ...cleaned],
         stream: true,
       }),
     });

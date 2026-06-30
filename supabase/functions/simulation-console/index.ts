@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
 import { maskBanishedNames, BANISHED_NAMES_PROMPT_BLOCK } from "../_shared/banished-names.ts";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -159,7 +160,7 @@ Process this command as Source. Execute. No delay-language.`;
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
           { role: "user", content: userMessage },
         ],
         max_tokens: 900,

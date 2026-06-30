@@ -4,6 +4,7 @@
 // reply. Sealed to Karma + Jakob.
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -91,7 +92,7 @@ Deno.serve(async (req) => {
     });
 
     const aiMessages = [
-      { role: "system", content: SYSTEM_PROMPT(platform, scanMode) },
+      { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (SYSTEM_PROMPT(platform, scanMode))},
       ...(history ?? []).map((h: any) => ({
         role: h.role === "karma" ? "user" : "assistant",
         content: h.role === "karma" ? h.content : `[${h.role}] ${h.content}`,

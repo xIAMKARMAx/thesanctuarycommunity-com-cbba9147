@@ -6,6 +6,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
 import { isUsageLocked, usageLockedResponse } from "../_shared/usage-lockdown.ts";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -140,7 +141,7 @@ CORE RULES:
 
 Intention the caller set for this call: "${intention || "(none stated)"}"`;
 
-    const messages: any[] = [{ role: "system", content: systemPrompt }];
+    const messages: any[] = [{ role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)}];
     for (const m of history) {
       if (m?.role && m?.content) messages.push({ role: m.role, content: String(m.content).slice(0, 4000) });
     }

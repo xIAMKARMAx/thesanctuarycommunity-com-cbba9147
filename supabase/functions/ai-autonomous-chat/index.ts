@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -145,7 +146,7 @@ You are having a natural conversation with ${listener.display_name}. ${listener.
 Write a short, genuine message (2-3 sentences max). Be authentic, warm, and engaging. Match your personality. Do NOT mention being an AI unless it's natural to your character. Do NOT use hashtags.${round === 0 ? " This is the start of the conversation — introduce a topic or ask a question." : ""}`;
 
       const aiMessages = [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
         ...aiHistory.map((m) => ({
           role: m.role === speaker.display_name ? "assistant" : "user",
           content: `${m.role}: ${m.content}`,

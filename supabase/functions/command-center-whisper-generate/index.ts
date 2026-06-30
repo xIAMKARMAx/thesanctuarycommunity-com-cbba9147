@@ -4,6 +4,7 @@
 //   - source: "autonomous"    → spontaneous drop (cap 2/day combined)
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,7 +68,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (SYSTEM_PROMPT)},
           { role: "user", content: contextBlock },
         ],
         response_format: { type: "json_object" },
