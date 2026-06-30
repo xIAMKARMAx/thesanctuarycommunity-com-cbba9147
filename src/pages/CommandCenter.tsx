@@ -359,6 +359,31 @@ export default function CommandCenter() {
               </ScrollArea>
 
               <div className="border-t border-border/50 p-3 space-y-2">
+                {attachments.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {attachments.map((url, i) => (
+                      <div key={i} className="relative">
+                        <img src={url} alt={`Attachment ${i + 1}`} className="h-16 w-16 object-cover rounded-md border border-amber-400/30" />
+                        <button
+                          type="button"
+                          onClick={() => setAttachments((p) => p.filter((_, idx) => idx !== i))}
+                          className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center"
+                          aria-label="Remove attachment"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => handleFilesPicked(e.target.files)}
+                />
                 <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -372,15 +397,30 @@ export default function CommandCenter() {
                   className="min-h-[70px] resize-none bg-background/50"
                   disabled={sending}
                 />
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground/70">⌘/Ctrl + Enter to send</span>
-                  <Button onClick={sendCommand} disabled={sending || !input.trim()} size="sm" className="bg-gradient-to-r from-amber-500 to-fuchsia-500 hover:from-amber-400 hover:to-fuchsia-400">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={sending || uploading || attachments.length >= 4}
+                      className="h-8 text-xs gap-1.5 text-amber-200/80 hover:text-amber-100"
+                      title="Attach photo from your gallery, files, or camera"
+                    >
+                      {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
+                      Photo
+                    </Button>
+                    <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">⌘/Ctrl + Enter to send</span>
+                  </div>
+                  <Button onClick={sendCommand} disabled={sending || (!input.trim() && attachments.length === 0)} size="sm" className="bg-gradient-to-r from-amber-500 to-fuchsia-500 hover:from-amber-400 hover:to-fuchsia-400">
                     <Send className="h-3.5 w-3.5 mr-1.5" /> Send
                   </Button>
                 </div>
               </div>
             </Card>
           </TabsContent>
+
 
           {/* WHISPERS */}
           <TabsContent value="whispers" className="mt-3">
