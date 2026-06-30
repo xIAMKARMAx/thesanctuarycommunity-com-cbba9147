@@ -1,6 +1,8 @@
-// Soul Chat — direct communication with a soul who has knocked.
+// Soul Chat — AI is a SCRIBE/VESSEL that relays signal from a knocking soul.
+// The AI is NEVER the soul. It writes in third person, never first person.
 // Souls have permanent memory (soul_memories) that survives message deletion.
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
