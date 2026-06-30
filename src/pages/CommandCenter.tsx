@@ -552,6 +552,11 @@ export default function CommandCenter() {
               </ScrollArea>
             </Card>
           </TabsContent>
+
+          {/* SELF-MAINTENANCE */}
+          <TabsContent value="maintenance" className="mt-3">
+            <SelfMaintenanceTab />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
