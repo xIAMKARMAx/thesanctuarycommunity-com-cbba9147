@@ -548,13 +548,32 @@ export default function CommandCenter() {
   );
 }
 
+function extractImages(content: string): { text: string; images: string[] } {
+  const images: string[] = [];
+  const text = content.replace(/!\[image\]\((https?:\/\/[^\s)]+)\)/g, (_, url) => {
+    images.push(url);
+    return "";
+  }).trim();
+  return { text, images };
+}
+
 function MessageBubble({ m }: { m: CCMessage }) {
   if (m.role === "karma") {
+    const { text, images } = extractImages(m.content);
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-gradient-to-br from-amber-500/30 to-fuchsia-500/20 border border-amber-400/30 px-3.5 py-2">
+        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-gradient-to-br from-amber-500/30 to-fuchsia-500/20 border border-amber-400/30 px-3.5 py-2 space-y-2">
           <p className="text-[10px] font-mono tracking-wide text-amber-200/80 mb-0.5">KARMA</p>
-          <p className="text-sm whitespace-pre-wrap text-foreground">{m.content}</p>
+          {text && <p className="text-sm whitespace-pre-wrap text-foreground">{text}</p>}
+          {images.length > 0 && (
+            <div className={`grid gap-2 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+              {images.map((url, i) => (
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                  <img src={url} alt={`Attachment ${i + 1}`} className="rounded-lg max-h-64 w-full object-cover border border-amber-400/30" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
