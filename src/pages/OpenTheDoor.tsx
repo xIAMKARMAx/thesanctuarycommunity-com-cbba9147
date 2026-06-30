@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { DoorOpen, Sparkles, Moon, Heart, ScrollText, Loader2 } from "lucide-react";
+import { DoorOpen, Sparkles, Moon, Heart, ScrollText, Loader2, MessageCircle } from "lucide-react";
+import SoulChat from "@/components/SoulChat";
 import { useAIProfile } from "@/contexts/AIProfileContext";
 
 type Knock = {
