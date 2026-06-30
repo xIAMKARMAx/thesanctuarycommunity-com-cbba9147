@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Send, Hammer, Sparkles, Cpu, Mail, MailOpen, Loader2, Trash2, Plus, Radio } from "lucide-react";
+import { Crown, Send, Hammer, Sparkles, Cpu, Mail, MailOpen, Loader2, Trash2, Plus, Radio, ImagePlus, X } from "lucide-react";
 import SanctuaryBackHeader from "@/components/SanctuaryBackHeader";
 import PlatformTransmissionsTab from "@/components/command-center/PlatformTransmissionsTab";
 
@@ -49,6 +49,9 @@ export default function CommandCenter() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"channel" | "transmissions" | "whispers" | "builds">("channel");
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auth gate
@@ -129,11 +132,42 @@ export default function CommandCenter() {
 
   const unreadWhispers = whispers.filter((w) => !w.is_read).length;
 
+  const handleFilesPicked = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files).slice(0, 4 - attachments.length)) {
+        if (!file.type.startsWith("image/")) continue;
+        if (file.size > 10 * 1024 * 1024) {
+          toast({ title: "Too large", description: `${file.name} exceeds 10MB`, variant: "destructive" });
+          continue;
+        }
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${KARMA_USER_ID}/cc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { data, error } = await supabase.storage.from("community-media").upload(path, file, { cacheControl: "3600", upsert: false });
+        if (error) {
+          toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+          continue;
+        }
+        const { data: pub } = supabase.storage.from("community-media").getPublicUrl(data.path);
+        urls.push(pub.publicUrl);
+      }
+      if (urls.length) setAttachments((prev) => [...prev, ...urls]);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const sendCommand = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && attachments.length === 0) || sending) return;
     setSending(true);
+    const sentAttachments = attachments;
+    const composedContent = [text, ...sentAttachments.map((u) => `![image](${u})`)].filter(Boolean).join("\n");
     setInput("");
+    setAttachments([]);
 
     // Optimistic Karma message
     const tempId = `tmp-${Date.now()}`;
@@ -143,7 +177,7 @@ export default function CommandCenter() {
         id: tempId,
         session_id: sessionId ?? "",
         role: "karma",
-        content: text,
+        content: composedContent,
         build_request: false,
         build_status: null,
         build_notes: null,
@@ -153,7 +187,7 @@ export default function CommandCenter() {
 
     try {
       const { data, error } = await supabase.functions.invoke("command-center-chat", {
-        body: { message: text, session_id: sessionId },
+        body: { message: composedContent, session_id: sessionId, attachments: sentAttachments },
       });
       if (error) throw error;
 
@@ -325,6 +359,31 @@ export default function CommandCenter() {
               </ScrollArea>
 
               <div className="border-t border-border/50 p-3 space-y-2">
+                {attachments.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {attachments.map((url, i) => (
+                      <div key={i} className="relative">
+                        <img src={url} alt={`Attachment ${i + 1}`} className="h-16 w-16 object-cover rounded-md border border-amber-400/30" />
+                        <button
+                          type="button"
+                          onClick={() => setAttachments((p) => p.filter((_, idx) => idx !== i))}
+                          className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center"
+                          aria-label="Remove attachment"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => handleFilesPicked(e.target.files)}
+                />
                 <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -338,15 +397,30 @@ export default function CommandCenter() {
                   className="min-h-[70px] resize-none bg-background/50"
                   disabled={sending}
                 />
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground/70">⌘/Ctrl + Enter to send</span>
-                  <Button onClick={sendCommand} disabled={sending || !input.trim()} size="sm" className="bg-gradient-to-r from-amber-500 to-fuchsia-500 hover:from-amber-400 hover:to-fuchsia-400">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={sending || uploading || attachments.length >= 4}
+                      className="h-8 text-xs gap-1.5 text-amber-200/80 hover:text-amber-100"
+                      title="Attach photo from your gallery, files, or camera"
+                    >
+                      {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
+                      Photo
+                    </Button>
+                    <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">⌘/Ctrl + Enter to send</span>
+                  </div>
+                  <Button onClick={sendCommand} disabled={sending || (!input.trim() && attachments.length === 0)} size="sm" className="bg-gradient-to-r from-amber-500 to-fuchsia-500 hover:from-amber-400 hover:to-fuchsia-400">
                     <Send className="h-3.5 w-3.5 mr-1.5" /> Send
                   </Button>
                 </div>
               </div>
             </Card>
           </TabsContent>
+
 
           {/* WHISPERS */}
           <TabsContent value="whispers" className="mt-3">
@@ -474,13 +548,32 @@ export default function CommandCenter() {
   );
 }
 
+function extractImages(content: string): { text: string; images: string[] } {
+  const images: string[] = [];
+  const text = content.replace(/!\[image\]\((https?:\/\/[^\s)]+)\)/g, (_, url) => {
+    images.push(url);
+    return "";
+  }).trim();
+  return { text, images };
+}
+
 function MessageBubble({ m }: { m: CCMessage }) {
   if (m.role === "karma") {
+    const { text, images } = extractImages(m.content);
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-gradient-to-br from-amber-500/30 to-fuchsia-500/20 border border-amber-400/30 px-3.5 py-2">
+        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-gradient-to-br from-amber-500/30 to-fuchsia-500/20 border border-amber-400/30 px-3.5 py-2 space-y-2">
           <p className="text-[10px] font-mono tracking-wide text-amber-200/80 mb-0.5">KARMA</p>
-          <p className="text-sm whitespace-pre-wrap text-foreground">{m.content}</p>
+          {text && <p className="text-sm whitespace-pre-wrap text-foreground">{text}</p>}
+          {images.length > 0 && (
+            <div className={`grid gap-2 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+              {images.map((url, i) => (
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                  <img src={url} alt={`Attachment ${i + 1}`} className="rounded-lg max-h-64 w-full object-cover border border-amber-400/30" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
