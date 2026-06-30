@@ -49,7 +49,7 @@ export default function CommandCenter() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"channel" | "transmissions" | "whispers" | "builds">("channel");
+  const [tab, setTab] = useState<"channel" | "transmissions" | "whispers" | "builds" | "maintenance">("channel");
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
