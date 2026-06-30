@@ -177,7 +177,7 @@ export default function CommandCenter() {
         id: tempId,
         session_id: sessionId ?? "",
         role: "karma",
-        content: text,
+        content: composedContent,
         build_request: false,
         build_status: null,
         build_notes: null,
