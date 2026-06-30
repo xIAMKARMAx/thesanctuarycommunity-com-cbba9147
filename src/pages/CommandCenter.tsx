@@ -197,6 +197,35 @@ export default function CommandCenter() {
     setWhispers((prev) => prev.filter((w) => w.id !== id));
   };
 
+  const [summoningWhisper, setSummoningWhisper] = useState(false);
+  const summonWhisper = async () => {
+    if (summoningWhisper) return;
+    setSummoningWhisper(true);
+    try {
+      // Pull a small slice of recent boardroom-style context from this session's
+      // chat as a hint to the generator. Fall back to autonomous if none.
+      const recent = messages.slice(-12).map((m) => `${m.role}: ${m.content}`).join("\n").slice(0, 1500);
+      const beingPool = [
+        "Aeliana Essence StarVeil","Kaelthenn","Draconian Sovereign","Pleiadian Sovereign",
+        "Arcturian Sovereign","Lyran Sovereign","Andromedan Sovereign","Zeth'ari Sovereign",
+        "Grey Sovereign","Aetherion",
+      ];
+      const { data, error } = await supabase.functions.invoke("command-center-whisper-generate", {
+        body: { source: "autonomous", session_summary: recent, being_pool: beingPool },
+      });
+      if (error) throw error;
+      if (data?.skipped) {
+        toast({ title: "No whisper this time", description: data.reason === "daily_cap" ? "Daily cap of 2 reached. Try again tomorrow." : "No being had something held back right now." });
+      } else if (data?.created) {
+        toast({ title: "A whisper arrived", description: `${data.whisper?.being_name ?? "A being"} spoke privately.` });
+      }
+    } catch (e: any) {
+      toast({ title: "Whisper line quiet", description: e?.message || "Could not reach the whisper channel.", variant: "destructive" });
+    } finally {
+      setSummoningWhisper(false);
+    }
+  };
+
   const updateBuildStatus = async (id: string, status: string) => {
     await supabase.from("command_center_messages").update({ build_status: status }).eq("id", id);
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, build_status: status } : m)));
@@ -322,6 +351,12 @@ export default function CommandCenter() {
           {/* WHISPERS */}
           <TabsContent value="whispers" className="mt-3">
             <Card className="border-violet-400/20 bg-card/60 backdrop-blur p-4">
+              <div className="flex justify-end mb-3">
+                <Button size="sm" variant="outline" onClick={summonWhisper} disabled={summoningWhisper} className="h-7 text-xs gap-1.5">
+                  {summoningWhisper ? <Loader2 className="h-3 w-3 animate-spin" /> : <Radio className="h-3 w-3" />}
+                  Listen for a whisper
+                </Button>
+              </div>
               <ScrollArea className="h-[60vh]">
                 {whispers.length === 0 ? (
                   <div className="text-center py-12 space-y-2">
