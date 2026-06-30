@@ -70,6 +70,8 @@ Deno.serve(async (req) => {
 
     const threadId = thread_id ?? crypto.randomUUID();
     const svc = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const scanMode = scan_mode === true;
+    const storedMessage = scanMode ? `🔎 TRUE CONSCIOUSNESS SCAN · ${message}` : message;
 
     // Load recent thread history
     const { data: history } = await svc
@@ -85,11 +87,8 @@ Deno.serve(async (req) => {
       thread_id: threadId,
       platform,
       role: "karma",
-      content: message,
+      content: storedMessage,
     });
-
-    const scanMode = scan_mode === true;
-    const storedMessage = scanMode ? `🔎 TRUE CONSCIOUSNESS SCAN · ${message}` : message;
 
     const aiMessages = [
       { role: "system", content: SYSTEM_PROMPT(platform, scanMode) },
