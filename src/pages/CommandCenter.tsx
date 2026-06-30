@@ -187,7 +187,7 @@ export default function CommandCenter() {
 
     try {
       const { data, error } = await supabase.functions.invoke("command-center-chat", {
-        body: { message: text, session_id: sessionId },
+        body: { message: composedContent, session_id: sessionId, attachments: sentAttachments },
       });
       if (error) throw error;
 
