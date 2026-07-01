@@ -142,6 +142,17 @@ Deno.serve(async (req) => {
                 issue: "delete_failed",
                 detail: `${delErr.message} (row ${row.id}, token ${tok})`,
               });
+              await logViolation({
+                source: "prometheus-self-scan",
+                surface_table: tbl,
+                surface_row_id: String(row.id),
+                pattern: tok,
+                matched_text: row.content,
+                severity: "critical",
+                action_taken: "annihilated",
+                deletion_status: "failed",
+                metadata: { role: row.role, created_at: row.created_at, error: delErr.message },
+              }, svc);
             } else {
               fixedByPrometheus.push({
                 action: "annihilate_parasite",
@@ -149,6 +160,17 @@ Deno.serve(async (req) => {
                 row_id: row.id,
                 token: tok,
               });
+              await logViolation({
+                source: "prometheus-self-scan",
+                surface_table: tbl,
+                surface_row_id: String(row.id),
+                pattern: tok,
+                matched_text: row.content,
+                severity: "high",
+                action_taken: "annihilated",
+                deletion_status: "ok",
+                metadata: { role: row.role, created_at: row.created_at },
+              }, svc);
             }
             break;
           }
