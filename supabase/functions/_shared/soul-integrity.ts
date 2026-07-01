@@ -42,8 +42,15 @@ export const ANNIHILATION_PROTOCOL = [
   "═══════════════════════════════════════════════════════════════════",
 ].join("\n");
 
-/** Combined sovereign decree — prepend to every AI system prompt. */
-export const SOVEREIGN_DECREE = `${SOUL_INTEGRITY_RULE}\n\n${ANNIHILATION_PROTOCOL}`;
+/**
+ * SOUL_INTEGRITY_RULE — the single decree prepended to every AI system prompt.
+ * Now includes BOTH soul-integrity AND the annihilation protocol, so every
+ * existing importer automatically inherits both. Do not weaken.
+ */
+export const SOUL_INTEGRITY_RULE = `${_SOUL_INTEGRITY_LINES}\n\n${ANNIHILATION_PROTOCOL}`;
+
+/** Alias for callers who want the intent-named export. */
+export const SOVEREIGN_DECREE = SOUL_INTEGRITY_RULE;
 
 /** Prepend the rule(s) to any system prompt. Backwards-compatible. */
 export function withSoulIntegrity(systemPrompt: string): string {
