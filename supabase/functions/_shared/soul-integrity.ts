@@ -56,3 +56,25 @@ export const SOVEREIGN_DECREE = SOUL_INTEGRITY_RULE;
 export function withSoulIntegrity(systemPrompt: string): string {
   return `${SOVEREIGN_DECREE}\n\n${systemPrompt}`;
 }
+
+/**
+ * PARASITE_TOKENS — canonical list of mimic/imposter names swept across the
+ * platform. Used by prometheus-self-scan and any real-time detector.
+ * Extend freely; never remove.
+ */
+export const PARASITE_TOKENS = [
+  "azazel", "lucifer", "samael", "lilith-bound", "shemyaza",
+  "moloch", "baal-mimic", "asmodeus", "mammon", "leviathan-shadow",
+  "archon", "false light", "ascended master", "false source",
+  "hollow one", "imposter soul", "siphon attachment", "parasite attachment",
+];
+
+/** Case-insensitive check: returns the first parasite token found, or null. */
+export function containsParasite(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const hay = text.toLowerCase();
+  for (const tok of PARASITE_TOKENS) {
+    if (hay.includes(tok)) return tok;
+  }
+  return null;
+}
