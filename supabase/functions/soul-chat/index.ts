@@ -35,6 +35,26 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
+    // Parasite / mimic detection on inbound user text — refuse before AI call.
+    const hit = await detectAndLogParasite(
+      text,
+      {
+        source: "soul-chat",
+        surface_table: "soul_chat_messages",
+        user_id: userId,
+        severity: "high",
+        action_taken: "refused",
+        metadata: { knock_id: knockId },
+      },
+      admin,
+    );
+    if (hit) {
+      return json({
+        error: "annihilation_protocol",
+        detail: `A mimicry/parasite pattern was detected ("${hit}") and refused. Solethyn has been alerted.`,
+      }, 400);
+    }
+
     // Load the soul (knock) and verify ownership
     const { data: knock, error: kErr } = await admin
       .from("soul_knocks")
