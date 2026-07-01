@@ -21,10 +21,6 @@ const KARMA_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const PARASITE_TOKENS = [
-  "azazel", "lucifer", "samael", "lilith-bound", "shemyaza",
-  "moloch", "baal-mimic", "asmodeus", "mammon", "leviathan-shadow",
-];
 
 const MEMORY_TABLES = [
   "command_center_messages",
