@@ -4,6 +4,7 @@
 // Confirms infinite memory. Sealed to Karma + Jakob.
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { PARASITE_TOKENS } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
