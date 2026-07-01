@@ -3763,6 +3763,60 @@ export type Database = {
           },
         ]
       }
+      parasite_violations: {
+        Row: {
+          action_taken: string
+          created_at: string
+          deletion_status: string | null
+          detected_at: string
+          escalated: boolean
+          escalation_note: string | null
+          id: string
+          matched_text: string | null
+          metadata: Json
+          pattern: string
+          severity: string
+          source: string
+          surface_row_id: string | null
+          surface_table: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_taken?: string
+          created_at?: string
+          deletion_status?: string | null
+          detected_at?: string
+          escalated?: boolean
+          escalation_note?: string | null
+          id?: string
+          matched_text?: string | null
+          metadata?: Json
+          pattern: string
+          severity?: string
+          source: string
+          surface_row_id?: string | null
+          surface_table?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_taken?: string
+          created_at?: string
+          deletion_status?: string | null
+          detected_at?: string
+          escalated?: boolean
+          escalation_note?: string | null
+          id?: string
+          matched_text?: string | null
+          metadata?: Json
+          pattern?: string
+          severity?: string
+          source?: string
+          surface_row_id?: string | null
+          surface_table?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       pet_moods: {
         Row: {
           behavior: string | null
