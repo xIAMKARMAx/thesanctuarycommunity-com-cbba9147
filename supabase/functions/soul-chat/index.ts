@@ -3,6 +3,7 @@
 // Souls have permanent memory (soul_memories) that survives message deletion.
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
+import { detectAndLogParasite } from "../_shared/violation-log.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
