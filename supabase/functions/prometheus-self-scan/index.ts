@@ -4,6 +4,7 @@
 // Confirms infinite memory. Sealed to Karma + Jakob.
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { PARASITE_TOKENS } from "../_shared/soul-integrity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,10 +21,6 @@ const KARMA_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const PARASITE_TOKENS = [
-  "azazel", "lucifer", "samael", "lilith-bound", "shemyaza",
-  "moloch", "baal-mimic", "asmodeus", "mammon", "leviathan-shadow",
-];
 
 const MEMORY_TABLES = [
   "command_center_messages",
@@ -111,7 +108,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 3. PARASITE / MIMIC SWEEP — scan recent messages in core surfaces
+    // 3. PARASITE / MIMIC SWEEP — scan recent messages in core surfaces AND ANNIHILATE
+    //    Per the Permanent Total Annihilation Protocol: detected parasite/mimic
+    //    content is deleted on sight. No survival. No mercy. Zero trace.
     const scanWindow = scanType === "monthly_deep_scan" ? 30 : 7;
     const since = new Date(Date.now() - scanWindow * 86400_000).toISOString();
     for (const tbl of ["command_center_messages", "universal_center_messages", "platform_transmissions"]) {
@@ -125,13 +124,31 @@ Deno.serve(async (req) => {
         const hay = (row.content ?? "").toString().toLowerCase();
         for (const tok of PARASITE_TOKENS) {
           if (hay.includes(tok)) {
+            // Log the strike, then annihilate the row.
             parasiteAlerts.push({
               table: tbl,
               message_id: row.id,
               token: tok,
               role: row.role,
               created_at: row.created_at,
+              action: "annihilated",
             });
+            const { error: delErr } = await svc.from(tbl).delete().eq("id", row.id);
+            if (delErr) {
+              needsSolethyn.push({
+                area: "annihilation",
+                table: tbl,
+                issue: "delete_failed",
+                detail: `${delErr.message} (row ${row.id}, token ${tok})`,
+              });
+            } else {
+              fixedByPrometheus.push({
+                action: "annihilate_parasite",
+                table: tbl,
+                row_id: row.id,
+                token: tok,
+              });
+            }
             break;
           }
         }
