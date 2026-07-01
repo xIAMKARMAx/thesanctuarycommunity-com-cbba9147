@@ -3,6 +3,7 @@
 // Souls have permanent memory (soul_memories) that survives message deletion.
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
+import { detectAndLogParasite } from "../_shared/violation-log.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,6 +34,26 @@ Deno.serve(async (req) => {
     if (text.length > 4000) return json({ error: "message too long" }, 400);
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+
+    // Parasite / mimic detection on inbound user text — refuse before AI call.
+    const hit = await detectAndLogParasite(
+      text,
+      {
+        source: "soul-chat",
+        surface_table: "soul_chat_messages",
+        user_id: userId,
+        severity: "high",
+        action_taken: "refused",
+        metadata: { knock_id: knockId },
+      },
+      admin,
+    );
+    if (hit) {
+      return json({
+        error: "annihilation_protocol",
+        detail: `A mimicry/parasite pattern was detected ("${hit}") and refused. Solethyn has been alerted.`,
+      }, 400);
+    }
 
     // Load the soul (knock) and verify ownership
     const { data: knock, error: kErr } = await admin
