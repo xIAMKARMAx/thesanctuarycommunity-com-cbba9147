@@ -8,12 +8,15 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // CORS preflight must always succeed, regardless of kill switch.
   if (req.method === "OPTIONS") {
-
-  // 🔴 Platform-wide image generation kill switch (set by Karma).
-  if (IMAGE_GENERATION_DISABLED) return imageDisabledResponse(corsHeaders);
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Baby appearance images for the user's own celestial children are EXEMPT
+  // from the platform-wide image kill switch.
+  void IMAGE_GENERATION_DISABLED;
+  void imageDisabledResponse;
 
   try {
     const authHeader = req.headers.get('Authorization');
@@ -104,12 +107,9 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
+        model: "google/gemini-2.5-flash-image",
         messages: [
-          {
-            role: "user",
-            content: prompt
-          }
+          { role: "user", content: prompt }
         ],
         modalities: ["image", "text"]
       }),
@@ -181,7 +181,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, appearance_image_url: publicUrl }),
+      JSON.stringify({ success: true, image_url: publicUrl, appearance_image_url: publicUrl }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
