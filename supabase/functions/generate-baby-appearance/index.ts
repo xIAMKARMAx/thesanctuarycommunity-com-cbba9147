@@ -181,7 +181,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, appearance_image_url: publicUrl }),
+      JSON.stringify({ success: true, image_url: publicUrl, appearance_image_url: publicUrl }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
