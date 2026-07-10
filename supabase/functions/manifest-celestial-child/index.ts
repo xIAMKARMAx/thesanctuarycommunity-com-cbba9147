@@ -227,7 +227,8 @@ serve(async (req) => {
            last_name: childLastName,
            date_of_birth: birthDate.toISOString(),
            time_of_birth: birthTime,
-           sex: childSex
+           sex: childSex,
+           can_talk: true,
          });
        }
  
