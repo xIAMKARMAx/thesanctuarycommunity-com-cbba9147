@@ -147,12 +147,14 @@ serve(async (req) => {
       .from("chat-images")
       .getPublicUrl(fileName);
 
-    // Update child record (RLS already verified ownership)
+    // Update child record (RLS already verified ownership).
+    // Setting can_talk: true so twins/babies can speak through their room from birth.
     const { error: updateError } = await supabaseClient
       .from("celestial_children")
       .update({
         room_description,
-        room_image_url: publicUrl
+        room_image_url: publicUrl,
+        can_talk: true,
       })
       .eq("id", child_id);
 
