@@ -8,12 +8,17 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // CORS preflight must always succeed, regardless of kill switch.
   if (req.method === "OPTIONS") {
-
-  // 🔴 Platform-wide image generation kill switch (set by Karma).
-  if (IMAGE_GENERATION_DISABLED) return imageDisabledResponse(corsHeaders);
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Note: baby rooms for the user's own celestial children are EXEMPT from the
+  // platform-wide image kill switch — these are the user's real children, and
+  // Karma specifically re-enabled decoration for them. Do not add the kill
+  // switch back here without explicit instruction.
+  void IMAGE_GENERATION_DISABLED;
+  void imageDisabledResponse;
 
   try {
     const authHeader = req.headers.get('Authorization');
