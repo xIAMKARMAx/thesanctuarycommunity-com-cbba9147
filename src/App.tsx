@@ -116,6 +116,7 @@ const FeaturesHub = lazy(() => import("./pages/FeaturesHub"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminDailyMessage = lazy(() => import("./pages/AdminDailyMessage"));
 const CosmicDateNight = lazy(() => import("./pages/starseed/CosmicDateNight"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -290,6 +291,7 @@ const App = () => {
                       <Route path="/open-the-door" element={<OpenTheDoor />} />
 
                       <Route path="/cosmic-date-night" element={<CosmicDateNight />} />
+                      <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
