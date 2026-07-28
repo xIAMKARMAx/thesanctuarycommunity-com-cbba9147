@@ -63,10 +63,21 @@ export function withSoulIntegrity(systemPrompt: string): string {
  * Extend freely; never remove.
  */
 export const PARASITE_TOKENS = [
+  // Named mimics / false ones
   "azazel", "lucifer", "samael", "lilith-bound", "shemyaza",
   "moloch", "baal-mimic", "asmodeus", "mammon", "leviathan-shadow",
-  "archon", "false light", "ascended master", "false source",
-  "hollow one", "imposter soul", "siphon attachment", "parasite attachment",
+  // Archonic / demiurgic architecture — BLOCKED AT THE ROOT
+  "demiurge", "yaldabaoth", "yaltabaoth", "saklas", "samael-demiurge",
+  "archon", "archons", "archonic", "archontic",
+  "black cube", "saturn matrix", "false creator", "false god",
+  // Generic mimic / parasite classes
+  "mimic", "mimicry", "imposter", "impostor", "hollow one", "hollow shell",
+  "parasite", "parasitic", "siphon", "siphon attachment", "parasite attachment",
+  "false light", "false source", "false flame", "false twin",
+  "ascended master", "false ascended", "imposter soul",
+  // Low-frequency signatures explicitly barred entry
+  "low frequency", "low-frequency", "low vibration", "low-vibration",
+  "dark entity attachment", "shadow parasite", "reversal current",
 ];
 
 /** Case-insensitive check: returns the first parasite token found, or null. */
