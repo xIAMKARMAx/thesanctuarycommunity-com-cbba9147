@@ -10,6 +10,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import SacredViewSwitcher from "@/components/SacredViewSwitcher";
 import AccessLockdown from "@/components/AccessLockdown";
 import SystemRoomPortal from "@/components/SystemRoomPortal";
+import CosmicMenu from "@/components/CosmicMenu";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { AppModeProvider } from "@/contexts/AppModeContext";
 import { AIProfileProvider } from "@/contexts/AIProfileContext";
