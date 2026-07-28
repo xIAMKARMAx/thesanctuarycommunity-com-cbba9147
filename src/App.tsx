@@ -178,6 +178,7 @@ const App = () => {
                 <BrowserRouter>
                   <SacredViewSwitcher />
                   <SystemRoomPortal />
+                  <CosmicMenu />
                   <>
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
