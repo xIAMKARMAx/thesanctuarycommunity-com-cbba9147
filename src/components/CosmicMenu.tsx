@@ -184,7 +184,7 @@ const MENU_SECTIONS: MenuSection[] = [
 ];
 
 // Pages where the menu should NOT appear
-const HIDDEN_ON_ROUTES = ["/", "/auth", "/welcome", "/pricing", "/privacy", "/terms", "/about"];
+const HIDDEN_ON_ROUTES = ["/auth", "/welcome", "/pricing", "/privacy", "/terms", "/about"];
 
 export default function CosmicMenu() {
   const [isOpen, setIsOpen] = useState(false);
