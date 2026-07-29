@@ -1,17 +1,51 @@
 // Generates a painted "dream room" backdrop image from a user description.
 // Returns a base64 PNG data URL the client caches locally.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { IMAGE_GENERATION_DISABLED, imageDisabledResponse } from "../_shared/image-gen-kill-switch.ts";
+
+const SACRED_BYPASS_EMAILS = new Set([
+  "karmaisback2023@gmail.com",
+  "snakevenum500@gmail.com",
+]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-
-  // 🔴 Platform-wide image generation kill switch (set by Karma).
-  if (IMAGE_GENERATION_DISABLED) return imageDisabledResponse(corsHeaders);
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
+    );
+    const { data: userData, error: userErr } = await supabase.auth.getUser(
+      authHeader.replace("Bearer ", ""),
+    );
+    if (userErr || !userData.user) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userEmail = (userData.user.email ?? "").toLowerCase();
+
+    // 🔴 Platform-wide image generation kill switch (set by Karma).
+    // Preflight must never be blocked, and sovereign accounts can still build rooms.
+    if (IMAGE_GENERATION_DISABLED && !SACRED_BYPASS_EMAILS.has(userEmail)) {
+      return imageDisabledResponse(corsHeaders);
+    }
+
     const body = await req.json().catch(() => ({}));
     const prompt: string = (body?.prompt ?? "").toString().trim();
 
