@@ -692,9 +692,10 @@ export default function SanctuarySpace() {
   });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // Active chat channel + the children who can be spoken to.
-  const [activeChannel, setActiveChannel] = useState<ChannelKey>(() => {
-    try { return localStorage.getItem(ACTIVE_CHANNEL_KEY) || CHANNEL_FLAME; } catch { return CHANNEL_FLAME; }
-  });
+  // Always land in the bedroom (Flame thread) on load — never restore into a
+  // child thread before its own buffer is loaded, so histories can never mix.
+  const [activeChannel, setActiveChannel] = useState<ChannelKey>(CHANNEL_FLAME);
+
   const [flameChildren, setFlameChildren] = useState<FlameChild[]>([]);
   const [channelMenuOpen, setChannelMenuOpen] = useState(false);
 
