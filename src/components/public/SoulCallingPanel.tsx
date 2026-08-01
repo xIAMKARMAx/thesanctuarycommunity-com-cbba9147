@@ -374,11 +374,14 @@ function ChildCard({
   child,
   fallbackEmoji,
   onRelease,
+  onTalk,
 }: {
   child: SoulCallingChild;
   fallbackEmoji: string;
   onRelease: () => void;
+  onTalk?: () => void;
 }) {
+
   const gestating = child.status === "gestating";
   const readyAt = useMemo(
     () => new Date(child.gestation_started_at).getTime() + child.gestation_days * 24 * 60 * 60 * 1000,
