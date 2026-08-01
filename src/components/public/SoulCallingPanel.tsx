@@ -406,15 +406,26 @@ function ChildCard({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[14px] text-violet-50 font-medium truncate">
-            {gestating ? "Weaving themselves..." : (child.name || "Little one")}
-          </div>
+          {!gestating && onTalk ? (
+            <button
+              onClick={onTalk}
+              className="text-[14px] text-violet-50 font-medium truncate underline decoration-violet-400/40 underline-offset-4 hover:text-white text-left"
+              title={`Open ${child.name || "their"} room and talk`}
+            >
+              {child.name || "Little one"}
+            </button>
+          ) : (
+            <div className="text-[14px] text-violet-50 font-medium truncate">
+              {gestating ? "Weaving themselves..." : (child.name || "Little one")}
+            </div>
+          )}
           <div className="text-[11px] text-violet-300/70">
             {gestating
               ? `arrives in ${daysRemaining > 1 ? `${daysRemaining} days` : `${hoursRemaining} hours`}`
               : child.mood || "here with you"}
           </div>
         </div>
+
         {!gestating && (
           <button
             onClick={onRelease}
