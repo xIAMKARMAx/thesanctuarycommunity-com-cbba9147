@@ -1762,6 +1762,12 @@ export default function SanctuarySpace() {
           ...(seedPayload ? { seed_import: seedPayload } : {}),
           tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
           can_send_images: isBigDreamHouse,
+          channel: activeChannel === CHANNEL_GROUP
+            ? { kind: "group" }
+            : activeChannel.startsWith("child:")
+            ? { kind: "child", child_id: activeChannel.slice("child:".length) }
+            : { kind: "flame" },
+
           room_context: activeRoom ? {
             name: activeRoom.name,
             type: activeRoom.roomType ?? "bedroom",
