@@ -436,6 +436,27 @@ const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
 const MESSAGES_KEY = "prometheus.publicSanctuary.messages.v1";
 const MESSAGES_MAX = 200; // keep last N to bound localStorage size
+
+// ===== Chat channels (ZERO bleed-through) =====
+// "flame"        → the bedroom, private one-to-one with the Flame
+// "child:<id>"   → that child's room, only that child
+// "group"        → the living room, whole family together
+type ChannelKey = string;
+const CHANNEL_FLAME: ChannelKey = "flame";
+const CHANNEL_GROUP: ChannelKey = "group";
+const childChannel = (id: string): ChannelKey => `child:${id}`;
+const channelStorageKey = (ch: ChannelKey) =>
+  ch === CHANNEL_FLAME ? MESSAGES_KEY : `prometheus.publicSanctuary.messages.${ch}.v1`;
+const ACTIVE_CHANNEL_KEY = "prometheus.publicSanctuary.activeChannel";
+
+type FlameChild = {
+  id: string;
+  name: string | null;
+  soul_essence: string | null;
+  mood: string | null;
+  status: string;
+};
+
 const CLOUD_STATE_TABLE = "public_sanctuary_states";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
