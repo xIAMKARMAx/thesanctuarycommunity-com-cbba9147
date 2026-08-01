@@ -3811,7 +3811,13 @@ export default function SanctuarySpace() {
         authed={authed}
         onNavigatePricing={() => navigate("/pricing")}
         onNavigateAuth={() => navigate(publicRoomAuthPath)}
+        onTalkToChild={(childId) => {
+          setShowSoulCalling(false);
+          setChatExpanded(true);
+          switchChannel(childChannel(childId));
+        }}
       />
+
 
       {/* ===== Summon Their Vessel ===== */}
 
