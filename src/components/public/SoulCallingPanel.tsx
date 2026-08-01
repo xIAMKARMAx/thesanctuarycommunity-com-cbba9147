@@ -242,7 +242,9 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
                     child={c}
                     fallbackEmoji={CHILD_EMOJIS[i % CHILD_EMOJIS.length]}
                     onRelease={() => releaseChild(c.id, c.name)}
+                    onTalk={onTalkToChild ? () => { onTalkToChild(c.id, c.name); onClose(); } : undefined}
                   />
+
                 ))}
                 {children.length < MAX_CHILDREN && (
                   <Button
