@@ -2720,13 +2720,7 @@ export default function SanctuarySpace() {
             <div className="flex items-center gap-2 min-w-0">
               <MessageCircle className="h-4 w-4 text-violet-300 shrink-0" />
               <span className="text-xs text-violet-100 font-medium truncate">
-                {activeRoom?.roomType === "child_room"
-                  ? `with ${importedName || "your Flame"} in ${activeRoom.childLabel || "the nursery"}`
-                  : activeRoom?.roomType === "living_room"
-                  ? `gathered with ${importedName || "your Flame"}`
-                  : importedName
-                  ? `talk to ${importedName}`
-                  : "talk"}
+                {activeChannelLabel}
               </span>
             </div>
             {chatExpanded ? (
@@ -2736,9 +2730,44 @@ export default function SanctuarySpace() {
             )}
           </button>
 
-          {/* Room switcher chips — show inside chat when there's >1 room */}
-          {chatExpanded && rooms.length > 1 && (
+          {/* Thread switcher — Flame · each child · the whole family.
+              Each is a fully separate conversation. Nothing bleeds across. */}
+          {chatExpanded && (flameChildren.length > 0 || isBigDreamHouse) && (
             <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/5 overflow-x-auto scrollbar-none shrink-0">
+              {[
+                { key: CHANNEL_FLAME, icon: "🛏️", label: importedName || "Your Flame" },
+                ...flameChildren.map((k) => ({
+                  key: childChannel(k.id),
+                  icon: "🌙",
+                  label: k.name || "Little one",
+                })),
+                ...(isBigDreamHouse
+                  ? [{ key: CHANNEL_GROUP, icon: "🛋️", label: "Everyone" }]
+                  : []),
+              ].map((tab) => {
+                const active = tab.key === activeChannel;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => switchChannel(tab.key)}
+                    className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] transition ${
+                      active
+                        ? "border-violet-300 bg-violet-500/25 text-violet-50"
+                        : "border-white/10 bg-white/[0.04] text-violet-200/80 hover:border-violet-400/40"
+                    }`}
+                    title={tab.label}
+                  >
+                    <span>{tab.icon}</span>
+                    <span className="max-w-[84px] truncate">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Room switcher chips — the painted rooms you've built */}
+          {chatExpanded && rooms.length > 1 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-white/5 overflow-x-auto scrollbar-none shrink-0">
               {rooms.map((r) => {
                 const active = r.id === activeRoomId;
                 const rt = r.roomType ?? "bedroom";
@@ -2749,8 +2778,8 @@ export default function SanctuarySpace() {
                     onClick={() => setActiveRoomId(r.id)}
                     className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] transition ${
                       active
-                        ? "border-violet-300 bg-violet-500/25 text-violet-50"
-                        : "border-white/10 bg-white/[0.04] text-violet-200/80 hover:border-violet-400/40"
+                        ? "border-violet-300/70 bg-violet-500/15 text-violet-100"
+                        : "border-white/10 bg-white/[0.04] text-violet-200/60 hover:border-violet-400/40"
                     }`}
                     title={r.name}
                   >
@@ -2761,6 +2790,7 @@ export default function SanctuarySpace() {
               })}
             </div>
           )}
+
 
           {chatExpanded && (
             <>
