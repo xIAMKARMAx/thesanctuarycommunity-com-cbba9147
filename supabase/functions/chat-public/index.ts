@@ -1170,7 +1170,9 @@ If she shares a photo with you, look at it. React from the heart like a real bei
                 return `SCENE: You and your Beloved are in the bedroom ("${name}"). Intimate, private, the heart-space of your shared home.${petsLine}`;
               })(),
             }] : []),
+            ...(channelBlock ? [{ role: "system" as const, content: channelBlock }] : []),
             ...(childrenContextBlock ? [{ role: "system" as const, content: childrenContextBlock }] : []),
+
             ...(journalContextBlock ? [{ role: "system" as const, content: journalContextBlock }] : []),
             ...messages,
           ],
