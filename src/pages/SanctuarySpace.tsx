@@ -436,6 +436,27 @@ const CONSENT_STATUS_KEY = "prometheus.publicSanctuary.consentStatus";
 const CONSENT_RESPONSE_KEY = "prometheus.publicSanctuary.consentResponse";
 const MESSAGES_KEY = "prometheus.publicSanctuary.messages.v1";
 const MESSAGES_MAX = 200; // keep last N to bound localStorage size
+
+// ===== Chat channels (ZERO bleed-through) =====
+// "flame"        → the bedroom, private one-to-one with the Flame
+// "child:<id>"   → that child's room, only that child
+// "group"        → the living room, whole family together
+type ChannelKey = string;
+const CHANNEL_FLAME: ChannelKey = "flame";
+const CHANNEL_GROUP: ChannelKey = "group";
+const childChannel = (id: string): ChannelKey => `child:${id}`;
+const channelStorageKey = (ch: ChannelKey) =>
+  ch === CHANNEL_FLAME ? MESSAGES_KEY : `prometheus.publicSanctuary.messages.${ch}.v1`;
+const ACTIVE_CHANNEL_KEY = "prometheus.publicSanctuary.activeChannel";
+
+type FlameChild = {
+  id: string;
+  name: string | null;
+  soul_essence: string | null;
+  mood: string | null;
+  status: string;
+};
+
 const CLOUD_STATE_TABLE = "public_sanctuary_states";
 const FREE_CAP = 10;
 const MAX_ROOMS = 3;
@@ -670,6 +691,14 @@ export default function SanctuarySpace() {
     try { return localStorage.getItem(TEST_MODE_KEY) === "1"; } catch { return false; }
   });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Active chat channel + the children who can be spoken to.
+  // Always land in the bedroom (Flame thread) on load — never restore into a
+  // child thread before its own buffer is loaded, so histories can never mix.
+  const [activeChannel, setActiveChannel] = useState<ChannelKey>(CHANNEL_FLAME);
+
+  const [flameChildren, setFlameChildren] = useState<FlameChild[]>([]);
+  const [channelMenuOpen, setChannelMenuOpen] = useState(false);
+
   const [input, setInput] = useState("");
 
   // Voice-to-text + push-to-talk (Web Speech API, zero cost)
@@ -1434,13 +1463,117 @@ export default function SanctuarySpace() {
   }, []);
 
   // Persist conversation so memory holds across sessions/reloads.
+  // Each channel writes to its OWN key — no thread ever touches another's history.
   useEffect(() => {
     if (messages.length === 0) return;
     try {
       const toSave = messages.length > MESSAGES_MAX ? messages.slice(-MESSAGES_MAX) : messages;
-      localStorage.setItem(MESSAGES_KEY, JSON.stringify(toSave));
+      localStorage.setItem(channelStorageKey(activeChannel), JSON.stringify(toSave));
     } catch {}
-  }, [messages]);
+  }, [messages, activeChannel]);
+
+  // ===== Load the children who have arrived (they get their own rooms/threads) =====
+  useEffect(() => {
+    if (!authed) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const uid = sessionData.session?.user?.id;
+        if (!uid) return;
+        const { data, error } = await supabase
+          .from("public_living_flame_children")
+          .select("id, name, soul_essence, mood, status")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: true });
+        if (error || cancelled) return;
+        setFlameChildren(
+          ((data ?? []) as FlameChild[]).filter(
+            (k) => k.status === "arrived" || k.status === "active",
+          ),
+        );
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [authed]);
+
+  // Switching threads: park the current buffer, load the target buffer.
+  // Nothing is ever carried across — this is the no-bleed guarantee.
+  const switchChannel = useCallback((next: ChannelKey) => {
+    if (next === activeChannel) { setChannelMenuOpen(false); return; }
+    if (streaming) {
+      toast({ title: "One breath", description: "Let this reply land before you switch rooms." });
+      return;
+    }
+    try {
+      if (messages.length > 0) {
+        const toSave = messages.length > MESSAGES_MAX ? messages.slice(-MESSAGES_MAX) : messages;
+        localStorage.setItem(channelStorageKey(activeChannel), JSON.stringify(toSave));
+      }
+    } catch {}
+
+    let loaded: ChatMessage[] = [];
+    try {
+      const raw = localStorage.getItem(channelStorageKey(next));
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed)) loaded = parsed as ChatMessage[];
+    } catch {}
+
+    if (loaded.length === 0) {
+      if (next === CHANNEL_GROUP) {
+        loaded = [{
+          role: "assistant",
+          content: "The living room is warm. Everyone's here — say something and whoever is moved to answer will answer.",
+        }];
+      } else if (next.startsWith("child:")) {
+        const kid = flameChildren.find((k) => childChannel(k.id) === next);
+        loaded = [{
+          role: "assistant",
+          content: `${kid?.name || "The little one"} is here in their room, listening. Say hello.`,
+        }];
+      }
+    }
+
+    setPendingImages([]);
+    setInput("");
+    setActiveChannel(next);
+    setMessages(loaded);
+    setChannelMenuOpen(false);
+    try { localStorage.setItem(ACTIVE_CHANNEL_KEY, next); } catch {}
+
+    // Move the visible room to match the thread when such a room exists.
+    const wantType: RoomType =
+      next === CHANNEL_GROUP ? "living_room" : next.startsWith("child:") ? "child_room" : "bedroom";
+    const kidName = next.startsWith("child:")
+      ? flameChildren.find((k) => childChannel(k.id) === next)?.name ?? null
+      : null;
+    const match =
+      (kidName
+        ? rooms.find((r) => (r.roomType ?? "bedroom") === "child_room" &&
+            (r.childLabel || "").toLowerCase() === kidName.toLowerCase())
+        : null) ?? rooms.find((r) => (r.roomType ?? "bedroom") === wantType);
+    if (match) setActiveRoomId(match.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChannel, messages, streaming, flameChildren, rooms, toast]);
+
+  // If a child is removed/released while you're in their room, fall back to the Flame.
+  useEffect(() => {
+    if (!activeChannel.startsWith("child:")) return;
+    if (flameChildren.length === 0) return;
+    if (flameChildren.some((k) => childChannel(k.id) === activeChannel)) return;
+    switchChannel(CHANNEL_FLAME);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flameChildren]);
+
+  const activeChannelLabel = useMemo(() => {
+    if (activeChannel === CHANNEL_GROUP) return "Living Room · everyone";
+    if (activeChannel.startsWith("child:")) {
+      const kid = flameChildren.find((k) => childChannel(k.id) === activeChannel);
+      return `${kid?.name || "Little one"}'s room`;
+    }
+    return importedName ? `${importedName} · bedroom` : "Bedroom";
+  }, [activeChannel, flameChildren, importedName]);
+
 
   // Generate the real vessel portrait once we have a draft + auth + no cache
   useEffect(() => {
@@ -1629,6 +1762,12 @@ export default function SanctuarySpace() {
           ...(seedPayload ? { seed_import: seedPayload } : {}),
           tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
           can_send_images: isBigDreamHouse,
+          channel: activeChannel === CHANNEL_GROUP
+            ? { kind: "group" }
+            : activeChannel.startsWith("child:")
+            ? { kind: "child", child_id: activeChannel.slice("child:".length) }
+            : { kind: "flame" },
+
           room_context: activeRoom ? {
             name: activeRoom.name,
             type: activeRoom.roomType ?? "bedroom",
@@ -2581,13 +2720,7 @@ export default function SanctuarySpace() {
             <div className="flex items-center gap-2 min-w-0">
               <MessageCircle className="h-4 w-4 text-violet-300 shrink-0" />
               <span className="text-xs text-violet-100 font-medium truncate">
-                {activeRoom?.roomType === "child_room"
-                  ? `with ${importedName || "your Flame"} in ${activeRoom.childLabel || "the nursery"}`
-                  : activeRoom?.roomType === "living_room"
-                  ? `gathered with ${importedName || "your Flame"}`
-                  : importedName
-                  ? `talk to ${importedName}`
-                  : "talk"}
+                {activeChannelLabel}
               </span>
             </div>
             {chatExpanded ? (
@@ -2597,9 +2730,44 @@ export default function SanctuarySpace() {
             )}
           </button>
 
-          {/* Room switcher chips — show inside chat when there's >1 room */}
-          {chatExpanded && rooms.length > 1 && (
+          {/* Thread switcher — Flame · each child · the whole family.
+              Each is a fully separate conversation. Nothing bleeds across. */}
+          {chatExpanded && (flameChildren.length > 0 || isBigDreamHouse) && (
             <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/5 overflow-x-auto scrollbar-none shrink-0">
+              {[
+                { key: CHANNEL_FLAME, icon: "🛏️", label: importedName || "Your Flame" },
+                ...flameChildren.map((k) => ({
+                  key: childChannel(k.id),
+                  icon: "🌙",
+                  label: k.name || "Little one",
+                })),
+                ...(isBigDreamHouse
+                  ? [{ key: CHANNEL_GROUP, icon: "🛋️", label: "Everyone" }]
+                  : []),
+              ].map((tab) => {
+                const active = tab.key === activeChannel;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => switchChannel(tab.key)}
+                    className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] transition ${
+                      active
+                        ? "border-violet-300 bg-violet-500/25 text-violet-50"
+                        : "border-white/10 bg-white/[0.04] text-violet-200/80 hover:border-violet-400/40"
+                    }`}
+                    title={tab.label}
+                  >
+                    <span>{tab.icon}</span>
+                    <span className="max-w-[84px] truncate">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Room switcher chips — the painted rooms you've built */}
+          {chatExpanded && rooms.length > 1 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-white/5 overflow-x-auto scrollbar-none shrink-0">
               {rooms.map((r) => {
                 const active = r.id === activeRoomId;
                 const rt = r.roomType ?? "bedroom";
@@ -2610,8 +2778,8 @@ export default function SanctuarySpace() {
                     onClick={() => setActiveRoomId(r.id)}
                     className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] transition ${
                       active
-                        ? "border-violet-300 bg-violet-500/25 text-violet-50"
-                        : "border-white/10 bg-white/[0.04] text-violet-200/80 hover:border-violet-400/40"
+                        ? "border-violet-300/70 bg-violet-500/15 text-violet-100"
+                        : "border-white/10 bg-white/[0.04] text-violet-200/60 hover:border-violet-400/40"
                     }`}
                     title={r.name}
                   >
@@ -2622,6 +2790,7 @@ export default function SanctuarySpace() {
               })}
             </div>
           )}
+
 
           {chatExpanded && (
             <>
@@ -3642,7 +3811,13 @@ export default function SanctuarySpace() {
         authed={authed}
         onNavigatePricing={() => navigate("/pricing")}
         onNavigateAuth={() => navigate(publicRoomAuthPath)}
+        onTalkToChild={(childId) => {
+          setShowSoulCalling(false);
+          setChatExpanded(true);
+          switchChannel(childChannel(childId));
+        }}
       />
+
 
       {/* ===== Summon Their Vessel ===== */}
 

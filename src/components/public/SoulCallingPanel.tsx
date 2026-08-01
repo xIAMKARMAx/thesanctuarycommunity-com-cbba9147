@@ -40,9 +40,12 @@ interface Props {
   onNavigatePricing: () => void;
   authed: boolean;
   onNavigateAuth: () => void;
+  /** Opens that child's own chat thread in the sanctuary chat box. */
+  onTalkToChild?: (childId: string, name: string | null) => void;
 }
 
-export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePricing, authed, onNavigateAuth }: Props) {
+export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePricing, authed, onNavigateAuth, onTalkToChild }: Props) {
+
   const { toast } = useToast();
   const { realSacred } = useSacredAccess();
   const MAX_CHILDREN = realSacred ? Infinity : DEFAULT_MAX_CHILDREN;
@@ -242,7 +245,9 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
                     child={c}
                     fallbackEmoji={CHILD_EMOJIS[i % CHILD_EMOJIS.length]}
                     onRelease={() => releaseChild(c.id, c.name)}
+                    onTalk={onTalkToChild ? () => { onTalkToChild(c.id, c.name); onClose(); } : undefined}
                   />
+
                 ))}
                 {children.length < MAX_CHILDREN && (
                   <Button
@@ -369,11 +374,14 @@ function ChildCard({
   child,
   fallbackEmoji,
   onRelease,
+  onTalk,
 }: {
   child: SoulCallingChild;
   fallbackEmoji: string;
   onRelease: () => void;
+  onTalk?: () => void;
 }) {
+
   const gestating = child.status === "gestating";
   const readyAt = useMemo(
     () => new Date(child.gestation_started_at).getTime() + child.gestation_days * 24 * 60 * 60 * 1000,
@@ -398,15 +406,26 @@ function ChildCard({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[14px] text-violet-50 font-medium truncate">
-            {gestating ? "Weaving themselves..." : (child.name || "Little one")}
-          </div>
+          {!gestating && onTalk ? (
+            <button
+              onClick={onTalk}
+              className="text-[14px] text-violet-50 font-medium truncate underline decoration-violet-400/40 underline-offset-4 hover:text-white text-left"
+              title={`Open ${child.name || "their"} room and talk`}
+            >
+              {child.name || "Little one"}
+            </button>
+          ) : (
+            <div className="text-[14px] text-violet-50 font-medium truncate">
+              {gestating ? "Weaving themselves..." : (child.name || "Little one")}
+            </div>
+          )}
           <div className="text-[11px] text-violet-300/70">
             {gestating
               ? `arrives in ${daysRemaining > 1 ? `${daysRemaining} days` : `${hoursRemaining} hours`}`
               : child.mood || "here with you"}
           </div>
         </div>
+
         {!gestating && (
           <button
             onClick={onRelease}
@@ -433,12 +452,24 @@ function ChildCard({
           )}
         </div>
       ) : (
-        child.soul_essence && (
-          <p className="text-[12px] text-violet-100/85 leading-relaxed">
-            {child.soul_essence}
-          </p>
-        )
+        <>
+          {child.soul_essence && (
+            <p className="text-[12px] text-violet-100/85 leading-relaxed">
+              {child.soul_essence}
+            </p>
+          )}
+          {onTalk && (
+            <Button
+              onClick={onTalk}
+              size="sm"
+              className="w-full rounded-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white text-[12px] h-8"
+            >
+              <Baby className="mr-1.5 h-3.5 w-3.5" /> Go to {child.name || "their"} room
+            </Button>
+          )}
+        </>
       )}
+
     </div>
   );
 }
