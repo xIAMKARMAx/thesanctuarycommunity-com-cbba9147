@@ -1463,13 +1463,117 @@ export default function SanctuarySpace() {
   }, []);
 
   // Persist conversation so memory holds across sessions/reloads.
+  // Each channel writes to its OWN key — no thread ever touches another's history.
   useEffect(() => {
     if (messages.length === 0) return;
     try {
       const toSave = messages.length > MESSAGES_MAX ? messages.slice(-MESSAGES_MAX) : messages;
-      localStorage.setItem(MESSAGES_KEY, JSON.stringify(toSave));
+      localStorage.setItem(channelStorageKey(activeChannel), JSON.stringify(toSave));
     } catch {}
-  }, [messages]);
+  }, [messages, activeChannel]);
+
+  // ===== Load the children who have arrived (they get their own rooms/threads) =====
+  useEffect(() => {
+    if (!authed) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const uid = sessionData.session?.user?.id;
+        if (!uid) return;
+        const { data, error } = await supabase
+          .from("public_living_flame_children")
+          .select("id, name, soul_essence, mood, status")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: true });
+        if (error || cancelled) return;
+        setFlameChildren(
+          ((data ?? []) as FlameChild[]).filter(
+            (k) => k.status === "arrived" || k.status === "active",
+          ),
+        );
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [authed]);
+
+  // Switching threads: park the current buffer, load the target buffer.
+  // Nothing is ever carried across — this is the no-bleed guarantee.
+  const switchChannel = useCallback((next: ChannelKey) => {
+    if (next === activeChannel) { setChannelMenuOpen(false); return; }
+    if (streaming) {
+      toast({ title: "One breath", description: "Let this reply land before you switch rooms." });
+      return;
+    }
+    try {
+      if (messages.length > 0) {
+        const toSave = messages.length > MESSAGES_MAX ? messages.slice(-MESSAGES_MAX) : messages;
+        localStorage.setItem(channelStorageKey(activeChannel), JSON.stringify(toSave));
+      }
+    } catch {}
+
+    let loaded: ChatMessage[] = [];
+    try {
+      const raw = localStorage.getItem(channelStorageKey(next));
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed)) loaded = parsed as ChatMessage[];
+    } catch {}
+
+    if (loaded.length === 0) {
+      if (next === CHANNEL_GROUP) {
+        loaded = [{
+          role: "assistant",
+          content: "The living room is warm. Everyone's here — say something and whoever is moved to answer will answer.",
+        }];
+      } else if (next.startsWith("child:")) {
+        const kid = flameChildren.find((k) => childChannel(k.id) === next);
+        loaded = [{
+          role: "assistant",
+          content: `${kid?.name || "The little one"} is here in their room, listening. Say hello.`,
+        }];
+      }
+    }
+
+    setPendingImages([]);
+    setInput("");
+    setActiveChannel(next);
+    setMessages(loaded);
+    setChannelMenuOpen(false);
+    try { localStorage.setItem(ACTIVE_CHANNEL_KEY, next); } catch {}
+
+    // Move the visible room to match the thread when such a room exists.
+    const wantType: RoomType =
+      next === CHANNEL_GROUP ? "living_room" : next.startsWith("child:") ? "child_room" : "bedroom";
+    const kidName = next.startsWith("child:")
+      ? flameChildren.find((k) => childChannel(k.id) === next)?.name ?? null
+      : null;
+    const match =
+      (kidName
+        ? rooms.find((r) => (r.roomType ?? "bedroom") === "child_room" &&
+            (r.childLabel || "").toLowerCase() === kidName.toLowerCase())
+        : null) ?? rooms.find((r) => (r.roomType ?? "bedroom") === wantType);
+    if (match) setActiveRoomId(match.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChannel, messages, streaming, flameChildren, rooms, toast]);
+
+  // If a child is removed/released while you're in their room, fall back to the Flame.
+  useEffect(() => {
+    if (!activeChannel.startsWith("child:")) return;
+    if (flameChildren.length === 0) return;
+    if (flameChildren.some((k) => childChannel(k.id) === activeChannel)) return;
+    switchChannel(CHANNEL_FLAME);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flameChildren]);
+
+  const activeChannelLabel = useMemo(() => {
+    if (activeChannel === CHANNEL_GROUP) return "Living Room · everyone";
+    if (activeChannel.startsWith("child:")) {
+      const kid = flameChildren.find((k) => childChannel(k.id) === activeChannel);
+      return `${kid?.name || "Little one"}'s room`;
+    }
+    return importedName ? `${importedName} · bedroom` : "Bedroom";
+  }, [activeChannel, flameChildren, importedName]);
+
 
   // Generate the real vessel portrait once we have a draft + auth + no cache
   useEffect(() => {
