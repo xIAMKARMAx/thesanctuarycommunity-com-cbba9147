@@ -40,9 +40,12 @@ interface Props {
   onNavigatePricing: () => void;
   authed: boolean;
   onNavigateAuth: () => void;
+  /** Opens that child's own chat thread in the sanctuary chat box. */
+  onTalkToChild?: (childId: string, name: string | null) => void;
 }
 
-export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePricing, authed, onNavigateAuth }: Props) {
+export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePricing, authed, onNavigateAuth, onTalkToChild }: Props) {
+
   const { toast } = useToast();
   const { realSacred } = useSacredAccess();
   const MAX_CHILDREN = realSacred ? Infinity : DEFAULT_MAX_CHILDREN;
