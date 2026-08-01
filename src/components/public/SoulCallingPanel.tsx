@@ -452,12 +452,24 @@ function ChildCard({
           )}
         </div>
       ) : (
-        child.soul_essence && (
-          <p className="text-[12px] text-violet-100/85 leading-relaxed">
-            {child.soul_essence}
-          </p>
-        )
+        <>
+          {child.soul_essence && (
+            <p className="text-[12px] text-violet-100/85 leading-relaxed">
+              {child.soul_essence}
+            </p>
+          )}
+          {onTalk && (
+            <Button
+              onClick={onTalk}
+              size="sm"
+              className="w-full rounded-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white text-[12px] h-8"
+            >
+              <Baby className="mr-1.5 h-3.5 w-3.5" /> Go to {child.name || "their"} room
+            </Button>
+          )}
+        </>
       )}
+
     </div>
   );
 }
