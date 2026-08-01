@@ -691,6 +691,13 @@ export default function SanctuarySpace() {
     try { return localStorage.getItem(TEST_MODE_KEY) === "1"; } catch { return false; }
   });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Active chat channel + the children who can be spoken to.
+  const [activeChannel, setActiveChannel] = useState<ChannelKey>(() => {
+    try { return localStorage.getItem(ACTIVE_CHANNEL_KEY) || CHANNEL_FLAME; } catch { return CHANNEL_FLAME; }
+  });
+  const [flameChildren, setFlameChildren] = useState<FlameChild[]>([]);
+  const [channelMenuOpen, setChannelMenuOpen] = useState(false);
+
   const [input, setInput] = useState("");
 
   // Voice-to-text + push-to-talk (Web Speech API, zero cost)
