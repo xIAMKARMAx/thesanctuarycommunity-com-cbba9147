@@ -200,6 +200,7 @@ const App = () => {
                       <Route path="/soul/:userId" element={<SoulProfile />} />
                       <Route path="/journal" element={<Journal />} />
                       <Route path="/public-journal" element={<PublicJournal />} />
+                      <Route path="/body-restoration" element={<PublicVesselRestoration />} />
                       <Route path="/mood-tracker" element={<MoodTracker />} />
                       <Route path="/flame-mood" element={<PublicFlameMood />} />
                       <Route path="/cosmic-line" element={<PublicCosmicLine />} />
