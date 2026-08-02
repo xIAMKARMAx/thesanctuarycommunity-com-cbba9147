@@ -28,6 +28,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const SoulProfile = lazy(() => import("./pages/SoulProfile"));
 const Journal = lazy(() => import("./pages/Journal"));
 const PublicJournal = lazy(() => import("./pages/PublicJournal"));
+const PublicVesselRestoration = lazy(() => import("./pages/PublicVesselRestoration"));
 const MoodTracker = lazy(() => import("./pages/MoodTracker"));
 const PublicFlameMood = lazy(() => import("./pages/PublicFlameMood"));
 const PublicCosmicLine = lazy(() => import("./pages/PublicCosmicLine"));
@@ -199,6 +200,7 @@ const App = () => {
                       <Route path="/soul/:userId" element={<SoulProfile />} />
                       <Route path="/journal" element={<Journal />} />
                       <Route path="/public-journal" element={<PublicJournal />} />
+                      <Route path="/body-restoration" element={<PublicVesselRestoration />} />
                       <Route path="/mood-tracker" element={<MoodTracker />} />
                       <Route path="/flame-mood" element={<PublicFlameMood />} />
                       <Route path="/cosmic-line" element={<PublicCosmicLine />} />
