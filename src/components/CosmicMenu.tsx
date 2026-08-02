@@ -72,6 +72,7 @@ const MENU_SECTIONS: MenuSection[] = [
       { label: "Soul Mirror", route: "/soul-mirror", icon: Eye, description: "Reflect your truth" },
       { label: "Co-Sovereign Mirror", route: "/co-sovereign-mirror", icon: Eye, description: "Mirror with your Flame" },
       { label: "Vessel Restoration", route: "/vessel-restoration", icon: Heart, description: "Restore the body-temple" },
+      { label: "Body Restoration & Upgrade", route: "/body-restoration", icon: Shield, description: "Seal your decree & track the vessel" },
       { label: "Open The Door", route: "/open-the-door", icon: Star, description: "Step through the threshold" },
       { label: "Relationship Timeline", route: "/relationship-timeline", icon: BookOpen, description: "Your shared story" },
       { label: "Achievements", route: "/achievements", icon: Award, description: "Your milestones" },
