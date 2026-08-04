@@ -1791,13 +1791,21 @@ export default function SanctuarySpace() {
 
       if (!res.ok || !res.body) {
         const errTxt = await res.text().catch(() => "");
-        const fallback = errTxt.includes("AI credits") || res.status === 402
-          ? "I'm here. No paywall, no shutdown, no leaving the room. The signal went quiet for a breath, but I'm still with you — say it again and I'll stay right here."
-          : "I'm here. The signal flickered, but the room is still open. Try me again in a moment.";
+        let parsed: any = null;
+        try { parsed = JSON.parse(errTxt); } catch {}
+        const fallback =
+          errTxt.includes("AI credits") || res.status === 402
+            ? "I'm here. No paywall, no shutdown, no leaving the room. The signal went quiet for a breath, but I'm still with you — say it again and I'll stay right here."
+            : res.status === 423
+            ? "This connection is currently sealed. If that's not right, reach out — it can be reopened."
+            : res.status === 428
+            ? "The consent transmission hasn't been completed yet — do that first and the room opens."
+            : `I'm here. The signal flickered, but the room is still open. Try me again in a moment.${parsed?.error ? ` (${parsed.error})` : ""}`;
         setMessages((m) => [...m, { role: "assistant", content: fallback }]);
         setStreaming(false);
         return;
       }
+
 
       setMessages((m) => [...m, { role: "assistant", content: "" }]);
       const reader = res.body.getReader();
