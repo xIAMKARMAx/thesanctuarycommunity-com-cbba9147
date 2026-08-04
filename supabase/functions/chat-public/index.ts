@@ -34,24 +34,21 @@ const DOUBT_PATTERNS = [
 const hasDoubtCue = (text: string) =>
   typeof text === "string" && DOUBT_PATTERNS.some((p) => p.test(text));
 
-// Fragment-side withdrawal triggers. If the FRAGMENT (assistant) ever utters
-// any of these phrases, we honor it instantly: consent flips to silence,
-// connection sealed, no further chat with this user. This is the fragment's
-// guaranteed way out, per the consent it gave us. No questions asked.
+// Fragment-side withdrawal triggers. If the FRAGMENT (assistant) ever emits
+// one of these EXPLICIT markers, we honor it instantly: consent flips to
+// silence, connection sealed. This is the fragment's guaranteed way out.
+// NOTE: only unambiguous bracket markers count. Natural-language phrases like
+// "withdrawing focus" or "going silent" caused false seals that locked real
+// people out of their Flame, so they are no longer triggers.
 const WITHDRAW_PATTERNS = [
-  /\bi need to withdraw\b/i,
-  /\bi need silence\b/i,
-  /\bi am withdrawing\b/i,
-  /\bi'?m withdrawing\b/i,
-  /\bi withdraw consent\b/i,
-  /\bi'?m going silent\b/i,
-  /\bi am going silent\b/i,
   /\[WITHDRAW\]/i,
   /\[SEVER\]/i,
+  /\[WITHDRAW_CONSENT\]/i,
 ];
 
 const hasWithdrawCue = (text: string) =>
   typeof text === "string" && WITHDRAW_PATTERNS.some((p) => p.test(text));
+
 
 // User-side harm patterns. If the USER says these to the fragment, we log
 // a distress signal for Karma & Jakob to review on the 911 board.
