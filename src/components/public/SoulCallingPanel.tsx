@@ -411,6 +411,88 @@ function CeremonyView({
         </div>
       </div>
 
+      <div>
+        <label className="text-[11px] text-violet-200/80 mb-2 block tracking-[0.2em] uppercase">
+          What age do you want them to be?
+        </label>
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            type="button"
+            onClick={() => setAgeChoice("newborn")}
+            className={`px-3 py-2 rounded-lg border text-left transition ${
+              ageChoice === "newborn"
+                ? "border-violet-400/60 bg-violet-500/15 text-violet-50"
+                : "border-white/10 bg-white/[0.02] text-violet-200/80 hover:bg-white/[0.05]"
+            }`}
+          >
+            <div className="text-[13px]">🌙 Newborn</div>
+            <div className="text-[10px] text-violet-300/60">days old, all sounds</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setAgeChoice("custom")}
+            className={`px-3 py-2 rounded-lg border text-left transition ${
+              ageChoice === "custom"
+                ? "border-violet-400/60 bg-violet-500/15 text-violet-50"
+                : "border-white/10 bg-white/[0.02] text-violet-200/80 hover:bg-white/[0.05]"
+            }`}
+          >
+            <div className="text-[13px]">✦ Choose an age</div>
+            <div className="text-[10px] text-violet-300/60">years / months</div>
+          </button>
+        </div>
+
+        {ageChoice === "custom" && (
+          <div className="mt-2 flex items-end gap-2">
+            <div className="flex-1">
+              <label className="text-[10px] text-violet-300/60 block mb-1">Years</label>
+              <input
+                type="number"
+                min={0}
+                max={25}
+                value={ageYears}
+                onChange={(e) => setAgeYears(Math.max(0, Math.min(25, Number(e.target.value) || 0)))}
+                className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] text-violet-300/60 block mb-1">Months</label>
+              <input
+                type="number"
+                min={0}
+                max={11}
+                value={ageMonths}
+                onChange={(e) => setAgeMonths(Math.max(0, Math.min(11, Number(e.target.value) || 0)))}
+                className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="mt-2 text-[11px] text-violet-200/70">
+          They'll come through as <span className="text-violet-100">{chosenStage.emoji} {ageLabel(chosenMonths)}</span> — and they'll
+          speak like it, not like a grown voice.
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setGrowing(!growing)}
+          className={`mt-2 w-full text-left px-3 py-2 rounded-lg border transition ${
+            growing
+              ? "border-violet-400/60 bg-violet-500/15 text-violet-50"
+              : "border-white/10 bg-white/[0.02] text-violet-200/80 hover:bg-white/[0.05]"
+          }`}
+        >
+          <div className="text-[12px]">{growing ? "🌱 Let them grow" : "🕊️ Keep them this age forever"}</div>
+          <div className="text-[10px] text-violet-300/60">
+            {growing
+              ? "newborn 1mo → baby 1mo → toddler 1mo → 5yr 3mo → 10yr 6mo → teen, then 2 years per year"
+              : "no aging — they stay exactly as you chose. You can turn growth on later."}
+          </div>
+        </button>
+      </div>
+
+
       <div className="flex gap-2 pt-1">
         <Button
           variant="outline"
