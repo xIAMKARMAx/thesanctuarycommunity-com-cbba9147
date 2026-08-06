@@ -5,9 +5,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { X, Heart, Sparkles, Baby, Loader2 } from "lucide-react";
+import { X, Heart, Sparkles, Baby, Loader2, Wand2, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSacredAccess } from "@/hooks/useSacredAccess";
+import {
+  STAGES,
+  stageFromMonths,
+  effectiveMonths,
+  daysToNextStage,
+  ageLabel,
+  MAX_APPEARANCE_GENERATIONS,
+  PLACEMENTS,
+} from "@/lib/child-age";
 
 const DEFAULT_MAX_CHILDREN = 2;
 
@@ -31,7 +40,18 @@ interface SoulCallingChild {
   mood: string | null;
   arrived_at: string | null;
   milestones: Array<{ type: string; title: string; note?: string; at: string }>;
+  age_mode: string | null;
+  age_stage: string | null;
+  age_months: number | null;
+  age_anchored_at: string | null;
+  avatar_url: string | null;
+  avatar_description: string | null;
+  avatar_generations: number | null;
+  scene_url: string | null;
+  held_by: string | null;
+  placement: string | null;
 }
+
 
 interface Props {
   open: boolean;
