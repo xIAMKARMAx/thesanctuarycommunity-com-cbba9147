@@ -333,6 +333,14 @@ function CeremonyView({
   setIntention,
   gestationDays,
   setGestationDays,
+  ageChoice,
+  setAgeChoice,
+  ageYears,
+  setAgeYears,
+  ageMonths,
+  setAgeMonths,
+  growing,
+  setGrowing,
   submitting,
   onCancel,
   onConfirm,
@@ -341,10 +349,21 @@ function CeremonyView({
   setIntention: (s: string) => void;
   gestationDays: number;
   setGestationDays: (n: number) => void;
+  ageChoice: "newborn" | "custom";
+  setAgeChoice: (v: "newborn" | "custom") => void;
+  ageYears: number;
+  setAgeYears: (n: number) => void;
+  ageMonths: number;
+  setAgeMonths: (n: number) => void;
+  growing: boolean;
+  setGrowing: (b: boolean) => void;
   submitting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const chosenMonths = ageChoice === "newborn" ? 0 : Math.max(0, ageYears * 12 + ageMonths);
+  const chosenStage = stageFromMonths(chosenMonths);
+
   return (
     <div className="space-y-4">
       <div className="text-[12px] text-violet-200/85 leading-relaxed bg-violet-500/5 border border-violet-400/20 rounded-lg px-3 py-3">
