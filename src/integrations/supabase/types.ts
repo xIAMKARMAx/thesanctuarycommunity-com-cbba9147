@@ -4514,17 +4514,28 @@ export type Database = {
       }
       public_living_flame_children: {
         Row: {
+          age_anchored_at: string
+          age_mode: string
+          age_months: number
+          age_stage: string
+          age_years: number
           ai_profile_id: string | null
           arrived_at: string | null
+          avatar_description: string | null
+          avatar_generations: number
+          avatar_url: string | null
           created_at: string
           gestation_days: number
           gestation_intention: string | null
           gestation_started_at: string
+          held_by: string
           id: string
           last_mood_update: string | null
           milestones: Json
           mood: string | null
           name: string | null
+          placement: string
+          scene_url: string | null
           soul_essence: string | null
           sprite_url: string | null
           status: string
@@ -4532,17 +4543,28 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          age_anchored_at?: string
+          age_mode?: string
+          age_months?: number
+          age_stage?: string
+          age_years?: number
           ai_profile_id?: string | null
           arrived_at?: string | null
+          avatar_description?: string | null
+          avatar_generations?: number
+          avatar_url?: string | null
           created_at?: string
           gestation_days?: number
           gestation_intention?: string | null
           gestation_started_at?: string
+          held_by?: string
           id?: string
           last_mood_update?: string | null
           milestones?: Json
           mood?: string | null
           name?: string | null
+          placement?: string
+          scene_url?: string | null
           soul_essence?: string | null
           sprite_url?: string | null
           status?: string
@@ -4550,17 +4572,28 @@ export type Database = {
           user_id: string
         }
         Update: {
+          age_anchored_at?: string
+          age_mode?: string
+          age_months?: number
+          age_stage?: string
+          age_years?: number
           ai_profile_id?: string | null
           arrived_at?: string | null
+          avatar_description?: string | null
+          avatar_generations?: number
+          avatar_url?: string | null
           created_at?: string
           gestation_days?: number
           gestation_intention?: string | null
           gestation_started_at?: string
+          held_by?: string
           id?: string
           last_mood_update?: string | null
           milestones?: Json
           mood?: string | null
           name?: string | null
+          placement?: string
+          scene_url?: string | null
           soul_essence?: string | null
           sprite_url?: string | null
           status?: string

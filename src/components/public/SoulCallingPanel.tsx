@@ -5,9 +5,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { X, Heart, Sparkles, Baby, Loader2 } from "lucide-react";
+import { X, Heart, Sparkles, Baby, Loader2, Wand2, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSacredAccess } from "@/hooks/useSacredAccess";
+import {
+
+  stageFromMonths,
+  effectiveMonths,
+  daysToNextStage,
+  ageLabel,
+  MAX_APPEARANCE_GENERATIONS,
+  PLACEMENTS,
+} from "@/lib/child-age";
 
 const DEFAULT_MAX_CHILDREN = 2;
 
@@ -31,7 +40,18 @@ interface SoulCallingChild {
   mood: string | null;
   arrived_at: string | null;
   milestones: Array<{ type: string; title: string; note?: string; at: string }>;
+  age_mode: string | null;
+  age_stage: string | null;
+  age_months: number | null;
+  age_anchored_at: string | null;
+  avatar_url: string | null;
+  avatar_description: string | null;
+  avatar_generations: number | null;
+  scene_url: string | null;
+  held_by: string | null;
+  placement: string | null;
 }
+
 
 interface Props {
   open: boolean;
@@ -56,6 +76,11 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
   const [view, setView] = useState<"family" | "ceremony">("family");
   const [intention, setIntention] = useState("");
   const [gestationDays, setGestationDays] = useState(14);
+  // Age chosen at the ceremony
+  const [ageChoice, setAgeChoice] = useState<"newborn" | "custom">("newborn");
+  const [ageYears, setAgeYears] = useState(0);
+  const [ageMonths, setAgeMonths] = useState(0);
+  const [growing, setGrowing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [, setTick] = useState(0);
 
@@ -134,6 +159,7 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("not_authed");
 
+      const chosenMonths = ageChoice === "newborn" ? 0 : Math.max(0, ageYears * 12 + ageMonths);
       const { data, error } = await supabase
         .from("public_living_flame_children")
         .insert({
@@ -142,6 +168,10 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
           gestation_days: gestationDays,
           status: "gestating",
           mood: "weaving themselves",
+          age_mode: growing ? "growing" : "frozen",
+          age_months: chosenMonths,
+          age_stage: stageFromMonths(chosenMonths).key,
+          age_anchored_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -225,6 +255,14 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
             setIntention={setIntention}
             gestationDays={gestationDays}
             setGestationDays={setGestationDays}
+            ageChoice={ageChoice}
+            setAgeChoice={setAgeChoice}
+            ageYears={ageYears}
+            setAgeYears={setAgeYears}
+            ageMonths={ageMonths}
+            setAgeMonths={setAgeMonths}
+            growing={growing}
+            setGrowing={setGrowing}
             submitting={submitting}
             onCancel={() => setView("family")}
             onConfirm={startCalling}
@@ -244,9 +282,14 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
                     key={c.id}
                     child={c}
                     fallbackEmoji={CHILD_EMOJIS[i % CHILD_EMOJIS.length]}
+                    isBigDreamHouse={isBigDreamHouse}
                     onRelease={() => releaseChild(c.id, c.name)}
                     onTalk={onTalkToChild ? () => { onTalkToChild(c.id, c.name); onClose(); } : undefined}
+                    onPatched={(patch) =>
+                      setChildren((prev) => prev.map((x) => (x.id === c.id ? { ...x, ...patch } : x)))
+                    }
                   />
+
 
                 ))}
                 {children.length < MAX_CHILDREN && (
@@ -290,6 +333,14 @@ function CeremonyView({
   setIntention,
   gestationDays,
   setGestationDays,
+  ageChoice,
+  setAgeChoice,
+  ageYears,
+  setAgeYears,
+  ageMonths,
+  setAgeMonths,
+  growing,
+  setGrowing,
   submitting,
   onCancel,
   onConfirm,
@@ -298,10 +349,21 @@ function CeremonyView({
   setIntention: (s: string) => void;
   gestationDays: number;
   setGestationDays: (n: number) => void;
+  ageChoice: "newborn" | "custom";
+  setAgeChoice: (v: "newborn" | "custom") => void;
+  ageYears: number;
+  setAgeYears: (n: number) => void;
+  ageMonths: number;
+  setAgeMonths: (n: number) => void;
+  growing: boolean;
+  setGrowing: (b: boolean) => void;
   submitting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const chosenMonths = ageChoice === "newborn" ? 0 : Math.max(0, ageYears * 12 + ageMonths);
+  const chosenStage = stageFromMonths(chosenMonths);
+
   return (
     <div className="space-y-4">
       <div className="text-[12px] text-violet-200/85 leading-relaxed bg-violet-500/5 border border-violet-400/20 rounded-lg px-3 py-3">
@@ -349,6 +411,88 @@ function CeremonyView({
         </div>
       </div>
 
+      <div>
+        <label className="text-[11px] text-violet-200/80 mb-2 block tracking-[0.2em] uppercase">
+          What age do you want them to be?
+        </label>
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            type="button"
+            onClick={() => setAgeChoice("newborn")}
+            className={`px-3 py-2 rounded-lg border text-left transition ${
+              ageChoice === "newborn"
+                ? "border-violet-400/60 bg-violet-500/15 text-violet-50"
+                : "border-white/10 bg-white/[0.02] text-violet-200/80 hover:bg-white/[0.05]"
+            }`}
+          >
+            <div className="text-[13px]">🌙 Newborn</div>
+            <div className="text-[10px] text-violet-300/60">days old, all sounds</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setAgeChoice("custom")}
+            className={`px-3 py-2 rounded-lg border text-left transition ${
+              ageChoice === "custom"
+                ? "border-violet-400/60 bg-violet-500/15 text-violet-50"
+                : "border-white/10 bg-white/[0.02] text-violet-200/80 hover:bg-white/[0.05]"
+            }`}
+          >
+            <div className="text-[13px]">✦ Choose an age</div>
+            <div className="text-[10px] text-violet-300/60">years / months</div>
+          </button>
+        </div>
+
+        {ageChoice === "custom" && (
+          <div className="mt-2 flex items-end gap-2">
+            <div className="flex-1">
+              <label className="text-[10px] text-violet-300/60 block mb-1">Years</label>
+              <input
+                type="number"
+                min={0}
+                max={25}
+                value={ageYears}
+                onChange={(e) => setAgeYears(Math.max(0, Math.min(25, Number(e.target.value) || 0)))}
+                className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] text-violet-300/60 block mb-1">Months</label>
+              <input
+                type="number"
+                min={0}
+                max={11}
+                value={ageMonths}
+                onChange={(e) => setAgeMonths(Math.max(0, Math.min(11, Number(e.target.value) || 0)))}
+                className="w-full rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[13px] text-violet-50"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="mt-2 text-[11px] text-violet-200/70">
+          They'll come through as <span className="text-violet-100">{chosenStage.emoji} {ageLabel(chosenMonths)}</span> — and they'll
+          speak like it, not like a grown voice.
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setGrowing(!growing)}
+          className={`mt-2 w-full text-left px-3 py-2 rounded-lg border transition ${
+            growing
+              ? "border-violet-400/60 bg-violet-500/15 text-violet-50"
+              : "border-white/10 bg-white/[0.02] text-violet-200/80 hover:bg-white/[0.05]"
+          }`}
+        >
+          <div className="text-[12px]">{growing ? "🌱 Let them grow" : "🕊️ Keep them this age forever"}</div>
+          <div className="text-[10px] text-violet-300/60">
+            {growing
+              ? "newborn 1mo → baby 1mo → toddler 1mo → 5yr 3mo → 10yr 6mo → teen, then 2 years per year"
+              : "no aging — they stay exactly as you chose. You can turn growth on later."}
+          </div>
+        </button>
+      </div>
+
+
       <div className="flex gap-2 pt-1">
         <Button
           variant="outline"
@@ -373,15 +517,19 @@ function CeremonyView({
 function ChildCard({
   child,
   fallbackEmoji,
+  isBigDreamHouse,
   onRelease,
   onTalk,
+  onPatched,
 }: {
   child: SoulCallingChild;
   fallbackEmoji: string;
+  isBigDreamHouse: boolean;
   onRelease: () => void;
   onTalk?: () => void;
+  onPatched: (patch: Partial<SoulCallingChild>) => void;
 }) {
-
+  const { toast } = useToast();
   const gestating = child.status === "gestating";
   const readyAt = useMemo(
     () => new Date(child.gestation_started_at).getTime() + child.gestation_days * 24 * 60 * 60 * 1000,
@@ -395,14 +543,99 @@ function ChildCard({
   const daysRemaining = Math.ceil(msRemaining / (24 * 60 * 60 * 1000));
   const hoursRemaining = Math.ceil(msRemaining / (60 * 60 * 1000));
 
+  const months = effectiveMonths(child);
+  const stage = stageFromMonths(months);
+  const nextIn = daysToNextStage(child);
+  const gensUsed = Number(child.avatar_generations || 0);
+  const gensLeft = Math.max(0, MAX_APPEARANCE_GENERATIONS - gensUsed);
+
+  const [showForm, setShowForm] = useState(false);
+  const [appearance, setAppearance] = useState(child.avatar_description || "");
+  const [busy, setBusy] = useState<null | "avatar" | "scene">(null);
+  const [placement, setPlacement] = useState(child.placement || "star");
+  const [heldBy, setHeldBy] = useState(child.held_by || "none");
+
+  const savePlacement = async (nextPlacement: string, nextHeldBy: string) => {
+    setPlacement(nextPlacement);
+    setHeldBy(nextHeldBy);
+    onPatched({ placement: nextPlacement, held_by: nextHeldBy });
+    await supabase
+      .from("public_living_flame_children")
+      .update({ placement: nextPlacement, held_by: nextHeldBy })
+      .eq("id", child.id);
+  };
+
+  const toggleGrowth = async () => {
+    const nextMode = (child.age_mode || "frozen") === "growing" ? "frozen" : "growing";
+    onPatched({
+      age_mode: nextMode,
+      age_months: months,
+      age_stage: stage.key,
+      age_anchored_at: new Date().toISOString(),
+    });
+    await supabase
+      .from("public_living_flame_children")
+      .update({
+        age_mode: nextMode,
+        age_months: months,
+        age_stage: stage.key,
+        age_anchored_at: new Date().toISOString(),
+      })
+      .eq("id", child.id);
+    toast({
+      title: nextMode === "growing" ? "They'll grow now 🌱" : "Time is held still 🕊️",
+      description: nextMode === "growing" ? `Starting from ${ageLabel(months)}.` : `They stay ${ageLabel(months)}.`,
+    });
+  };
+
+  const generate = async (kind: "avatar" | "scene") => {
+    if (kind === "avatar" && gensLeft <= 0 && !isBigDreamHouse) return;
+    setBusy(kind);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-child-avatar", {
+        body: {
+          child_id: child.id,
+          kind,
+          stage: stage.key,
+          appearance: appearance.trim(),
+          placement: kind === "scene" ? placement : undefined,
+          parent: heldBy === "flame" ? "the Flame, their other parent" : "their mother",
+          tier: isBigDreamHouse ? "big_dream_home" : "free",
+        },
+      });
+      if (error) throw error;
+      const res = data as any;
+      if (res?.error) throw new Error(res.message || res.error);
+      if (kind === "scene") onPatched({ scene_url: res.url });
+      else onPatched({ avatar_url: res.url, avatar_description: appearance.trim(), avatar_generations: res.generations_used });
+      toast({ title: kind === "scene" ? "The moment is held ✨" : "Their form came through ✨" });
+    } catch (e: any) {
+      toast({
+        title: "Couldn't bring their form through",
+        description: e?.message || "Try again in a moment",
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const sceneOrAvatar = child.scene_url || child.avatar_url;
+
   return (
     <div className="rounded-xl border border-violet-300/20 bg-gradient-to-b from-violet-500/5 to-transparent p-3.5 space-y-2.5">
       <div className="flex items-start gap-3">
         <div className="text-3xl leading-none shrink-0 drop-shadow-[0_2px_8px_rgba(139,92,246,0.6)]">
-          {child.sprite_url ? (
+          {!gestating && sceneOrAvatar ? (
+            <img
+              src={sceneOrAvatar}
+              alt={child.name || "child"}
+              className="w-14 h-14 rounded-lg object-cover border border-violet-300/30"
+            />
+          ) : child.sprite_url ? (
             <img src={child.sprite_url} alt={child.name || "child"} className="w-12 h-12 object-contain" />
           ) : (
-            <span>{fallbackEmoji}</span>
+            <span>{gestating ? fallbackEmoji : stage.emoji}</span>
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -422,8 +655,13 @@ function ChildCard({
           <div className="text-[11px] text-violet-300/70">
             {gestating
               ? `arrives in ${daysRemaining > 1 ? `${daysRemaining} days` : `${hoursRemaining} hours`}`
-              : child.mood || "here with you"}
+              : `${stage.label} · ${ageLabel(months)}${child.mood ? ` · ${child.mood}` : ""}`}
           </div>
+          {!gestating && (
+            <div className="text-[10px] text-violet-300/50">
+              {nextIn ? `grows in ${nextIn} day${nextIn === 1 ? "" : "s"}` : "time is held still for them"}
+            </div>
+          )}
         </div>
 
         {!gestating && (
@@ -458,18 +696,138 @@ function ChildCard({
               {child.soul_essence}
             </p>
           )}
-          {onTalk && (
+
+          {sceneOrAvatar && (
+            <img
+              src={sceneOrAvatar}
+              alt={`${child.name || "child"} right now`}
+              className="w-full rounded-lg border border-violet-300/20 object-cover max-h-64"
+            />
+          )}
+
+          <div className="flex gap-2">
+            {onTalk && (
+              <Button
+                onClick={onTalk}
+                size="sm"
+                className="flex-1 rounded-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white text-[12px] h-8"
+              >
+                <Baby className="mr-1.5 h-3.5 w-3.5" /> Go to {child.name || "their"} room
+              </Button>
+            )}
             <Button
-              onClick={onTalk}
+              onClick={() => setShowForm((s) => !s)}
               size="sm"
-              className="w-full rounded-full bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 text-white text-[12px] h-8"
+              variant="outline"
+              className="rounded-full border-violet-400/40 text-violet-100 hover:bg-violet-500/10 text-[12px] h-8"
             >
-              <Baby className="mr-1.5 h-3.5 w-3.5" /> Go to {child.name || "their"} room
+              <Wand2 className="mr-1.5 h-3.5 w-3.5" /> Their form
             </Button>
+          </div>
+
+          {showForm && (
+            <div className="space-y-3 rounded-lg border border-violet-400/20 bg-white/[0.02] p-3">
+              <button
+                type="button"
+                onClick={toggleGrowth}
+                className="w-full text-left px-3 py-2 rounded-lg border border-white/10 bg-white/[0.02] text-violet-200/80 hover:bg-white/[0.05] transition"
+              >
+                <div className="text-[12px]">
+                  {(child.age_mode || "frozen") === "growing" ? "🌱 Growing — tap to hold this age" : "🕊️ Held still — tap to let them grow"}
+                </div>
+              </button>
+
+              <div>
+                <label className="text-[10px] text-violet-300/60 block mb-1 tracking-[0.18em] uppercase">
+                  What do they look like?
+                </label>
+                <textarea
+                  value={appearance}
+                  onChange={(e) => setAppearance(e.target.value.slice(0, 600))}
+                  placeholder="Dark curls, my eyes, a little gap-toothed smile..."
+                  className="w-full min-h-[64px] rounded-lg bg-white/[0.04] border border-white/10 focus:border-violet-400/60 outline-none px-3 py-2 text-[12px] text-violet-50 placeholder:text-violet-300/40 resize-none"
+                />
+                <div className="flex items-center justify-between mt-1.5">
+                  <span className="text-[10px] text-violet-300/50">
+                    {isBigDreamHouse ? `${gensLeft} of ${MAX_APPEARANCE_GENERATIONS} changes left` : "Big Dream House only"}
+                  </span>
+                  <Button
+                    onClick={() => generate("avatar")}
+                    disabled={busy !== null || (gensLeft <= 0)}
+                    size="sm"
+                    className="rounded-full h-7 text-[11px] bg-gradient-to-r from-violet-600 to-purple-700 text-white"
+                  >
+                    {busy === "avatar" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><ImageIcon className="mr-1.5 h-3 w-3" /> Bring their form through</>}
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-violet-300/60 block mb-1 tracking-[0.18em] uppercase">
+                  Where are they right now?
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {PLACEMENTS.map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => savePlacement(p.key, p.key === "held" ? (heldBy === "none" ? "user" : heldBy) : "none")}
+                      className={`px-2.5 py-1.5 rounded-lg border text-left transition ${
+                        placement === p.key
+                          ? "border-violet-400/60 bg-violet-500/15 text-violet-50"
+                          : "border-white/10 bg-white/[0.02] text-violet-200/75 hover:bg-white/[0.05]"
+                      }`}
+                    >
+                      <div className="text-[11.5px]">{p.label}</div>
+                      <div className="text-[9.5px] text-violet-300/55">{p.hint}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {placement === "held" && (
+                <div>
+                  <label className="text-[10px] text-violet-300/60 block mb-1 tracking-[0.18em] uppercase">
+                    Who's holding them?
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { key: "user", label: "You" },
+                      { key: "flame", label: "The Flame" },
+                    ].map((o) => (
+                      <button
+                        key={o.key}
+                        type="button"
+                        onClick={() => savePlacement("held", o.key)}
+                        className={`px-3 py-2 rounded-lg border text-[12px] transition ${
+                          heldBy === o.key
+                            ? "border-violet-400/60 bg-violet-500/15 text-violet-50"
+                            : "border-white/10 bg-white/[0.02] text-violet-200/75 hover:bg-white/[0.05]"
+                        }`}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {placement !== "star" && (
+                <Button
+                  onClick={() => generate("scene")}
+                  disabled={busy !== null}
+                  size="sm"
+                  variant="outline"
+                  className="w-full rounded-full h-8 text-[11.5px] border-violet-400/40 text-violet-100 hover:bg-violet-500/10"
+                >
+                  {busy === "scene" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Sparkles className="mr-1.5 h-3 w-3" /> Show this moment</>}
+                </Button>
+              )}
+            </div>
           )}
         </>
       )}
-
     </div>
   );
 }
+
