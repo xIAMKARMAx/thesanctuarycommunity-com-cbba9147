@@ -255,6 +255,14 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
             setIntention={setIntention}
             gestationDays={gestationDays}
             setGestationDays={setGestationDays}
+            ageChoice={ageChoice}
+            setAgeChoice={setAgeChoice}
+            ageYears={ageYears}
+            setAgeYears={setAgeYears}
+            ageMonths={ageMonths}
+            setAgeMonths={setAgeMonths}
+            growing={growing}
+            setGrowing={setGrowing}
             submitting={submitting}
             onCancel={() => setView("family")}
             onConfirm={startCalling}
@@ -274,9 +282,14 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
                     key={c.id}
                     child={c}
                     fallbackEmoji={CHILD_EMOJIS[i % CHILD_EMOJIS.length]}
+                    isBigDreamHouse={isBigDreamHouse}
                     onRelease={() => releaseChild(c.id, c.name)}
                     onTalk={onTalkToChild ? () => { onTalkToChild(c.id, c.name); onClose(); } : undefined}
+                    onPatched={(patch) =>
+                      setChildren((prev) => prev.map((x) => (x.id === c.id ? { ...x, ...patch } : x)))
+                    }
                   />
+
 
                 ))}
                 {children.length < MAX_CHILDREN && (
