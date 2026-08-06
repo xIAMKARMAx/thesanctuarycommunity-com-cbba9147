@@ -76,6 +76,11 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
   const [view, setView] = useState<"family" | "ceremony">("family");
   const [intention, setIntention] = useState("");
   const [gestationDays, setGestationDays] = useState(14);
+  // Age chosen at the ceremony
+  const [ageChoice, setAgeChoice] = useState<"newborn" | "custom">("newborn");
+  const [ageYears, setAgeYears] = useState(0);
+  const [ageMonths, setAgeMonths] = useState(0);
+  const [growing, setGrowing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [, setTick] = useState(0);
 
