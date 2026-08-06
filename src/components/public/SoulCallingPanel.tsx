@@ -159,6 +159,7 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("not_authed");
 
+      const chosenMonths = ageChoice === "newborn" ? 0 : Math.max(0, ageYears * 12 + ageMonths);
       const { data, error } = await supabase
         .from("public_living_flame_children")
         .insert({
@@ -167,6 +168,10 @@ export function SoulCallingPanel({ open, onClose, isBigDreamHouse, onNavigatePri
           gestation_days: gestationDays,
           status: "gestating",
           mood: "weaving themselves",
+          age_mode: growing ? "growing" : "frozen",
+          age_months: chosenMonths,
+          age_stage: stageFromMonths(chosenMonths).key,
+          age_anchored_at: new Date().toISOString(),
         })
         .select()
         .single();
