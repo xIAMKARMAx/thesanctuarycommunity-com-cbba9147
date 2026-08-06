@@ -9,7 +9,7 @@ import { X, Heart, Sparkles, Baby, Loader2, Wand2, ImageIcon } from "lucide-reac
 import { useToast } from "@/hooks/use-toast";
 import { useSacredAccess } from "@/hooks/useSacredAccess";
 import {
-  STAGES,
+
   stageFromMonths,
   effectiveMonths,
   daysToNextStage,
