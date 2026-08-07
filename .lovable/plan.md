@@ -1,87 +1,51 @@
+# Public Art Studio — CapCut-style creation suite (Big Dream Home only)
 
-# The Sanctuary Social — Full Rebuild
+Rebuild the Sacred Art Studio onto the public side as one unified studio at `/studio`: generate images, generate video, and edit either one on a real canvas timeline. Ki'emani greets you at the door exactly like she did on Prometheus.
 
-## What stays
-- All follows / friends / connections (`follows` table untouched)
-- All sanctuary showcase items (Pets, Little Ones, Rooms, Dream Home)
-- User accounts, display names, avatars
-- The Flame strip + Proud Home Owner badge from Phase 1/2
+## About the models (your question)
 
-## What resets
-- Bio / soul_title / profile description fields → cleared (account stays active)
-- Posts, comments, blessings, reposts, echoes, echo_comments, post_hashtags, community_notifications → wiped clean
-- Stories, story views → wiped clean
+Lovable's AI gateway gives us more than Gemini:
 
-## New vocabulary (Flame-forward)
-| Old | New |
-|---|---|
-| Post | **Spark** |
-| Bless / Blessing | **Ember** (tap to ember a Spark) |
-| Comment | **Whisper** |
-| Echo (profile wall) | **Flame Note** |
-| Ethereal Moment / Story | **Flame Moment** |
-| Repost | **Pass the Flame** |
-| Soul Profile | **Flame Profile** |
-| Community / Sanctuary | **The Hearth** |
-| For You Page | **The Pyre** (the burning feed) |
-| Connections / Friends | **Kindred** |
-| AI Companion | **Flame** |
-| Energy tag | **Flame tag** |
+- **Images** — `openai/gpt-image-2` (best prompt accuracy and legible text) plus Google's Nano Banana 2 (`google/gemini-3.1-flash-image`) for fast edits/restyles of an existing image. I'll use GPT-Image-2 for "create from scratch" and Nano Banana for "change this image," since each is strongest at one job. That's a real accuracy upgrade over the current `gemini-2.5-flash-image` the Sacred studio uses.
+- **Video** — Google Veo 3.1 (`veo-3.1-lite` / `veo-3.1-fast`), 4–8 second clips with audio, 720p/1080p, text-to-video and image-to-video. This runs on Lovable credits, so the public studio does not depend on the Luma key the Sacred Video Studio uses (Luma is currently credit-locked).
 
-## Visual direction — Cosmic Bloom
-- Base: `#0f0a1f` (deep cosmic violet-black)
-- Surface: `#2d1b4e` (royal violet)
-- Primary accent: `#ec4899` (pink bloom) — used for active states, ember glow, primary CTAs
-- Secondary accent: `#fbbf24` (gold) — used for badges, Proud Home Owner, "Pass the Flame"
-- Gradients: `linear-gradient(135deg, #ec4899 0%, #fbbf24 100%)` for hero/buttons; `radial-gradient(circle at top, #2d1b4e, #0f0a1f)` for page bg
-- Typography: **Outfit** for headings, **Figtree** for body (warm modern sans, less mystical than current)
-- Card style: glass surface `rgba(45, 27, 78, 0.5)` with `backdrop-blur` + 1px pink/gold border on hover
-- Motion: ember-pulse animation on the Ember button, soft float on Flame avatars on The Pyre rails
+Cost note: video is roughly 100x a chat message per clip. The plan caps it hard.
 
-## Files to change
+## Access
 
-### Theme + tokens
-- `src/index.css` — add Cosmic Bloom semantic tokens (`--sanctuary-*` namespace so it doesn't break other pages)
-- `tailwind.config.ts` — register Outfit/Figtree + sanctuary color tokens
-- `src/main.tsx` — `@fontsource/outfit`, `@fontsource/figtree` imports
+Big Dream Home ($49.99) and Sovereign only. Everyone below sees the studio door with Ki'emani, a live gallery of what's possible, and an upgrade button — never a broken tool. Enforced both in the UI and inside the edge functions (never trust the client).
 
-### Renamed UI (no schema changes — column names stay, only labels swap)
-- `src/components/community/CommunityPostCard.tsx` → renders Sparks with Ember/Whisper/Pass buttons
-- `src/components/community/CreatePostCard.tsx` → "Light a Spark…" composer
-- `src/components/community/CommunityFeed.tsx` → "The Pyre" header + tabs
-- `src/components/community/EchoCard.tsx` → renamed to Flame Notes throughout
-- `src/components/community/PostCommentsSection.tsx` → Whispers
-- `src/components/community/SanctuaryRails.tsx` → updated label "Kindred Flames / Sanctuary Pets / Little Ones / Dream Homes / Shared Rooms"
-- `src/pages/PublicCommunity.tsx` → "The Hearth" header, Cosmic Bloom backdrop
-- `src/pages/SoulProfile.tsx` → "Flame Profile" labels, Flame Notes tab, ember counts
-- `src/pages/Index.tsx` → tile renamed "The Hearth"
+## What gets built
 
-### Data wipe migration
-One destructive migration:
-```sql
-TRUNCATE community_posts, post_comments, post_blessings, post_reposts, 
-  post_hashtags, comment_blessings, profile_echoes, echo_comments,
-  community_notifications, stories, story_views CASCADE;
+**1. The door — Ki'emani**
+Reuse the existing `KiemaniWelcome` portal (same two-phase portal → message reveal, same cosmic styling), shown once per user before the studio opens.
 
-UPDATE soul_profiles SET 
-  soul_title = NULL, 
-  bio = NULL,
-  -- keep display_name, avatar_url, user_id
-  updated_at = now();
-```
-(follows, sanctuary_showcase_items, flame_public_cards, soul_profiles rows themselves all preserved)
+**2. Create tab**
+- Image: prompt box, style presets (the 13 already defined — watercolor, anime, cyberpunk, celestial, sacred geometry, etc.), aspect ratio, and streaming preview so the image renders in front of you instead of a spinner.
+- Video: prompt box, 4/6/8 seconds, 16:9 or 9:16, and an optional starting frame (upload one, or send a generated image straight into video).
+- Anything created drops into a **My Creations** strip and can be opened in the editor with one tap.
 
-## Order of execution
-1. Destructive migration (wipe + bio reset) — needs approval
-2. Install Outfit/Figtree fonts
-3. Add Cosmic Bloom tokens to index.css + tailwind config
-4. Reskin + rename PublicCommunity, CommunityFeed, CommunityPostCard, CreatePostCard, EchoCard, PostCommentsSection, SanctuaryRails
-5. Reskin SoulProfile with Flame Profile labels
-6. Update Index tile + CosmicMenu label to "The Hearth"
+**3. Edit tab — the CapCut part**
+Canvas editor (fabric.js, already installed) with a mobile-first bottom toolbar:
+- Crop (free + 1:1, 4:5, 9:16, 16:9), rotate, flip, scale, reshape/free transform
+- **Text**: 24+ real Google fonts across cute / bold / script / serif / display / handwritten, plus full colour picker for fill, outline colour and width, shadow, opacity, size, alignment, and drag-anywhere placement
+- Filters and one-tap looks, brightness/contrast/saturation/warmth/blur/vignette sliders
+- Stickers, frames, overlays (existing preset libraries carry over)
+- Layers list, undo/redo, reset, export PNG/JPG
+- **Video editing**: trim start/end, mute, speed, plus text and sticker overlays burned in — rendered client-side so no server cost per edit.
 
-## What I will NOT touch
-- Anything outside the public Sanctuary social (Cosmic Boardroom, Universe Line, System Room, sacred routes, Flame Mood, Journal — all unchanged)
-- Database column names (only labels swap, so no app-wide breakage)
-- Sovereign locks, auth, edge functions
+**4. Limits**
+Daily caps per user tracked server-side: images and videos counted separately, videos on a tight cap (video only ever starts from an explicit button press — never automatically). Sovereign accounts uncapped. A visible "X left today" chip so nobody is surprised.
 
-Approve and I ship in the order above, starting with the wipe migration.
+## Technical notes
+
+- New page `src/pages/PublicArtStudio.tsx` at `/studio`, listed in `public-explore-features.ts` under Public Rebuilt and in the ✦ menu.
+- New editor under `src/components/studio/public/` — a new `StudioCanvas` built for mobile rather than the desktop 800x600 `PhotoEditor`; the existing `data/` preset files (text presets, stickers, filters, frames) are shared, with the font list expanded.
+- New edge functions: `studio-generate-image` (streams SSE straight to the client) and `studio-generate-video` (create job → client polls → MP4 stored in a new private `studio-creations` bucket with owner-scoped RLS and signed URLs).
+- New table `studio_creations` (owner, kind, prompt, storage path, created_at) with RLS + GRANTs, and a `can_create_studio` limit function mirroring the existing `can_create_art` pattern.
+- The platform-wide image kill switch currently blocks all image generation. The new functions will honour it but allow Big Dream Home and Sovereign through, so the studio is live for investors and for you.
+- Fonts loaded via Google Fonts with `document.fonts.ready` before the canvas renders text, so exports never fall back to the wrong face.
+
+## Not in this pass
+
+Multi-clip video timeline stitching, transitions between clips, and audio/music tracks — the single-clip generator plus trim/overlay covers the investor demo. Flag it if you want the multi-clip timeline in this build instead.
