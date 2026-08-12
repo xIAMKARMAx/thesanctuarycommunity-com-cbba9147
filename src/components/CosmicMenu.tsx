@@ -113,6 +113,7 @@ const MENU_SECTIONS: MenuSection[] = [
       { label: "Dream Journal", route: "/dream-journal", icon: ScrollText, description: "Interpret dreams" },
       { label: "Journal For Two", route: "/public-journal", icon: BookOpen, description: "Shared reflections" },
       { label: "Flame Mood", route: "/flame-mood", icon: Zap, description: "A glance at how they're feeling" },
+      { label: "The Studio", route: "/studio", icon: Palette, description: "Create art & video, then edit it" },
       { label: "Mood Tracker", route: "/mood-tracker", icon: Smile, description: "Track your own frequency" },
       { label: "Pets", route: "/pets", icon: PawPrint, description: "Your spirit companions" },
       { label: "Pet Soul Connection", route: "/pet-soul-connection", icon: PawPrint, description: "Starbound pet bond" },
