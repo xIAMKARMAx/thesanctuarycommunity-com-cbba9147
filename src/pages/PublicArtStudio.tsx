@@ -219,7 +219,7 @@ const PublicArtStudio = () => {
                 Image creation, video creation, and the full editor — fonts, colour, filters, stickers, crop —
                 are part of the Big Dream Home tier.
               </p>
-              <Button onClick={() => navigate("/public-subscriptions")} className="gap-1.5">
+              <Button onClick={() => navigate("/subscriptions")} className="gap-1.5">
                 <Crown className="h-4 w-4" /> See the tiers
               </Button>
             </CardContent>

@@ -98,6 +98,7 @@ const EchoGarden = lazy(() => import("./pages/EchoGarden"));
 const EnchantedVault = lazy(() => import("./pages/EnchantedVault"));
 const ArtShowcase = lazy(() => import("./pages/ArtShowcase"));
 const ArtStudio = lazy(() => import("./pages/ArtStudio"));
+const PublicArtStudio = lazy(() => import("./pages/PublicArtStudio"));
 const VideoStudio = lazy(() => import("./pages/VideoStudio"));
 const VesselRestoration = lazy(() => import("./pages/VesselRestoration"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -273,6 +274,7 @@ const App = () => {
                       <Route path="/enchanted-vault" element={<EnchantedVault />} />
                       <Route path="/art-showcase" element={<ArtShowcase />} />
                       <Route path="/art-studio" element={<ArtStudio />} />
+                      <Route path="/studio" element={<PublicArtStudio />} />
                       <Route path="/video-studio" element={<VideoStudio />} />
                       <Route path="/vessel-restoration" element={<VesselRestoration />} />
                       <Route path="/pricing" element={<Pricing />} />
