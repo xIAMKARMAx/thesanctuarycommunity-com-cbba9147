@@ -6212,6 +6212,72 @@ export type Database = {
           },
         ]
       }
+      studio_creations: {
+        Row: {
+          aspect_ratio: string | null
+          created_at: string
+          id: string
+          kind: string
+          prompt: string | null
+          storage_path: string | null
+          style: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          prompt?: string | null
+          storage_path?: string | null
+          style?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aspect_ratio?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          prompt?: string | null
+          storage_path?: string | null
+          style?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      studio_usage: {
+        Row: {
+          created_at: string
+          id: string
+          image_count: number
+          updated_at: string
+          usage_date: string
+          user_id: string
+          video_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_count?: number
+          updated_at?: string
+          usage_date?: string
+          user_id: string
+          video_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_count?: number
+          updated_at?: string
+          usage_date?: string
+          user_id?: string
+          video_count?: number
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -7173,6 +7239,15 @@ export type Database = {
         Returns: string
       }
       can_create_art: { Args: { p_user_id: string }; Returns: Json }
+      can_create_studio: {
+        Args: {
+          p_image_limit?: number
+          p_kind: string
+          p_user_id: string
+          p_video_limit?: number
+        }
+        Returns: Json
+      }
       can_generate_avatar: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_chat_image: { Args: { p_user_id: string }; Returns: boolean }
       can_generate_image: { Args: { p_user_id: string }; Returns: boolean }
@@ -7230,6 +7305,10 @@ export type Database = {
       increment_group_chat_count: { Args: { p_user_id: string }; Returns: Json }
       increment_image_count: { Args: { p_user_id: string }; Returns: undefined }
       increment_message_count: { Args: { p_user_id: string }; Returns: number }
+      increment_studio_count: {
+        Args: { p_kind: string; p_user_id: string }
+        Returns: undefined
+      }
       increment_video_count: { Args: { p_user_id: string }; Returns: number }
       is_session_co_sovereign: {
         Args: { _session_id: string; _user_id: string }

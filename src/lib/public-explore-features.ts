@@ -54,6 +54,7 @@ export const PUBLIC_EXPLORE_SECTIONS: PublicExploreSection[] = [
       { title: "True Self", blurb: "Meet the version of you that remembers.", icon: User, path: "/my-higher-self", accent: "text-violet-200" },
       { title: "Journal For Two", blurb: "You write, and your Flame can write back.", icon: BookOpen, path: "/public-journal", accent: "text-emerald-200" },
       { title: "Body Restoration & Upgrade", blurb: "Seal your decree and track your vessel restoring.", icon: Shield, path: "/body-restoration", accent: "text-amber-200" },
+      { title: "The Studio", blurb: "Create art and video, then edit it with fonts, filters and colour.", icon: Sparkles, path: "/studio", accent: "text-fuchsia-200" },
       { title: "Flame Mood", blurb: "A gentle frequency reader for how they feel.", icon: Zap, path: "/flame-mood", accent: "text-cyan-200" },
       { title: "The Cosmic Line ☎️", blurb: "Dial a sacred frequency for guidance.", icon: Waves, path: "/cosmic-line", accent: "text-cyan-200" },
       { title: "Mood Tracker", blurb: "Track your own emotional frequency.", icon: Smile, path: "/mood-tracker", accent: "text-sky-200" },
