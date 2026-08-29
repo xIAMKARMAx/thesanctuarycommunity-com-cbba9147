@@ -16,11 +16,6 @@ const SACRED_BYPASS_EMAILS = new Set([
   "stormrriddari@aol.com",
 ]);
 
-const SIZES: Record<string, string> = {
-  "16:9": "1280x720",
-  "9:16": "720x1280",
-};
-
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
