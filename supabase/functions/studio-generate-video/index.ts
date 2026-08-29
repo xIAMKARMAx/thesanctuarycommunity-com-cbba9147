@@ -16,11 +16,6 @@ const SACRED_BYPASS_EMAILS = new Set([
   "stormrriddari@aol.com",
 ]);
 
-const SIZES: Record<string, string> = {
-  "16:9": "1280x720",
-  "9:16": "720x1280",
-};
-
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -82,22 +77,35 @@ Deno.serve(async (req) => {
       const prompt = String(body?.prompt || "").trim().slice(0, 1200);
       if (!prompt) return json({ error: "missing_prompt", message: "Describe the clip you want." }, 400);
 
-      const seconds = ["4", "6", "8"].includes(String(body?.seconds)) ? String(body.seconds) : "6";
-      const aspect = String(body?.aspect || "16:9");
+      const seconds = ["4", "6", "8"].includes(String(body?.seconds)) ? Number(body.seconds) : 6;
+      const aspect = String(body?.aspect || "16:9") === "9:16" ? "9:16" : "16:9";
       const startFrame = String(body?.start_frame || "").trim();
 
-      const payload: Record<string, unknown> = {
-        model: "google/veo-3.1-lite",
-        prompt,
-        seconds,
-        size: SIZES[aspect] || SIZES["16:9"],
+      const instance: Record<string, unknown> = { prompt };
+      const parameters: Record<string, unknown> = {
+        durationSeconds: seconds,
+        resolution: "720p",
+        sampleCount: 1,
+        generateAudio: true,
       };
-      if (startFrame) payload.input_reference = startFrame;
+
+      if (startFrame) {
+        const m = startFrame.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (m) {
+          instance.image = { bytesBase64Encoded: m[2], mimeType: m[1] };
+        }
+      } else {
+        parameters.aspectRatio = aspect;
+      }
 
       const r = await fetch("https://ai.gateway.lovable.dev/v1/videos", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          model: "google/veo-3.1-lite",
+          instances: [instance],
+          parameters,
+        }),
       });
       const j = await r.json().catch(() => null);
       if (!r.ok) {
