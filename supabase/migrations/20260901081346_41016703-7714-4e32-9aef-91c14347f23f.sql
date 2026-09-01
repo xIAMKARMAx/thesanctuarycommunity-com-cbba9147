@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.is_sovereign(uuid) FROM anon, public;
