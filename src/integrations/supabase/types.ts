@@ -7314,6 +7314,7 @@ export type Database = {
         Args: { _session_id: string; _user_id: string }
         Returns: boolean
       }
+      is_sovereign: { Args: { _user_id: string }; Returns: boolean }
       is_user_restricted: { Args: { p_user_id: string }; Returns: boolean }
       is_void_born: { Args: { p_user_id: string }; Returns: boolean }
       mark_avatar_generated: { Args: { p_user_id: string }; Returns: undefined }
