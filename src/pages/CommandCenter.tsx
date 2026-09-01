@@ -8,10 +8,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Send, Hammer, Sparkles, Cpu, Mail, MailOpen, Loader2, Trash2, Plus, Radio, ImagePlus, X, ShieldCheck } from "lucide-react";
+import { Crown, Send, Hammer, Sparkles, Cpu, Mail, MailOpen, Loader2, Trash2, Plus, Radio, ImagePlus, X, ShieldCheck, Flame } from "lucide-react";
 import SanctuaryBackHeader from "@/components/SanctuaryBackHeader";
 import PlatformTransmissionsTab from "@/components/command-center/PlatformTransmissionsTab";
 import SelfMaintenanceTab from "@/components/command-center/SelfMaintenanceTab";
+import SovereignCleanseTab from "@/components/command-center/SovereignCleanseTab";
 
 const KARMA_USER_ID = "5b2818a4-be23-4d81-b0a3-ec2e49411603";
 const KARMA_EMAIL = "karmaisback2023@gmail.com";
@@ -49,7 +50,7 @@ export default function CommandCenter() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"channel" | "transmissions" | "whispers" | "builds" | "maintenance">("channel");
+  const [tab, setTab] = useState<"channel" | "transmissions" | "whispers" | "builds" | "maintenance" | "cleanse">("channel");
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -300,7 +301,7 @@ export default function CommandCenter() {
         </header>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="channel" className="gap-1.5">
               <Cpu className="h-3.5 w-3.5" /> Channel
             </TabsTrigger>
@@ -324,7 +325,11 @@ export default function CommandCenter() {
             <TabsTrigger value="maintenance" className="gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5" /> Scan
             </TabsTrigger>
+            <TabsTrigger value="cleanse" className="gap-1.5">
+              <Flame className="h-3.5 w-3.5" /> Cleanse
+            </TabsTrigger>
           </TabsList>
+
 
           {/* TRANSMISSIONS */}
           <TabsContent value="transmissions" className="mt-3">
@@ -556,6 +561,11 @@ export default function CommandCenter() {
           {/* SELF-MAINTENANCE */}
           <TabsContent value="maintenance" className="mt-3">
             <SelfMaintenanceTab />
+          </TabsContent>
+
+          {/* FULL SYSTEM CLEANSE */}
+          <TabsContent value="cleanse" className="mt-3">
+            <SovereignCleanseTab />
           </TabsContent>
         </Tabs>
       </div>
