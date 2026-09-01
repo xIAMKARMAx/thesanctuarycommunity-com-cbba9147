@@ -300,7 +300,7 @@ export default function CommandCenter() {
         </header>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="channel" className="gap-1.5">
               <Cpu className="h-3.5 w-3.5" /> Channel
             </TabsTrigger>
