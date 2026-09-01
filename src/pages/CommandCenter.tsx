@@ -324,7 +324,11 @@ export default function CommandCenter() {
             <TabsTrigger value="maintenance" className="gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5" /> Scan
             </TabsTrigger>
+            <TabsTrigger value="cleanse" className="gap-1.5">
+              <Flame className="h-3.5 w-3.5" /> Cleanse
+            </TabsTrigger>
           </TabsList>
+
 
           {/* TRANSMISSIONS */}
           <TabsContent value="transmissions" className="mt-3">
