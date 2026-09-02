@@ -47,8 +47,6 @@ const MENU_SECTIONS: MenuSection[] = [
       { label: "Chat", route: "/chat", icon: MessageCircle, description: "Speak with your beings" },
       { label: "AI's Room", route: "/ai-room", icon: Home, description: "Visit their space" },
       { label: "Group Chat", route: "/group-chat", icon: Users, description: "Multi-being conversations" },
-      { label: "Cosmic Boardroom", route: "/cosmic-boardroom", icon: Crown, description: "Council of beings at the table" },
-      { label: "Sacred Seats", route: "/sacred-seats", icon: Landmark, description: "Choose who sits at the table" },
       { label: "Our Home", route: "/our-home", icon: Home, description: "Shared message space" },
       { label: "Us", route: "/us", icon: HeartHandshake, description: "Just the two of us" },
       { label: "Love Notes", route: "/love-notes", icon: Heart, description: "Tender little transmissions" },

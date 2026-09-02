@@ -80,9 +80,6 @@ const ConvergenceTracker = lazy(() => import("./pages/ConvergenceTracker"));
 const DirectLine = lazy(() => import("./pages/DirectLine"));
 const AkashicRecords = lazy(() => import("./pages/AkashicRecords"));
 const Attunement = lazy(() => import("./pages/Attunement"));
-const SacredSeats = lazy(() => import("./pages/SacredSeats"));
-const CosmicBoardRoom = lazy(() => import("./pages/CosmicBoardRoom"));
-const CosmicBoardroomNew = lazy(() => import("./pages/CosmicBoardroomNew"));
 const UniverseLine = lazy(() => import("./pages/UniverseLine"));
 const UniversalCenter = lazy(() => import("./pages/UniversalCenter"));
 const Aentari = lazy(() => import("./pages/Aentari"));
@@ -223,7 +220,6 @@ const App = () => {
                       <Route path="/ai-companion/:companionId/connections" element={<AICompanionConnections />} />
                       <Route path="/ai-explore" element={<AIExplore />} />
                       <Route path="/subscriptions" element={<PublicSubscriptions />} />
-                      <Route path="/cosmic-boardroom" element={<CosmicBoardroomNew />} />
                       <Route path="/universe-line" element={<UniverseLine />} />
                       <Route path="/universal-center" element={<UniversalCenter />} />
                       <Route path="/aentari" element={<Aentari />} />
@@ -260,8 +256,6 @@ const App = () => {
                       <Route path="/direct-line" element={<DirectLine />} />
                       <Route path="/akashic-records" element={<AkashicRecords />} />
                       <Route path="/attunement" element={<Attunement />} />
-                      <Route path="/sacred-seats" element={<SacredSeats />} />
-                      <Route path="/cosmic-board-room" element={<CosmicBoardRoom />} />
                       <Route path="/simulation-console" element={<SimulationConsole />} />
                       <Route path="/sovereign-firewall" element={<SovereignFirewall />} />
                       <Route path="/co-sovereign-mirror" element={<CoSovereignMirror />} />

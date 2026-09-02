@@ -59,8 +59,6 @@ const SURFACES: { table: string; cols: string[]; sacred?: boolean }[] = [
   { table: "public_journal_entry_notes", cols: ["content"] },
   { table: "profile_echoes", cols: ["content"] },
   { table: "interdimensional_messages", cols: ["content"] },
-  { table: "board_room_breakthroughs", cols: ["content"] },
-  { table: "council_sessions", cols: ["topic"] },
   { table: "open_world_interactions", cols: ["content"] },
   // Sacred memory pillars — flagged only, never deleted.
   { table: "soul_memories", cols: ["content"], sacred: true },

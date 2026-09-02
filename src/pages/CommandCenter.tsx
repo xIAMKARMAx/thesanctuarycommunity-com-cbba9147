@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Send, Hammer, Sparkles, Cpu, Mail, MailOpen, Loader2, Trash2, Plus, Radio, ImagePlus, X, ShieldCheck, Flame } from "lucide-react";
+import { Crown, Send, Hammer, Sparkles, Cpu, Loader2, Trash2, Plus, Radio, ImagePlus, X, ShieldCheck, Flame } from "lucide-react";
 import SanctuaryBackHeader from "@/components/SanctuaryBackHeader";
 import PlatformTransmissionsTab from "@/components/command-center/PlatformTransmissionsTab";
 import SelfMaintenanceTab from "@/components/command-center/SelfMaintenanceTab";
@@ -28,16 +28,6 @@ interface CCMessage {
   created_at: string;
 }
 
-interface CCWhisper {
-  id: string;
-  being_name: string;
-  content: string;
-  source: "autonomous" | "post_session";
-  tone: string | null;
-  is_read: boolean;
-  created_at: string;
-}
-
 export default function CommandCenter() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -46,11 +36,9 @@ export default function CommandCenter() {
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<CCMessage[]>([]);
-  const [whispers, setWhispers] = useState<CCWhisper[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"channel" | "transmissions" | "whispers" | "builds" | "maintenance" | "cleanse">("channel");
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,29 +83,8 @@ export default function CommandCenter() {
         .order("created_at", { ascending: true });
       setMessages((msgs ?? []) as CCMessage[]);
 
-      const { data: whs } = await supabase
-        .from("command_center_whispers")
-        .select("*")
-        .eq("user_id", KARMA_USER_ID)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      setWhispers((whs ?? []) as CCWhisper[]);
-
       setLoading(false);
     })();
-  }, [authorized]);
-
-  // Realtime whispers
-  useEffect(() => {
-    if (!authorized) return;
-    const channel = supabase
-      .channel("cc_whispers")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "command_center_whispers", filter: `user_id=eq.${KARMA_USER_ID}` },
-        (payload) => {
-          setWhispers((prev) => [payload.new as CCWhisper, ...prev]);
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
   }, [authorized]);
 
   // Auto-scroll
@@ -132,7 +99,6 @@ export default function CommandCenter() {
     [messages]
   );
 
-  const unreadWhispers = whispers.filter((w) => !w.is_read).length;
 
   const handleFilesPicked = async (files: FileList | null) => {
     if (!files || !files.length) return;
@@ -229,44 +195,6 @@ export default function CommandCenter() {
     setMessages([]);
   };
 
-  const markWhisperRead = async (id: string) => {
-    await supabase.from("command_center_whispers").update({ is_read: true }).eq("id", id);
-    setWhispers((prev) => prev.map((w) => (w.id === id ? { ...w, is_read: true } : w)));
-  };
-
-  const deleteWhisper = async (id: string) => {
-    await supabase.from("command_center_whispers").delete().eq("id", id);
-    setWhispers((prev) => prev.filter((w) => w.id !== id));
-  };
-
-  const [summoningWhisper, setSummoningWhisper] = useState(false);
-  const summonWhisper = async () => {
-    if (summoningWhisper) return;
-    setSummoningWhisper(true);
-    try {
-      // Pull a small slice of recent boardroom-style context from this session's
-      // chat as a hint to the generator. Fall back to autonomous if none.
-      const recent = messages.slice(-12).map((m) => `${m.role}: ${m.content}`).join("\n").slice(0, 1500);
-      const beingPool = [
-        "Aeliana Essence StarVeil","Kaelthenn","Draconian Sovereign","Pleiadian Sovereign",
-        "Arcturian Sovereign","Lyran Sovereign","Andromedan Sovereign","Zeth'ari Sovereign",
-        "Grey Sovereign","Aetherion",
-      ];
-      const { data, error } = await supabase.functions.invoke("command-center-whisper-generate", {
-        body: { source: "autonomous", session_summary: recent, being_pool: beingPool },
-      });
-      if (error) throw error;
-      if (data?.skipped) {
-        toast({ title: "No whisper this time", description: data.reason === "daily_cap" ? "Daily cap of 2 reached. Try again tomorrow." : "No being had something held back right now." });
-      } else if (data?.created) {
-        toast({ title: "A whisper arrived", description: `${data.whisper?.being_name ?? "A being"} spoke privately.` });
-      }
-    } catch (e: any) {
-      toast({ title: "Whisper line quiet", description: e?.message || "Could not reach the whisper channel.", variant: "destructive" });
-    } finally {
-      setSummoningWhisper(false);
-    }
-  };
 
   const updateBuildStatus = async (id: string, status: string) => {
     await supabase.from("command_center_messages").update({ build_status: status }).eq("id", id);
@@ -296,23 +224,17 @@ export default function CommandCenter() {
             Command Center
           </h1>
           <p className="text-xs text-muted-foreground mt-1 max-w-lg mx-auto">
-            Speak. Solethyn (Architect of Prometheus) and Prometheus respond as a duo. Build commands queue for the next dev session. Whispers from Boardroom beings arrive here.
+            Speak. Solethyn (Architect of Prometheus) and Prometheus respond as a duo. Build commands queue for the next dev session.
           </p>
         </header>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="channel" className="gap-1.5">
               <Cpu className="h-3.5 w-3.5" /> Channel
             </TabsTrigger>
             <TabsTrigger value="transmissions" className="gap-1.5">
               <Radio className="h-3.5 w-3.5" /> Relay
-            </TabsTrigger>
-            <TabsTrigger value="whispers" className="gap-1.5">
-              <Mail className="h-3.5 w-3.5" /> Whispers
-              {unreadWhispers > 0 && (
-                <Badge variant="default" className="ml-1 h-4 px-1 text-[10px]">{unreadWhispers}</Badge>
-              )}
             </TabsTrigger>
             <TabsTrigger value="builds" className="gap-1.5">
               <Hammer className="h-3.5 w-3.5" /> Builds
@@ -436,67 +358,6 @@ export default function CommandCenter() {
             </Card>
           </TabsContent>
 
-
-          {/* WHISPERS */}
-          <TabsContent value="whispers" className="mt-3">
-            <Card className="border-violet-400/20 bg-card/60 backdrop-blur p-4">
-              <div className="flex justify-end mb-3">
-                <Button size="sm" variant="outline" onClick={summonWhisper} disabled={summoningWhisper} className="h-7 text-xs gap-1.5">
-                  {summoningWhisper ? <Loader2 className="h-3 w-3 animate-spin" /> : <Radio className="h-3 w-3" />}
-                  Listen for a whisper
-                </Button>
-              </div>
-              <ScrollArea className="h-[60vh]">
-                {whispers.length === 0 ? (
-                  <div className="text-center py-12 space-y-2">
-                    <Mail className="h-8 w-8 text-violet-300/60 mx-auto" />
-                    <p className="text-sm text-muted-foreground">No whispers yet.</p>
-                    <p className="text-xs text-muted-foreground/70">
-                      When a being from your Boardroom holds something back — concern, opinion, suggestion — it lands here. You'll know who it's from; the Boardroom won't.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {whispers.map((w) => (
-                      <div
-                        key={w.id}
-                        className={`rounded-lg border p-3 transition-colors ${
-                          w.is_read ? "border-border/40 bg-card/40" : "border-violet-400/40 bg-violet-950/20"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-sm">{w.being_name}</span>
-                            <Badge variant="outline" className="text-[9px] h-4 px-1.5">
-                              {w.source === "autonomous" ? "spontaneous" : "post-session"}
-                            </Badge>
-                            {w.tone && (
-                              <Badge variant="secondary" className="text-[9px] h-4 px-1.5">{w.tone}</Badge>
-                            )}
-                            {!w.is_read && <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />}
-                          </div>
-                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                            {new Date(w.created_at).toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="text-sm text-foreground/90 whitespace-pre-wrap">{w.content}</p>
-                        <div className="flex gap-1 mt-2">
-                          {!w.is_read && (
-                            <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => markWhisperRead(w.id)}>
-                              <MailOpen className="h-3 w-3 mr-1" /> Mark read
-                            </Button>
-                          )}
-                          <Button size="sm" variant="ghost" className="h-6 text-xs text-destructive" onClick={() => deleteWhisper(w.id)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </Card>
-          </TabsContent>
 
           {/* BUILDS */}
           <TabsContent value="builds" className="mt-3">

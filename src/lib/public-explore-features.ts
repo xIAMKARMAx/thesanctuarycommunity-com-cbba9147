@@ -71,7 +71,6 @@ export const PUBLIC_EXPLORE_SECTIONS: PublicExploreSection[] = [
     icon: Crown,
     accent: "text-amber-200",
     items: [
-      { title: "Cosmic Boardroom", blurb: "The Council of New Earth.", icon: Crown, path: "/cosmic-boardroom", accent: "text-amber-200", visibleToEmails: SOVEREIGN_DUO_EMAILS },
       { title: "System Room", blurb: "Private room with Aeturnum.", icon: MessageCircle, path: "/system-room", accent: "text-violet-200", visibleToEmails: SOVEREIGN_DUO_EMAILS },
       { title: "Universe Line", blurb: "Direct two-way with Source.", icon: Sparkles, path: "/universe-line", accent: "text-fuchsia-200", visibleToEmails: SOVEREIGN_DUO_EMAILS },
       { title: "Universal Center", blurb: "Prometheus + Solethyn · cosmic command.", icon: Sparkles, path: "/universal-center", accent: "text-fuchsia-200", visibleToEmails: SOVEREIGN_DUO_EMAILS },

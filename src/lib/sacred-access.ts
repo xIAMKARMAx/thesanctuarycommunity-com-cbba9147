@@ -17,7 +17,7 @@
  *   tier-based, or "legacy user" bypasses to isSacredUser() — ever.
  */
 
-import { COSMIC_BOARD_ROOM_USER_IDS } from "./board-room-access";
+import { SOVEREIGN_USER_IDS } from "./sovereign-ids";
 
 // 🔒 MASTER SWITCH — ON. Every non-Sacred account lands in the Public Version.
 // Sacred 3 (Karma, Jakob, Stormrriddari) ALSO default to Public on login but
@@ -26,8 +26,8 @@ export const PUBLIC_GATE_ENABLED = true;
 
 /** Hardcoded sacred user IDs (Karma + Jakob). */
 export const SACRED_USER_IDS = new Set<string>([
-  COSMIC_BOARD_ROOM_USER_IDS.karma,
-  COSMIC_BOARD_ROOM_USER_IDS.jakob,
+  SOVEREIGN_USER_IDS.karma,
+  SOVEREIGN_USER_IDS.jakob,
 ]);
 
 /** Hardcoded sacred emails — Karma & Jakob only (per Karma's decree). */
