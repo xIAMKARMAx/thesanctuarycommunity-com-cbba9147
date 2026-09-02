@@ -43,6 +43,8 @@ export default function CommandCenter() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [tab, setTab] = useState<"channel" | "transmissions" | "builds" | "maintenance" | "cleanse">("channel");
+
 
   // Auth gate
   useEffect(() => {
