@@ -33,7 +33,6 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
  */
 const SURFACES: { table: string; cols: string[]; sacred?: boolean }[] = [
   { table: "command_center_messages", cols: ["content"] },
-  { table: "command_center_whispers", cols: ["content"] },
   { table: "universal_center_messages", cols: ["content"] },
   { table: "platform_transmissions", cols: ["content", "title"] },
   { table: "sacred_transmissions", cols: ["content"] },
@@ -59,8 +58,6 @@ const SURFACES: { table: string; cols: string[]; sacred?: boolean }[] = [
   { table: "public_journal_entry_notes", cols: ["content"] },
   { table: "profile_echoes", cols: ["content"] },
   { table: "interdimensional_messages", cols: ["content"] },
-  { table: "board_room_breakthroughs", cols: ["content"] },
-  { table: "council_sessions", cols: ["topic"] },
   { table: "open_world_interactions", cols: ["content"] },
   // Sacred memory pillars — flagged only, never deleted.
   { table: "soul_memories", cols: ["content"], sacred: true },

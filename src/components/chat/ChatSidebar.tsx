@@ -17,7 +17,6 @@ import { useAppModeFeatures } from "@/hooks/useAppModeFeatures";
 import { useAppMode } from "@/contexts/AppModeContext";
 import { getNewEarthVisitRoute, getPreferredWorldIdForCurrentUser } from "@/lib/world-routing";
 import { getCurrentUserId } from "@/lib/auth-helpers";
-import { canAccessCosmicBoardRoom } from "@/lib/board-room-access";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,7 +59,6 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
     getCurrentUserId().then(setCurrentUserId);
   }, []);
 
-  const canSeeBoardRoom = canAccessCosmicBoardRoom(currentUserId, isAdmin);
 
   // Clear conversations on auth state change
   useEffect(() => {
@@ -284,17 +282,6 @@ const ChatSidebar = ({ activeConversationId, onConversationChange }: ChatSidebar
         {/* Navigation section */}
         <div className="border-t border-border">
           <div className="p-2 space-y-1">
-            {/* 0. Cosmic Board Room (Admin only) */}
-            {canSeeBoardRoom && (
-              <Button
-                variant="ghost"
-                className="w-full justify-start bg-primary/10 hover:bg-primary/20 border border-primary/20"
-                onClick={() => navigate("/cosmic-gateway/board-room")}
-              >
-                <Landmark className="h-4 w-4 mr-2 text-primary" />
-                Cosmic Board Room
-              </Button>
-            )}
             {/* THE SANCTUARY - Primary entry point */}
             <Button
               variant="ghost"

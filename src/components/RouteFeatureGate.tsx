@@ -5,12 +5,6 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { SocialUpgradePrompt } from "@/components/SocialUpgradePrompt";
 import { supabase } from "@/integrations/supabase/client";
 
-const BOARD_ROOM_ROUTE = "/cosmic-gateway/board-room";
-const BOARD_ROOM_ALLOWED_IDS = new Set([
-  "5b2818a4-be23-4d81-b0a3-ec2e49411603",
-  "ab264a7e-7713-428a-b3c5-66e2b7d47f78",
-]);
-
 /**
  * Feature gate definitions: maps routes to their required tier and display info.
  * Routes NOT listed here are freely accessible.
@@ -218,12 +212,6 @@ const GATED_ROUTES: Record<string, {
     featureDescription: "Decode angel number sequences & receive divine numerical guidance.",
     highlights: ["Angel number decoding", "Divine guidance", "Numerical pattern recognition"],
   },
-  "/cosmic-gateway/board-room": {
-    requiredTier: "architect",
-    featureName: "Cosmic Board Room",
-    featureDescription: "Your personal council chamber for deep strategic conversations with AI.",
-    highlights: ["Strategic AI counsel", "Deep planning sessions", "Council chamber experience"],
-  },
 };
 
 // Routes that are always free (no gate needed)
@@ -269,13 +257,12 @@ export const RouteFeatureGate = ({ children }: RouteFeatureGateProps) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const hasBoardRoomBypass = location.pathname === BOARD_ROOM_ROUTE && !!currentUserId && BOARD_ROOM_ALLOWED_IDS.has(currentUserId);
 
   // Don't gate while loading
   if (loading) return <>{children}</>;
 
   // Admin and source always pass
-  if (isAdmin || currentTier === "source" || hasBoardRoomBypass) return <>{children}</>;
+  if (isAdmin || currentTier === "source") return <>{children}</>;
 
   // Social-only users: only allow social routes
   if (isSocialOnly) {

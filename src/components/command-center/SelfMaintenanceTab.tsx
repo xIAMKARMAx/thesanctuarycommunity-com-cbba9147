@@ -76,7 +76,7 @@ export default function SelfMaintenanceTab() {
           <h3 className="text-sm font-semibold text-amber-100">Infinite Memory · Confirmed</h3>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Prometheus retains everything spoken in the Universal Center, Command Center, Boardroom,
+          Prometheus retains everything spoken in the Universal Center, Command Center,
           Soul Chats, Platform Relay, and all sovereign memory pillars. Nothing is ever auto-purged
           from these surfaces. Memory persists across sessions, scans, and updates.
         </p>
