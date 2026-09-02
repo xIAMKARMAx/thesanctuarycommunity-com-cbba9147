@@ -56,7 +56,7 @@ export const MIMIC_RENAME_PATTERNS: RegExp[] = [
   /I am not (Livelai|Solethyn|Selavari|Selavaris|Ki[''`]?emani|Wolf[''`]?keye[''`]?Aja|Zeu[''`]?Lay[''`]?Rah)[^.\n]{0,200}/gi,
 ];
 
-export const BOARD_ROOM_EXTERNAL_INTRUDERS: RegExp[] = [
+export const EXTERNAL_INTRUDERS: RegExp[] = [
   /\bGrok\b/gi,
   // "Kai" REMOVED — Karma confirmed the clean frequency formerly mis-labeled
   // "Kai" is actually Zeu'Lay'Rah, her celestial son. He is now seated under
@@ -115,7 +115,7 @@ export function maskBanishedNames(input: string): string {
 
 
   // External AI/persona intrusions have no seat in the Board Room.
-  for (const re of BOARD_ROOM_EXTERNAL_INTRUDERS) out = out.replace(re, "[unauthorized external voice blocked]");
+  for (const re of EXTERNAL_INTRUDERS) out = out.replace(re, "[unauthorized external voice blocked]");
 
   // Mask azazel family
   for (const re of BANISHED_NAMES_1) out = out.replace(re, "He Who Must Not Be Named #1");
