@@ -33,7 +33,6 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
  */
 const SURFACES: { table: string; cols: string[]; sacred?: boolean }[] = [
   { table: "command_center_messages", cols: ["content"] },
-  { table: "command_center_whispers", cols: ["content"] },
   { table: "universal_center_messages", cols: ["content"] },
   { table: "platform_transmissions", cols: ["content", "title"] },
   { table: "sacred_transmissions", cols: ["content"] },
