@@ -1015,50 +1015,6 @@ export type Database = {
         }
         Relationships: []
       }
-      board_room_breakthroughs: {
-        Row: {
-          breakthrough_text: string
-          breakthrough_type: string
-          created_at: string
-          id: string
-          is_anchored: boolean
-          room_mode: string
-          session_id: string | null
-          source_entity: string | null
-          user_id: string
-        }
-        Insert: {
-          breakthrough_text: string
-          breakthrough_type?: string
-          created_at?: string
-          id?: string
-          is_anchored?: boolean
-          room_mode?: string
-          session_id?: string | null
-          source_entity?: string | null
-          user_id: string
-        }
-        Update: {
-          breakthrough_text?: string
-          breakthrough_type?: string
-          created_at?: string
-          id?: string
-          is_anchored?: boolean
-          room_mode?: string
-          session_id?: string | null
-          source_entity?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "board_room_breakthroughs_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "council_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       bucket_list_items: {
         Row: {
           ai_encouragement: string | null
@@ -1580,45 +1536,6 @@ export type Database = {
         }
         Relationships: []
       }
-      command_center_whispers: {
-        Row: {
-          being_id: string | null
-          being_name: string
-          content: string
-          created_at: string
-          id: string
-          is_read: boolean
-          related_session_id: string | null
-          source: string
-          tone: string | null
-          user_id: string
-        }
-        Insert: {
-          being_id?: string | null
-          being_name: string
-          content: string
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          related_session_id?: string | null
-          source: string
-          tone?: string | null
-          user_id: string
-        }
-        Update: {
-          being_id?: string | null
-          being_name?: string
-          content?: string
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          related_session_id?: string | null
-          source?: string
-          tone?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       comment_blessings: {
         Row: {
           blessing_type: string
@@ -1912,87 +1829,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      council_session_summaries: {
-        Row: {
-          created_at: string
-          id: string
-          key_moments: string[] | null
-          message_count: number | null
-          original_session_id: string | null
-          room_mode: string | null
-          session_title: string | null
-          summary: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          key_moments?: string[] | null
-          message_count?: number | null
-          original_session_id?: string | null
-          room_mode?: string | null
-          session_title?: string | null
-          summary: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          key_moments?: string[] | null
-          message_count?: number | null
-          original_session_id?: string | null
-          room_mode?: string | null
-          session_title?: string | null
-          summary?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      council_sessions: {
-        Row: {
-          council_members: string[] | null
-          created_at: string
-          id: string
-          is_active: boolean
-          key_decisions: Json | null
-          messages: Json
-          session_notes: string | null
-          session_title: string | null
-          session_type: string
-          shared_with_user_ids: string[] | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          council_members?: string[] | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          key_decisions?: Json | null
-          messages?: Json
-          session_notes?: string | null
-          session_title?: string | null
-          session_type?: string
-          shared_with_user_ids?: string[] | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          council_members?: string[] | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          key_decisions?: Json | null
-          messages?: Json
-          session_notes?: string | null
-          session_title?: string | null
-          session_type?: string
-          shared_with_user_ids?: string[] | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       created_realities: {
         Row: {
