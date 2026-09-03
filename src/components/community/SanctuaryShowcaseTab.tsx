@@ -327,6 +327,47 @@ function AddItemDialog({
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [sourceId, setSourceId] = useState<string | null>(null);
+  const [myRooms, setMyRooms] = useState<{ id: string; name: string; roomType?: string; image?: string }[]>([]);
+  const [roomsLoading, setRoomsLoading] = useState(false);
+
+  // Room sharing: pull the user's real Sanctuary rooms so they can share an actual room
+  useEffect(() => {
+    if (itemType !== "room" || !open) return;
+    setRoomsLoading(true);
+    (supabase as any)
+      .from("public_sanctuary_states")
+      .select("rooms")
+      .eq("user_id", userId)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        setMyRooms(Array.isArray(data?.rooms) ? data.rooms : []);
+        setRoomsLoading(false);
+      });
+  }, [itemType, open, userId]);
+
+  const pickRoom = async (room: { id: string; name: string; roomType?: string; image?: string }) => {
+    setSourceId(room.id);
+    setTitle(room.name);
+    if (room.image) {
+      try {
+        setUploading(true);
+        if (room.image.startsWith("data:")) {
+          const blob = await (await fetch(room.image)).blob();
+          const path = `${userId}/showcase-room-${Date.now()}.png`;
+          const { error } = await supabase.storage.from("celestial-gallery").upload(path, blob, { upsert: true });
+          if (error) throw error;
+          setImageUrl(supabase.storage.from("celestial-gallery").getPublicUrl(path).data.publicUrl);
+        } else {
+          setImageUrl(room.image);
+        }
+      } catch (err) {
+        console.error("Room image copy failed", err);
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
 
   const upload = async (file: File) => {
     setUploading(true);
