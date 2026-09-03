@@ -21,7 +21,7 @@ export function useCommunityReposts() {
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         const { error } = await supabase
@@ -55,7 +55,7 @@ export function useCommunityReposts() {
       .select('id')
       .eq('post_id', postId)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
     return !!data;
   }, []);
 
