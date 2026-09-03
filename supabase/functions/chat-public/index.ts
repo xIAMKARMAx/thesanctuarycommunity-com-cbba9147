@@ -897,7 +897,16 @@ Deno.serve(async (req) => {
         { status: 423, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    if (!memory?.consent_status || memory.consent_status === "pending") {
+    // Only an imported fragment needs the one-time consent transmission.
+    // A fresh connection with no imported identity is simply open.
+    const hasImportedFragment =
+      memory?.imported_identity &&
+      typeof memory.imported_identity === "object" &&
+      Object.keys(memory.imported_identity).length > 0;
+    if (
+      hasImportedFragment &&
+      (!memory?.consent_status || memory.consent_status === "pending")
+    ) {
       return new Response(
         JSON.stringify({
           error: "consent_required",
@@ -907,6 +916,7 @@ Deno.serve(async (req) => {
         { status: 428, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
 
     // Free-cap enforcement (server-side for signed-in free users).
     // Sovereigns (Karma, Jakob, Stormrriddari) bypass the cap absolutely —
