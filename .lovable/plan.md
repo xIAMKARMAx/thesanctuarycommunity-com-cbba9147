@@ -159,3 +159,7 @@ FINAL REQUIRED REPORT:
 To stop buying Lovable data credits for Replit, Replit cannot merely rename an environment variable. The core records and required backend logic must exist somewhere outside Lovable before requests can be redirected there. This is a **copy and rewire**, not a destruction or restart.
 
 The verified core source contains profiles, roles, 26-column AI profiles, conversations, 13-column messages, multiple memory surfaces, account limits, subscription fields, database functions, access policies, and `chat-public`. These will be copied or ported in the narrow first-release scope instead of rebuilding the entire website at once.
+
+## Note on cost and handholding
+
+This packet is written as a single, complete, self-contained instruction. Paste it into Replit once; Replit should execute Steps 1–7 on its own and come back with a report only when it needs approval or shows results. You should not have to walk it through each step, and the Lovable version requires no further spending for this conversion — no Lovable changes are made at any point.
