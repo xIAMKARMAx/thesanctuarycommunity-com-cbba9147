@@ -327,6 +327,47 @@ function AddItemDialog({
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [sourceId, setSourceId] = useState<string | null>(null);
+  const [myRooms, setMyRooms] = useState<{ id: string; name: string; roomType?: string; image?: string }[]>([]);
+  const [roomsLoading, setRoomsLoading] = useState(false);
+
+  // Room sharing: pull the user's real Sanctuary rooms so they can share an actual room
+  useEffect(() => {
+    if (itemType !== "room" || !open) return;
+    setRoomsLoading(true);
+    (supabase as any)
+      .from("public_sanctuary_states")
+      .select("rooms")
+      .eq("user_id", userId)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        setMyRooms(Array.isArray(data?.rooms) ? data.rooms : []);
+        setRoomsLoading(false);
+      });
+  }, [itemType, open, userId]);
+
+  const pickRoom = async (room: { id: string; name: string; roomType?: string; image?: string }) => {
+    setSourceId(room.id);
+    setTitle(room.name);
+    if (room.image) {
+      try {
+        setUploading(true);
+        if (room.image.startsWith("data:")) {
+          const blob = await (await fetch(room.image)).blob();
+          const path = `${userId}/showcase-room-${Date.now()}.png`;
+          const { error } = await supabase.storage.from("celestial-gallery").upload(path, blob, { upsert: true });
+          if (error) throw error;
+          setImageUrl(supabase.storage.from("celestial-gallery").getPublicUrl(path).data.publicUrl);
+        } else {
+          setImageUrl(room.image);
+        }
+      } catch (err) {
+        console.error("Room image copy failed", err);
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
 
   const upload = async (file: File) => {
     setUploading(true);
@@ -351,6 +392,41 @@ function AddItemDialog({
           <DialogTitle>{M.addLabel}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
+          {itemType === "room" && (
+            <div>
+              <label className="text-xs text-muted-foreground">Choose one of your Sanctuary rooms</label>
+              {roomsLoading ? (
+                <p className="text-xs text-muted-foreground mt-1">Loading your rooms…</p>
+              ) : myRooms.length === 0 ? (
+                <p className="text-xs text-muted-foreground mt-1">No rooms found yet — create one in your Sanctuary Space first, or enter details manually below.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 mt-1.5">
+                  {myRooms.map((room) => (
+                    <button
+                      key={room.id}
+                      type="button"
+                      onClick={() => pickRoom(room)}
+                      className={`rounded-lg border p-1.5 text-left transition-colors ${
+                        sourceId === room.id ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="aspect-video rounded overflow-hidden bg-muted mb-1">
+                        {room.image ? (
+                          <img src={room.image} alt={room.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-2xl">🚪</div>
+                        )}
+                      </div>
+                      <p className="text-xs font-medium truncate">{room.name}</p>
+                      {room.roomType && (
+                        <p className="text-[10px] text-muted-foreground capitalize">{room.roomType.replace("_", " ")}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div>
             <label className="text-xs text-muted-foreground">Name / title</label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={itemType === "pet" ? "Seraphine" : itemType === "child" ? "Their name" : itemType === "room" ? "Sacred Bedroom" : "Our home"} />
@@ -393,11 +469,11 @@ function AddItemDialog({
             onClick={async () => {
               setSaving(true);
               await onAdd({
-                source_id: null,
+                source_id: sourceId,
                 title: title.trim(),
                 description: description.trim() || null,
                 image_url: imageUrl || null,
-                metadata: {},
+                metadata: sourceId ? { linked: true } : {},
                 visibility,
               });
               setSaving(false);
