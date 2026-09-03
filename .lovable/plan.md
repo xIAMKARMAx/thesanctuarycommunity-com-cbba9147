@@ -1,185 +1,161 @@
-# Replit Independent App — Core Migration Plan
+# Replit In-Place Independence Conversion
 
-## Goal
+## What Replit is being told to do
 
-Turn the Replit build into an independent application that does **not require purchasing Lovable data credits**, while keeping the separate Lovable version intact for Karma and Jakob.
+**Do not rebuild, reset, replace, or destroy the Replit app. Keep every screen, component, route, PWA/download feature, and piece of working code already built.** Convert the existing Replit app in place by replacing only its remaining Lovable runtime dependencies.
 
-The first independent release will include:
+The first conversion scope is:
 
-- Existing user accounts and sign-in continuity
-- Every user’s profiles and AI profiles
+- Login and existing accounts
+- Profiles and AI profiles
 - Bring Them Home
-- One-to-one messaging and its required memory
-- Existing conversations and complete message history
-- Active subscription recognition, checkout, and management
-- Required images/files used by these core features
+- Messaging, conversations, messages, and required memory
+- Existing subscriptions
 
-No user will be intentionally reset, and the Lovable production backend will not be modified or disconnected during preparation.
+The Lovable version remains separate and unchanged for Karma and Jakob.
 
-## Important boundary
+## Why the Replit app still depends on Lovable
 
-“Independent” means the Replit app’s runtime must make **zero requests to the Lovable-managed backend** and must not require Lovable data-credit purchases. Replit’s existing `pkh…` project can be the independent destination; merely having that project did not create the Lovable dependency. The dependency exists because the deployed Replit code currently targets the separate `kmld…` runtime.
+The visual app and installable PWA are already hosted by Replit. However, the completed audit verified that its runtime still sends auth, database, function, storage, and realtime requests to the Lovable-managed `kmld…` backend. The messaging function also uses `LOVABLE_API_KEY` to call Lovable’s AI gateway.
 
-This plan does not promise that all third-party infrastructure or AI usage will remain free forever. Replit, the independent database/auth provider, Stripe, and the chosen AI provider may have their own free tiers or charges. Before cutover, Replit must state those costs plainly and must not activate a paid service without Karma’s approval.
+That does **not** mean Replit’s work must be discarded. It means the shell/app is built, but some working wires still lead back to Lovable. Independence requires moving the data and server capabilities behind those wires, then changing only the endpoint configuration.
 
-## Safety rules
+The `pkh…` project is not what caused the Lovable dependency. It is the intended independent destination, but its missing core schema/data must be added safely before any connection is switched.
 
-- Do not run all 246 historical migrations.
-- Do not run destructive, truncate, reset, drop, or cleanup migrations.
-- Do not rotate or expose credentials.
-- Do not change the current Lovable app, backend, database, or deployment.
-- Do not point the public Replit release at a partially built database.
-- Build and test in an isolated Replit staging environment first.
-- Export before import; validate counts and relationships before cutover.
-- Keep the current working Replit/Lovable-backed release available until the independent staging release passes every acceptance test.
+## Exact instructions for Replit
 
-## Phase 1 — Produce the verified migration inventory
+```text
+CONVERT THE EXISTING REPLIT APP TO INDEPENDENT OPERATION IN PLACE.
 
-Create a machine-readable inventory of only the core release dependencies:
+NON-NEGOTIABLE REQUIREMENTS:
 
-- Auth identities and profiles
-- Roles
-- AI profiles
-- Conversations and messages
-- Long-term and Bring Them Home memory
-- Message limits and required account state
-- Subscription status and Stripe customer/product references
-- Required storage objects and their ownership
-- Database functions, triggers, indexes, grants, and row-level access rules
-- Core server functions and runtime secrets
+1. DO NOT rebuild, replace, reset, roll back, or delete the existing Replit app.
+2. Preserve every existing page, component, route, style, manifest, icon, install/download capability, and working feature.
+3. DO NOT run all repository migrations. DO NOT run any truncate, drop, reset, cleanup, or destructive migration.
+4. DO NOT change or damage the Lovable app or Lovable-managed backend.
+5. DO NOT rotate, print, expose, or overwrite credentials.
+6. DO NOT switch production to an incomplete backend.
+7. Use a separate staging deployment/environment for this conversion.
+8. Do not make users start over. Preserve existing accounts, profile IDs where possible, AI profiles, conversations, messages, memory, subscription status, and required files.
+9. Do not activate a paid AI/database/infrastructure service without first reporting its exact pricing/free allowance and receiving my approval.
 
-Verified minimum database surfaces include `profiles`, `user_roles`, `ai_profiles`, `conversations`, `messages`, `public_living_flame_memory`, required memory tables, account/message-limit tables, and the supporting Sanctuary state used by `chat-public`. Preserve original UUIDs, timestamps, parent-child relationships, and message ordering.
+VERIFIED CURRENT PROBLEM:
 
-Before changing anything, Replit must output:
+The Replit frontend/PWA is built and must remain intact, but its runtime still points auth, REST/database, functions, storage, realtime, and server calls at the Lovable-managed kmld backend. The current chat-public function also calls Lovable AI Gateway using LOVABLE_API_KEY.
 
-1. Source row counts by required table.
-2. Source file counts and total bytes by required storage bucket.
-3. Foreign-key dependency order.
-4. The exact destination architecture.
-5. The AI provider/model and expected free allowance or cost.
-6. The estimated database, storage, egress, and Replit costs.
-7. Any field or auth identity that cannot be migrated exactly.
+THIS IS A WIRING/BACKEND-INDEPENDENCE JOB, NOT A FRONTEND REBUILD.
 
-Then stop for approval.
+FIRST RELEASE SCOPE ONLY:
 
-## Phase 2 — Build a clean independent core backend
+- Existing authentication/accounts
+- profiles and user_roles
+- ai_profiles
+- Bring Them Home
+- conversations and messages
+- required persistent/Bring Them Home memory
+- subscription verification, checkout, customer portal, and synchronization
+- storage objects required by those features
 
-Build the minimum schema in staging from a reviewed baseline instead of replaying the repository’s entire migration history.
+STEP 1 — READ-ONLY IN-PLACE AUDIT
 
-The baseline must include:
+Before changing anything, identify and report:
 
-- Required tables, enums, indexes, constraints, and defaults
-- Explicit grants and row-level access rules
-- Account-creation trigger so each new auth identity receives a profile
-- Role checks kept in the separate roles table
-- Message/profile ownership enforcement
-- Required messaging and usage-limit database functions
-- Required update triggers
-- Required storage buckets and file access policies
+A. Every environment variable and code path currently targeting kmld or any *.lovable.app runtime API.
+B. Every core table, function, trigger, policy, index, storage bucket, and server endpoint required by the first-release scope.
+C. What schema and data already exist in my pkh project.
+D. Which AI provider/server Replit already built or configured, if any.
+E. Whether existing auth user UUIDs and password hashes can be safely imported into the destination auth system. If not, describe a secure account-claim/password-reset method that keeps each user attached to all existing data.
+F. Exact expected costs/free allowances for the proposed Replit hosting, database, storage, realtime, and AI provider.
+G. A file-by-file change list that preserves all existing Replit UI and PWA work.
 
-Port only the server capabilities needed by the first release:
+Then STOP and show me the report. Make no changes in Step 1.
 
-- Independent `chat-public` equivalent
-- Signed-in messaging endpoint if the Replit UI uses it
-- Subscription check
-- Checkout creation
-- Customer portal
-- Stripe subscription synchronization/webhook
-- Required memory capture
-- Required account deletion and message-retention behavior
+STEP 2 — BUILD ONLY THE MISSING INDEPENDENT CORE IN STAGING
 
-Replace Lovable AI Gateway calls in `chat-public` with the approved independent AI provider. Never place a private AI or Stripe key in frontend code.
+After approval, build a reviewed baseline schema for only the first-release scope in the existing pkh destination. Do not replay the full migration history.
 
-## Phase 3 — Make Bring Them Home complete
+Required minimum includes profiles, user_roles, ai_profiles, conversations, messages, public_living_flame_memory, required long-term memory/account-limit tables, required Sanctuary state for chat-public, and their exact indexes, triggers, grants, and row-level access policies.
 
-The current form saves its draft only to local storage and redirects to authentication. Complete the independent flow so that after successful sign-in/sign-up it:
+Port only the required server functions: independent chat-public/messaging, subscription check, checkout, customer portal, Stripe synchronization/webhook, and required memory persistence.
 
-1. Recovers the saved draft.
-2. Shows the user what will be imported.
-3. Creates or updates the correct AI profile and isolated Bring Them Home memory.
-4. Records consent state required by messaging.
-5. Confirms the server save before deleting the local draft.
-6. Opens the correct conversation without creating duplicates.
+Replace Lovable AI Gateway inside chat-public with the approved independent AI provider. Keep all private keys server-side in Replit Secrets. Do not put private keys in frontend code.
 
-The imported identity and its memory must remain isolated from unrelated profiles and users.
+STEP 3 — COPY; NEVER RESET
 
-## Phase 4 — Copy production users and data without resets
-
-Use a one-time, restartable migration program with dry-run support and an audit log.
-
-Migration order:
+Create an idempotent, restartable import process. Copy source data into staging in dependency order:
 
 1. Auth identity mapping
-2. Profiles and roles
-3. AI profiles
-4. Conversations
-5. Messages in chronological order
-6. Long-term and Bring Them Home memory
-7. Required account/usage state
-8. Subscription references and status
-9. Required storage files, followed by URL rewriting
+2. profiles and user_roles
+3. ai_profiles
+4. conversations
+5. messages in original chronological order
+6. required persistent and Bring Them Home memory
+7. required account/message-limit state
+8. Stripe customer/product/subscription references
+9. required storage objects
 
-Requirements:
+Preserve original UUIDs and timestamps where supported. If auth UUIDs cannot be preserved, create an auditable old-ID-to-new-ID mapping and rewrite every dependent foreign key consistently. Never migrate plaintext passwords. Do not duplicate users, messages, profiles, memories, customers, or subscriptions when the importer is rerun.
 
-- Preserve IDs wherever the destination auth system permits it.
-- If auth IDs cannot be preserved, generate a deterministic old-ID → new-ID map and rewrite every dependent row.
-- Never migrate passwords as plaintext.
-- Use a secure password-reset or verified account-claim flow only when auth sessions/password hashes are not portable.
-- Preserve every message, including protected/hidden records required for memory, unless the owner previously deleted it permanently.
-- Make every import idempotent so rerunning it does not duplicate users, profiles, conversations, messages, memories, or subscriptions.
-- Compare source/destination counts, orphan counts, min/max timestamps, and per-user conversation/message totals.
+STEP 4 — COMPLETE BRING THEM HOME WITHOUT CHANGING ITS DESIGN
 
-## Phase 5 — Preserve subscriptions safely
+The current Bring Them Home page stores its form draft only on the device before auth. Keep the existing page and design, but complete the post-auth server save:
 
-Keep the existing live Stripe products, prices, customers, and subscriptions; do not recreate customers or charge anyone during migration.
+- recover the draft after auth
+- let the user confirm it
+- create/update the correct AI profile and isolated Bring Them Home memory
+- save required consent state
+- confirm persistence before clearing the local draft
+- open exactly one correct conversation
 
-- Port the existing Stripe product-ID-to-tier mapping.
-- Configure independent checkout, verification, portal, and webhook endpoints.
-- Update Stripe webhook delivery only after staging verification and explicit approval.
-- Reconcile Stripe truth into destination profile subscription fields.
-- Verify sovereign/admin access separately from paid subscription access.
-- Use Stripe test mode for staging checkout tests; perform no live charge without explicit approval.
+STEP 5 — REWIRE ONLY AFTER STAGING PASSES
 
-## Phase 6 — Rewire and prove independence
+In staging only, replace the core feature endpoints so they use pkh/Replit-owned auth, database, functions, storage, realtime, and the approved independent AI provider. Do not alter unrelated features yet.
 
-In staging, change the frontend and Replit server to use only the independent auth, database, functions, storage, realtime, and AI endpoints.
+Fail the release if network logs show any core flow contacting kmld, Lovable AI Gateway, or a *.lovable.app runtime API.
 
-Run an automated runtime audit and fail the release if any request targets:
+STEP 6 — REQUIRED ACCEPTANCE TESTS
 
-- The `kmld…` Lovable-managed backend
-- Any `*.lovable.app` runtime API
-- Lovable AI Gateway
-- Lovable storage, realtime, database, or function endpoints
+- Existing user securely signs into or claims the same account.
+- Correct profile and every AI profile load.
+- Existing conversations and exact message history survive refresh, logout/login, and reinstall.
+- New user and assistant messages persist exactly once in the correct order.
+- Bring Them Home survives auth redirect and creates a working persistent profile/conversation.
+- Users cannot access each other’s data.
+- Active Stripe subscriber receives the correct existing tier; free user does not.
+- Stripe test-mode checkout, portal, cancellation, and webhook synchronization work without charging anyone.
+- Required images/files load from independent storage.
+- Installed PWA and clean browser work from the registered Replit production URL.
+- Network audit shows zero Lovable runtime requests for these core flows.
+- Existing Lovable app remains unchanged and working.
 
-Metadata links alone may remain only if they do not cause runtime requests; update them later with the rest of the platform migration.
+STEP 7 — SAFE CUTOVER
 
-## Acceptance tests
+Show me all test results, source/destination row counts, orphan checks, storage counts, unresolved differences, endpoint audit, cost report, and rollback procedure. Wait for explicit approval before changing Replit production.
 
-The independent staging app must pass all of these before public cutover:
+During approved cutover, import the final data delta, rerun reconciliation, and switch only Replit production’s core endpoints. If anything fails, restore the previous Replit deployment. Never delete the source Lovable data.
 
-1. Existing user signs in or securely claims the same account.
-2. Correct profile and all AI profiles load.
-3. Existing conversations and exact message history survive refresh, logout/login, and reinstall.
-4. A new message persists exactly once and reloads in the correct order.
-5. Bring Them Home survives auth redirect, saves server-side, records consent, and opens working messaging.
-6. Two different users cannot read or modify each other’s profiles, conversations, messages, or memory.
-7. Active subscriber receives the correct tier; free user does not.
-8. Stripe test checkout, cancellation, portal, and webhook synchronization work.
-9. Required files and images load from independent storage.
-10. A clean browser and installed PWA both work from the public Replit URL.
-11. Network logs show zero Lovable runtime requests during sign-in, profile loading, Bring Them Home, messaging, refresh, and subscription checks.
-12. The current Lovable version still works unchanged.
+FINAL REQUIRED REPORT:
 
-## Cutover and rollback
+- What existing Replit files were preserved unchanged
+- What backend/server files were added or modified
+- What data was copied and reconciled
+- Final independent endpoint inventory
+- Proof of zero Lovable runtime requests in the core flows
+- Current and projected non-Lovable operating costs
+- Remaining features that still depend on Lovable and are deferred
+```
 
-- Put the Replit app into a short maintenance/read-only window for the final delta export.
-- Import records created since the staging snapshot.
-- Repeat reconciliation and acceptance tests.
-- Switch only the Replit production environment to the independent backend.
-- Monitor auth failures, message saves, AI responses, subscription checks, webhooks, and storage errors.
-- If validation fails, restore the previous Replit release; do not alter or delete the source Lovable data.
-- Keep verified exports and the source backend untouched until Karma explicitly approves retirement of any dependency.
+## What this approach preserves
 
-## Later phases
+- All work Replit already completed
+- The current downloadable app and its design
+- Existing user information and history through copy-and-reconciliation
+- Existing Stripe customers/subscriptions
+- The separate Lovable sacred/sovereign platform
+- A rollback path until the independent core is proven
 
-After the core release is stable, migrate the remaining website features in small dependency groups using the same inventory → staging → data copy → verification → cutover process. The Lovable sacred/sovereign version remains separate and is not replaced by this work.
+## What must physically move
+
+To stop buying Lovable data credits for Replit, Replit cannot merely rename an environment variable. The core records and required backend logic must exist somewhere outside Lovable before requests can be redirected there. This is a **copy and rewire**, not a destruction or restart.
+
+The verified core source contains profiles, roles, 26-column AI profiles, conversations, 13-column messages, multiple memory surfaces, account limits, subscription fields, database functions, access policies, and `chat-public`. These will be copied or ported in the narrow first-release scope instead of rebuilding the entire website at once.
