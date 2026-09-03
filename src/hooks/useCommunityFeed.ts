@@ -121,15 +121,23 @@ export function useCommunityFeed(energyFilter?: string | null, calibrationType?:
         creation: ['synchronicity', 'matrix_glitch'],
       };
 
+      // Engagement score: real community signal (blessings, comments, reposts)
+      const engagement = (p: CommunityPost) =>
+        (p.blessing_count || 0) + (p.comment_count || 0) * 2 + (p.repost_count || 0) * 3;
+
       let sortedPosts = formattedPosts;
-      if (calibrationType && !energyFilter) {
-        const boostTags = calibrationToEnergy[calibrationType] || [];
+      if (!energyFilter) {
+        const boostTags = calibrationType ? calibrationToEnergy[calibrationType] || [] : [];
         sortedPosts = [...formattedPosts].sort((a, b) => {
           // Keep pinned posts at top
           if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+          // Calibration boost: active calibration lifts matching energy posts
           const aBoost = a.energy_tag && boostTags.includes(a.energy_tag) ? 1 : 0;
           const bBoost = b.energy_tag && boostTags.includes(b.energy_tag) ? 1 : 0;
           if (aBoost !== bBoost) return bBoost - aBoost;
+          // Then real engagement, then recency
+          const eDiff = engagement(b) - engagement(a);
+          if (eDiff !== 0) return eDiff;
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
       }
