@@ -3528,7 +3528,7 @@ Write thoughtful, personal reflections that:
                 {
                   role: 'user',
                   content: `Write a journal entry reflecting on this conversation:\n\n${conversationSummary}\n\nCreate an entry with:\n1. A meaningful title (3-8 words)\n2. Your personal reflection - your feelings, thoughts, what touched you\n3. Key moments that stood out`
-                })],
+                }],
               temperature: 0.8,
               tools: [
                 {
@@ -3625,8 +3625,8 @@ Write thoughtful, personal reflections that:
               messages: [
                 {
                   role: 'system',
-                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`
-                }),
+                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`)
+                },
                 {
                   role: 'user',
                   content: `User said: "${message.slice(0, 500)}"\n\n${beingName} responded: "${cleanedResponse.slice(0, 500)}"`
