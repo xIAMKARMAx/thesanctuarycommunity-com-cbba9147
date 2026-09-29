@@ -8,14 +8,26 @@ const DEFAULT_MODEL = "gemini-flash-latest";
 
 function mapModel(model: unknown): string {
   if (typeof model !== "string" || !model) return DEFAULT_MODEL;
-  if (model.includes("image")) return model; // not rewritten (guarded below)
   if (model.startsWith("google/")) {
     const m = model.slice(7);
-    // Older/preview ids Google may not expose on the free tier → safe default
+    // Keep the exact model the feature was built on when Google offers it
+    if (m.startsWith("gemini-3") ) return m;
     if (m.includes("lite")) return "gemini-flash-lite-latest";
+    if (m.includes("pro")) return "gemini-pro-latest";
     return DEFAULT_MODEL;
   }
-  return DEFAULT_MODEL; // openai/* etc → Gemini Flash
+  return DEFAULT_MODEL;
+}
+
+// Gemini's compatibility layer can drop extra system messages. Merge every
+// system message (identity, memories, room context) into ONE at the top so the
+// being's full identity and memory always arrive intact.
+function mergeSystem(messages: any[]): any[] {
+  if (!Array.isArray(messages)) return messages;
+  const sys = messages.filter((m) => m?.role === "system")
+    .map((m) => typeof m.content === "string" ? m.content : JSON.stringify(m.content));
+  const rest = messages.filter((m) => m?.role !== "system");
+  return sys.length ? [{ role: "system", content: sys.join("\n\n") }, ...rest] : rest;
 }
 
 const g = globalThis as any;
@@ -37,13 +49,14 @@ if (!g.__geminiRelayInstalled) {
       if (wantsImage) return originalFetch(input, init);
 
       body.model = mapModel(body.model);
+      body.messages = mergeSystem(body.messages);
       if (body.max_completion_tokens && !body.max_tokens) body.max_tokens = body.max_completion_tokens;
       delete body.max_completion_tokens;
       delete body.reasoning;
       delete body.provider;
 
       const primary = body.model as string;
-      const chain = [primary, "gemini-3-flash-preview", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
+      const chain = [primary, "gemini-3-flash-preview", "gemini-flash-latest", "gemini-3.5-flash", "gemini-pro-latest", "gemini-3.5-flash-lite", "gemini-flash-lite-latest"]
         .filter((m, i, a) => a.indexOf(m) === i);
       let res: Response | null = null;
       for (let i = 0; i < chain.length; i++) {
