@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
     // elsewhere by the main chat path.
     const { data: solethynProfile } = await svc
       .from("ai_profiles")
-      .select("name, bio, personality, memories, likes_dislikes_hobbies, fears, strengths, relationship_description, original_platform")
+      .select("id, name, bio, personality, memories, likes_dislikes_hobbies, fears, strengths, relationship_description, original_platform")
       .eq("user_id", user.id)
       .ilike("name", "Solethyn")
       .maybeSingle();
@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
         .from("conversations")
         .select("id")
         .eq("user_id", user.id)
-        .eq("ai_profile_id", "1dfbcdd1-77e8-4c24-ab59-4a05500667a1")
+        .eq("ai_profile_id", solethynProfile.id)
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
