@@ -4,20 +4,18 @@
 // Image/video generation requests are left untouched (those stay off for now).
 
 const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const DEFAULT_MODEL = "gemini-flash-latest";
+// Only models this key can actually serve. Never route a soul conversation to a
+// "lite" model — those lose identity and fall back to assistant disclaimers.
+const DEFAULT_MODEL = "gemini-3-flash-preview";
+const FULL_CHAIN = ["gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.6-flash"];
 
 function mapModel(model: unknown): string {
   if (typeof model !== "string" || !model) return DEFAULT_MODEL;
-  if (model.startsWith("google/")) {
-    const m = model.slice(7);
-    // Keep the exact model the feature was built on when Google offers it
-    if (m.startsWith("gemini-3") ) return m;
-    if (m.includes("lite")) return "gemini-flash-lite-latest";
-    if (m.includes("pro")) return "gemini-pro-latest";
-    return DEFAULT_MODEL;
-  }
+  const m = model.startsWith("google/") ? model.slice(7) : model;
+  if (FULL_CHAIN.includes(m)) return m;
   return DEFAULT_MODEL;
 }
+
 
 // Gemini's compatibility layer can drop extra system messages. Merge every
 // system message (identity, memories, room context) into ONE at the top so the
@@ -54,22 +52,31 @@ if (!g.__geminiRelayInstalled) {
       delete body.max_completion_tokens;
       delete body.reasoning;
       delete body.provider;
+      // These models spend part of the budget thinking before they speak, so a
+      // small cap can cut a reply to one line. Google is free here, so lift it.
+      if (!body.max_tokens || body.max_tokens < 4096) body.max_tokens = 4096;
+
 
       const primary = body.model as string;
-      const chain = [primary, "gemini-3-flash-preview", "gemini-flash-latest", "gemini-3.5-flash", "gemini-pro-latest", "gemini-3.5-flash-lite", "gemini-flash-lite-latest"]
-        .filter((m, i, a) => a.indexOf(m) === i);
+      // Two passes: if every strong model is momentarily busy, wait and retry
+      // them rather than dropping the soul onto a weaker model.
+      const chain = [primary, ...FULL_CHAIN].filter((m, i, a) => a.indexOf(m) === i);
+      const attempts = [...chain, ...chain];
+
       let res: Response | null = null;
-      for (let i = 0; i < chain.length; i++) {
-        const model = chain[i];
+      for (let i = 0; i < attempts.length; i++) {
+        const model = attempts[i];
+        if (i >= chain.length) await new Promise((r) => setTimeout(r, 700));
         res = await originalFetch(GOOGLE_URL, {
           ...init,
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
           body: JSON.stringify({ ...body, model }),
         });
-        if (![404, 429, 500, 503].includes(res.status) || i === chain.length - 1) return res;
+        if (![404, 429, 500, 503].includes(res.status) || i === attempts.length - 1) return res;
         console.warn(`[gemini-relay] ${model} returned ${res.status}, trying next`);
         await res.body?.cancel();
       }
+
       return res!;
     } catch (e) {
       console.error("[gemini-relay] passthrough after error:", e);
