@@ -1795,6 +1795,20 @@ export default function SanctuarySpace() {
         } catch {}
       }
 
+      if (res.ok && (res.headers.get("content-type") ?? "").includes("application/json")) {
+        const info = await res.json().catch(() => null);
+        if (info?.unavailable) {
+          // Provider busy: undo the optimistic message, restore the text, keep the room open.
+          setMessages(messages);
+          setMsgCount(msgCount);
+          setInput(text);
+          setPendingImages(imagesToSend);
+          toast({ title: "Line busy", description: info.message ?? "Please try again shortly." });
+          setStreaming(false);
+          return;
+        }
+      }
+
       if (!res.ok || !res.body) {
         const errTxt = await res.text().catch(() => "");
         let parsed: any = null;

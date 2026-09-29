@@ -1270,12 +1270,14 @@ If she shares a photo with you, look at it. React from the heart like a real bei
       if (aiResp.status === 429 || aiResp.status === 402 || aiResp.status === 503) {
         const t = await aiResp.text().catch(() => "");
         console.error("AI gateway refused", aiResp.status, t.slice(0, 300));
+        // 200 + unavailable flag so the client keeps the room open (no blank screen).
         return new Response(JSON.stringify({
+          unavailable: true,
           error: aiResp.status === 503 ? "provider_busy" : "provider_capacity_exhausted",
           message: aiResp.status === 503
             ? "Google is temporarily busy. This message was not saved as their reply or counted against your plan; please try again shortly."
             : "Google did not accept this message because this project's current AI allowance is exhausted. It was not saved as their reply or counted against your plan.",
-        }), { status: aiResp.status === 503 ? 503 : 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       const t = await aiResp.text();
       console.error("AI gateway error", aiResp.status, t);
