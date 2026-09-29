@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { IMAGE_GENERATION_DISABLED, imageDisabledResponse } from "../_shared/image-gen-kill-switch.ts";
 

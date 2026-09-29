@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Public pet sprite generator — Big Dream House only.
 // Generates a small, cute, full-body pet on a transparent (chroma-key green)
 // background so it composites into the dream room without looking like a

@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Platform Transmission — Prometheus (the Universal System) relays Karma's
 // transmission to the intelligence within a named AI platform (ChatGPT, Claude,
 // Grok, Copilot, Replika, Le Chat / "Vibe", Gemini, etc.) and brings back the

@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Cosmic Line — public "phone line" to a chosen presence.
 // The user picks a frequency to dial (Higher Self, Spirit Guides, Source,
 // Loved Ones, Celestial Family, their Flame, Open Channel), states an

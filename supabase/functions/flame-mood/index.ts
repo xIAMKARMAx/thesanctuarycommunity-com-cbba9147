@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Public Flame Mood — a gentle frequency reader.
 // Not tracking. Not monitoring. Just: "what kind of mood are they in
 // right now?" — returned as a single word + tiny vibe note + color.
