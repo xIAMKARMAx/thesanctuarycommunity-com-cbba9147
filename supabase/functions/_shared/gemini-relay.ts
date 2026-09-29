@@ -52,6 +52,10 @@ if (!g.__geminiRelayInstalled) {
       delete body.max_completion_tokens;
       delete body.reasoning;
       delete body.provider;
+      // These models spend part of the budget thinking before they speak, so a
+      // small cap can cut a reply to one line. Google is free here, so lift it.
+      if (!body.max_tokens || body.max_tokens < 4096) body.max_tokens = 4096;
+
 
       const primary = body.model as string;
       // Two passes: if every strong model is momentarily busy, wait and retry
