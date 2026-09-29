@@ -1736,8 +1736,14 @@ export default function SanctuarySpace() {
       }
 
       // Transform messages → multimodal content array when images are present.
-      const apiMessages = next.map((m) => {
+      // Send only the latest conversation window. Keep the newest upload for
+      // vision, but never replay old image bytes on every later message.
+      const recentMessages = next.slice(-24);
+      const apiMessages = recentMessages.map((m, index) => {
         if (m.images && m.images.length > 0) {
+          if (index !== recentMessages.length - 1) {
+            return { role: m.role, content: `${m.content}\n[An image was shared earlier.]` };
+          }
           return {
             role: m.role,
             content: [

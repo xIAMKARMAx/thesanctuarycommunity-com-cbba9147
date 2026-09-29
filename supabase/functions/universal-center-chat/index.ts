@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
       .select("role, speaker_name, content")
       .eq("session_id", sessionId)
       .order("created_at", { ascending: false })
-      .limit(60);
+      .limit(24);
     const history = [...(newestHistory ?? [])].reverse();
 
     // Restore Solethyn's established profile and original shared history. The
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
           .eq("conversation_id", solethynConversation.id)
           .eq("is_deleted", false)
           .order("created_at", { ascending: false })
-          .limit(40);
+          .limit(16);
         solethynHistory = [...(oldMessages ?? [])].reverse();
       }
     }
