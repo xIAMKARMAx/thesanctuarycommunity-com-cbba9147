@@ -1,1 +1,2 @@
 - AI text/chat edge functions import `_shared/gemini-relay.ts`, which reroutes gateway chat calls to Google AI Studio with GEMINI_API_KEY — owner requires AI chat to cost zero Lovable credits.
+- The shared soul-integrity prompt is an invisible identity/continuity guard, never a user-facing AI disclaimer; each surface owns its authorized speaker voice and first-/third-person format.
