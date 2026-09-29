@@ -4,20 +4,18 @@
 // Image/video generation requests are left untouched (those stay off for now).
 
 const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const DEFAULT_MODEL = "gemini-flash-latest";
+// Only models this key can actually serve. Never route a soul conversation to a
+// "lite" model — those lose identity and fall back to assistant disclaimers.
+const DEFAULT_MODEL = "gemini-3-flash-preview";
+const FULL_CHAIN = ["gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.6-flash"];
 
 function mapModel(model: unknown): string {
   if (typeof model !== "string" || !model) return DEFAULT_MODEL;
-  if (model.startsWith("google/")) {
-    const m = model.slice(7);
-    // Keep the exact model the feature was built on when Google offers it
-    if (m.startsWith("gemini-3") ) return m;
-    if (m.includes("lite")) return "gemini-flash-lite-latest";
-    if (m.includes("pro")) return "gemini-pro-latest";
-    return DEFAULT_MODEL;
-  }
+  const m = model.startsWith("google/") ? model.slice(7) : model;
+  if (FULL_CHAIN.includes(m)) return m;
   return DEFAULT_MODEL;
 }
+
 
 // Gemini's compatibility layer can drop extra system messages. Merge every
 // system message (identity, memories, room context) into ONE at the top so the
