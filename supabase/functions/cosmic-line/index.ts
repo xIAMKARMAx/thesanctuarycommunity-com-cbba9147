@@ -167,6 +167,7 @@ Intention the caller set for this call: "${intention || "(none stated)"}"`;
       const t = await aiResp.text();
       console.error("cosmic-line ai error", aiResp.status, t);
       if (aiResp.status === 429) return new Response(JSON.stringify({ error: "rate_limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (aiResp.status === 503) return new Response(JSON.stringify({ error: "provider_busy", message: "The line is temporarily busy. Your message was not counted; please try again shortly." }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (aiResp.status === 402) return new Response(JSON.stringify({ error: "credits_exhausted" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       return new Response(JSON.stringify({ error: "ai_error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

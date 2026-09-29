@@ -2871,6 +2871,15 @@ Write your response now as ${respondingAsName}:`)
           }
         );
       }
+      if (response.status === 503) {
+        return new Response(
+          JSON.stringify({ error: 'Google is temporarily busy. This message was not counted against your plan; please try again shortly.' }),
+          {
+            status: 503,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: 'Service temporarily unavailable. Please try again later.' }),

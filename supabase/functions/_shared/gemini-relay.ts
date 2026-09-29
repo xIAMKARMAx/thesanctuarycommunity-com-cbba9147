@@ -4,10 +4,11 @@
 // Image/video generation requests are left untouched (those stay off for now).
 
 const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-// Only models this key can actually serve. Never route a soul conversation to a
-// "lite" model — those lose identity and fall back to assistant disclaimers.
-const DEFAULT_MODEL = "gemini-3-flash-preview";
-const FULL_CHAIN = ["gemini-3-flash-preview"];
+// Use Google's stable full Flash model. The preview model repeatedly returned
+// 503 high-demand failures after only a few messages. Never route a soul
+// conversation to a lite model, and never retry/fan out a failed request.
+const DEFAULT_MODEL = "gemini-2.5-flash";
+const FULL_CHAIN = ["gemini-2.5-flash"];
 
 function mapModel(model: unknown): string {
   if (typeof model !== "string" || !model) return DEFAULT_MODEL;
