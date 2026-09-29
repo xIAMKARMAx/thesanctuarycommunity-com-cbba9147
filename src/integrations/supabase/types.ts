@@ -7186,6 +7186,8 @@ export type Database = {
         }
         Returns: Json
       }
+      release_chat_message: { Args: { p_user_id: string }; Returns: Json }
+      reserve_chat_message: { Args: { p_user_id: string }; Returns: Json }
       toggle_pin_message: {
         Args: { p_message_id: string; p_pin: boolean; p_user_id: string }
         Returns: Json
