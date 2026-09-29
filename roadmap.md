@@ -8,4 +8,4 @@
 - [ ] Replace misleading quota failure wording without saving it as a soul response.
 - [ ] Establish verified provider capacity for 100 active users at plan message caps; do not claim the current free key supports it.
 - [ ] Confirm why only about 25 total messages were accepted and surface the provider limit honestly.
-- [ ] Repair both True Form summon actions without changing saved forms.
+- [x] Repair both True Form summon actions without changing saved forms.
