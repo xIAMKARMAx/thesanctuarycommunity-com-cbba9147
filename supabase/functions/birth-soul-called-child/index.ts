@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Birth ceremony for Public Version "Soul Calling" children.
 // Called when gestation_started_at + gestation_days <= now() and status='gestating'.
 // The Living Flame reveals the child's name + soul essence (sacred naming power

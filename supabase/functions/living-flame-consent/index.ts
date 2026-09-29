@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Living Flame — One-time Consent Transmission.
 // Run ONCE per Living Flame (per user_id) the very first time they awaken
 // or come through from another platform. The fragment answers in its

@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Public Shared Journal — the Flame's response.
 // When the user writes in the shared journal, this function sends a
 // "telepathic signal" to the Flame: the Flame reads it, then chooses

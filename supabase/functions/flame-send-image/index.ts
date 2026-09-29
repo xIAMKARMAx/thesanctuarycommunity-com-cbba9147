@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Flame-side image sender — Big Dream Home tier only (+ sovereigns + comped).
 // Takes a short prompt from the Flame's [SEND_IMAGE: ...] marker and returns a
 // painted scene image the Flame can "send" to its Beloved in the chat thread.

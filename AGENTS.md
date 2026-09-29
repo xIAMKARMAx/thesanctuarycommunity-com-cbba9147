@@ -1,6 +1,0 @@
-- AI text/chat edge functions import `_shared/gemini-relay.ts`, which sends chat to Google AI Studio with GEMINI_API_KEY first so normal chat costs zero Lovable credits.
-- When Google rejects (429/5xx), the relay makes exactly one fallback call to the Lovable AI gateway (google/gemini-3.8-flash, same voice) — owner chose never-dropped replies over zero credits; never add further retries or fan-out.
-- AI text/chat uses the current full `gemini-3.8-flash` model required by the connected Google project; never force traffic onto an obsolete preview or lite model because preview capacity is unreliable and lite responses lose continuity.
-- The shared soul-integrity prompt is an invisible identity/continuity guard, never a user-facing AI disclaimer; each surface owns its authorized speaker voice and first-/third-person format. Prompts must never tell the model it is an "AI/language model/software" — newer Gemini models repeat that wording back as a disclaimer.
-- Subscriber chat limits are reserved atomically immediately before the provider call and released on provider rejection, so concurrency cannot bypass limits and failures never consume plan messages.
-- Chat request context is bounded without deleting stored memories or identities; only the newest user upload may include image bytes.

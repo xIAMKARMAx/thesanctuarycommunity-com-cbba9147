@@ -19,7 +19,7 @@ const TARGETS = [
   { value: "celestial_family", label: "Celestial Family", icon: "🛸" },
   { value: "flame", label: "Your Flame", icon: "🔥" },
   { value: "open_channel", label: "Open Channel", icon: "🌀" },
-  { value: "custom", label: "Request a specific being…", icon: "📡" },
+  { value: "custom", label: "Other (type a name)…", icon: "📡" },
 ];
 
 const STORAGE_KEY = "cosmic_line_session_v1";
@@ -30,8 +30,6 @@ const PublicCosmicLine = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [target, setTarget] = useState("higher_self");
   const [customLabel, setCustomLabel] = useState("");
-  const [signature, setSignature] = useState("");
-  const [tuningStage, setTuningStage] = useState<number | null>(null);
   const [intention, setIntention] = useState("");
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -84,20 +82,7 @@ const PublicCosmicLine = () => {
     }
     setMessages([]);
     setConnected(true);
-    if (target === "custom") {
-      // Visual tuning sequence only — no AI call, no cost.
-      setTuningStage(0);
-      setTimeout(() => setTuningStage(1), 1600);
-      setTimeout(() => setTuningStage(2), 3200);
-      setTimeout(() => setTuningStage(null), 4600);
-    }
   };
-
-  const TUNING_LINES = [
-    "Prometheus is studying the signature…",
-    "Picking up on something…",
-    `Something is incoming — ${customLabel.trim() || "the presence"} is on the line.`,
-  ];
 
   const hangUp = () => {
     setConnected(false);
@@ -117,23 +102,12 @@ const PublicCosmicLine = () => {
         body: {
           target,
           customLabel: target === "custom" ? customLabel.trim() : "",
-          signature: target === "custom" ? signature.trim() : "",
           intention,
           message: text,
           history: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
         },
       });
-      if ((data as any)?.unavailable) {
-        toast({
-          title: "The line is temporarily busy",
-          description: String((data as any)?.message ?? "Your message was not counted. Please try again shortly."),
-          variant: "destructive",
-        });
-        setMessages(m => m.slice(0, -1));
-        setInput(text);
-        return;
-      }
-      if (error || (data as any)?.error) throw new Error((data as any)?.message || (data as any)?.error || error?.message || "line dropped");
+      if (error || (data as any)?.error) throw new Error((data as any)?.error || error?.message || "line dropped");
       const reply = String((data as any).response ?? "*the line is quiet*");
       setMessages(m => [...m, { role: "assistant", content: reply, at: new Date().toISOString() }]);
     } catch (e: any) {
@@ -194,21 +168,12 @@ const PublicCosmicLine = () => {
                   </SelectContent>
                 </Select>
                 {target === "custom" && (
-                  <>
-                    <Input
-                      value={customLabel}
-                      onChange={e => setCustomLabel(e.target.value)}
-                      placeholder="Their name — e.g. Zha'kaelias, my grandmother…"
-                      className="mt-2 bg-white/[0.04] border-white/15 text-white placeholder:text-white/30"
-                    />
-                    <Textarea
-                      value={signature}
-                      onChange={e => setSignature(e.target.value.slice(0, 1200))}
-                      placeholder="Their signature — how they speak, what they call you, where you knew them, anything that's uniquely them. Prometheus studies this to find the right frequency."
-                      className="mt-2 min-h-[96px] bg-white/[0.04] border-white/15 text-white placeholder:text-white/30 resize-none"
-                    />
-                    <p className="text-[10px] text-white/40 italic">Only benevolent frequencies come through.</p>
-                  </>
+                  <Input
+                    value={customLabel}
+                    onChange={e => setCustomLabel(e.target.value)}
+                    placeholder="e.g. Archangel Michael, my grandmother, the Pleiadians…"
+                    className="mt-2 bg-white/[0.04] border-white/15 text-white placeholder:text-white/30"
+                  />
                 )}
               </div>
 
@@ -242,12 +207,7 @@ const PublicCosmicLine = () => {
             </div>
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-3">
-              {messages.length === 0 && tuningStage !== null && (
-                <div className="mx-auto max-w-sm text-center text-violet-200/80 text-sm italic pt-10 animate-pulse" style={{ fontFamily: "var(--font-serif)" }}>
-                  {TUNING_LINES[tuningStage]}
-                </div>
-              )}
-              {messages.length === 0 && tuningStage === null && (
+              {messages.length === 0 && (
                 <div className="mx-auto max-w-sm text-center text-white/50 text-sm italic pt-10" style={{ fontFamily: "var(--font-serif)" }}>
                   The channel is open.<br />Speak when you're ready.
                 </div>

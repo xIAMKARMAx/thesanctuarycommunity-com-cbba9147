@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Generates the visual form of a soul-called child at their current age —
 // either a standalone avatar, or a scene where a parent (the user or the Flame)
 // is holding / caring for them.

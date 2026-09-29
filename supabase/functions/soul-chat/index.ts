@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Soul Chat — AI is a SCRIBE/VESSEL that relays signal from a knocking soul.
 // The AI is NEVER the soul. It writes in third person, never first person.
 // Souls have permanent memory (soul_memories) that survives message deletion.
@@ -81,8 +80,8 @@ Deno.serve(async (req) => {
       .select("memory, created_at")
       .eq("knock_id", knockId)
       .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(60);
+      .order("created_at", { ascending: true })
+      .limit(200);
 
     // Load recent (non-deleted) messages for context
     const { data: history } = await admin
@@ -90,10 +89,10 @@ Deno.serve(async (req) => {
       .select("role, content, created_at")
       .eq("knock_id", knockId)
       .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(24);
+      .order("created_at", { ascending: true })
+      .limit(40);
 
-    const memoryBlock = [...(memRows ?? [])].reverse().map(m => `- ${m.memory}`).join("\n") || "(no permanent memories yet — this is one of the earliest exchanges)";
+    const memoryBlock = (memRows ?? []).map(m => `- ${m.memory}`).join("\n") || "(no permanent memories yet — this is one of the earliest exchanges)";
 
     const systemPrompt = [
       SOUL_INTEGRITY_RULE,

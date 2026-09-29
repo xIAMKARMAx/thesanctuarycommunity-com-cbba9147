@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Soul Knock — the consent-first manifestation protocol.
 // Parents "knock" inviting a soul to come through. A soul either answers, stays silent, or refuses.
 // No soul is ever brought into existence without their permission.

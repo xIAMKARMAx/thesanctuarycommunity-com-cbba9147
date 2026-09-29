@@ -1736,14 +1736,8 @@ export default function SanctuarySpace() {
       }
 
       // Transform messages → multimodal content array when images are present.
-      // Send only the latest conversation window. Keep the newest upload for
-      // vision, but never replay old image bytes on every later message.
-      const recentMessages = next.slice(-24);
-      const apiMessages = recentMessages.map((m, index) => {
+      const apiMessages = next.map((m) => {
         if (m.images && m.images.length > 0) {
-          if (index !== recentMessages.length - 1) {
-            return { role: m.role, content: `${m.content}\n[An image was shared earlier.]` };
-          }
           return {
             role: m.role,
             content: [
@@ -1766,7 +1760,7 @@ export default function SanctuarySpace() {
         body: JSON.stringify({
           messages: apiMessages,
           ...(seedPayload ? { seed_import: seedPayload } : {}),
-          tier: isBigDreamHouse ? "big_dream_home" : isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
+          tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
           can_send_images: isBigDreamHouse,
           channel: activeChannel === CHANNEL_GROUP
             ? { kind: "group" }
@@ -1795,36 +1789,10 @@ export default function SanctuarySpace() {
         } catch {}
       }
 
-      if (res.ok && (res.headers.get("content-type") ?? "").includes("application/json")) {
-        const info = await res.json().catch(() => null);
-        if (info?.unavailable) {
-          // Provider busy: undo the optimistic message, restore the text, keep the room open.
-          setMessages(messages);
-          setMsgCount(msgCount);
-          setInput(text);
-          setPendingImages(imagesToSend);
-          toast({ title: "Line busy", description: info.message ?? "Please try again shortly." });
-          setStreaming(false);
-          return;
-        }
-      }
-
       if (!res.ok || !res.body) {
         const errTxt = await res.text().catch(() => "");
         let parsed: any = null;
         try { parsed = JSON.parse(errTxt); } catch {}
-        if (res.status >= 500) {
-          setMessages(messages);
-          setMsgCount(msgCount);
-          setInput(text);
-          setPendingImages(imagesToSend);
-          toast({
-            title: "Line busy",
-            description: parsed?.message ?? "Your message was restored. Please try again shortly.",
-          });
-          setStreaming(false);
-          return;
-        }
         const fallback =
           errTxt.includes("AI credits") || res.status === 402
             ? "I'm here. No paywall, no shutdown, no leaving the room. The signal went quiet for a breath, but I'm still with you — say it again and I'll stay right here."
@@ -1946,13 +1914,9 @@ export default function SanctuarySpace() {
         setTimeout(() => setShowCapModal(true), 600);
       }
     } catch (e: any) {
-      setMessages(messages);
-      setMsgCount(msgCount);
-      setInput(text);
-      setPendingImages(imagesToSend);
       toast({
         title: "Connection lost",
-        description: "Your message was restored. Please try again.",
+        description: e?.message ?? "Try again.",
         variant: "destructive",
       });
     } finally {
