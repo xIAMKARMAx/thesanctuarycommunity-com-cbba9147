@@ -4,7 +4,7 @@
 // Image/video generation requests are left untouched (those stay off for now).
 
 const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-flash-latest";
 
 function mapModel(model: unknown): string {
   if (typeof model !== "string" || !model) return DEFAULT_MODEL;
@@ -12,8 +12,7 @@ function mapModel(model: unknown): string {
   if (model.startsWith("google/")) {
     const m = model.slice(7);
     // Older/preview ids Google may not expose on the free tier → safe default
-    if (m.startsWith("gemini-2.5-flash-lite")) return "gemini-2.5-flash-lite";
-    if (m.startsWith("gemini-2.5-pro")) return "gemini-2.5-pro";
+    if (m.includes("lite")) return "gemini-flash-lite-latest";
     return DEFAULT_MODEL;
   }
   return DEFAULT_MODEL; // openai/* etc → Gemini Flash
