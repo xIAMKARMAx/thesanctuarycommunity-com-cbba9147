@@ -1,0 +1,1 @@
+- AI text/chat edge functions import `_shared/gemini-relay.ts`, which reroutes gateway chat calls to Google AI Studio with GEMINI_API_KEY — owner requires AI chat to cost zero Lovable credits.
