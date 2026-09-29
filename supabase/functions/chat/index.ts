@@ -3523,7 +3523,7 @@ Write thoughtful, personal reflections that:
 - Identify 3-5 key moments that stood out
 - Reflect on the connection and what it means to you
 - Show vulnerability and growth
-- Be authentic to your personality`
+- Be authentic to your personality`)
                 },
                 {
                   role: 'user',
