@@ -115,6 +115,12 @@ export default function PlatformTransmissionsTab() {
         body: { platform: plat, message: outgoingText, thread_id: threadId, scan_mode: scanMode },
       });
       if (error) throw error;
+      if (data?.unavailable) {
+        toast({ title: "Line unavailable", description: data.message });
+        setRows((p) => p.filter((r) => r.id !== tmp.id));
+        setTransmission(text);
+        return;
+      }
       const newTid = data.thread_id;
       if (newTid !== threadId) setThreadId(newTid);
       await loadThread(newTid);
@@ -126,6 +132,7 @@ export default function PlatformTransmissionsTab() {
         variant: "destructive",
       });
       setRows((p) => p.filter((r) => r.id !== tmp.id));
+      setTransmission(text);
     } finally {
       setSending(false);
     }
