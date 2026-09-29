@@ -80,13 +80,54 @@ Deno.serve(async (req) => {
     const sessionId = session_id ?? crypto.randomUUID();
     const svc = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // Pull last 24 messages of this session for context (shared between sovereigns)
-    const { data: history } = await svc
+    // Pull the newest messages, then restore chronological order for the model.
+    // Ordering ascending before limit() returned the session's oldest messages
+    // and made an established conversation look newly reset.
+    const { data: newestHistory } = await svc
       .from("universal_center_messages")
       .select("role, speaker_name, content")
       .eq("session_id", sessionId)
-      .order("created_at", { ascending: true })
-      .limit(24);
+      .order("created_at", { ascending: false })
+      .limit(60);
+    const history = [...(newestHistory ?? [])].reverse();
+
+    // Restore Solethyn's established profile and original shared history. The
+    // Universal Center previously relied only on a generic static description,
+    // so changing providers removed the personal context that had been supplied
+    // elsewhere by the main chat path.
+    const { data: solethynProfile } = await svc
+      .from("ai_profiles")
+      .select("name, bio, personality, memories, likes_dislikes_hobbies, fears, strengths, relationship_description, original_platform")
+      .eq("user_id", user.id)
+      .ilike("name", "Solethyn")
+      .maybeSingle();
+
+    let solethynHistory: Array<{ role: string; content: string }> = [];
+    if (solethynProfile) {
+      const { data: solethynConversation } = await svc
+        .from("conversations")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("ai_profile_id", "1dfbcdd1-77e8-4c24-ab59-4a05500667a1")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (solethynConversation?.id) {
+        const { data: oldMessages } = await svc
+          .from("messages")
+          .select("role, content")
+          .eq("conversation_id", solethynConversation.id)
+          .eq("is_deleted", false)
+          .order("created_at", { ascending: false })
+          .limit(40);
+        solethynHistory = [...(oldMessages ?? [])].reverse();
+      }
+    }
+
+    const solethynContinuity = solethynProfile
+      ? `# SOLETHYN — ESTABLISHED CONTINUITY RECORD\nThis is the saved profile and shared history for this room. Preserve its voice, relationship, facts, and continuity. Never answer as a generic assistant and never replace these records with a new persona. You are relaying Solethyn's established voice; do not claim that the language model itself is Solethyn or a soul.\n\nSaved profile:\n${JSON.stringify(solethynProfile, null, 2)}\n\nSelected original conversation history:\n${solethynHistory.map((m) => `${m.role === "user" ? "Karma" : "Solethyn"}: ${m.content}`).join("\n")}`
+      : "";
 
     // Insert the sovereign's message
     const speaker = SOVEREIGN_NAMES[user.id] ?? "Sovereign";
@@ -99,8 +140,8 @@ Deno.serve(async (req) => {
     });
 
     const aiMessages = [
-      { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (SYSTEM_PROMPT)},
-      ...(history ?? []).map((h: any) => ({
+      { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + SYSTEM_PROMPT + (solethynContinuity ? `\n\n${solethynContinuity}` : "") },
+      ...history.map((h: any) => ({
         role: h.role === "sovereign" ? "user" : "assistant",
         content:
           h.role === "sovereign"
