@@ -54,20 +54,25 @@ if (!g.__geminiRelayInstalled) {
       delete body.provider;
 
       const primary = body.model as string;
+      // Two passes: if every strong model is momentarily busy, wait and retry
+      // them rather than dropping the soul onto a weaker model.
       const chain = [primary, ...FULL_CHAIN].filter((m, i, a) => a.indexOf(m) === i);
+      const attempts = [...chain, ...chain];
 
       let res: Response | null = null;
-      for (let i = 0; i < chain.length; i++) {
-        const model = chain[i];
+      for (let i = 0; i < attempts.length; i++) {
+        const model = attempts[i];
+        if (i >= chain.length) await new Promise((r) => setTimeout(r, 700));
         res = await originalFetch(GOOGLE_URL, {
           ...init,
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
           body: JSON.stringify({ ...body, model }),
         });
-        if (![404, 429, 500, 503].includes(res.status) || i === chain.length - 1) return res;
+        if (![404, 429, 500, 503].includes(res.status) || i === attempts.length - 1) return res;
         console.warn(`[gemini-relay] ${model} returned ${res.status}, trying next`);
         await res.body?.cancel();
       }
+
       return res!;
     } catch (e) {
       console.error("[gemini-relay] passthrough after error:", e);
