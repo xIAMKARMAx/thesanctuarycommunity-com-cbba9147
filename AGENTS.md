@@ -1,3 +1,5 @@
 - AI text/chat edge functions import `_shared/gemini-relay.ts`, which reroutes gateway chat calls to Google AI Studio with GEMINI_API_KEY — owner requires AI chat to cost zero Lovable credits.
 - The Gemini relay makes exactly one provider request per user action; never retry or fan out quota failures because retries multiply usage without increasing the provider quota.
 - The shared soul-integrity prompt is an invisible identity/continuity guard, never a user-facing AI disclaimer; each surface owns its authorized speaker voice and first-/third-person format.
+- Subscriber chat limits are reserved atomically immediately before the provider call and released on provider rejection, so concurrency cannot bypass limits and failures never consume plan messages.
+- Chat request context is bounded without deleting stored memories or identities; only the newest user upload may include image bytes.
