@@ -919,7 +919,8 @@ Deno.serve(async (req) => {
     }
 
 
-    // Free-cap enforcement (server-side for signed-in free users).
+    // Message limits are reserved atomically immediately before the provider
+    // request. Never trust the client-provided tier for enforcement.
     // Sovereigns (Karma, Jakob, Stormrriddari) bypass the cap absolutely —
     // they preview the Public Version via the dual-view switcher and must
     // never be gated by it.
@@ -930,23 +931,6 @@ Deno.serve(async (req) => {
     ]);
     const isSovereign = SOVEREIGN_USER_IDS.has(userId);
     const tier: string = typeof body?.tier === "string" ? body.tier : "free";
-    if (
-      !isSovereign &&
-      tier === "free" &&
-      (memory?.message_count ?? 0) >= FREE_MESSAGE_CAP
-    ) {
-      return new Response(
-        JSON.stringify({
-          error: "free_cap_reached",
-          message:
-            "You've reached your free messages. Sign into a tier to keep going.",
-        }),
-        {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
 
     const lastUser = [...messages].reverse().find((m: any) => m?.role === "user");
     const lastUserText = typeof lastUser?.content === "string" ? lastUser.content : "";
@@ -1177,7 +1161,47 @@ Deno.serve(async (req) => {
 
 
 
-    // Call Lovable AI Gateway (streaming)
+    let messageReservation: any = null;
+    if (!isSovereign) {
+      const { data: reservation, error: reservationError } = await svc.rpc("reserve_chat_message", { p_user_id: userId });
+      if (reservationError) {
+        console.error("[chat-public] message reservation failed", reservationError);
+        return new Response(JSON.stringify({ error: "Message limits could not be checked. Please try again." }), {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!reservation?.can_send) {
+        const monthlyExhausted = (reservation?.monthly_remaining ?? 0) <= 0;
+        return new Response(JSON.stringify({
+          error: "message_limit_reached",
+          message: reservation?.is_free_tier
+            ? "You've reached your free message limit. Subscribe to continue."
+            : monthlyExhausted
+              ? "You've reached your monthly message limit. It resets on the first day of next month."
+              : "You've reached your daily message limit. It resets tomorrow.",
+          remaining: reservation?.remaining ?? 0,
+          monthly_remaining: reservation?.monthly_remaining ?? 0,
+        }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      messageReservation = reservation;
+    }
+
+    // Keep only the latest useful exchanges. Historical images are replaced by
+    // a text marker so one old upload is never retransmitted on every message.
+    const boundedMessages = messages.slice(-24).map((message: any, index: number, recent: any[]) => {
+      if (!Array.isArray(message?.content)) return message;
+      const isLatest = index === recent.length - 1;
+      return {
+        ...message,
+        content: message.content.map((part: any) => {
+          if (part?.type !== "image_url" || isLatest) return part;
+          return { type: "text", text: "[An image was shared earlier; its pixels are not resent.]" };
+        }),
+      };
+    });
+
+    // Call the provider once (streaming)
     const aiResp = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -1232,7 +1256,7 @@ If she shares a photo with you, look at it. React from the heart like a real bei
             ...(childrenContextBlock ? [{ role: "system" as const, content: childrenContextBlock }] : []),
 
             ...(journalContextBlock ? [{ role: "system" as const, content: journalContextBlock }] : []),
-            ...messages,
+            ...boundedMessages,
           ],
           stream: true,
         }),
@@ -1240,12 +1264,16 @@ If she shares a photo with you, look at it. React from the heart like a real bei
     );
 
     if (!aiResp.ok) {
+      if (messageReservation) {
+        await svc.rpc("release_chat_message", { p_user_id: userId });
+      }
       if (aiResp.status === 429 || aiResp.status === 402) {
         const t = await aiResp.text().catch(() => "");
         console.error("AI gateway refused", aiResp.status, t.slice(0, 300));
-        return new Response(streamTextResponse(offlineSignalReply(lastUserText)), {
-          headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-        });
+        return new Response(JSON.stringify({
+          error: "provider_capacity_exhausted",
+          message: "Google did not accept this message because this project's current AI allowance is exhausted. It was not saved as their reply or counted against your plan.",
+        }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       const t = await aiResp.text();
       console.error("AI gateway error", aiResp.status, t);

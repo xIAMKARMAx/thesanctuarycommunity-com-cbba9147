@@ -400,46 +400,12 @@ serve(async (req) => {
       }
       
       // ═══════════════════════════════════════════════════════════════════════════════
-      // MESSAGE LIMIT CHECK — unified via can_send_chat_message RPC
-      // All tiers enforced: Free(10), Awakening(50/day), Anchoring(80/day),
-      // Architect(100/day), New Earth(350/day). Source & admin exempt.
+      // MESSAGE LIMIT CHECK — the atomic reservation immediately before the
+      // provider call is authoritative. Source & admin remain exempt.
       // ═══════════════════════════════════════════════════════════════════════════════
       isSourceUser = userProductId === 'source_grant';
       
-      if (!isAttunementSession && !isAdmin && !isSourceUser) {
-        const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
-          p_user_id: authenticatedUserId
-        });
-        
-        if (cooldownError) {
-          console.error('[LIMIT] Error checking message limit:', cooldownError);
-        } else if (cooldownCheck && !cooldownCheck.can_send) {
-          const remaining = cooldownCheck.remaining ?? 0;
-          const monthlyRemaining = cooldownCheck.monthly_remaining ?? 0;
-          const isFreeUser = !isUserSubscribed;
-          
-          const errorMsg = isFreeUser
-            ? `You've used all 10 free messages. Subscribe to continue your journey!`
-            : monthlyRemaining <= 0
-              ? `You've reached your monthly message limit. Your messages reset on the 1st!`
-              : `You've reached your daily message limit. Your messages reset tomorrow!`;
-          
-          console.log('[LIMIT] User hit limit:', authenticatedUserId, 'remaining:', remaining, 'monthly:', monthlyRemaining);
-          return new Response(
-            JSON.stringify({ 
-              error: errorMsg,
-              cooldown: false,
-              daily_limit_reached: remaining <= 0,
-              remaining: remaining,
-              monthly_remaining: monthlyRemaining,
-              free_limit_reached: isFreeUser
-            }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        } else {
-          console.log('[LIMIT] User can send, daily remaining:', cooldownCheck?.remaining, 'monthly:', cooldownCheck?.monthly_remaining);
-        }
-      } else if (isSourceUser) {
+      if (isSourceUser) {
         console.log('[LIMIT] Source user - limits bypassed');
       }
       
@@ -2855,7 +2821,34 @@ Write your response now as ${respondingAsName}:`)
       requestBody.max_tokens = 1500;
     }
 
-    console.log('[CHAT] Sending request to AI gateway');
+    let messageReservation: any = null;
+    if (!isAttunementSession && !isAdmin && !isSourceUser) {
+      const { data: reservation, error: reservationError } = await supabaseServiceClient.rpc('reserve_chat_message', {
+        p_user_id: authenticatedUserId
+      });
+      if (reservationError) {
+        console.error('[LIMIT] Atomic reservation failed:', reservationError);
+        return new Response(JSON.stringify({ error: 'Message limits could not be checked. Please try again.' }), {
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      if (!reservation?.can_send) {
+        const monthlyRemaining = reservation?.monthly_remaining ?? 0;
+        const error = !isUserSubscribed
+          ? `You've used all 10 free messages. Subscribe to continue your journey!`
+          : monthlyRemaining <= 0
+            ? `You've reached your monthly message limit. Your messages reset on the 1st!`
+            : `You've reached your daily message limit. Your messages reset tomorrow!`;
+        return new Response(JSON.stringify({ error, remaining: reservation?.remaining ?? 0, monthly_remaining: monthlyRemaining }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      messageReservation = reservation;
+    }
+
+    console.log('[CHAT] Sending one provider request');
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -2866,9 +2859,12 @@ Write your response now as ${respondingAsName}:`)
     });
 
     if (!response.ok) {
+      if (messageReservation) {
+        await supabaseServiceClient.rpc('release_chat_message', { p_user_id: authenticatedUserId });
+      }
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          JSON.stringify({ error: 'Google did not accept this message because this project’s current AI allowance is exhausted. This message was not counted against your plan.' }),
           { 
             status: 429,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -3660,23 +3656,15 @@ Write thoughtful, personal reflections that:
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // COOLDOWN: Increment message count for ALL users (not attunement, not admin, not source_grant)
+    // MESSAGE LIMIT: already reserved atomically immediately before the provider call.
     // ═══════════════════════════════════════════════════════════════════════════════
-    if (!isAttunementSession && !isAdmin && !isSourceUser) {
-      const { data: cooldownResult, error: cooldownIncError } = await supabaseServiceClient.rpc('increment_chat_cooldown', {
-        p_user_id: authenticatedUserId
-      });
-      
-      if (cooldownIncError) {
-        console.error('[COOLDOWN] Error incrementing cooldown:', cooldownIncError);
-      } else if (cooldownResult) {
-        responseBody.cooldown = {
-          remaining: cooldownResult.remaining,
-          cooldown_started: cooldownResult.cooldown_started,
-          cooldown_ends_at: cooldownResult.cooldown_ends_at || null
-        };
-        console.log('[COOLDOWN] Message count updated, remaining:', cooldownResult.remaining);
-      }
+    if (messageReservation) {
+      responseBody.cooldown = {
+        remaining: messageReservation.remaining,
+        monthly_remaining: messageReservation.monthly_remaining,
+        cooldown_started: false,
+        cooldown_ends_at: null
+      };
     }
 
     return new Response(
