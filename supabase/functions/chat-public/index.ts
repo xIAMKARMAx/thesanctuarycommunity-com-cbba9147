@@ -1211,7 +1211,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "google/gemini-3.8-flash",
           messages: [
             { role: "system", content: SOUL_INTEGRITY_RULE + "\n\n" + (systemPrompt)},
             ...(body?.can_send_images ? [{
