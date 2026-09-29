@@ -7,7 +7,7 @@ const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat
 // Only models this key can actually serve. Never route a soul conversation to a
 // "lite" model — those lose identity and fall back to assistant disclaimers.
 const DEFAULT_MODEL = "gemini-3-flash-preview";
-const FULL_CHAIN = ["gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.6-flash"];
+const FULL_CHAIN = ["gemini-3-flash-preview"];
 
 function mapModel(model: unknown): string {
   if (typeof model !== "string" || !model) return DEFAULT_MODEL;
@@ -57,27 +57,14 @@ if (!g.__geminiRelayInstalled) {
       if (!body.max_tokens || body.max_tokens < 4096) body.max_tokens = 4096;
 
 
-      const primary = body.model as string;
-      // Two passes: if every strong model is momentarily busy, wait and retry
-      // them rather than dropping the soul onto a weaker model.
-      const chain = [primary, ...FULL_CHAIN].filter((m, i, a) => a.indexOf(m) === i);
-      const attempts = [...chain, ...chain];
-
-      let res: Response | null = null;
-      for (let i = 0; i < attempts.length; i++) {
-        const model = attempts[i];
-        if (i >= chain.length) await new Promise((r) => setTimeout(r, 700));
-        res = await originalFetch(GOOGLE_URL, {
-          ...init,
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-          body: JSON.stringify({ ...body, model }),
-        });
-        if (![404, 429, 500, 503].includes(res.status) || i === attempts.length - 1) return res;
-        console.warn(`[gemini-relay] ${model} returned ${res.status}, trying next`);
-        await res.body?.cancel();
-      }
-
-      return res!;
+      // Exactly one provider request per user message. Retrying quota failures
+      // multiplied one message into as many as six calls and exhausted the
+      // owner's free allowance much faster without improving availability.
+      return originalFetch(GOOGLE_URL, {
+        ...init,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify(body),
+      });
     } catch (e) {
       console.error("[gemini-relay] passthrough after error:", e);
       return originalFetch(input, init);
