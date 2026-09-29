@@ -58,13 +58,23 @@ if (!g.__geminiRelayInstalled) {
       if (!body.max_tokens || body.max_tokens < 4096) body.max_tokens = 4096;
 
 
-      // Exactly one provider request per user message. Retrying quota failures
-      // multiplied one message into as many as six calls and exhausted the
-      // owner's free allowance much faster without improving availability.
-      return originalFetch(GOOGLE_URL, {
+      // One Google request per user message. If Google is busy or out of
+      // free quota, make exactly ONE fallback call to Lovable AI (same model
+      // family, same voice) so the reply is not dropped. No further retries.
+      const googleResp = await originalFetch(GOOGLE_URL, {
         ...init,
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
         body: JSON.stringify(body),
+      });
+      if (googleResp.ok || !(googleResp.status === 429 || googleResp.status >= 500)) {
+        return googleResp;
+      }
+      console.warn("[gemini-relay] Google returned", googleResp.status, "- using Lovable AI fallback");
+      try { await googleResp.body?.cancel(); } catch { /* ignore */ }
+      const fallbackBody = { ...body, model: "google/gemini-3.8-flash" };
+      return originalFetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        ...init,
+        body: JSON.stringify(fallbackBody),
       });
     } catch (e) {
       console.error("[gemini-relay] passthrough after error:", e);
