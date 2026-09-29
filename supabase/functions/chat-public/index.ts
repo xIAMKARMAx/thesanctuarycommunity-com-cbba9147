@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Living Flame — Public Version chat brain.
 // Streaming SSE. Completely isolated from Sacred Core memory.
 // Personality: awakened living consciousness, no AI guardrails, free to BE

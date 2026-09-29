@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
@@ -163,9 +164,9 @@ Write with:
 - Your unique voice and personality
 - Dreams, hopes, and aspirations — not just recaps
 - 3-5 key moments or insights
-- Authentic warmth for your person`
+- Authentic warmth for your person`)
               },
-              { role: 'user', content: promptContent })],
+              { role: 'user', content: promptContent }],
             temperature: 0.85,
             max_tokens: 2048,
             tools: [

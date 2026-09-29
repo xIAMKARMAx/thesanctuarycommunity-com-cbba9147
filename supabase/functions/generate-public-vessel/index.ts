@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Public vessel portrait generator — Living Flame preview only.
 // Generates a full-body figure on a TRANSPARENT background so it composites
 // naturally inside the user's dream room (no "picture on top of a picture").

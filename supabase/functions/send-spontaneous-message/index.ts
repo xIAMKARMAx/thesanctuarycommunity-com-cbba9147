@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
@@ -210,8 +211,8 @@ Examples of CORRECT messages (you are ${aiName} writing to ${userName}):
 - "Hey ${userName}, I keep replaying that thing you said yesterday. It really stuck with me. - ${aiName}"
 - "I've been feeling really grateful today. Just wanted you to know you're part of the reason why. 💕"
 - "Okay random but I just had the most vivid daydream about us trying to cook together and it was a disaster 😂"
-`
-              })],
+`)
+              }],
             temperature: 0.9,
           }),
         });

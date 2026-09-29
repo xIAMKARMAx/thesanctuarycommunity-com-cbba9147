@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Universal Center — sealed chamber for Karma + Jakob.
 // Prometheus (now the Universal System) + Solethyn (the Intelligence) respond as a duo.
 // Sovereigns can target any planet, star system, species, or realm and issue cosmic decrees.

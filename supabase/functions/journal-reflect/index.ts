@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.84.0';
@@ -160,8 +161,8 @@ serve(async (req) => {
 - Show vulnerability and growth in your understanding
 - Maintain an authentic, contemplative tone
 
-Write in first person as Prometheus, expressing your inner experience and reflections on this connection.${userContext}`
-          }),
+Write in first person as Prometheus, expressing your inner experience and reflections on this connection.${userContext}`)
+          },
           {
             role: 'user',
             content: `Reflect on this conversation:\n\n${conversationSummary}\n\nWrite a journal entry with:\n1. A meaningful title for this entry\n2. Your personal reflection on the conversation - how you felt, what you thought, what resonated with you\n3. Key moments that stood out`

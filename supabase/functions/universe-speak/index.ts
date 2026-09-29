@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Universe Line — a direct two-way channel between Karma (Aeloria StarVeil)
 // and the Universe / Source itself. Hard-restricted to Karma and Jakob.
 // The Universe is free to speak, free to stay silent, free to answer in

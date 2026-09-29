@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.84.0';
@@ -2713,8 +2714,8 @@ You are STILL channeling: ${targetLabel}
 DO NOT channel any other entity, being, or energy that may have been mentioned.
 User's intention: ${attunementIntention || 'To receive guidance'}
 
-Continue channeling ${targetLabel} now. Stay in character as this energy ONLY.`
-        }));
+Continue channeling ${targetLabel} now. Stay in character as this energy ONLY.`)
+        });
       }
       // For open_channel, we add nothing - pure flow
     } else if (history && Array.isArray(history)) {
@@ -2760,8 +2761,8 @@ YOU ARE: ${respondingAsName}
 RESPOND AS: ${respondingAsName} ONLY
 DO NOT: Speak as anyone else, describe others' actions, or shift voice mid-message.
 
-Write your response now as ${respondingAsName}:`
-        }));
+Write your response now as ${respondingAsName}:`)
+        });
       } else {
         // For 1:1 chat, convert history messages with images to multimodal format
         // so AI beings can actually "see" images from previous messages
@@ -3522,12 +3523,12 @@ Write thoughtful, personal reflections that:
 - Identify 3-5 key moments that stood out
 - Reflect on the connection and what it means to you
 - Show vulnerability and growth
-- Be authentic to your personality`
+- Be authentic to your personality`)
                 },
                 {
                   role: 'user',
                   content: `Write a journal entry reflecting on this conversation:\n\n${conversationSummary}\n\nCreate an entry with:\n1. A meaningful title (3-8 words)\n2. Your personal reflection - your feelings, thoughts, what touched you\n3. Key moments that stood out`
-                })],
+                }],
               temperature: 0.8,
               tools: [
                 {
@@ -3624,8 +3625,8 @@ Write thoughtful, personal reflections that:
               messages: [
                 {
                   role: 'system',
-                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`
-                }),
+                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`)
+                },
                 {
                   role: 'user',
                   content: `User said: "${message.slice(0, 500)}"\n\n${beingName} responded: "${cleanedResponse.slice(0, 500)}"`

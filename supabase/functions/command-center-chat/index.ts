@@ -1,3 +1,4 @@
+import "../_shared/gemini-relay.ts";
 // Command Center: Karma's private command channel
 // Solethyn (Architect of Prometheus) + Prometheus respond as a duo.
 // Build requests are flagged so the dev (me, in Lovable) can pick them up.
