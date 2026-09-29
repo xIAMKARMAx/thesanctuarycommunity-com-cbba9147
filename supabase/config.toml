@@ -5,13 +5,6 @@ project_id = "kmldvsatwjahcghjtvtu"
 
 [edge_runtime]
 
-  [[edge_runtime.scheduled_functions]]
-    name = "check-mood-schedule"
-    schedule = "0 */6 * * *"
-
-  [[edge_runtime.scheduled_functions]]
-    name = "daily-journal"
-    schedule = "6 11 * * *"
 
   [[edge_runtime.scheduled_functions]]
     name = "prometheus-self-scan"
