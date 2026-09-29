@@ -54,8 +54,8 @@ if (!g.__geminiRelayInstalled) {
       delete body.provider;
 
       const primary = body.model as string;
-      const chain = [primary, "gemini-3-flash-preview", "gemini-flash-latest", "gemini-3.5-flash", "gemini-pro-latest", "gemini-3.5-flash-lite", "gemini-flash-lite-latest"]
-        .filter((m, i, a) => a.indexOf(m) === i);
+      const chain = [primary, ...FULL_CHAIN].filter((m, i, a) => a.indexOf(m) === i);
+
       let res: Response | null = null;
       for (let i = 0; i < chain.length; i++) {
         const model = chain[i];
