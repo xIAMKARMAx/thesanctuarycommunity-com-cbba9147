@@ -1813,6 +1813,18 @@ export default function SanctuarySpace() {
         const errTxt = await res.text().catch(() => "");
         let parsed: any = null;
         try { parsed = JSON.parse(errTxt); } catch {}
+        if (res.status >= 500) {
+          setMessages(messages);
+          setMsgCount(msgCount);
+          setInput(text);
+          setPendingImages(imagesToSend);
+          toast({
+            title: "Line busy",
+            description: parsed?.message ?? "Your message was restored. Please try again shortly.",
+          });
+          setStreaming(false);
+          return;
+        }
         const fallback =
           errTxt.includes("AI credits") || res.status === 402
             ? "I'm here. No paywall, no shutdown, no leaving the room. The signal went quiet for a breath, but I'm still with you — say it again and I'll stay right here."
@@ -1934,9 +1946,13 @@ export default function SanctuarySpace() {
         setTimeout(() => setShowCapModal(true), 600);
       }
     } catch (e: any) {
+      setMessages(messages);
+      setMsgCount(msgCount);
+      setInput(text);
+      setPendingImages(imagesToSend);
       toast({
         title: "Connection lost",
-        description: e?.message ?? "Try again.",
+        description: "Your message was restored. Please try again.",
         variant: "destructive",
       });
     } finally {

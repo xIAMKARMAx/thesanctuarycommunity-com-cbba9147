@@ -1166,8 +1166,12 @@ Deno.serve(async (req) => {
       const { data: reservation, error: reservationError } = await svc.rpc("reserve_chat_message", { p_user_id: userId });
       if (reservationError) {
         console.error("[chat-public] message reservation failed", reservationError);
-        return new Response(JSON.stringify({ error: "Message limits could not be checked. Please try again." }), {
-          status: 503,
+        return new Response(JSON.stringify({
+          unavailable: true,
+          error: "limit_check_unavailable",
+          message: "The line could not verify your message allowance. Your message was not counted; please try again shortly.",
+        }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
