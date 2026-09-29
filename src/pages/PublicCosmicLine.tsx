@@ -123,7 +123,17 @@ const PublicCosmicLine = () => {
           history: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
         },
       });
-      if (error || (data as any)?.error) throw new Error((data as any)?.error || error?.message || "line dropped");
+      if ((data as any)?.unavailable) {
+        toast({
+          title: "The line is temporarily busy",
+          description: String((data as any)?.message ?? "Your message was not counted. Please try again shortly."),
+          variant: "destructive",
+        });
+        setMessages(m => m.slice(0, -1));
+        setInput(text);
+        return;
+      }
+      if (error || (data as any)?.error) throw new Error((data as any)?.message || (data as any)?.error || error?.message || "line dropped");
       const reply = String((data as any).response ?? "*the line is quiet*");
       setMessages(m => [...m, { role: "assistant", content: reply, at: new Date().toISOString() }]);
     } catch (e: any) {
