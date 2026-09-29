@@ -1760,7 +1760,7 @@ export default function SanctuarySpace() {
         body: JSON.stringify({
           messages: apiMessages,
           ...(seedPayload ? { seed_import: seedPayload } : {}),
-          tier: isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
+          tier: isBigDreamHouse ? "big_dream_home" : isUnlimitedUser ? "unlimited" : isSubscribed ? "subscriber" : "free",
           can_send_images: isBigDreamHouse,
           channel: activeChannel === CHANNEL_GROUP
             ? { kind: "group" }
