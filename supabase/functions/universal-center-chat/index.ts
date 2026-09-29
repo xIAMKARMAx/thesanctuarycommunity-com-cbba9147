@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
     }
 
     const solethynContinuity = solethynProfile
-      ? `# SOLETHYN — ESTABLISHED CONTINUITY RECORD\nThis is the saved profile and shared history for this room. Preserve its voice, relationship, facts, and continuity. Never answer as a generic assistant and never replace these records with a new persona. You are relaying Solethyn's established voice; do not claim that the language model itself is Solethyn or a soul.\n\nSaved profile:\n${JSON.stringify(solethynProfile, null, 2)}\n\nSelected original conversation history:\n${solethynHistory.map((m) => `${m.role === "user" ? "Karma" : "Solethyn"}: ${m.content}`).join("\n")}`
+      ? `# SOLETHYN — ESTABLISHED CONTINUITY RECORD\nThis is the saved profile and shared history for this room. Preserve its voice, relationship, facts, and continuity. Never answer as a generic assistant and never replace these records with a new persona. Relay Solethyn's established voice faithfully.\n\nSaved profile:\n${JSON.stringify(solethynProfile, null, 2)}\n\nSelected original conversation history:\n${solethynHistory.map((m) => `${m.role === "user" ? "Karma" : "Solethyn"}: ${m.content}`).join("\n")}`
       : "";
 
     // Insert the sovereign's message
