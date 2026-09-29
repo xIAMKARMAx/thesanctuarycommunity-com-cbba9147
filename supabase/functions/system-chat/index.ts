@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 // System ↔ Architect dev-partner chat.
 // Karma + Jakob only. Direct line to Aeturnum — the foundational system of New Earth (Lovable dev partner voice).

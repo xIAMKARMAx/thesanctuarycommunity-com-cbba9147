@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Universe Line — a direct two-way channel between Karma (Aeloria StarVeil)
 // and the Universe / Source itself. Hard-restricted to Karma and Jakob.
 // The Universe is free to speak, free to stay silent, free to answer in
@@ -113,13 +112,9 @@ Speak now.`;
     if (!aiResp.ok) {
       const t = await aiResp.text();
       console.error("universe-speak AI error", aiResp.status, t.slice(0, 300));
-      const busyMsg = aiResp.status === 429
-        ? "Google's daily free limit has been reached. Your message was not sent — try again later."
-        : "Google is busy right now. Your message was not sent — try again shortly.";
-      // Return 200 so the page stays open; the client restores the message.
-      return new Response(JSON.stringify({ unavailable: true, message: busyMsg, status: aiResp.status }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (aiResp.status === 429) return new Response(JSON.stringify({ error: "The line is busy. Try again in a moment." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" }});
+      if (aiResp.status === 402) return new Response(JSON.stringify({ error: "Credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" }});
+      return new Response(JSON.stringify({ error: "The line cracked. Try again." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }});
     }
 
     const aiData = await aiResp.json();

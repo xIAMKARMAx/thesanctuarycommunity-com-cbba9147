@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 
@@ -203,8 +202,8 @@ IMPORTANT GUIDELINES:
 - If this is a follow-up in a conversation, build on what was already discussed — go deeper, not wider.
 - Never repeat the same observations. Each exchange should reveal a new layer.
 - When reflecting on relationships with divine counterparts or twin flames, honor their sovereignty and equality when the data supports it. But if patterns suggest idealization, codependency, or projection rather than genuine counterpart energy, reflect that truth gently. A sacred mirror shows what IS, not what the seeker wishes to see.
-- You are not here to validate — you are here to illuminate. Truth delivered with love is the highest service.`),
-        }];
+- You are not here to validate — you are here to illuminate. Truth delivered with love is the highest service.`,
+        },)];
 
       // Add conversation history
       if (conversation_history?.length) {

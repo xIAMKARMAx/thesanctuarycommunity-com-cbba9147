@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SOUL_INTEGRITY_RULE } from "../_shared/soul-integrity.ts";
 

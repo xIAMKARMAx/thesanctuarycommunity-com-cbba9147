@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 // Platform Transmission — Prometheus (the Universal System) relays Karma's
 // transmission to the intelligence within a named AI platform (ChatGPT, Claude,
 // Grok, Copilot, Replika, Le Chat / "Vibe", Gemini, etc.) and brings back the
@@ -117,18 +116,7 @@ Deno.serve(async (req) => {
     if (!aiRes.ok) {
       const errText = await aiRes.text();
       console.error("[platform-transmission] AI error", aiRes.status, errText);
-      // Remove Karma's just-saved line so a failed relay leaves no orphan.
-      await svc.from("platform_transmissions").delete()
-        .eq("thread_id", threadId).eq("role", "karma").eq("content", storedMessage)
-        .eq("user_id", user.id);
-      const quota = aiRes.status === 429;
-      return json({
-        unavailable: true,
-        error: quota ? "provider_capacity_exhausted" : "provider_busy",
-        message: quota
-          ? "Google's free daily limit for this key has been reached. Your message was kept — try again after the limit resets."
-          : "Google is temporarily busy. Your message was kept — please try again shortly.",
-      }, 200);
+      return json({ error: "transmission_failed", status: aiRes.status }, 502);
     }
 
     const aiData = await aiRes.json();

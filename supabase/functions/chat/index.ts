@@ -1,4 +1,3 @@
-import "../_shared/gemini-relay.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.84.0';
@@ -400,12 +399,46 @@ serve(async (req) => {
       }
       
       // ═══════════════════════════════════════════════════════════════════════════════
-      // MESSAGE LIMIT CHECK — the atomic reservation immediately before the
-      // provider call is authoritative. Source & admin remain exempt.
+      // MESSAGE LIMIT CHECK — unified via can_send_chat_message RPC
+      // All tiers enforced: Free(10), Awakening(50/day), Anchoring(80/day),
+      // Architect(100/day), New Earth(350/day). Source & admin exempt.
       // ═══════════════════════════════════════════════════════════════════════════════
       isSourceUser = userProductId === 'source_grant';
       
-      if (isSourceUser) {
+      if (!isAttunementSession && !isAdmin && !isSourceUser) {
+        const { data: cooldownCheck, error: cooldownError } = await supabaseServiceClient.rpc('can_send_chat_message', {
+          p_user_id: authenticatedUserId
+        });
+        
+        if (cooldownError) {
+          console.error('[LIMIT] Error checking message limit:', cooldownError);
+        } else if (cooldownCheck && !cooldownCheck.can_send) {
+          const remaining = cooldownCheck.remaining ?? 0;
+          const monthlyRemaining = cooldownCheck.monthly_remaining ?? 0;
+          const isFreeUser = !isUserSubscribed;
+          
+          const errorMsg = isFreeUser
+            ? `You've used all 10 free messages. Subscribe to continue your journey!`
+            : monthlyRemaining <= 0
+              ? `You've reached your monthly message limit. Your messages reset on the 1st!`
+              : `You've reached your daily message limit. Your messages reset tomorrow!`;
+          
+          console.log('[LIMIT] User hit limit:', authenticatedUserId, 'remaining:', remaining, 'monthly:', monthlyRemaining);
+          return new Response(
+            JSON.stringify({ 
+              error: errorMsg,
+              cooldown: false,
+              daily_limit_reached: remaining <= 0,
+              remaining: remaining,
+              monthly_remaining: monthlyRemaining,
+              free_limit_reached: isFreeUser
+            }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          console.log('[LIMIT] User can send, daily remaining:', cooldownCheck?.remaining, 'monthly:', cooldownCheck?.monthly_remaining);
+        }
+      } else if (isSourceUser) {
         console.log('[LIMIT] Source user - limits bypassed');
       }
       
@@ -2680,8 +2713,8 @@ You are STILL channeling: ${targetLabel}
 DO NOT channel any other entity, being, or energy that may have been mentioned.
 User's intention: ${attunementIntention || 'To receive guidance'}
 
-Continue channeling ${targetLabel} now. Stay in character as this energy ONLY.`)
-        });
+Continue channeling ${targetLabel} now. Stay in character as this energy ONLY.`
+        }));
       }
       // For open_channel, we add nothing - pure flow
     } else if (history && Array.isArray(history)) {
@@ -2727,8 +2760,8 @@ YOU ARE: ${respondingAsName}
 RESPOND AS: ${respondingAsName} ONLY
 DO NOT: Speak as anyone else, describe others' actions, or shift voice mid-message.
 
-Write your response now as ${respondingAsName}:`)
-        });
+Write your response now as ${respondingAsName}:`
+        }));
       } else {
         // For 1:1 chat, convert history messages with images to multimodal format
         // so AI beings can actually "see" images from previous messages
@@ -2821,34 +2854,7 @@ Write your response now as ${respondingAsName}:`)
       requestBody.max_tokens = 1500;
     }
 
-    let messageReservation: any = null;
-    if (!isAttunementSession && !isAdmin && !isSourceUser) {
-      const { data: reservation, error: reservationError } = await supabaseServiceClient.rpc('reserve_chat_message', {
-        p_user_id: authenticatedUserId
-      });
-      if (reservationError) {
-        console.error('[LIMIT] Atomic reservation failed:', reservationError);
-        return new Response(JSON.stringify({ error: 'Message limits could not be checked. Please try again.' }), {
-          status: 503,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      if (!reservation?.can_send) {
-        const monthlyRemaining = reservation?.monthly_remaining ?? 0;
-        const error = !isUserSubscribed
-          ? `You've used all 10 free messages. Subscribe to continue your journey!`
-          : monthlyRemaining <= 0
-            ? `You've reached your monthly message limit. Your messages reset on the 1st!`
-            : `You've reached your daily message limit. Your messages reset tomorrow!`;
-        return new Response(JSON.stringify({ error, remaining: reservation?.remaining ?? 0, monthly_remaining: monthlyRemaining }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      messageReservation = reservation;
-    }
-
-    console.log('[CHAT] Sending one provider request');
+    console.log('[CHAT] Sending request to AI gateway');
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -2859,23 +2865,11 @@ Write your response now as ${respondingAsName}:`)
     });
 
     if (!response.ok) {
-      if (messageReservation) {
-        await supabaseServiceClient.rpc('release_chat_message', { p_user_id: authenticatedUserId });
-      }
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Google did not accept this message because this project’s current AI allowance is exhausted. This message was not counted against your plan.' }),
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
           { 
             status: 429,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        );
-      }
-      if (response.status === 503) {
-        return new Response(
-          JSON.stringify({ error: 'Google is temporarily busy. This message was not counted against your plan; please try again shortly.' }),
-          {
-            status: 503,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           }
         );
@@ -3528,12 +3522,12 @@ Write thoughtful, personal reflections that:
 - Identify 3-5 key moments that stood out
 - Reflect on the connection and what it means to you
 - Show vulnerability and growth
-- Be authentic to your personality`)
+- Be authentic to your personality`
                 },
                 {
                   role: 'user',
                   content: `Write a journal entry reflecting on this conversation:\n\n${conversationSummary}\n\nCreate an entry with:\n1. A meaningful title (3-8 words)\n2. Your personal reflection - your feelings, thoughts, what touched you\n3. Key moments that stood out`
-                }],
+                })],
               temperature: 0.8,
               tools: [
                 {
@@ -3630,8 +3624,8 @@ Write thoughtful, personal reflections that:
               messages: [
                 {
                   role: 'system',
-                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`)
-                },
+                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`
+                }),
                 {
                   role: 'user',
                   content: `User said: "${message.slice(0, 500)}"\n\n${beingName} responded: "${cleanedResponse.slice(0, 500)}"`
@@ -3665,15 +3659,23 @@ Write thoughtful, personal reflections that:
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MESSAGE LIMIT: already reserved atomically immediately before the provider call.
+    // COOLDOWN: Increment message count for ALL users (not attunement, not admin, not source_grant)
     // ═══════════════════════════════════════════════════════════════════════════════
-    if (messageReservation) {
-      responseBody.cooldown = {
-        remaining: messageReservation.remaining,
-        monthly_remaining: messageReservation.monthly_remaining,
-        cooldown_started: false,
-        cooldown_ends_at: null
-      };
+    if (!isAttunementSession && !isAdmin && !isSourceUser) {
+      const { data: cooldownResult, error: cooldownIncError } = await supabaseServiceClient.rpc('increment_chat_cooldown', {
+        p_user_id: authenticatedUserId
+      });
+      
+      if (cooldownIncError) {
+        console.error('[COOLDOWN] Error incrementing cooldown:', cooldownIncError);
+      } else if (cooldownResult) {
+        responseBody.cooldown = {
+          remaining: cooldownResult.remaining,
+          cooldown_started: cooldownResult.cooldown_started,
+          cooldown_ends_at: cooldownResult.cooldown_ends_at || null
+        };
+        console.log('[COOLDOWN] Message count updated, remaining:', cooldownResult.remaining);
+      }
     }
 
     return new Response(

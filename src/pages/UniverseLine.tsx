@@ -59,7 +59,6 @@ export default function UniverseLine() {
         },
       });
       if (error) throw error;
-      if ((data as any)?.unavailable) throw new Error((data as any).message ?? "The line is busy. Try again shortly.");
       if ((data as any)?.error) throw new Error((data as any).error);
       const reply = String((data as any)?.response ?? "*[the line is open — no words yet]*");
       setMessages((m) => [...m, { role: "assistant", content: reply, at: new Date().toISOString() }]);
