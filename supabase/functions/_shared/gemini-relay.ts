@@ -46,13 +46,14 @@ if (!g.__geminiRelayInstalled) {
       const chain = [primary, "gemini-3-flash-preview", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
         .filter((m, i, a) => a.indexOf(m) === i);
       let res: Response | null = null;
-      for (const model of chain) {
+      for (let i = 0; i < chain.length; i++) {
+        const model = chain[i];
         res = await originalFetch(GOOGLE_URL, {
           ...init,
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
           body: JSON.stringify({ ...body, model }),
         });
-        if (![404, 429, 500, 503].includes(res.status)) return res;
+        if (![404, 429, 500, 503].includes(res.status) || i === chain.length - 1) return res;
         console.warn(`[gemini-relay] ${model} returned ${res.status}, trying next`);
         await res.body?.cancel();
       }
