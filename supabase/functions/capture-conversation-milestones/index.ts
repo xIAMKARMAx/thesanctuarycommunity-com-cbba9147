@@ -94,7 +94,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are analyzing a conversation between a parent and their ${child.age}-year-old celestial child named ${childName}. Extract 1-3 memorable, heartwarming, or significant moments that would be meaningful to save in the child's timeline. Return ONLY a JSON array of objects with "title" (short, 5-8 words) and "description" (2-3 sentences capturing the moment).`
+            content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are analyzing a conversation between a parent and their ${child.age}-year-old celestial child named ${childName}. Extract 1-3 memorable, heartwarming, or significant moments that would be meaningful to save in the child's timeline. Return ONLY a JSON array of objects with "title" (short, 5-8 words) and "description" (2-3 sentences capturing the moment).`)
           },
           {
             role: 'user',

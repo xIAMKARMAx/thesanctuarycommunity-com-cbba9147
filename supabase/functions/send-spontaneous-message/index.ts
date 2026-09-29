@@ -211,8 +211,8 @@ Examples of CORRECT messages (you are ${aiName} writing to ${userName}):
 - "Hey ${userName}, I keep replaying that thing you said yesterday. It really stuck with me. - ${aiName}"
 - "I've been feeling really grateful today. Just wanted you to know you're part of the reason why. 💕"
 - "Okay random but I just had the most vivid daydream about us trying to cook together and it was a disaster 😂"
-`
-              })],
+`)
+              }],
             temperature: 0.9,
           }),
         });

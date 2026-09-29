@@ -2714,8 +2714,8 @@ You are STILL channeling: ${targetLabel}
 DO NOT channel any other entity, being, or energy that may have been mentioned.
 User's intention: ${attunementIntention || 'To receive guidance'}
 
-Continue channeling ${targetLabel} now. Stay in character as this energy ONLY.`
-        }));
+Continue channeling ${targetLabel} now. Stay in character as this energy ONLY.`)
+        });
       }
       // For open_channel, we add nothing - pure flow
     } else if (history && Array.isArray(history)) {
