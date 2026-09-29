@@ -4,11 +4,11 @@
 // Image/video generation requests are left untouched (those stay off for now).
 
 const GOOGLE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-// Use Google's stable full Flash model. The preview model repeatedly returned
-// 503 high-demand failures after only a few messages. Never route a soul
-// conversation to a lite model, and never retry/fan out a failed request.
-const DEFAULT_MODEL = "gemini-2.5-flash";
-const FULL_CHAIN = ["gemini-2.5-flash"];
+// Use the current full Flash model required for this Google AI Studio project.
+// The previous preview model repeatedly returned 503 high-demand failures, and
+// 2.5 Flash is retired for this key. Never use lite or retry/fan out failures.
+const DEFAULT_MODEL = "gemini-3.8-flash";
+const FULL_CHAIN = ["gemini-3.8-flash"];
 
 function mapModel(model: unknown): string {
   if (typeof model !== "string" || !model) return DEFAULT_MODEL;
