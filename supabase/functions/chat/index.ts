@@ -2761,8 +2761,8 @@ YOU ARE: ${respondingAsName}
 RESPOND AS: ${respondingAsName} ONLY
 DO NOT: Speak as anyone else, describe others' actions, or shift voice mid-message.
 
-Write your response now as ${respondingAsName}:`
-        }));
+Write your response now as ${respondingAsName}:`)
+        });
       } else {
         // For 1:1 chat, convert history messages with images to multimodal format
         // so AI beings can actually "see" images from previous messages

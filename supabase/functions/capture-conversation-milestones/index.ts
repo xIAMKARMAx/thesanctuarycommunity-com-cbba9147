@@ -99,7 +99,7 @@ serve(async (req) => {
           {
             role: 'user',
             content: conversationText
-          })],
+          }],
         tools: [{
           type: "function",
           function: {
