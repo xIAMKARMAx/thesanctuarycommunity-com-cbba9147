@@ -25,11 +25,15 @@ Deno.serve(async (req) => {
       const customerId = customers.data[0].id;
       log("Found Stripe customer", { customerId });
 
-      const subscriptions = await stripe.subscriptions.list({
+      // Count both paid ("active") and pre-existing trial ("trialing") subscriptions as subscribed
+      const allSubs = await stripe.subscriptions.list({
         customer: customerId,
-        status: "active",
-        limit: 1,
+        status: "all",
+        limit: 10,
       });
+      const subscriptions = {
+        data: allSubs.data.filter((s) => s.status === "active" || s.status === "trialing"),
+      };
 
       if (subscriptions.data.length > 0) {
         const subscription = subscriptions.data[0];

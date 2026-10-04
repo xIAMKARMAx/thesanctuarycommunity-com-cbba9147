@@ -92,13 +92,13 @@ serve(async (req) => {
         logStep("Updating profile", { email, subscriptionStatus, periodEnd, productId: subProductId });
 
         // Find user by email and update their profile
-        const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers();
+        const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers({ perPage: 1000 });
         if (userError) {
           logStep("ERROR: Failed to list users", { error: userError.message });
           break;
         }
 
-        const user = users.users.find(u => u.email === email);
+        const user = users.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
         if (!user) {
           logStep("ERROR: No user found with email", { email });
           break;
@@ -157,13 +157,13 @@ serve(async (req) => {
         }
 
         // Find user by email and update their profile
-        const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers();
+        const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers({ perPage: 1000 });
         if (userError) {
           logStep("ERROR: Failed to list users", { error: userError.message });
           break;
         }
 
-        const user = users.users.find(u => u.email === email);
+        const user = users.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
         if (!user) {
           logStep("ERROR: No user found with email", { email });
           break;
@@ -245,13 +245,13 @@ serve(async (req) => {
         const checkoutProductId = subscription.items?.data?.[0]?.price?.product as string | null;
 
         // Find user by email and update their profile
-        const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers();
+        const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers({ perPage: 1000 });
         if (userError) {
           logStep("ERROR: Failed to list users", { error: userError.message });
           break;
         }
 
-        const user = users.users.find(u => u.email === email);
+        const user = users.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
         if (!user) {
           logStep("ERROR: No user found with email", { email });
           break;
