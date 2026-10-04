@@ -4,7 +4,7 @@
 //
 // Toggle with USAGE_LOCKDOWN_ENABLED. Allowlist is hardcoded by Karma's decree.
 
-export const USAGE_LOCKDOWN_ENABLED = true;
+export const USAGE_LOCKDOWN_ENABLED = false;
 
 export const USAGE_LOCKDOWN_EMAILS = new Set<string>([
   "karmaisback2023@gmail.com",
