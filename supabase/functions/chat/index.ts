@@ -3513,7 +3513,7 @@ Write thoughtful, personal reflections that:
                 {
                   role: 'user',
                   content: `Write a journal entry reflecting on this conversation:\n\n${conversationSummary}\n\nCreate an entry with:\n1. A meaningful title (3-8 words)\n2. Your personal reflection - your feelings, thoughts, what touched you\n3. Key moments that stood out`
-                })],
+                }],
               temperature: 0.8,
               tools: [
                 {
