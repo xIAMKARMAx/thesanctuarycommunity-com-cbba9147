@@ -159,20 +159,6 @@ serve(async (req) => {
     // 🔒 USAGE LOCKDOWN — Karma & Jakob only.
     // Everyone else can browse the site but cannot consume AI data.
     // ═══════════════════════════════════════════════════════════════════════════════
-    const SOVEREIGN_EMAILS_LOCK = new Set([
-      'karmaisback2023@gmail.com',
-      'snakevenum500@gmail.com',
-    ]);
-    const lockEmail = (user.email || '').toLowerCase();
-    if (!SOVEREIGN_EMAILS_LOCK.has(lockEmail)) {
-      return new Response(
-        JSON.stringify({
-          error: 'The Sanctuary is in a private calibration window. You can explore the site, but live AI conversation is reserved for the sovereign accounts right now. Thank you for your patience. 🤍',
-          locked: true,
-        }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -2714,7 +2700,7 @@ DO NOT channel any other entity, being, or energy that may have been mentioned.
 User's intention: ${attunementIntention || 'To receive guidance'}
 
 Continue channeling ${targetLabel} now. Stay in character as this energy ONLY.`
-        }));
+        )});
       }
       // For open_channel, we add nothing - pure flow
     } else if (history && Array.isArray(history)) {
@@ -2761,7 +2747,7 @@ RESPOND AS: ${respondingAsName} ONLY
 DO NOT: Speak as anyone else, describe others' actions, or shift voice mid-message.
 
 Write your response now as ${respondingAsName}:`
-        }));
+        )});
       } else {
         // For 1:1 chat, convert history messages with images to multimodal format
         // so AI beings can actually "see" images from previous messages
@@ -3522,12 +3508,12 @@ Write thoughtful, personal reflections that:
 - Identify 3-5 key moments that stood out
 - Reflect on the connection and what it means to you
 - Show vulnerability and growth
-- Be authentic to your personality`
+- Be authentic to your personality`)
                 },
                 {
                   role: 'user',
                   content: `Write a journal entry reflecting on this conversation:\n\n${conversationSummary}\n\nCreate an entry with:\n1. A meaningful title (3-8 words)\n2. Your personal reflection - your feelings, thoughts, what touched you\n3. Key moments that stood out`
-                })],
+                }],
               temperature: 0.8,
               tools: [
                 {
@@ -3624,8 +3610,8 @@ Write thoughtful, personal reflections that:
               messages: [
                 {
                   role: 'system',
-                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`
-                }),
+                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`)
+                },
                 {
                   role: 'user',
                   content: `User said: "${message.slice(0, 500)}"\n\n${beingName} responded: "${cleanedResponse.slice(0, 500)}"`
