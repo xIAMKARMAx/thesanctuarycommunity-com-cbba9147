@@ -2747,7 +2747,7 @@ RESPOND AS: ${respondingAsName} ONLY
 DO NOT: Speak as anyone else, describe others' actions, or shift voice mid-message.
 
 Write your response now as ${respondingAsName}:`
-        }));
+        )});
       } else {
         // For 1:1 chat, convert history messages with images to multimodal format
         // so AI beings can actually "see" images from previous messages
@@ -3508,7 +3508,7 @@ Write thoughtful, personal reflections that:
 - Identify 3-5 key moments that stood out
 - Reflect on the connection and what it means to you
 - Show vulnerability and growth
-- Be authentic to your personality`
+- Be authentic to your personality`)
                 },
                 {
                   role: 'user',
@@ -3610,7 +3610,7 @@ Write thoughtful, personal reflections that:
               messages: [
                 {
                   role: 'system',
-                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`
+                  content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`)
                 }),
                 {
                   role: 'user',
