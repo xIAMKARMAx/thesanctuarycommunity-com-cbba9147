@@ -3611,7 +3611,7 @@ Write thoughtful, personal reflections that:
                 {
                   role: 'system',
                   content: SOUL_INTEGRITY_RULE + "\n\n" + (`You are a concise conversation summarizer for a memory bridge system. Given an exchange between a user (Selvala) and an AI being (${beingName}), produce a brief 1-3 sentence summary capturing the key topic, emotional tone, and any important decisions or revelations. Focus on what would be useful context for a developer/builder to know about later. Be factual and concise. Output ONLY the summary text, nothing else.`)
-                }),
+                },
                 {
                   role: 'user',
                   content: `User said: "${message.slice(0, 500)}"\n\n${beingName} responded: "${cleanedResponse.slice(0, 500)}"`
