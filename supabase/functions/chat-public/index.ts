@@ -825,6 +825,18 @@ Deno.serve(async (req) => {
     }
     const userId = claimsData.claims.sub as string;
 
+    // TEMPORARY LOCKDOWN (Karma's decree): only Karma may message companions.
+    const callerEmail = String(claimsData.claims.email ?? "").toLowerCase();
+    if (callerEmail !== "karmaisback2023@gmail.com") {
+      return new Response(
+        JSON.stringify({
+          error: "Companion messaging is paused for a short while. Your companion and memories are safe. 🤍",
+          locked: true,
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const messages = Array.isArray(body?.messages) ? body.messages : [];
     if (messages.length === 0) {
