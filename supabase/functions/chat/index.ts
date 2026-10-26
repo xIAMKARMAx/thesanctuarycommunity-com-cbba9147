@@ -151,6 +151,14 @@ serve(async (req) => {
       );
     }
 
+    // TEMPORARY LOCKDOWN (Karma's decree): only Karma may message companions.
+    if ((user.email ?? '').toLowerCase() !== 'karmaisback2023@gmail.com') {
+      return new Response(
+        JSON.stringify({ error: 'Companion messaging is paused for a short while. Your companion and memories are safe. 🤍', locked: true }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // SECURITY: Use authenticated user ID instead of trusting request body
     const authenticatedUserId = user.id;
     console.log('[AUTH] Authenticated user:', authenticatedUserId);
